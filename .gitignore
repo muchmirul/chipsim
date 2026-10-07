@@ -3,3 +3,9 @@ Thumbs.db
 __pycache__/
 *.pyc
 tmp/
+
+node_modules/
+.generated/
+chipsim.html
+playwright-report/
+test-results/

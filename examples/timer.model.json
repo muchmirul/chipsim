@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 1,
+  "id": "timer-example",
+  "name": "Timer counter example",
+  "summary": "An illustrative 16-bit counter with compare, enable, reset, and output toggle.",
+  "scope": "Demonstrates a declarative timer model inspired by the FlexIO timer feature list. This is a counter/compare teaching scenario, not a reconstruction of FlexIO register programming.",
+  "fidelity": "behavioral",
+  "duration": 40,
+  "parameters": [
+    {
+      "id": "period",
+      "label": "Compare period",
+      "type": "integer",
+      "min": 1,
+      "max": 65535,
+      "default": 8
+    }
+  ],
+  "signals": [
+    {
+      "id": "enable",
+      "label": "ENABLE",
+      "width": 1,
+      "direction": "input",
+      "initial": 1
+    },
+    {
+      "id": "reset",
+      "label": "RESET",
+      "width": 1,
+      "direction": "input",
+      "initial": 0
+    },
+    {
+      "id": "out",
+      "label": "OUT",
+      "width": 1,
+      "direction": "output",
+      "initial": 0
+    }
+  ],
+  "registers": [
+    {
+      "id": "count",
+      "label": "Counter",
+      "width": 16,
+      "initial": 0
+    }
+  ],
+  "nodes": [
+    {
+      "id": "inputs",
+      "label": "Enable / Reset",
+      "kind": "external",
+      "signals": ["enable", "reset"]
+    },
+    {
+      "id": "counter",
+      "label": "16-bit counter",
+      "registers": ["count"]
+    },
+    {
+      "id": "compare",
+      "label": "Compare & toggle",
+      "kind": "config",
+      "signals": ["out"]
+    }
+  ],
+  "edges": [
+    {
+      "from": "inputs",
+      "to": "counter"
+    },
+    {
+      "from": "counter",
+      "to": "compare"
+    }
+  ],
+  "initialState": "counting",
+  "states": [
+    {
+      "id": "counting",
+      "label": "Count when enabled",
+      "entry": [],
+      "tick": [],
+      "active": ["counter"],
+      "transitions": [
+        {
+          "to": "counting",
+          "when": {
+            "op": "eq",
+            "args": ["signal.reset", 1]
+          },
+          "actions": [
+            {
+              "target": "reg.count",
+              "value": 0
+            },
+            {
+              "target": "signal.out",
+              "value": 0
+            }
+          ],
+          "message": "Reset clears counter and output",
+          "active": ["inputs", "counter"],
+          "evidence": ["timer-features"]
+        },
+        {
+          "to": "counting",
+          "when": {
+            "op": "and",
+            "args": [
+              {
+                "op": "eq",
+                "args": ["signal.enable", 1]
+              },
+              {
+                "op": "ge",
+                "args": [
+                  "reg.count",
+                  {
+                    "op": "sub",
+                    "args": ["param.period", 1]
+                  }
+                ]
+              }
+            ]
+          },
+          "actions": [
+            {
+              "target": "reg.count",
+              "value": 0
+            },
+            {
+              "target": "signal.out",
+              "value": {
+                "op": "bitXor",
+                "args": ["signal.out", 1]
+              }
+            }
+          ],
+          "message": "Compare reached; toggle output and clear counter",
+          "active": ["counter", "compare"],
+          "evidence": ["timer-features"]
+        },
+        {
+          "to": "counting",
+          "when": {
+            "op": "eq",
+            "args": ["signal.enable", 1]
+          },
+          "actions": [
+            {
+              "target": "reg.count",
+              "value": {
+                "op": "add",
+                "args": ["reg.count", 1]
+              }
+            }
+          ],
+          "message": "Increment counter",
+          "active": ["inputs", "counter"],
+          "evidence": ["timer-features"]
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "flexio-manual",
+      "title": "Using FlexIO to emulate communications and timing peripherals",
+      "filename": "docs/references/nxp-flexio-an12174.pdf",
+      "sha256": "9707f1feeb81bbc9869cf496678f119a7b54514958700f72a3b3108f86af5088",
+      "url": "https://www.nxp.com/docs/en/application-note/AN12174.pdf"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "timer-features",
+      "sourceId": "flexio-manual",
+      "page": 3,
+      "quote": "16-bit timers with high flexibility support for a variety of internal or external triggers",
+      "claim": "The source supports the timer width and existence of configurable triggers. The transitions below implement an explicitly assumed teaching scenario."
+    }
+  ],
+  "assumptions": [
+    "One normalized tick is one possible counter increment; this is not a physical FlexIO timer clock.",
+    "The compare period, output toggle, reset priority, and counter restart rules are assumptions for this example; they are not vendor register semantics.",
+    "RESET has priority over ENABLE and holds count and output at zero. An enabled compare toggles the output and restarts count at zero."
+  ],
+  "checks": [
+    {
+      "name": "Compare toggles at period",
+      "parameters": {
+        "period": 3
+      },
+      "ticks": 3,
+      "expect": {
+        "reg.count": 0,
+        "signal.out": 1
+      }
+    },
+    {
+      "name": "Disabled timer holds state",
+      "parameters": {
+        "period": 3
+      },
+      "ticks": 4,
+      "inputs": [
+        {
+          "tick": 2,
+          "signal": "enable",
+          "value": 0
+        }
+      ],
+      "expect": {
+        "reg.count": 1,
+        "signal.out": 0
+      }
+    },
+    {
+      "name": "Reset overrides enabled counter",
+      "parameters": {
+        "period": 2
+      },
+      "ticks": 3,
+      "inputs": [
+        {
+          "tick": 3,
+          "signal": "reset",
+          "value": 1
+        }
+      ],
+      "expect": {
+        "reg.count": 0,
+        "signal.out": 0
+      }
+    },
+    {
+      "name": "Period one toggles every step",
+      "parameters": {
+        "period": 1
+      },
+      "ticks": 4,
+      "expect": {
+        "reg.count": 0,
+        "signal.out": 0
+      }
+    }
+  ]
+}
