@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "retrieved_on": "2026-10-07",
+  "description": "Complete official PDFs cited by the six ChipSim teaching models. Versions are pinned snapshots, not a promise of latest revisions.",
+  "documents": [
+    {
+      "chips": [
+        "pio"
+      ],
+      "path": "docs/references/rp2040-datasheet.pdf",
+      "title": "RP2040 Datasheet",
+      "publisher": "Raspberry Pi",
+      "revision": "Build 2025-02-20; 3184e62-clean",
+      "source_url": "https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf",
+      "retrieved_on": "2026-10-07",
+      "bytes": 5301205,
+      "pages": 642,
+      "sha256": "be56fbb75ba0ae9e26558a73c93ac3e75c2ad4e6878d3b6703de2a76d886ea8c",
+      "pdf_start_page": 312,
+      "relevant_sections": "Chapter 3, especially 3.1-3.2 and 3.4-3.5",
+      "supports": "Instruction memory, state machines, FIFOs, shifts, pin control, and instruction behavior.",
+      "model_assumptions": "The model combines multiple instructions into semantic actions. FIFO delay, bounded polling, and normalized timing are model choices; WAIT alone is not a timeout."
+    },
+    {
+      "chips": [
+        "pru"
+      ],
+      "path": "docs/references/ti-am335x-trm-spruh73q.pdf",
+      "title": "AM335x and AMIC110 Sitara Processors Technical Reference Manual",
+      "publisher": "Texas Instruments",
+      "revision": "SPRUH73Q; revised December 2019",
+      "source_url": "https://www.ti.com/lit/ug/spruh73q/spruh73q.pdf",
+      "retrieved_on": "2026-10-07",
+      "bytes": 24382525,
+      "pages": 5118,
+      "sha256": "4c069cba3fe69df2f4873dad424536d27cc49450429d23120dad383f1d832c07",
+      "pdf_start_page": 208,
+      "relevant_sections": "4.4.1 PRU Cores; 4.4.1.2; Table 4-21",
+      "supports": "PRU execution and the direct R30/R31 I/O paths.",
+      "model_assumptions": "Only direct-output mode is modeled. Four ticks of unavailable firmware represent a teaching experiment; detailed instruction timing, bus arbitration, and optional shift-output hardware are outside scope."
+    },
+    {
+      "chips": [
+        "flexio"
+      ],
+      "path": "docs/references/nxp-flexio-an12174.pdf",
+      "title": "Using FlexIO to emulate communications and timing peripherals",
+      "publisher": "NXP",
+      "revision": "AN12174, Rev. 0, June 2018",
+      "source_url": "https://www.nxp.com/docs/en/application-note/AN12174.pdf",
+      "retrieved_on": "2026-10-07",
+      "bytes": 3187250,
+      "pages": 46,
+      "sha256": "9707f1feeb81bbc9869cf496678f119a7b54514958700f72a3b3108f86af5088",
+      "pdf_start_page": 3,
+      "relevant_sections": "2 Overview of the FlexIO module; 4.1.1 transmit configuration",
+      "supports": "Shifter/timer structure, triggers, and transfer configuration.",
+      "model_assumptions": "The example uses a representative S32K144 resource budget. Register encodings, buffer aliases, and automatic framing are abstracted; custom ACK handling is host software."
+    },
+    {
+      "chips": [
+        "udb"
+      ],
+      "path": "docs/references/infineon-psoc5lp-architecture-trm.pdf",
+      "title": "PSoC 5LP Architecture TRM",
+      "publisher": "Cypress / Infineon",
+      "revision": "001-78426 Rev. *G",
+      "source_url": "https://www.infineon.com/assets/row/public/documents/30/57/infineon-psoc5lp-architecture-trm-additionaltechnicalinformation-en.pdf",
+      "retrieved_on": "2026-10-07",
+      "bytes": 4387753,
+      "pages": 428,
+      "sha256": "850ded1e08e87e5cc47c902b2b7411148826a61481e50f93ed0234d6ff815e1f",
+      "pdf_start_page": 165,
+      "relevant_sections": "21 Universal Digital Blocks; 22 UDB Array and Digital System Interconnect",
+      "supports": "PLDs, datapaths, configuration stores, and routing.",
+      "model_assumptions": "The design is a composed UDB network, not a claim that the complete link fits one UDB. Fitting, propagation delay, and exact clock distribution are abstracted."
+    },
+    {
+      "chips": [
+        "xmos"
+      ],
+      "path": "docs/references/xmos-xs3-architecture.pdf",
+      "title": "The XMOS XS3 Architecture",
+      "publisher": "XMOS",
+      "revision": "XM-014007-PS v2.1.0, 2025-03-06",
+      "source_url": "https://www.xmos.com/documentation/XM-014007-PS/pdf/XM-014007-PS-xs3-arch-inst-2.1.0.pdf",
+      "retrieved_on": "2026-10-07",
+      "bytes": 3263409,
+      "pages": 343,
+      "sha256": "3be6bb6d000c3b149af81ebd1a50f75149df59f2657465becf437b7768411462",
+      "pdf_start_page": 18,
+      "relevant_sections": "3 Concurrent Threads; 5 Instruction Issue and Execution; 10 Resources and the Thread Scheduler; 14 Timers; 15 Ports, Input and Output; 17 Events",
+      "supports": "Execution sharing, resource-driven scheduling, timed ports, timers, and event handling.",
+      "model_assumptions": "The model allows one pending unbuffered timed write. Displayed CLK is a data bit, distinct from the underlying port clock. Time domains and counter wrap are abstracted."
+    },
+    {
+      "chips": [
+        "xmos"
+      ],
+      "path": "docs/references/xmos-clocked-io-an03001.pdf",
+      "title": "AN03001: XCORE Clocked Input and Output",
+      "publisher": "XMOS",
+      "revision": "XM-015254-AN v1.0.0, 2025-03-11",
+      "source_url": "https://www.xmos.com/documentation/XM-015254-AN/pdf/AN03001_v1.0.0.pdf",
+      "retrieved_on": "2026-10-07",
+      "bytes": 177571,
+      "pages": 9,
+      "sha256": "0bef3d4d62420e0f38bb9a2896cf9acb98ff620c13daed6ee3d114c88724ade8",
+      "pdf_start_page": 6,
+      "relevant_sections": "1 Generating a Clock Signal; 3 Performing I/O on Specific Clock Edges; 5 Summary of Clocked Port Behavior",
+      "supports": "Port clock configuration and I/O timing conditions.",
+      "model_assumptions": "This supports the port timing explanation; it is not the executable implementation of ChipSim's DATA/CLK/ACK recipe."
+    },
+    {
+      "chips": [
+        "etpu"
+      ],
+      "path": "docs/references/nxp-etpu-channel-hardware-an2933.pdf",
+      "title": "Understanding the eTPU Channel Hardware",
+      "publisher": "Freescale / NXP",
+      "revision": "AN2933, Rev. 0, December 2004",
+      "source_url": "https://www.nxp.com/docs/en/user-guide/AN2933.pdf",
+      "retrieved_on": "2026-10-07",
+      "bytes": 907695,
+      "pages": 40,
+      "sha256": "dbf9522dff6068cccce5011f57e3469a4090a6c05f36adae82a0b70312803f64",
+      "pdf_start_page": 3,
+      "relevant_sections": "2 Architecture of the eTPU Channel; 5.1-5.3",
+      "supports": "Match/capture action units, pin actions, recognition control, event latches, and servicing.",
+      "model_assumptions": "CLK rearming is modeled with two slots. Separate DATA-channel preparation is assumed timely. A missed required CLK target ends the demonstration rather than predicting every later hardware effect."
+    },
+    {
+      "chips": [
+        "etpu"
+      ],
+      "path": "docs/references/nxp-etpu-essentials-an2353.pdf",
+      "title": "The Essentials of Enhanced Time Processing Unit",
+      "publisher": "Freescale / NXP",
+      "revision": "AN2353, Rev. 1, August 2004",
+      "source_url": "https://www.nxp.com/docs/en/user-guide/AN2353.pdf",
+      "retrieved_on": "2026-10-07",
+      "bytes": 141116,
+      "pages": 12,
+      "sha256": "9f54bee1a78723b8ac054d48c179a8677c47d02df5891c159b65c8adb382e990",
+      "pdf_start_page": 3,
+      "relevant_sections": "3 Channel Hardware; 4 Memory; 5 The Microengine",
+      "supports": "Shared microengine, memory, channels, and hardware-assisted timing.",
+      "model_assumptions": "ACK capture is evaluated by its timestamp, with a model-defined two-tick service delay. These timing constants are teaching assumptions, not device latency specifications."
+    }
+  ]
+}
