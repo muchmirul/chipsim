@@ -1,40 +1,46 @@
-# Development
+# Developing ChipSim
 
-## Application structure
+Read the repository's `AGENTS.md` before changing simulation behavior or adding a model.
 
-`index.html` is the only application source and entry point. All styling, SVG rendering, and simulation code are inline so opening it through `file://` works without a build step or module server.
+## Architecture
 
-| Element | Responsibility |
-| --- | --- |
-| `lab-defaults` | JSON configuration used when the page starts and when settings are exported. |
-| `lab-core` | Architecture metadata, recipes, topology, configuration normalization, and the six behavioral models. |
-| `lab-ui` | Controls, playback, hash navigation, diagrams, waveforms, bundled reference links, and HTML export. |
+The HTML shell and UI contain no architecture-specific execution engine. A model provides a common interface: ID, name, summary, scope, fidelity, parameters, signals, topology, source references, assumptions, `simulate(parameters, options)`, and `recipe(parameters)`.
 
-The core exposes `globalThis.architectureLab`. Its `simulate(id, config)` function returns a deterministic array of state snapshots. Each snapshot includes signal levels, sampled bits, decoded payload, phase, active blocks, display values, and an event explanation. The UI selects the current snapshot; playback does not run a separate hardware emulator.
+`src/models/index.js` adapts the six built-in architecture modules and registers declarative models. Built-ins retain their mechanism-specific behavior; `src/core/protocol.js` shares payload normalization, edge planning, frame boundaries, ACK stimulus, and terminal outcomes. Resource constraint modes deliberately produce different stalls, drift, or missed deadlines.
 
-Supported IDs are `pio`, `pru`, `flexio`, `udb`, `xmos`, and `etpu`. The UI adds `getState()` for inspection in the browser console.
+`src/model/validate.js` validates the declarative contract. `src/model/engine.js` evaluates the bounded expression language and state transitions without dynamic code execution. Imported models must pass their acceptance cases before registration. When a PDF is attached, its text is used to verify exact evidence quotations and page numbers.
 
-## Change a model
+Every snapshot carries `tick`, `state`, `phase`, `signals`, `registers`, active node IDs, event text, evidence IDs, and structured changes. Built-in snapshots also retain `original` values for regression inspection. Trace exporters consume this common format. The UI recomputes deterministic traces after parameters/stimulus change; playback selects snapshots rather than mutating simulator state.
 
-1. Identify the behavior and relevant manual section in [REFERENCES.md](REFERENCES.md).
-2. Separate documented hardware behavior from an explicit teaching assumption.
-3. Update the corresponding `simulate*` function, recipe, architecture metadata, and topology as needed.
-4. Check complete transfers, missing ACK, frame lengths, half-period limits, and the resource experiment.
-5. Update the reference guide if the modeled scope changes.
-6. Run `node scripts/verify.mjs` from the repository root.
+`src/documents/pdf.js` runs PDF.js locally in an embedded worker. Recognition uses pinned fingerprints or conservative chip/peripheral name matches in the first 20 pages. Installed document models are associated by source SHA-256, so later PDF imports open their authored behavior directly. Recognition selects an existing model, never invents behavior. IndexedDB stores source PDFs, extracted text, and imported model JSON; a memory fallback supports environments without persistent storage and shows a warning after saving fails.
 
-Preserve the shared DATA/CLK/ACK contract unless the interface and documentation are deliberately changed together. Keep terminal results latched. Do not treat normalized ticks as vendor instruction cycles or extrapolate physical performance from the diagrams.
+## Build and run
 
-## Update reference PDFs
+Node.js 22.13+ is required. `npm ci` installs pinned dependencies from the lockfile. `npm run build` bundles the UI and PDF worker and writes `.generated/app.js` and portable `chipsim.html`. No production backend or external service is needed.
 
-Download complete documents from the publisher. Keep their original contents and notices. Validate that a response is actually a PDF before replacing a tracked file: some download endpoints return an HTML error page or an empty response.
+`npm run dev` watches JavaScript dependencies and serves localhost. Restart it after adding or modifying packaged model JSON in `models/`. CSS and HTML shell edits are served directly; run `npm run build` to refresh their portable-file copy. `npm start` serves a completed build. `PORT=8001 npm start` changes the port.
 
-Record the new document revision, official URL, retrieval date, byte size, page count, and SHA-256 in `docs/references/manifest.json`. On a system with Poppler, `pdfinfo FILE.pdf` provides the page count. `sha256sum FILE.pdf` computes the checksum. Update the human-readable guide and `BUNDLED_REFERENCES` in `lab-ui` when names or page locations change.
+Generated outputs and dependencies are Git-ignored. The local server accepts GET/HEAD only, binds to loopback, and excludes `.git`, `node_modules`, and `.env` paths. It is a development/static preview server, not an internet-facing application server.
 
-Manifest `pdf_start_page` values and URL `#page=` fragments use one-based PDF viewer pages. Printed page numbers may differ; the guide uses section numbers where possible.
+## Add a model
 
-## Browser review
+Prefer declarative JSON for a new bounded peripheral scenario; see `docs/MODEL_FORMAT.md` and `examples/timer.model.json`. Browser imports require no rebuild. JSON placed under `models/` is included automatically on the next build. Each model needs independently justified acceptance cases and explicit source evidence/assumptions.
 
-After UI changes, open the page and check all chip tabs, comparison mode, playback, timeline seeking, configuration changes, each constraint toggle, the source panels, and HTML export. Check a narrow window for scrolling and layout. Confirm that local PDFs open with the whole repository available offline.
+For behavior beyond the expression language, add a reviewed JavaScript simulator under `src/models/`, adapt its snapshots to the common interface, and register it in the catalog. Keep rendering separate from simulation. Preserve existing models and regression coverage rather than forcing all mechanisms into a shared implementation.
 
-The verification script parses both JavaScript blocks and checks the model/reference contracts. It does not render the page, exercise browser download behavior, or validate the models against physical hardware.
+## Checks
+
+- `npm test`: numeric formats, all 24 built-in width/ACK combinations, resource constraints, explicit ACK boundary stimulus, model execution order, width wrapping, terminal behavior, invalid models, provenance checks, recognition, and trace serialization.
+- `npm run verify`: tests plus the eight PDF sizes/fingerprints, complete PDF markers, source coverage, example-model acceptance checks, documentation existence, and portable build references.
+- `npm run test:ui`: Chromium tests for control behavior, comparison, exports, PDF extraction/search/storage, sourced model import and rejection, unknown-manual handling, session restoration, mobile layout, and direct-file offline PDF import.
+- `npm run format`: Prettier for repository code, JSON, shell HTML, and Markdown.
+
+Install the test browser once with `npx playwright install chromium`. Tests use their own browser contexts; they do not touch the user's browsing session. PDF CLI extraction is validated separately with Poppler. Large manuals are extracted page by page with visible progress and cancel support.
+
+## Review limits
+
+Quote verification normalizes whitespace. It confirms a quote exists on its cited page, not that the modeled inference follows from it. Extracted source bundles may come from different PDF text engines and can differ in hyphenation or ligatures; choose exact robust excerpts and check browser import too. Scanned documents require OCR outside ChipSim.
+
+Timing is normalized; built-in deadlines and schedules preserve comparative semantic behavior rather than cycle accuracy. eTPU distinguishes capture arrival from shared service time. In the new adjustable ACK path, capture remains independent of final CLK bookkeeping, including an ACK held high at the enabled window boundary.
+
+No LLM integration is present. Automatic generation of correct arbitrary-chip behavior remains future work; don't claim PDF upload alone achieves it. The current extension path gives a developer/agent extracted sources, a constrained model format, validation, acceptance checks, and the full workbench UI.

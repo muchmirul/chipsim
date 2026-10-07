@@ -1,0 +1,69 @@
+# Working on ChipSim
+
+ChipSim is a local hardware behavior workbench. Keep the six supplied architecture examples usable, and make new document-backed models use the same inspection, waveform, and trace interface.
+
+## Read first
+
+- `README.md`: user workflow, setup, and current limits.
+- `docs/MODEL_FORMAT.md`: the declarative model contract and execution order.
+- `docs/DEVELOPMENT.md`: source layout, build, verification, and extension points.
+- `docs/REFERENCES.md`: pinned vendor PDFs and model scope.
+
+Do not edit `chipsim.html` or `.generated/`; these are build outputs. Edit `src/`, the HTML shell, and model JSON. Do not reintroduce a monolithic simulation script.
+
+## Commands
+
+Use Node.js 22.13 or newer:
+
+```sh
+npm ci
+npm run build
+npm test
+npm run verify
+npm run dev
+```
+
+For changes affecting UI, document import, exports, or offline behavior, also run:
+
+```sh
+npx playwright install chromium
+npm run test:ui
+```
+
+The development server listens on `127.0.0.1:8000`. `npm run dev` rebuilds JavaScript and writes the portable HTML. After adding or changing packaged JSON under `models/`, restart it or run `npm run build` again. Open the app and inspect the affected view at desktop and mobile sizes for layout changes.
+
+## Creating a simulation from a manual
+
+1. Define a useful, bounded peripheral scenario: e.g. FIFO transfer, counter match, interrupt acknowledgment. A PDF is a source, not an executable hardware model.
+2. Extract the supplied manual using the app's **Export sources for agent**, or `npm run extract -- manual.pdf manual.sources.json`. The CLI requires Poppler's `pdfinfo` and `pdftotext`. Preserve the PDF SHA-256 and **one-based PDF page numbers**, including front matter.
+3. Read the relevant sections, reset values, register widths, ordering rules, peripheral diagrams, and errata if supplied. Use exact short quotes and cite their PDF page. Do not fabricate sources, bit fields, addresses, internal structures, timings, or reset behavior.
+4. Author a schema-version-1 JSON model following `docs/MODEL_FORMAT.md`. Use `examples/timer.model.json` as a syntax example. Its timer rules are explicitly illustrative; do not copy its assumptions as vendor facts.
+5. Declare what is modeled, what is omitted, and which behavior is an assumption. Distinguish vendor-specified behavior from a developer-selected test scenario. Keep normalized ticks separate from physical cycles.
+6. Add executable acceptance cases covering reset, normal operation, boundaries, and at least one relevant failure or disabled condition. Derive expected results independently from the documented behavior. Width wrapping, input ordering, terminal latching, and deadlines need specific expectations where relevant.
+7. Validate against the actual source bundle:
+
+   ```sh
+   npm run model -- validate path/to/chip.model.json --sources manual.sources.json
+   npm run model -- simulate path/to/chip.model.json --ticks 100 --format json --out trace.json
+   ```
+
+8. Import the PDF and model JSON in the browser. Confirm that source verification succeeds, inspect transitions and register changes, and export a trace. A quote match proves textual provenance; it does not prove the interpretation or silicon accuracy.
+9. For a checked-in model, put JSON under `models/`, rerun the build, and add focused tests. Check redistribution terms before checking in a new vendor PDF. Add reference provenance to the manifest and notices when appropriate; preserve existing PDF bytes and hashes.
+
+If a manual does not specify enough behavior, report the gap and offer an explicit configurable assumption. Do not claim that an invented model was generated accurately from the datasheet.
+
+## Architecture and invariants
+
+- `src/models/builtins/` holds the six original mechanisms; shared protocol behavior is in `src/core/`.
+- `src/model/validate.js` is the authoritative model validator. `src/model/engine.js` interprets bounded expressions and state transitions. Imported models are data: never execute embedded JavaScript, `eval`, or dynamic functions.
+- Input events drive **input** signals only, before a model step, and hold values until changed. Actions can write declared registers and output signals only.
+- Actions execute in order; values wrap at their declared width. At most one transition is taken per tick. Terminal states latch, while externally driven signals remain observable.
+- Built-in DATA transfers are LSB-first, with 8 or 12 bits. CLK rising edges sample DATA. Payload inputs accept decimal and `0x`, `0b`, `0o`; plain digit strings are decimal. A display change must preserve numerical values and playback position.
+- Preserve architecture-specific constraints. PRU polling, PIO FIFO stalls, UDB logic, FlexIO host branching, XMOS pending writes, and eTPU capture/service behavior must not collapse into identical mechanisms.
+- CSV, JSON, and VCD describe the same trace. JSON includes model provenance and parameters; VCD time units are normalized ticks, not a claim of nanosecond timing.
+- No LLM integration is requested for this stage. Document bytes and text stay local. Do not introduce model providers, API keys, uploads, telemetry, or background network calls.
+- Escape all document/model text before HTML rendering. Validate geometry and references before rendering imported models. Do not trust document metadata or imported JSON.
+
+## Finishing changes
+
+Run the checks appropriate to what changed. Keep `README.md` and model documentation aligned with actual behavior. Report what works, what was tested, and material remaining limits. Never describe unfamiliar PDF import as automatic chip simulation unless the implementation actually models that chip behavior and has been verified.

@@ -1,118 +1,258 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>ChipSim · Interactive chip simulation</title>
-<style>
-:root{--ink:#172b3a;--muted:#526674;--line:#d8e1e6;--paper:#fff;--bg:#f2f5f7;--teal:#087e80;--tealwash:#e0f4ef;--purple:#6d47a2;--purplewash:#f1eafb;--amber:#955711;--amberwash:#fff1d9;--red:#b54040;--shadow:0 8px 30px #17394d08}*{box-sizing:border-box}body{margin:0;font:15px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}button,input,select{font:inherit}button,select,input{min-height:40px;border:1px solid #bdcbd3;border-radius:8px;background:white;color:var(--ink)}button{cursor:pointer;padding:8px 15px;font-weight:650;transition:background .15s}button:hover{background:#edf4f5}button:disabled{cursor:default;opacity:.42}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #8dc9d0;outline-offset:3px}a{color:#126575;text-underline-offset:3px}header{background:var(--ink);color:#fff;padding:30px max(24px,calc((100vw - 1440px)/2));border-bottom:4px solid #58b5aa}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.13em;font-weight:750;color:#8fd6ce}h1{font-size:clamp(25px,3.2vw,41px);line-height:1.16;letter-spacing:-.035em;margin:8px 0 12px}header p{max-width:900px;color:#d2e0e7;margin:0;font-size:16px}.header-row{display:flex;gap:24px;align-items:center;justify-content:space-between}.download{flex-shrink:0;background:#fff;color:var(--ink);border-color:#fff}main{max-width:1490px;padding:24px;margin:auto}.setup{border:1px solid var(--line);border-radius:14px;background:var(--paper);padding:18px 20px;box-shadow:var(--shadow)}.control-grid{display:grid;grid-template-columns:1.2fr 1fr 1.25fr 1.35fr;gap:20px}.control label,.small-label{display:block;font-size:12px;font-weight:750;letter-spacing:.025em;color:var(--muted);margin-bottom:6px}.control input,.control select{width:100%;padding:7px 10px}.control .range-row{display:flex;align-items:center;gap:10px}.control input[type=range]{padding:0;min-height:40px;accent-color:var(--teal)}output{font:700 15px ui-monospace,SFMono-Regular,Consolas,monospace}.contract{display:flex;flex-wrap:wrap;gap:7px 20px;align-items:center;border-top:1px solid var(--line);margin-top:15px;padding-top:13px;color:var(--muted);font-size:13px}.contract strong{color:var(--ink)}.bit-string{letter-spacing:.08em;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.select-bar{display:flex;gap:18px;align-items:center;justify-content:space-between;margin:22px 0 12px}.chip-tabs{display:flex;gap:6px;flex-wrap:wrap}.chip-tabs button{font-size:13px;padding:7px 14px;border-color:transparent;background:transparent}.chip-tabs button[aria-selected=true]{background:var(--ink);color:#fff}.compare-control{display:flex;align-items:center;gap:9px;white-space:nowrap;font-size:13px}.compare-control input{min-height:18px;width:18px;accent-color:var(--teal)}.compare-control select{font-size:13px;padding:6px 9px}.transport{display:flex;align-items:center;gap:8px;background:#fff;padding:12px 15px;border:1px solid var(--line);border-radius:12px;margin-bottom:16px}.transport .primary{background:var(--teal);color:#fff;border-color:var(--teal);min-width:94px}.transport .primary:hover{background:#056a6c}.transport .timeline{flex:1;min-width:70px;accent-color:var(--teal)}.transport .tick{min-width:100px;font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}.transport .tick strong{font-size:18px;color:var(--ink)}.transport select{padding:5px 9px;font-size:12px}.panels{display:grid;grid-template-columns:1fr;gap:20px}.panels.compare{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.arch-card{min-width:0;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}.card-head{padding:19px 22px 14px;border-bottom:1px solid var(--line)}.arch-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}.arch-heading h2{margin:0;font-size:24px;line-height:1.2;letter-spacing:-.025em}.tag{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--purple);background:var(--purplewash);padding:4px 8px;border-radius:5px;white-space:nowrap;font-weight:750}.card-head p{margin:8px 0 0;font-size:14px;color:var(--muted)}.mechanism{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:13px}.mechanism .label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:750}.mechanism .value{font-size:13px;margin-top:3px;font-weight:600}.mechanism .writable{color:var(--purple)}.diagram-wrap{padding:14px 16px 0;background:linear-gradient(180deg,#fbfcfd,#fff)}.legend{display:flex;gap:15px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:11px;margin:0 7px 6px}.legend i{display:inline-block;width:11px;height:11px;border:1.4px solid #688190;border-radius:3px;vertical-align:-1px;margin-right:4px}.legend .write{background:var(--purplewash);border-color:var(--purple)}.legend .active{background:var(--tealwash);border-color:var(--teal)}.diagram{display:block;width:100%;max-height:410px;aspect-ratio:640/345}.diagram .wire{fill:none;stroke:#a9b9c4;stroke-width:1.8}.diagram .wire.active{stroke:var(--teal);stroke-width:3}.diagram .node rect{fill:#fff;stroke:#a8bac4;stroke-width:1.4}.diagram .node.external rect{stroke-dasharray:5 3;fill:#f7f9fa}.diagram .node.config rect{fill:#faf7ff;stroke:#bba5d5}.diagram .node.active rect{fill:var(--tealwash);stroke:var(--teal);stroke-width:2.3}.diagram .node-title{font-size:12px;fill:var(--ink);font-weight:700}.diagram .node-value{font-size:11.5px;fill:var(--purple);font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.diagram .node-note{font-size:10px;fill:#57707e}.diagram-note{font-size:11px;color:var(--muted);margin:0 8px 11px}.event-box{margin:0 22px 16px;border-left:3px solid var(--teal);background:#f2f9f8;padding:10px 12px;min-height:83px}.event-top{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-bottom:3px}.status{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--teal);font-weight:800}.event-box.warn{border-color:var(--amber);background:var(--amberwash)}.event-box.warn .status{color:var(--amber)}.event-box.error{border-color:var(--red);background:#fff2f1}.event-box.error .status{color:var(--red)}.event-title{font-size:14px;font-weight:700}.event-text{font-size:12px;color:var(--muted);margin-top:4px}.body-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:22px;padding:0 22px 19px}.compare .body-grid{grid-template-columns:1fr;gap:16px}.section-title{font-size:12px;text-transform:uppercase;letter-spacing:.07em;font-weight:800;margin:0 0 8px}.code{margin:0;background:#172b3a;border-radius:8px;padding:9px 0;color:#c7d6df;overflow:auto;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}.code-line{display:block;white-space:pre;padding:2px 13px;border-left:3px solid transparent}.code-line.active{background:#285456;border-color:#7fdfc9;color:#fff}.code-line .number{color:#7896a7;display:inline-block;width:21px;user-select:none}.caption{font-size:11px;color:var(--muted);margin:7px 0 0}.change-list{display:grid;gap:9px}.change{font-size:12px;display:grid;grid-template-columns:90px 1fr;gap:8px}.change b{color:var(--purple)}.change span{color:var(--muted)}.stress-row{display:flex;gap:9px;align-items:flex-start;margin-top:14px;padding:11px;background:#f6f8fa;border:1px solid var(--line);border-radius:8px}.stress-row input{min-height:17px;width:17px;accent-color:var(--amber);margin-top:3px;flex-shrink:0}.stress-row label{font-size:12px;cursor:pointer}.stress-row strong{display:block;font-size:12px}.stress-row span{display:block;font-size:11px;color:var(--muted);margin-top:3px}.wave-wrap{padding:15px 22px;border-top:1px solid var(--line);background:#fafcfd}.wave-meta{display:flex;gap:8px 20px;justify-content:space-between;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:8px}.wave-meta strong{color:var(--ink)}.wave{display:block;width:100%;height:125px}.wave text{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;fill:#627987;font-size:10px}.wave .signal{fill:none;stroke-width:2}.sources{padding:13px 22px;font-size:12px;border-top:1px solid var(--line)}summary{cursor:pointer;font-weight:700}details p{margin:8px 0;color:var(--muted)}details ul{padding-left:17px;margin:7px 0}.overview{margin-top:23px;padding:20px 22px;background:#fff;border:1px solid var(--line);border-radius:12px}.overview h2{font-size:17px;margin:0 0 5px}.overview>p{font-size:13px;color:var(--muted);margin:0 0 15px;max-width:1000px}.comparison-table{width:100%;border-collapse:collapse;font-size:12px;text-align:left}.comparison-table th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em;padding:9px;border-bottom:2px solid var(--line)}.comparison-table td{padding:10px 9px;border-bottom:1px solid #e9eef1;vertical-align:top}.comparison-table tr:last-child td{border-bottom:0}.comparison-table td:first-child{font-weight:750;white-space:nowrap}.table-scroll{overflow:auto}footer{max-width:1450px;margin:5px auto 25px;padding:14px 24px;color:var(--muted);font-size:11px}.notice{margin-top:12px;border-radius:8px;padding:10px 13px;background:#edf5f9;color:#3a596a;font-size:12px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:white;padding:10px 20px;border-radius:8px;font-size:13px;box-shadow:0 5px 30px #0002;z-index:10}.toast[hidden]{display:none}
-@media(min-width:1150px){.panels:not(.compare) .arch-card{display:grid;grid-template-columns:1.07fr 1fr}.panels:not(.compare) .card-head{grid-column:1/-1}.panels:not(.compare) .diagram-wrap{grid-column:1;grid-row:2}.panels:not(.compare) .event-box{grid-column:1;grid-row:3}.panels:not(.compare) .body-grid{grid-column:2;grid-row:2/4;grid-template-columns:1fr;padding-top:18px;padding-left:10px}.panels:not(.compare) .wave-wrap,.panels:not(.compare) .sources{grid-column:1/-1}}
-@media(max-width:1050px){.panels.compare{grid-template-columns:1fr}.compare .body-grid{grid-template-columns:1fr 1fr}.header-row{align-items:flex-start}.control-grid{gap:12px}.select-bar{align-items:flex-start}.chip-tabs{max-width:440px}}
-@media(max-width:680px){header{padding:23px 18px}.header-row{display:block}.download{margin-top:17px;min-height:36px;font-size:12px}main{padding:15px}.setup{padding:14px}.control-grid{grid-template-columns:1fr 1fr;gap:15px}.select-bar{display:block;margin-top:18px}.compare-control{margin-top:12px}.chip-tabs{max-width:none}.chip-tabs button{padding:7px 10px}.transport{flex-wrap:wrap;gap:6px}.transport button{padding:7px 11px;font-size:12px}.transport .timeline{flex-basis:100%;order:2}.transport .tick{margin-left:auto;min-width:auto}.transport select{display:none}.body-grid,.compare .body-grid{grid-template-columns:1fr}.card-head{padding:17px}.arch-heading h2{font-size:21px}.tag{font-size:9px}.mechanism{gap:10px}.diagram-wrap{padding:12px 6px 0;overflow-x:auto}.diagram{min-width:600px}.diagram-note{padding:0 8px}.event-box{margin-left:17px;margin-right:17px}.body-grid{padding:0 17px 17px}.wave-wrap,.sources{padding:13px 17px}.overview{padding:17px}.comparison-table{min-width:700px}.contract{font-size:11px}.diagram .node-title{font-size:12px}.diagram .node-value{font-size:11px}}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
-</style></head><body>
-<header><div class="header-row"><div><div class="eyebrow">Interactive chip simulation</div><h1>ChipSim</h1><p>Follow the same DATA, CLK and ACK signals through six hardware designs. See which definition you can change, which circuit changes the pin, and what can delay it.</p></div><button id="download" class="download">↓ Save offline HTML</button></div></header>
-<main><section class="setup" aria-label="Protocol controls"><div class="control-grid"><div class="control"><label for="payload">PAYLOAD · HEX OR DECIMAL</label><input id="payload" value="0xB3" spellcheck="false" autocomplete="off" aria-describedby="payload-help"><span id="payload-help" class="sr-only">Accepts hexadecimal prefixed with 0x or a decimal integer; masked to selected bit length.</span></div><div class="control"><label for="bits">FRAME LENGTH</label><select id="bits"><option value="8">8 data bits</option><option value="12">12 data bits</option></select></div><div class="control"><label for="half">CLOCK HALF-PERIOD H</label><div class="range-row"><input id="half" type="range" min="1" max="6" value="2"><output id="half-value" for="half">2</output></div></div><div class="control"><label for="ack">ACK INPUT</label><select id="ack"><option value="present">High 3 ticks after frame</option><option value="missing">Missing → timeout</option></select></div></div><div class="contract" id="contract"></div></section>
-<div class="select-bar"><div class="chip-tabs" id="tabs" role="tablist" aria-label="Architecture"></div><div class="compare-control"><input type="checkbox" id="compare-toggle"><label for="compare-toggle">Compare two</label><select id="compare-select" aria-label="Second architecture" hidden></select></div></div>
-<div class="transport" aria-label="Simulation playback"><button id="reset" title="Reset to tick zero">Reset</button><button id="back" title="Back one normalized tick">← Back</button><button id="run" class="primary">▶ Run</button><button id="step" title="Advance one normalized tick">Step →</button><input id="seek" class="timeline" type="range" min="0" max="50" value="0" aria-label="Normalized protocol tick"><div class="tick">tick <strong id="tick">0</strong> <span id="tick-max">/ 50</span></div><select id="speed" aria-label="Playback speed"><option value="550">Slow</option><option value="240" selected>Normal</option><option value="100">Fast</option></select></div>
-<div id="panels" class="panels"></div>
-<section class="overview" aria-label="Architecture comparison table"><div class="table-scroll"><table class="comparison-table"><thead><tr><th>Architecture</th><th>Writable definition</th><th>Pin operation</th><th>Execution constraint</th></tr></thead><tbody id="overview-rows"></tbody></table></div></section>
-<div class="notice">Timing model: each Step advances one normalized protocol tick and may summarize several internal operations. Recipes are explanatory, not vendor assembly or register encodings. H=2 does not mean a firmware loop executes in two silicon cycles. Diagrams are simplified schematics based on the linked manufacturer documents.</div></main>
-<footer>LSB first. DATA is stable before each rising CLK edge. ACK is held high after arrival, with an eight-tick budget after the actual end of a completed frame. At the same deadline tick, a timely ACK takes priority by model convention. Resource experiments deliberately change timing or stop an infeasible schedule; they are different failure conditions, not equivalent chip workloads.</footer><div id="toast" class="toast" hidden role="status"></div>
-<script type="application/json" id="lab-defaults">{"chip":"pio","compare":null,"payload":179,"bits":8,"half":2,"ack":"present","stress":{}}</script>
-<script id="lab-core">
-'use strict';
-(()=>{
-const IDS=['pio','pru','flexio','udb','xmos','etpu'];
-const hex=(n,w=2)=>'0x'+(n>>>0).toString(16).toUpperCase().padStart(w,'0');
-const copy=x=>JSON.parse(JSON.stringify(x));
-function normalize(raw={}){let p=typeof raw.payload==='string'?Number(raw.payload):raw.payload;p=Number.isFinite(p)?Math.floor(p):179;const bits=Number(raw.bits)===12?12:8,half=Math.max(1,Math.min(6,Math.round(Number(raw.half)||2)));return{payload:Math.max(0,p)&(2**bits-1),bits,half,ack:raw.ack==='missing'?'missing':'present',budget:8,ackDelay:3,stress:!!raw.stress};}
-const bit=(c,i)=>(c.payload>>>i)&1;
-const frameEnd=c=>c.bits*2*c.half;
-const edges=c=>Array.from({length:2*c.bits},(_,i)=>({at:(i+1)*c.half,clock:(i%2===0?1:0),data:bit(c,Math.min(c.bits-1,Math.floor((i+1)/2))),index:i}));
-function base(c){return{t:0,data:bit(c,0),clock:0,ack:0,phase:'send',actualEnd:null,deadline:null,samples:0,decoded:0,bitIndex:0,line:0,active:[],values:{},event:'',detail:'',fault:null,drift:0,software:'ready'};}
-function sample(s){s.decoded|=s.data<<s.samples;s.samples++;}
-function endFrame(s,c){s.actualEnd=s.t;s.deadline=s.t+c.budget;s.phase='wait';s.drift=s.actualEnd-frameEnd(c);}
-function ackInput(s,c){if(s.actualEnd!==null)s.ack=c.ack==='present'&&s.t>=s.actualEnd+c.ackDelay?1:0;}
-function resolveAck(s,c){ackInput(s,c);if(s.phase==='wait'){if(s.ack){s.phase='success';s.event='ACK accepted; success remains latched.';return true;}if(s.t>=s.deadline){s.phase='timeout';s.event='Deadline reached with ACK low; timeout remains latched.';return true;}}return false;}
-function add(out,s){out.push(copy(s));}
-function finalized(s){return ['success','timeout','fault'].includes(s.phase);}
-function terminal(s,c){ackInput(s,c);s.active=[];s.event=s.phase==='fault'?'Schedule stopped after the detected timing failure.':`Result remains ${s.phase}.`;s.detail=s.fault||'Later input changes do not restart this transfer.';}
-const ARCH={
- pio:{name:'RP2040 PIO',short:'PIO',tag:'I/O instruction engine',summary:'A short program controls shift registers, counters and mapped pin outputs.',writable:'Instructions + shift / pin / divider settings',pin:'State-machine OUT, SET and side-set logic',limit:'32 shared instruction words per block; local state; FIFO stalls',stressTitle:'Delay the first TX FIFO word',stressText:'The host supplies the word at tick 4. PULL holds PC and pins until data arrives.',fixed:'One of four state machines in a PIO block is shown. Each has local PC, X/Y, OSR/ISR and four-word TX/RX FIFOs; 32 instruction words are shared.',source:[['RP2040 Datasheet · §§3.1–3.2, 3.4–3.5','https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#page=312']],notes:'PULL, OUT, branching and side-set are summarized into semantic actions. The bounded ACK poll is an instruction loop; WAIT alone has no timeout.',changes:c=>[['Payload',`Host writes ${hex(c.payload,Math.ceil(c.bits/4))} to TX FIFO; OSR shifts right.`],['Length',`Load X=${c.bits-1}; finish after ${c.bits} output bits.`],['Period',`Choose instruction delays / divider for H=${c.half}. Exact instruction costs require implementation.`],['ACK','Pin-test branch + bounded Y counter; budget 8 normalized ticks.']]},
- pru:{name:'TI PRU',short:'PRU',tag:'Coprocessor firmware',summary:'Register operations and branches execute firmware that writes every direct-GPIO edge.',writable:'Firmware + payload + pin multiplexing',pin:'R30 direct-output path',limit:'Instruction path length and blocking data transfers',stressTitle:'Pause firmware for four ticks',stressText:'At ticks 4–7, no R30 write executes. The current pin levels persist; later edges move.',fixed:'A complete scalar, in-order 32-bit processor is shown. AM335x PRU has no instruction pipeline. Direct R30 output mode is selected for this example.',source:[['AM335x TRM · §4.4.1, §4.4.1.2, Table 4-21','https://www.ti.com/lit/ug/spruh73q/spruh73q.pdf#page=208']],notes:'A semantic step may include extraction, a register write and branch overhead. R31 reads input status; writing R31 serves a separate event interface. Optional PRU shift-output hardware is outside this direct-mode example.',changes:c=>[['Payload',`Firmware loads ${hex(c.payload,Math.ceil(c.bits/4))} and extracts (word >> i) & 1.`],['Length',`The software loop condition becomes i < ${c.bits}.`],['Period',`Change delay / scheduling instructions for H=${c.half}; each executed path consumes time.`],['ACK','Read R31.ACK and check the firmware deadline.']]},
- flexio:{name:'NXP FlexIO',short:'FlexIO',tag:'Configured peripheral',summary:'Selected timer events clock an active shifter; the host handles the custom ACK decision.',writable:'Shifter / timer / trigger registers + buffer',pin:'Configured timer and shifter output paths',limit:'Supported mode combinations and finite resources',stressTitle:'Keep the CPU busy during the frame',stressText:'At ticks 4–7 the host does no work. The configured timer and loaded shifter continue.',fixed:'Representative S32K144 resource budget: four 32-bit shifters, four timers and eight FlexIO pins. One TX shifter and one clock timer are used here.',source:[['NXP AN12174 · §2 and §4.1.1','https://www.nxp.com/docs/en/application-note/AN12174.pdf#page=3']],notes:'This custom transfer uses logical LSB-first packing and disables automatic framing. Buffer aliases and raw TIMCMP bit fields are not emulated. Arbitrary ACK/timeout branching is explicitly host work.',changes:c=>[['Payload',`Host packs ${hex(c.payload,Math.ceil(c.bits/4))} into the software-visible buffer.`],['Length',`Timer transfer length is configured for ${2*c.bits} edges (${c.bits} bits).`],['Period',`Timer rate / compare settings produce normalized H=${c.half}.`],['ACK','On completion, CPU reads ACK GPIO and checks a separate deadline.']]},
- udb:{name:'PSoC UDB',short:'UDB',tag:'Configured logic network',summary:'PLD state and routed conditions select datapath operations and pin levels.',writable:'PLD equations + control words + routing',pin:'Configured logic / datapath outputs through routes',limit:'Logic terms, datapath width, routes and clocks',stressTitle:'Gate the protocol clock',stressText:'At ticks 4–7, the configured clock enable is low. FSM and counters retain their state.',fixed:'A composed UDB network is shown. PLDs, 8-bit datapaths, local control RAM and digital routing are manufactured blocks. This complete link is not claimed to fit one UDB.',source:[['PSoC 5LP Architecture TRM · Chapters 21–22','https://www.infineon.com/assets/row/public/documents/30/57/infineon-psoc5lp-architecture-trm-additionaltechnicalinformation-en.pdf']],notes:'The PLD state addresses eight-entry datapath configuration stores. They do not fetch a program or have a datapath PC. The model abstracts fitting, propagation delay and clock distribution.',changes:c=>[['Payload',`Load datapath storage with ${hex(c.payload,Math.ceil(c.bits/4))}.`],['Length',`Set terminal count ${c.bits}; ${c.bits>8?'chain wider data storage across 8-bit datapaths':'one 8-bit data lane holds the payload'}.`],['Period',`Compare the half-period counter with H=${c.half}; route compare into next-state logic.`],['ACK','PLD equations select DONE or TIMEOUT from routed ACK and deadline conditions.']]},
- xmos:{name:'XMOS xCORE',short:'xCORE',tag:'Task + timed resources',summary:'A task issues a timed port operation; port hardware applies it when its condition is met.',writable:'Task code + resource setup + target times',pin:'Port hardware and its clock / transfer condition',limit:'Shared task service and timely transfer submission',stressTitle:'Delay the task after an armed write',stressText:'At ticks 4–9, the task cannot submit another write. One already pending write can still complete.',fixed:'Hardware-thread contexts share the execution unit and scheduler. This example uses one pending unbuffered timed write and a port with DATA/CLK bits.',source:[['XMOS XS3 Architecture · Resources, ports and timers','https://www.xmos.com/file/the-xmos-xs3-architecture?version=latest'],['AN03001 · §§1, 3 and 5','https://www.xmos.com/documentation/XM-015254-AN/html/doc/rst/an03001.html']],notes:'The displayed CLK is a programmed output bit. The underlying port clock is a different resource. Port-target and timer-deadline domains are normalized here; a real program must convert units and handle counter wrap.',changes:c=>[['Payload',`Task packs DATA/CLK values from ${hex(c.payload,Math.ceil(c.bits/4))}.`],['Length',`Generate ${2*c.bits} timed edge writes; at most one is pending in this example.`],['Period',`Successive targets differ by H=${c.half} normalized port-time units.`],['ACK','After output completion, select between an ACK input and a timer deadline.']]},
- etpu:{name:'NXP eTPU',short:'eTPU',tag:'Service + match hardware',summary:'Armed match registers change pins at a target time. Shared service code refills the consumed slots.',writable:'Service routines + modes + match / event registers',pin:'Channel comparator, capture and pin-action logic',limit:'Two action units per channel; rearming latency',stressTitle:'Delay microengine service',stressText:'At ticks 4–9, no channel is serviced. Armed matches still fire; a consumed slot needs rearming.',fixed:'Separate CLK, DATA and ACK channels share the microengine and timebase. Each channel has two match/capture action units. The CLK channel can hold at most two imminent edges.',source:[['NXP AN2933 · §2, §§5.1–5.3','https://www.nxp.com/docs/en/user-guide/AN2933.pdf#page=3'],['NXP AN2353 · §§3–5','https://www.nxp.com/docs/en/user-guide/AN2353.pdf']],notes:'CLK rearming is modeled; separate DATA-channel setup and refill are assumed timely. The DATA actions shown at falling-edge boundaries stand for independently armed DATA-channel actions. Consumed CLK matches clear recognition enables and set latches. Service clears handled latches and rearms. ACK is captured at its arrival time and serviced two normalized ticks later; its timestamp, not service time, is tested against the deadline.',changes:c=>[['Payload',`Service prepares DATA actions from ${hex(c.payload,Math.ceil(c.bits/4))}.`],['Length',`Service finishes after ${2*c.bits} CLK actions; only two CLK targets are armed at once.`],['Period',`Add 2H=${2*c.half} when reusing a rising or falling match slot.`],['ACK','Enable capture for the ACK window, arm its deadline, and inspect captured time during service.']]}
-};
-function recipe(id,c){const p=hex(c.payload,Math.ceil(c.bits/4)),n=c.bits,h=c.half,e=frameEnd(c);return{
- pio:[`host: TX_FIFO ← ${p}; shift = RIGHT`,`PULL BLOCK; X ← ${n-1}`,`OUT DATA, 1; CLK ← 0; hold H=${h}`,`CLK ← 1; hold H=${h}`,`JMP X--, output_next_bit`,`CLK ← 0; begin ACK budget = 8`,`poll ACK; decrease bounded Y`,`latch success or timeout`],
- pru:[`load word = ${p}; i = 0`,`while i < ${n}: bit = (word >> i) & 1`,`R30.DATA ← bit; R30.CLK ← 0`,`execute low-interval work; H=${h}`,`R30.CLK ← 1; high-interval work; H=${h}`,`R30.CLK ← 0; i ← i + 1`,`poll R31.ACK; check deadline = end + 8`,`latch success or timeout`],
- flexio:[`configure TX shifter; select timer / DATA`,`timer: half_period = ${h}; edges = ${2*n}`,`host: SHIFTBUF ← pack_lsb(${p}, ${n})`,`buffer-ready trigger enables timer`,`timer edge → CLK; falling edge → shift`,`length compare disables transfer`,`host: poll ACK GPIO until end + 8`,`host: latch success or timeout`],
- udb:[`configure PLD, control words and routes`,`load payload = ${p}; remaining = ${n}`,`LOW: CLK=0; compare half_count with ${h}`,`HIGH: CLK=1; compare half_count with ${h}`,`on HIGH→LOW: shift; remaining--`,`remaining=0 → ACK_WAIT; budget=8`,`ACK_WAIT: ACK ? DONE : budget0 ? TIMEOUT`,`route result to status output`],
- xmos:[`task: pack ${p}, ${n} bits into DATA/CLK writes`,`configure port clock; initialize CLK=0`,`issue ONE timed write at next += ${h}`,`port hardware waits for target time`,`port applies value; task becomes runnable`,`task prepares / submits next of ${2*n} edges`,`after frame: select ACK input or end+8 timer`,`latch selected completion event`],
- etpu:[`service: payload=${p}; remaining_edges=${2*n}`,`arm CLK A=${h}, B=${2*h}; prepare DATA`,`TCR match → pin action; MRLE clears`,`MRL requests shared microengine service`,`service clears latch; next target += ${2*h}`,`frame complete → arm ACK capture + deadline`,`on ACK: capture TCR; deadline=end+8`,`service tests timestamp; latch result`]
-}[id];}
-function simulatePIO(c){const out=[],s=base(c);s.osr=c.stress?0:c.payload>>>1;s.x=c.stress?0:c.bits-1;s.y=8;s.delay=0;s.tx=c.stress?0:1;s.start=c.stress?4:0;if(c.stress){s.phase='load';s.data=0;}for(let t=0;t<=frameEnd(c)+24;t++){s.t=t;s.active=[];if(finalized(s))terminal(s,c);else if(t<s.start){s.phase='load';s.line=1;s.active=['fifo','pc'];s.event='PULL stalls: TX FIFO is empty.';s.detail='PC does not advance. CLK stays low until the host writes a word.';}else if(t===s.start){s.phase='send';s.data=bit(c,0);s.osr=c.payload>>>1;s.x=c.bits-1;s.tx=0;s.line=2;s.active=['host','fifo','pc','osr','pins'];s.event='PULL loads OSR; OUT presents bit 0.';s.detail=`OSR becomes ${hex(s.osr,8)} after shifting right; X=${s.x}.`;}else if(s.phase==='send'){const p=t-s.start,within=p%(2*c.half);s.delay=(c.half-p%c.half)%c.half;s.active=['divider','pc'];if(p===frameEnd(c)){s.clock=0;endFrame(s,c);s.line=5;s.active=['pc','xy','pins'];s.event='Final CLK falling edge; enter bounded ACK poll.';s.detail='Y represents the remaining modeled polling budget.';}else if(within===c.half){s.clock=1;sample(s);s.line=3;s.active=['divider','pc','pins'];s.event='SET / side-set raises CLK.';s.detail=`The receiver samples DATA=${s.data}; ${s.samples}/${c.bits} bits sampled.`;}else if(within===0){s.bitIndex++;s.x=c.bits-1-s.bitIndex;s.data=s.osr&1;s.osr>>>=1;s.clock=0;s.line=2;s.active=['pc','xy','osr','pins'];s.event='Loop branch, OUT and low CLK phase.';s.detail='OSR supplies the next bit; X retains progress.';}else{s.line=s.clock?3:2;s.event='Instruction-controlled hold interval.';s.detail='Divider enables and encoded delays determine actual state-machine timing.';}}else{s.line=6;s.active=['pc','xy','pins'];s.y=Math.max(0,s.deadline-t);s.event='Test ACK and update the bounded counter.';s.detail=`${s.y} normalized ticks remain; WAIT alone would have no timeout.`;if(resolveAck(s,c)){s.line=7;s.active=['pc','xy'];}}ackInput(s,c);s.values={host:['host / DMA',t<s.start?'word withheld':'word supplied'],fifo:[`${s.tx}/4 TX words`,t<s.start?'empty → stall':'PULL consumed word'],imem:['short program','32 shared words / block'],pc:[`recipe line ${s.line+1}`,s.phase],xy:[`X=${s.x}; Y=${s.y}`,'local scratch state'],osr:[hex(s.osr,8),'32-bit right shifter'],divider:[`H=${c.half} (abstract)`,'enable + delay'],pins:[`D=${s.data} C=${s.clock} A=${s.ack}`,'mapped GPIO']};add(out,s);}return out;}
-function simulatePRU(c){const out=[],s=base(c);s.progress=0;s.r30=s.data;for(let t=0;t<=frameEnd(c)+24;t++){s.t=t;const busy=c.stress&&t>=4&&t<8;s.software=busy?'paused':'executing';if(finalized(s))terminal(s,c);else if(t===0){s.line=0;s.active=['code','pc','regs','alu','r30','pins'];s.event='Firmware loads the word and writes the initial DATA bit.';s.detail='R30 direct output is selected; the pin multiplexer was initialized.';}else if(s.phase==='send'&&busy){s.line=s.clock?4:3;s.active=['bus'];s.event='Firmware paused: no R30 write executes.';s.detail='Existing output levels persist. This instruction delay stretches the pin waveform.';}else if(s.phase==='send'){s.progress++;const q=s.progress%(2*c.half);if(s.progress===frameEnd(c)){s.clock=0;endFrame(s,c);s.line=6;s.active=['pc','r30','r31','pins'];s.event='Firmware clears CLK after the last bit.';s.detail='The code enters ACK polling and deadline checks.';}else if(q===0){s.bitIndex++;s.data=bit(c,s.bitIndex);s.clock=0;s.line=2;s.active=['pc','regs','alu','r30','pins'];s.event='Shift/mask extracts the next bit; firmware writes R30.';s.detail=`i=${s.bitIndex}; (word >> i) & 1 = ${s.data}.`;}else if(q===c.half){s.clock=1;sample(s);s.line=4;s.active=['pc','r30','pins'];s.event='Firmware sets the R30 CLK bit.';s.detail=`The receiver samples DATA=${s.data}. This edge requires the instruction to execute.`;}else{s.line=s.clock?4:3;s.active=['pc','regs'];s.event='Firmware executes interval and loop work.';s.detail='All branches and register operations must fit the chosen physical timing budget.';}}else{s.line=6;s.active=['pc','alu','r31'];s.event='Firmware reads R31.ACK and checks its deadline.';s.detail='R31 input is sampled by the executing program.';if(resolveAck(s,c))s.line=7;}s.r30=s.data|(s.clock<<1);ackInput(s,c);s.values={code:[`${c.bits}-bit firmware`,'arithmetic + branches'],pc:[`recipe line ${s.line+1}`,s.software],regs:[`${hex(c.payload)}; i=${s.bitIndex}`,'payload + loop state'],alu:[s.phase==='send'?`extract bit ${s.bitIndex}`:'compare deadline','shift / mask / ALU'],r30:[hex(s.r30,8),'direct output register'],r31:[`ACK=${s.ack}`,'input status read'],bus:[busy?'blocking interval':'available','transfer waits matter'],pins:[`D=${s.data} C=${s.clock} A=${s.ack}`,'device pin mux']};add(out,s);}return out;}
-function simulateFlexIO(c){const out=[],s=base(c);s.shifter=c.payload;s.edgesLeft=2*c.bits;s.halfCount=0;for(let t=0;t<=frameEnd(c)+24;t++){s.t=t;const busy=c.stress&&t>=4&&t<8;s.software=busy?'busy elsewhere':s.phase==='send'?'free for other work':'ACK handler';if(finalized(s))terminal(s,c);else if(t===0){s.line=2;s.active=['host','config','buffer','timer','shifter','route'];s.event='Host buffer write enables the configured transfer.';s.detail='The first bit is preloaded; timer and shifter now generate the frame.';}else if(s.phase==='send'){s.halfCount++;s.line=4;s.active=['timer'];if(s.halfCount===c.half){s.halfCount=0;s.clock=1-s.clock;s.edgesLeft--;s.active=['timer','shifter','route','pins'];if(s.clock){sample(s);s.event='Timer raises CLK; the receiver samples DATA.';s.detail='A configured hardware event produces this edge.';}else if(s.edgesLeft===0){endFrame(s,c);s.line=5;s.active=['timer','host'];s.event='Length compare disables the transfer.';s.detail='The custom ACK decision is handed to the CPU.';}else{s.bitIndex++;s.shifter>>>=1;s.data=s.shifter&1;s.event='Falling timer edge advances the TX shifter.';s.detail='Timer selection and polarity connect the event to the shifter.';}}else{s.event=busy?'CPU is busy; the autonomous timer continues.':'Timer counts toward its next configured edge.';s.detail='No instruction stream is fetched inside this peripheral.';}}else{s.line=6;s.active=['host','ack'];s.event='CPU checks ACK GPIO and its deadline timer.';s.detail='This arbitrary branch is implemented by host software.';if(resolveAck(s,c))s.line=7;}ackInput(s,c);s.values={host:[s.software,'host firmware'],config:[`${c.bits} bits; H=${c.half}`,'mode / trigger fields'],buffer:[hex(c.payload,8),'software-visible word'],timer:[`${s.edgesLeft} edges left`,`half count ${s.halfCount}`],route:['timer 0 → shifter 0','selected connections'],shifter:[hex(s.shifter,8),'active 32-bit shift reg'],ack:[`ACK=${s.ack}`,'GPIO + host deadline'],pins:[`D=${s.data} C=${s.clock}`,'timer + shifter outputs']};add(out,s);}return out;}
-function simulateUDB(c){const out=[],s=base(c);s.fsm='LOW';s.counter=c.half;s.remaining=c.bits;s.shift=c.payload;s.enable=1;for(let t=0;t<=frameEnd(c)+24;t++){s.t=t;const gated=c.stress&&t>=4&&t<8;s.enable=gated?0:1;if(finalized(s))terminal(s,c);else if(t===0){s.line=1;s.active=['config','pld','ram','datapath','route','pins'];s.event='Configured logic loads the payload and enters LOW.';s.detail='PLD state selects datapath operations through control-store address inputs.';}else if(s.phase==='send'&&gated){s.line=s.clock?3:2;s.active=['clock'];s.event='Clock gated: FSM and timing counters hold.';s.detail='Routing still reflects the stored output state; no state update occurs.';}else if(s.phase==='send'){s.counter--;s.line=s.fsm==='LOW'?2:3;s.active=['clock','pld','ram','datapath'];if(s.counter===0){s.counter=c.half;if(s.fsm==='LOW'){s.fsm='HIGH';s.clock=1;sample(s);s.line=3;s.event='Half-period compare selects HIGH; routed CLK rises.';s.detail='PLD next-state equations and output logic produce the transition.';}else{s.clock=0;s.remaining--;if(!s.remaining){s.fsm='ACK_WAIT';endFrame(s,c);s.line=5;s.event='Terminal bit count selects ACK_WAIT.';s.detail='The same routed logic now evaluates ACK and timeout conditions.';}else{s.fsm='LOW';s.shift>>>=1;s.data=s.shift&1;s.bitIndex++;s.line=4;s.event='Selected datapath shifts; remaining-bit counter decrements.';s.detail='Control RAM contents select an operation; there is no datapath instruction PC.';}}s.active.push('route','pins');}else{s.event='Timing datapath counts enabled clock events.';s.detail='Its compare output feeds the configured PLD equations.';}}else{s.line=6;s.active=['pld','ram','datapath','pins'];s.event='PLD evaluates routed ACK and deadline conditions.';s.detail='Local state selects the result path without a CPU polling loop.';if(resolveAck(s,c)){s.fsm=s.phase==='success'?'DONE':'TIMEOUT';s.line=7;}}ackInput(s,c);const addr={LOW:0,HIGH:1,ACK_WAIT:2,DONE:3,TIMEOUT:4}[s.fsm];s.values={config:[`${c.bits}-bit composition`,'equations + routes'],pld:[s.fsm,'macrocell state'],ram:[`address=${addr}`,'8 control words / store'],clock:[`enable=${s.enable}`,'configured clock gate'],fifo:[hex(c.payload),'host-loaded data'],datapath:[`${hex(s.shift)}; left=${s.remaining}`,`8-bit lanes; half=${s.counter}`],route:['state + compare → pin','digital interconnect'],pins:[`D=${s.data} C=${s.clock} A=${s.ack}`,'configured outputs']};add(out,s);}return out;}
-function simulateXMOS(c){const out=[],s=base(c),plan=edges(c);s.pending=copy(plan[0]);s.next=1;s.thread='blocked on output';for(let t=0;t<=frameEnd(c)+24;t++){s.t=t;const busy=c.stress&&t>=4&&t<10;if(finalized(s))terminal(s,c);else if(t===0){s.line=2;s.active=['thread','exec','port','clock'];s.event=`Task submits one timed write for t=${s.pending.at}.`;s.detail='The port holds one pending value. The task can block until completion.';}else if(s.phase==='send'){s.line=3;s.active=['clock','port'];s.thread=busy?'not scheduled':'blocked on output';if(s.pending&&s.pending.at===t){const e=s.pending;s.data=e.data;s.clock=e.clock;if(s.clock)sample(s);s.pending=null;s.line=4;s.active=['clock','port','pins','sched'];s.event=`Port condition meets target ${t}; hardware applies the packed value.`;s.detail='Completion makes the task runnable; the port produced the pin event.';if(e.index===plan.length-1){endFrame(s,c);s.thread='waiting in select';s.line=6;}else if(!busy){s.pending=copy(plan[s.next++]);s.line=5;s.thread='submits then blocks';s.active.push('thread','exec');s.detail+=` Task submits the next target ${s.pending.at}; still only one is pending.`;}}else if(!s.pending){const e=plan[s.next];if(e&&e.at<=t){s.phase='fault';s.fault=`No timed write was submitted before required target ${e.at}. The trace stops; held pin state is shown.`;s.event='Timed submission deadline missed.';s.detail=s.fault;s.line=2;s.active=['thread','sched','port'];}else if(!busy&&e){s.pending=copy(e);s.next++;s.thread='submits then blocks';s.line=2;s.active=['thread','exec','port'];s.event=`Task submits pending target ${e.at}.`;s.detail='A finite resource accepts one timed operation.';}else{s.event='Task is unavailable; no next write is pending.';s.detail='Port hardware can only execute an operation already submitted.';}}else{s.event=busy?'Task unavailable; the already armed port write remains valid.':'Port waits for its timed transfer condition.';s.detail=`Only target ${s.pending.at} is held in port hardware.`;}}else{s.thread='waiting in select';s.line=6;s.active=['thread','timer','input'];s.event='Task selects ACK readiness or a timer deadline.';s.detail='A blocked thread retains state; runnable work shares the tile execution unit.';if(resolveAck(s,c)){s.thread='event selected';s.line=7;s.active=['sched','thread','exec'];}}ackInput(s,c);s.values={thread:[s.thread,`next software edge ${s.next}/${plan.length}`],sched:[busy?'task delayed':'resource-aware ready set','shared execution'],exec:[s.phase==='send'?'pack / issue / block':'event selection','shared tile processor'],clock:['underlying port clock',`target spacing H=${c.half}`],port:[s.pending?`target=${s.pending.at}; D${s.pending.data}C${s.pending.clock}`:'no pending write','capacity used: '+(s.pending?'1 / 1':'0 / 1')],timer:[s.deadline===null?'not yet armed':`deadline=${s.deadline}`,'separate timer domain'],input:[`ACK=${s.ack}`,'input condition'],pins:[`D=${s.data} C=${s.clock}`,'CLK is a port data bit']};add(out,s);}return out;}
-function simulateETPU(c){const out=[],s=base(c),plan=edges(c);s.matches=[copy(plan[0]),copy(plan[1])];s.latches=[null,null];s.next=2;s.capture=null;s.tdl=0;s.deadlineLatch=0;s.service='setup';for(let t=0;t<=frameEnd(c)+24;t++){s.t=t;const busy=c.stress&&t>=4&&t<10;if(finalized(s))terminal(s,c);else if(t===0){s.line=1;s.active=['code','engine','clk','data','time'];s.event='Service arms CLK match A and B and initializes DATA.';s.detail='CLK holds two target edges; separate channel resources handle DATA and ACK.';}else if(s.phase==='send'){s.active=['time','clk'];s.line=2;s.service=busy?'delayed':'idle';let fired=false;for(let slot=0;slot<2;slot++){const e=s.matches[slot];if(e&&e.at===t){fired=true;s.data=e.data;s.clock=e.clock;if(s.clock)sample(s);s.matches[slot]=null;s.latches[slot]={at:t,index:e.index};s.event=`CLK match ${slot?'B':'A'} fires at ${t}; recognition enable clears.`;s.detail='Pin-action hardware applies the armed edge; MRL retains the event for service.';s.active=['time','clk','pins','events'];if(!e.clock)s.active.push('data');if(e.index===plan.length-1){endFrame(s,c);s.line=5;s.active.push('ack');s.detail='The ACK channel is enabled for this held-high-after-frame example.';}}}if(s.phase==='send'){const due=plan.find(e=>e.at===t);if(due&&!fired){s.phase='fault';s.fault=`CLK target ${t} has no armed match: shared service did not refill a consumed slot. The trace stops.`;s.event='Match rearming deadline missed.';s.detail=s.fault;s.active=['events','engine','clk'];s.line=4;}else if(!busy){let slot=s.latches.findIndex(l=>l&&l.at<t);if(slot>=0){const old=s.latches[slot];s.latches[slot]=null;s.service=`service ${slot?'B':'A'}`;if(s.next<plan.length)s.matches[slot]=copy(plan[s.next++]);s.line=4;s.active.push('engine','events','clk','data');if(!fired)s.event=`Microengine clears MRL ${slot?'B':'A'} and rearms its slot.`;s.detail+=` Handled target ${old.at}; next slot value ${s.matches[slot]?s.matches[slot].at:'none'}.`; }else if(!fired){s.event='Channel comparators wait on shared timebase values.';s.detail='No instruction is needed when a prearmed match produces its pin action.';}}else if(!fired){s.event='Shared microengine service is delayed.';s.detail='Already armed targets remain usable; consumed match slots stay empty.';}}}else{ackInput(s,c);s.active=['time','ack'];s.line=6;s.service='idle';const finalSlot=s.latches.findIndex(l=>l&&l.at<t);if(finalSlot>=0){s.latches[finalSlot]=null;s.service='final CLK service';s.line=5;s.active=['engine','events','clk','ack'];s.event='Service clears the final CLK match latch.';s.detail='CLK transfer bookkeeping is complete; ACK capture and its deadline remain armed.';}else if(s.ack&&s.capture===null){s.capture=t;s.tdl=1;s.event=`ACK transition captured at ${t}; TDL is set.`;s.detail='The timestamp preserves arrival time until the shared engine services it.';}else if(s.capture!==null&&t>=s.capture+2){s.phase=s.capture<=s.deadline?'success':'timeout';s.tdl=0;s.line=7;s.active=['events','engine','ack'];s.service='ACK service';s.event=`Service reads capture=${s.capture}; result is ${s.phase}.`;s.detail=`Decision uses captured time, not current service time ${t}.`;}else if(t>=s.deadline){if(!s.deadlineLatch){s.deadlineLatch=t;s.event=`Deadline match recognized at ${t}.`;s.detail='The match event is latched for service.';}else if(t>=s.deadlineLatch+2){s.phase='timeout';s.line=7;s.active=['events','engine','ack'];s.event='Service sees the deadline event with no timely ACK.';s.detail='Timeout remains latched.';}else{s.event='Deadline event is waiting for shared service.';s.detail='Recognition time and software result time are distinct.';}}else if(s.tdl){s.event='ACK timestamp is latched; service is pending.';s.detail='Input transition evidence survives the service delay.';}else{s.event='ACK channel waits for transition or deadline match.';s.detail='Capture detection was enabled at the frame boundary.';}}ackInput(s,c);s.values={code:[`${c.bits}-bit service routine`,'code + parameters'],engine:[s.service,'shared microengine'],time:[`TCR=${t}`,'normalized timebase'],events:[`MRL=${s.latches.map(Boolean).map(Number).join('')}; TDL=${s.tdl}`,'latched service requests'],clk:[s.matches.map((e,i)=>`${i?'B':'A'}:${e?e.at:'—'}`).join(' '),'two CLK match units'],data:[`DATA=${s.data}`,'separate DATA channel'],ack:[s.capture!==null?`capture=${s.capture}`:s.deadline!==null?`deadline=${s.deadline}`:'window not started','separate ACK channel'],pins:[`D=${s.data} C=${s.clock} A=${s.ack}`,'channel pin actions']};add(out,s);}return out;}
-function simulate(id,raw){const c=normalize(raw);const fn={pio:simulatePIO,pru:simulatePRU,flexio:simulateFlexIO,udb:simulateUDB,xmos:simulateXMOS,etpu:simulateETPU}[id];if(!fn)throw new Error('Unknown architecture');return fn(c);}
-// Simplified topology derived from cited block relationships, not an original vendor figure.
-const node=(id,label,x,y,kind='fixed',note='')=>({id,label,x,y,w:154,h:66,kind,note});
-const TOP={
- pio:{nodes:[node('host','Host / DMA',18,15,'external'),node('imem','Instruction memory',243,15,'config'),node('fifo','TX FIFO',18,120),node('pc','PC + control logic',243,120),node('xy','Scratch X / Y',468,120),node('divider','Clock divider',18,245),node('osr','OSR / shift logic',243,245),node('pins','Pin mapping / GPIO',468,245)],edges:[['host','imem'],['host','fifo'],['imem','pc'],['fifo','osr'],['xy','pc'],['divider','pc'],['pc','osr'],['osr','pins'],['pc','pins']]},
- pru:{nodes:[node('code','Firmware memory',18,15,'config'),node('pc','PC / decode',243,15),node('regs','Register file',18,120),node('alu','Operand mux / ALU',243,120),node('r31','R31 input view',468,120),node('bus','Data-transfer paths',18,245),node('r30','R30 output register',243,245),node('pins','Direct GPIO / mux',468,245)],edges:[['code','pc'],['pc','alu'],['regs','alu'],['alu','regs'],['alu','r30'],['r30','pins'],['pins','r31'],['r31','alu'],['bus','regs']]},
- flexio:{nodes:[node('host','CPU firmware',18,15,'external'),node('config','Config registers',243,15,'config'),node('buffer','SHIFTBUF',18,120),node('route','Timer / pin selection',243,120,'config'),node('timer','Clock / length timer',468,120),node('ack','Host ACK handler',18,245,'external'),node('shifter','Active TX shifter',243,245),node('pins','DATA / CLK pins',468,245)],edges:[['host','config'],['host','buffer'],['config','route'],['route','timer'],['buffer','shifter'],['timer','shifter'],['timer','pins'],['shifter','pins'],['pins','ack'],['ack','host']]},
- udb:{nodes:[node('config','PLD / route definition',18,15,'config'),node('pld','PLD state / logic',243,15),node('clock','Clock distribution',18,120),node('ram','Datapath control RAM',243,120,'config'),node('pins','Input / output pins',468,120),node('fifo','FIFO / input data',18,245),node('datapath','8-bit datapath network',243,245),node('route','Digital routing',468,245,'config')],edges:[['config','pld'],['clock','pld'],['pld','ram'],['ram','datapath'],['fifo','datapath'],['datapath','route'],['route','pld'],['route','pins'],['pins','pld']]},
- xmos:{nodes:[node('thread','Task / thread context',18,15,'config'),node('sched','Hardware scheduler',243,15),node('clock','Port clock block',18,120),node('exec','Shared execution unit',243,120),node('timer','Timer resource',468,120),node('input','ACK input resource',18,245),node('port','Timed output port',243,245),node('pins','Package pins',468,245)],edges:[['thread','sched'],['sched','exec'],['exec','port'],['clock','port'],['port','pins'],['port','sched'],['timer','sched'],['input','sched'],['pins','input']]},
- etpu:{nodes:[node('code','Code / parameter RAM',18,15,'config'),node('engine','Shared microengine',243,15),node('time','Shared TCR timebase',468,15),node('events','Event latches / service',18,120),node('clk','CLK channel: A / B',243,120),node('pins','Channel pin logic',468,120),node('data','DATA channel',243,245),node('ack','ACK channel',468,245)],edges:[['code','engine'],['events','engine'],['engine','clk'],['time','clk'],['clk','pins'],['clk','events'],['engine','data'],['data','pins'],['time','ack'],['pins','ack'],['ack','events']]}
-};
-globalThis.architectureLab={ids:IDS,architectures:ARCH,topologies:TOP,normalize,recipe,simulate,frameEnd,edges,hex};
-})();
-</script>
-<script id="lab-ui">
-(()=>{
-'use strict';
-const pristine=document.documentElement.outerHTML;
-const BUNDLED_REFERENCES={"pio":[["Local PDF · RP2040 Datasheet","docs/references/rp2040-datasheet.pdf#page=312"]],"pru":[["Local PDF · AM335x and AMIC110 Sitara Processors Technical Reference Manual","docs/references/ti-am335x-trm-spruh73q.pdf#page=208"]],"flexio":[["Local PDF · Using FlexIO to emulate communications and timing peripherals","docs/references/nxp-flexio-an12174.pdf#page=3"]],"udb":[["Local PDF · PSoC 5LP Architecture TRM","docs/references/infineon-psoc5lp-architecture-trm.pdf#page=165"]],"xmos":[["Local PDF · The XMOS XS3 Architecture","docs/references/xmos-xs3-architecture.pdf#page=18"],["Local PDF · AN03001: XCORE Clocked Input and Output","docs/references/xmos-clocked-io-an03001.pdf#page=6"]],"etpu":[["Local PDF · Understanding the eTPU Channel Hardware","docs/references/nxp-etpu-channel-hardware-an2933.pdf#page=3"],["Local PDF · The Essentials of Enhanced Time Processing Unit","docs/references/nxp-etpu-essentials-an2353.pdf#page=3"]]};
-const L=globalThis.architectureLab,$=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let saved={};try{saved=JSON.parse($('lab-defaults').textContent);}catch{}
-const hash=new URLSearchParams(location.hash.slice(1));
-let chip=L.ids.includes(hash.get('chip'))?hash.get('chip'):L.ids.includes(saved.chip)?saved.chip:'pio';
-let compare=L.ids.includes(hash.get('compare'))?hash.get('compare'):L.ids.includes(saved.compare)?saved.compare:null;
-if(compare===chip)compare=L.ids.find(x=>x!==chip);
-let config=L.normalize(saved),stress=saved.stress&&typeof saved.stress==='object'?{...saved.stress}:{},tick=0,running=null,traces={};
-$('payload').value=L.hex(config.payload,Math.ceil(config.bits/4));$('bits').value=String(config.bits);$('half').value=String(config.half);$('ack').value=config.ack;
-function updateHash(){const h=new URLSearchParams({chip});if(compare)h.set('compare',compare);try{history.replaceState(null,'','#'+h);}catch{location.hash=h.toString();}}
-function stop(){if(running!==null){clearInterval(running);running=null;}$('run').textContent='▶ Run';$('run').setAttribute('aria-label','Run simulation');}
-function rebuild(){stop();tick=0;traces={};for(const id of L.ids)traces[id]=L.simulate(id,{...config,stress:!!stress[id]});renderAll();}
-function maxTick(){return Math.max(...[chip,compare].filter(Boolean).map(id=>{const trace=traces[id],end=trace.find(s=>['success','timeout','fault'].includes(s.phase));return end?Math.min(trace.length-1,Math.max(end.t+4,end.deadline!==null?end.deadline+2:0)):trace.length-1;}));}
-function current(id){return traces[id][Math.min(tick,traces[id].length-1)];}
-function wirePath(a,b,nodes){const ax=a.x+a.w/2,ay=a.y+a.h/2,bx=b.x+b.w/2,by=b.y+b.h/2,dx=bx-ax,dy=by-ay;
- if(Math.abs(dx)<20&&Math.abs(dy)>170){const x=a.x+a.w+22;return `M ${a.x+a.w} ${ay} H ${x} V ${by} H ${b.x+b.w}`;}
- if(Math.abs(dx)>Math.abs(dy)){const x1=dx>0?a.x+a.w:a.x,x2=dx>0?b.x:b.x+b.w,m=(x1+x2)/2;return `M ${x1} ${ay} H ${m} V ${by} H ${x2}`;}
- const y1=dy>0?a.y+a.h:a.y,y2=dy>0?b.y:b.y+b.h,m=(y1+y2)/2;return `M ${ax} ${y1} V ${m} H ${bx} V ${y2}`;
-}
-function diagram(id,s){const top=L.topologies[id],map=Object.fromEntries(top.nodes.map(n=>[n.id,n])),active=new Set(s.active),marker='arr-'+id,markerActive='act-'+id;return `<svg class="diagram" viewBox="0 0 640 334" role="img" aria-label="${esc(L.architectures[id].name)} hardware topology at tick ${s.t}"><defs><marker id="${marker}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7" fill="#a9b9c4"/></marker><marker id="${markerActive}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7" fill="#087e80"/></marker></defs>${top.edges.map(([from,to])=>{const on=active.has(from)&&active.has(to);return `<path class="wire${on?' active':''}" d="${wirePath(map[from],map[to],top.nodes)}" marker-end="url(#${on?markerActive:marker})"/>`;}).join('')}${top.nodes.map(n=>{const v=s.values[n.id]||['',''];return `<g class="node ${n.kind}${active.has(n.id)?' active':''}"><title>${esc(n.label+': '+v[0]+'. '+v[1])}</title><rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="7"/><text class="node-title" x="${n.x+11}" y="${n.y+19}">${esc(n.label)}</text><text class="node-value" x="${n.x+11}" y="${n.y+38}">${esc(v[0])}</text><text class="node-note" x="${n.x+11}" y="${n.y+54}">${esc(v[1])}</text></g>`;}).join('')}</svg>`;}
-function waveform(id,s){const trace=traces[id],end=maxTick(),left=49,right=748,w=right-left,x=t=>left+w*t/end,colors={data:'#6d47a2',clock:'#087e80',ack:'#b87b24'},names={data:'DATA',clock:'CLK',ack:'ACK'};let grid='';const stride=end>100?20:end>60?10:8;for(let t=0;t<=end;t+=stride)grid+=`<line x1="${x(t)}" y1="7" x2="${x(t)}" y2="103" stroke="#e0e7eb"/><text x="${x(t)}" y="120" text-anchor="middle">${t}</text>`;let lines='';['data','clock','ack'].forEach((key,i)=>{const low=30+i*32,high=low-16;let d=`M ${x(0)} ${trace[0][key]?high:low}`;for(let t=1;t<=Math.min(tick,end);t++){d+=` H ${x(t)} V ${trace[t][key]?high:low}`;}lines+=`<text x="0" y="${low-4}" fill="${colors[key]}">${names[key]}</text><line x1="${left}" y1="${low}" x2="${right}" y2="${low}" stroke="#e8edf0"/><path class="signal" stroke="${colors[key]}" d="${d}"/>`;});const expected=L.frameEnd(config),actual=s.actualEnd,deadline=s.deadline;let markers=expected<=end?`<line x1="${x(expected)}" y1="4" x2="${x(expected)}" y2="104" stroke="#8d9caa" stroke-dasharray="3 3"><title>Nominal frame end ${expected}</title></line>`:'';if(deadline!==null&&deadline<=end)markers+=`<line x1="${x(deadline)}" y1="4" x2="${x(deadline)}" y2="104" stroke="#c39653" stroke-dasharray="3 3"><title>Actual ACK deadline ${deadline}</title></line>`;return `<svg class="wave" viewBox="0 0 760 125" role="img" aria-label="DATA CLK and ACK trace through tick ${tick}; nominal frame end ${expected}">${grid}${markers}${lines}<line x1="${x(tick)}" y1="2" x2="${x(tick)}" y2="107" stroke="#233d4d" stroke-width="1.2"/><circle cx="${x(tick)}" cy="3" r="3" fill="#233d4d"/></svg>`;}
-function status(s){if(s.phase==='fault')return 'Schedule failure';if(s.phase==='success'&&s.drift)return 'ACK success · frame late';if(s.phase==='success')return 'Success';if(s.phase==='timeout')return 'Timeout';if(s.phase==='load')return 'FIFO stall';if(s.phase==='wait')return s.tdl?'ACK captured · service pending':'Waiting for ACK';return 'Transmitting';}
-function card(id){const a=L.architectures[id],s=current(id),warn=s.drift>0||s.phase==='load',error=s.phase==='fault'||s.phase==='timeout';return `<article class="arch-card" aria-label="${esc(a.name)}"><div class="card-head"><div class="arch-heading"><h2>${esc(a.name)}</h2><span class="tag">${esc(a.tag)}</span></div><p>${esc(a.summary)}</p><div class="mechanism"><div><div class="label">Writable protocol definition</div><div class="value writable">${esc(a.writable)}</div></div><div><div class="label">Circuit that changes the pin</div><div class="value">${esc(a.pin)}</div></div></div></div><div class="diagram-wrap"><div class="legend"><span><i></i>manufactured block</span><span><i class="write"></i>writable content</span><span><i class="active"></i>active this step</span></div>${diagram(id,s)}<p class="diagram-note">Code, configuration and equations define behavior. PC, counters and register values show runtime state. Manufactured blocks stay fixed. Dashed blocks are external host work.${id==='etpu'?' DATA-channel arming is assumed timely; CLK rearming is modeled.':''}</p></div><div class="event-box ${error?'error':warn?'warn':''}" aria-live="off"><div class="event-top"><span class="status">${esc(status(s))}</span><span class="caption">${s.samples}/${config.bits} sampled</span></div><div class="event-title">${esc(s.event)}</div><div class="event-text">${esc(s.detail)}</div></div><div class="body-grid"><section><h3 class="section-title">Writable definition · generated recipe</h3><pre class="code">${L.recipe(id,config).map((line,i)=>`<span class="code-line${i===s.line?' active':''}"><span class="number">${i+1}</span>${esc(line)}</span>`).join('')}</pre><p class="caption">Semantic recipe. Highlighted row summarizes the current action; it is not executable vendor code.</p></section><section><h3 class="section-title">What the controls change</h3><div class="change-list">${a.changes(config).map(([k,v])=>`<div class="change"><b>${esc(k)}</b><span>${esc(v)}</span></div>`).join('')}</div><div class="stress-row"><input id="stress-${id}" data-stress="${id}" type="checkbox" ${stress[id]?'checked':''}><label for="stress-${id}"><strong>Try the constraint: ${esc(a.stressTitle.toLowerCase())}</strong><span>${esc(a.stressText)}</span></label></div></section></div><div class="wave-wrap"><div class="wave-meta"><span>Receiver: <strong>${s.samples?L.hex(s.decoded,Math.ceil(config.bits/4)):'no sample yet'}</strong> · ${s.samples} bits</span><span>Frame: desired <strong>${L.frameEnd(config)}</strong> / actual <strong>${s.actualEnd===null?'pending':s.actualEnd}</strong>${s.drift?` <span style="color:var(--amber)">(+${s.drift} late)</span>`:''} · ACK deadline <strong>${s.deadline===null?'pending':s.deadline}</strong></span></div>${waveform(id,s)}<p class="caption">Dashed markers, when in view: gray = desired frame end; amber = actual ACK deadline. ACK is relative to the actual completed frame; an underflow ends this demonstration.</p></div><details class="sources" data-details="${id}"><summary>Hardware scope, limitations and official sources</summary><p>${esc(a.fixed)}</p><p><strong>Main constraint:</strong> ${esc(a.limit)}.</p><p>${esc(a.notes)}</p><ul>${[...BUNDLED_REFERENCES[id],...a.source].map(([label,url])=>`<li><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a></li>`).join('')}</ul></details></article>`;}
-function renderPanels(){const open=new Set([...document.querySelectorAll('details[open][data-details]')].map(d=>d.dataset.details));const focus=document.activeElement?.dataset?.stress;$('panels').className='panels'+(compare?' compare':'');$('panels').innerHTML=[chip,compare].filter(Boolean).map(card).join('');document.querySelectorAll('[data-details]').forEach(d=>d.open=open.has(d.dataset.details));document.querySelectorAll('[data-stress]').forEach(input=>input.addEventListener('change',()=>{stress[input.dataset.stress]=input.checked;rebuild();}));if(focus)$('stress-'+focus)?.focus();}
-function renderTransport(){$('tick').textContent=tick;$('tick-max').textContent='/ '+maxTick();$('seek').max=maxTick();$('seek').value=tick;$('back').disabled=tick===0;$('step').disabled=tick>=maxTick();$('run').textContent=running!==null?'Ⅱ Pause':'▶ Run';}
-function renderAll(){const bits=Array.from({length:config.bits},(_,i)=>(config.payload>>>i)&1).join(' ');$('half-value').value=config.half;$('contract').innerHTML=`<span><strong>LSB first</strong> <span class="bit-string">${bits}</span></span><span>Payload <strong>${L.hex(config.payload,Math.ceil(config.bits/4))}</strong></span><span>Desired frame end <strong>${L.frameEnd(config)}</strong></span><span>ACK budget <strong>8 ticks</strong></span>`;$('tabs').innerHTML=L.ids.map(id=>`<button role="tab" aria-selected="${id===chip}" data-chip="${id}" aria-controls="panels">${L.architectures[id].short}</button>`).join('');document.querySelectorAll('[data-chip]').forEach(b=>b.addEventListener('click',()=>selectChip(b.dataset.chip)));$('compare-toggle').checked=!!compare;$('compare-select').hidden=!compare;$('compare-select').innerHTML=L.ids.filter(id=>id!==chip).map(id=>`<option value="${id}"${compare===id?' selected':''}>${L.architectures[id].name}</option>`).join('');renderPanels();renderTransport();updateHash();}
-function selectChip(id){if(!L.ids.includes(id))return;stop();const previous=chip;chip=id;if(compare===chip)compare=previous;tick=Math.min(tick,maxTick());renderAll();}
-function advance(delta){tick=Math.max(0,Math.min(maxTick(),tick+delta));renderPanels();renderTransport();if(tick===maxTick())stop();}
-function start(){if(running!==null){stop();return;}if(tick>=maxTick())tick=0;running=setInterval(()=>advance(1),Number($('speed').value));$('run').textContent='Ⅱ Pause';$('run').setAttribute('aria-label','Pause simulation');renderTransport();}
-function readControls(){const raw=$('payload').value.trim();if(!/^(?:0x[0-9a-f]+|\d+)$/i.test(raw)||!Number.isSafeInteger(Number(raw))){$('payload').setCustomValidity('Enter a non-negative decimal integer or hexadecimal such as 0xB3.');$('payload').reportValidity();return false;}$('payload').setCustomValidity('');config=L.normalize({payload:raw,bits:$('bits').value,half:$('half').value,ack:$('ack').value});$('payload').value=L.hex(config.payload,Math.ceil(config.bits/4));rebuild();return true;}
-$('payload').addEventListener('change',readControls);$('payload').addEventListener('input',()=>$('payload').setCustomValidity(''));$('bits').addEventListener('change',readControls);$('half').addEventListener('input',()=>{$('half-value').value=$('half').value;readControls();});$('ack').addEventListener('change',readControls);
-$('compare-toggle').addEventListener('change',()=>{stop();compare=$('compare-toggle').checked?L.ids.find(id=>id!==chip):null;tick=Math.min(tick,maxTick());renderAll();});$('compare-select').addEventListener('change',()=>{stop();compare=$('compare-select').value;tick=Math.min(tick,maxTick());renderAll();});
-$('reset').addEventListener('click',()=>{stop();tick=0;renderPanels();renderTransport();});$('back').addEventListener('click',()=>{stop();advance(-1);});$('step').addEventListener('click',()=>{stop();advance(1);});$('run').addEventListener('click',start);$('seek').addEventListener('input',()=>{stop();tick=Number($('seek').value);renderPanels();renderTransport();});$('speed').addEventListener('change',()=>{if(running!==null){stop();start();}});
-document.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA','BUTTON','SUMMARY','A'].includes(document.activeElement?.tagName)||e.metaKey||e.ctrlKey||e.altKey)return;if(e.code==='Space'){e.preventDefault();start();}else if(e.code==='ArrowRight'){e.preventDefault();stop();advance(1);}else if(e.code==='ArrowLeft'){e.preventDefault();stop();advance(-1);}});
-window.addEventListener('hashchange',()=>{const q=new URLSearchParams(location.hash.slice(1)),next=q.get('chip'),second=q.get('compare');if(L.ids.includes(next)){stop();chip=next;compare=L.ids.includes(second)&&second!==chip?second:null;tick=0;renderAll();}});
-$('download').addEventListener('click',()=>{const settings={chip,compare,payload:config.payload,bits:config.bits,half:config.half,ack:config.ack,stress};const doc=new DOMParser().parseFromString('<!doctype html>'+pristine,'text/html');doc.getElementById('lab-defaults').textContent=JSON.stringify(settings).replace(/</g,'\\u003c');const blob=new Blob(['<!doctype html>\n'+doc.documentElement.outerHTML],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='chipsim.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);$('toast').textContent='Saved offline page with your current controls. Playback starts at tick 0.';$('toast').hidden=false;setTimeout(()=>$('toast').hidden=true,4000);});
-$('overview-rows').innerHTML=L.ids.map(id=>{const a=L.architectures[id];return `<tr><td><a href="#chip=${id}">${a.name}</a></td><td>${esc(a.writable)}</td><td>${esc(a.pin)}</td><td>${esc(a.limit)}</td></tr>`;}).join('');
-L.getState=()=>JSON.parse(JSON.stringify({chip,compare,config,stress,tick,running:running!==null}));
-rebuild();
-})();
-</script>
-</body></html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>ChipSim · Hardware behavior workbench</title>
+    <link rel="stylesheet" href="src/ui/styles.css" />
+    <script src=".generated/app.js" defer></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <a class="brand" href="#"
+        ><span class="brand-mark" aria-hidden="true">▦</span>ChipSim<span
+          class="brand-subtitle"
+          >Hardware behavior workbench</span
+        ></a
+      >
+      <div class="header-actions">
+        <button id="add-document" class="primary">＋ Add datasheet</button
+        ><button id="import-model">Import model</button
+        ><button id="session-menu">Save session</button>
+      </div>
+    </header>
+    <input
+      type="file"
+      id="document-file"
+      accept=".pdf,application/pdf"
+      multiple
+      hidden
+    />
+    <input type="file" id="model-file" accept=".json,application/json" hidden />
+    <input
+      type="file"
+      id="session-file"
+      accept=".json,application/json"
+      hidden
+    />
+    <div class="app-layout">
+      <aside class="sidebar" aria-label="Model library">
+        <div class="sidebar-title">MODELS <span id="model-count">6</span></div>
+        <div id="model-library"></div>
+        <button id="load-session" class="sidebar-action">
+          Open saved session
+        </button>
+        <div class="sidebar-title document-title">
+          DOCUMENTS <span id="document-count">0</span>
+        </div>
+        <button id="drop-zone" class="drop-zone">
+          Drop a PDF here<span>or choose a datasheet</span>
+        </button>
+        <div id="document-library"></div>
+        <p class="sidebar-note">
+          PDFs and models stay in this browser. No model service or account is
+          used.
+        </p>
+      </aside>
+      <main>
+        <div id="notice" class="notice" hidden role="status"></div>
+        <div id="import-progress" class="import-progress" hidden>
+          <span id="progress-label"></span
+          ><progress id="progress-bar" max="1" value="0"></progress
+          ><button id="cancel-import">Cancel</button>
+        </div>
+        <section class="model-header">
+          <div>
+            <div class="eyebrow">SIMULATION</div>
+            <h1 id="model-title">Loading ChipSim…</h1>
+            <p id="model-summary"></p>
+          </div>
+          <div class="model-header-controls">
+            <span class="fidelity">Behavioral model</span
+            ><label class="compare-label"
+              ><input id="compare-toggle" type="checkbox" />Compare</label
+            ><select
+              id="compare-model"
+              aria-label="Second model"
+              hidden
+            ></select>
+          </div>
+        </section>
+        <section class="parameter-panel" aria-label="Simulation parameters">
+          <form id="parameters" novalidate></form>
+          <div class="parameter-footer">
+            <label for="value-format">Display as</label
+            ><select id="value-format">
+              <option value="hex">Hexadecimal</option>
+              <option value="decimal">Decimal</option>
+              <option value="binary">Binary</option>
+              <option value="octal">Octal</option></select
+            ><span id="payload-equivalents" class="mono"></span>
+            <details id="advanced-controls">
+              <summary>Advanced controls</summary>
+              <div id="advanced-parameters"></div>
+              <label for="input-events">Input events · JSON</label
+              ><textarea
+                id="input-events"
+                rows="3"
+                spellcheck="false"
+                placeholder='[{"tick": 35, "signal": "ack", "value": 1}]'
+              >
+[]</textarea>
+              <p class="hint">
+                Events drive input signals at an absolute tick and hold their
+                value. In the examples, an empty list uses the ACK controls.
+              </p>
+              <button id="apply-events" type="button">Apply stimulus</button
+              ><label class="duration-label" for="duration"
+                >Simulation duration</label
+              ><input
+                id="duration"
+                type="number"
+                min="1"
+                max="10000"
+                value="100"
+              /><span class="hint">ticks · document models</span>
+            </details>
+          </div>
+        </section>
+        <div class="transport" aria-label="Playback">
+          <button id="reset" title="Reset to tick zero">↺ Reset</button
+          ><button id="back" title="Back one tick">←</button
+          ><button id="run" class="primary">▶ Run</button
+          ><button id="step">Step →</button
+          ><button id="next-event">Next event</button
+          ><input
+            id="seek"
+            type="range"
+            min="0"
+            max="1"
+            value="0"
+            aria-label="Simulation tick"
+          /><output id="tick-label" class="mono">0 / 0</output
+          ><select id="speed" aria-label="Playback speed">
+            <option value="600">Slow</option>
+            <option value="200" selected>Normal</option>
+            <option value="60">Fast</option>
+          </select>
+        </div>
+        <div class="view-bar">
+          <div class="view-tabs" role="tablist" aria-label="Workbench view">
+            <button
+              data-view="inspect"
+              id="tab-inspect"
+              role="tab"
+              aria-selected="true"
+              aria-controls="view-inspect"
+            >
+              Inspect</button
+            ><button
+              data-view="trace"
+              id="tab-trace"
+              role="tab"
+              aria-selected="false"
+              aria-controls="view-trace"
+            >
+              Trace & log</button
+            ><button
+              data-view="sources"
+              id="tab-sources"
+              role="tab"
+              aria-selected="false"
+              aria-controls="view-sources"
+            >
+              Model & sources
+            </button>
+          </div>
+          <div class="export-actions">
+            <select id="trace-format" aria-label="Trace export format">
+              <option value="csv">CSV</option>
+              <option value="json">JSON</option>
+              <option value="vcd">VCD</option></select
+            ><button id="export-trace">Export trace ↓</button>
+          </div>
+        </div>
+        <section id="waveforms" aria-label="Signal traces"></section>
+        <section
+          id="view-inspect"
+          class="view"
+          role="tabpanel"
+          aria-labelledby="tab-inspect"
+        >
+          <div id="inspect-panels"></div>
+        </section>
+        <section
+          id="view-trace"
+          class="view"
+          role="tabpanel"
+          aria-labelledby="tab-trace"
+          hidden
+        >
+          <div class="log-toolbar">
+            <label
+              ><input id="changes-only" type="checkbox" />Changes only</label
+            ><input
+              id="log-filter"
+              type="search"
+              placeholder="Filter events or registers…"
+              aria-label="Filter execution log"
+            /><span id="log-count" class="hint"></span>
+          </div>
+          <div id="execution-log"></div>
+        </section>
+        <section
+          id="view-sources"
+          class="view"
+          role="tabpanel"
+          aria-labelledby="tab-sources"
+          hidden
+        >
+          <div id="source-panel"></div>
+        </section>
+        <footer>
+          One tick represents a model step. See each model’s scope and
+          assumptions before interpreting timing.
+        </footer>
+      </main>
+    </div>
+    <dialog id="document-dialog">
+      <div class="dialog-head">
+        <div>
+          <div class="eyebrow">SOURCE WORKSPACE</div>
+          <h2 id="document-title"></h2>
+        </div>
+        <button id="close-document" aria-label="Close document">✕</button>
+      </div>
+      <div id="document-info"></div>
+      <div class="document-actions">
+        <button id="open-pdf">Open PDF ↗</button
+        ><button id="export-sources">Export sources for agent</button
+        ><button id="document-import-model">Import model</button>
+      </div>
+      <label for="document-search">Search the manual</label
+      ><input
+        id="document-search"
+        type="search"
+        placeholder="register, FIFO, timer, GPIO…"
+      />
+      <div id="document-results"></div>
+      <details>
+        <summary>Adding a simulation for this manual</summary>
+        <p>
+          Export its text and page citations, then use
+          <code>AGENTS.md</code> and <code>docs/MODEL_FORMAT.md</code> to create
+          a model. Import the JSON to run it here. ChipSim checks the model,
+          acceptance cases, and source quotes against attached PDFs.
+        </p>
+        <a href="examples/timer.model.json" download
+          >Download the timer model example</a
+        >
+      </details>
+    </dialog>
+    <noscript
+      >ChipSim requires JavaScript. Run npm install and npm run build, then open
+      chipsim.html or start the local server.</noscript
+    >
+  </body>
+</html>

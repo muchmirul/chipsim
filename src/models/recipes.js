@@ -1,0 +1,70 @@
+import { hex } from "../core/values.js";
+import { frameEnd } from "../core/protocol.js";
+export function recipe(id, c) {
+  const p = hex(c.payload, Math.ceil(c.bits / 4)),
+    n = c.bits,
+    h = c.half,
+    e = frameEnd(c);
+  return {
+    pio: [
+      `host: TX_FIFO ← ${p}; shift = RIGHT`,
+      `PULL BLOCK; X ← ${n - 1}`,
+      `OUT DATA, 1; CLK ← 0; hold H=${h}`,
+      `CLK ← 1; hold H=${h}`,
+      `JMP X--, output_next_bit`,
+      `CLK ← 0; begin ACK budget = 8`,
+      `poll ACK; decrease bounded Y`,
+      `latch success or timeout`,
+    ],
+    pru: [
+      `load word = ${p}; i = 0`,
+      `while i < ${n}: bit = (word >> i) & 1`,
+      `R30.DATA ← bit; R30.CLK ← 0`,
+      `execute low-interval work; H=${h}`,
+      `R30.CLK ← 1; high-interval work; H=${h}`,
+      `R30.CLK ← 0; i ← i + 1`,
+      `poll R31.ACK; check deadline = end + 8`,
+      `latch success or timeout`,
+    ],
+    flexio: [
+      `configure TX shifter; select timer / DATA`,
+      `timer: half_period = ${h}; edges = ${2 * n}`,
+      `host: SHIFTBUF ← pack_lsb(${p}, ${n})`,
+      `buffer-ready trigger enables timer`,
+      `timer edge → CLK; falling edge → shift`,
+      `length compare disables transfer`,
+      `host: poll ACK GPIO until end + 8`,
+      `host: latch success or timeout`,
+    ],
+    udb: [
+      `configure PLD, control words and routes`,
+      `load payload = ${p}; remaining = ${n}`,
+      `LOW: CLK=0; compare half_count with ${h}`,
+      `HIGH: CLK=1; compare half_count with ${h}`,
+      `on HIGH→LOW: shift; remaining--`,
+      `remaining=0 → ACK_WAIT; budget=8`,
+      `ACK_WAIT: ACK ? DONE : budget0 ? TIMEOUT`,
+      `route result to status output`,
+    ],
+    xmos: [
+      `task: pack ${p}, ${n} bits into DATA/CLK writes`,
+      `configure port clock; initialize CLK=0`,
+      `issue ONE timed write at next += ${h}`,
+      `port hardware waits for target time`,
+      `port applies value; task becomes runnable`,
+      `task prepares / submits next of ${2 * n} edges`,
+      `after frame: select ACK input or end+8 timer`,
+      `latch selected completion event`,
+    ],
+    etpu: [
+      `service: payload=${p}; remaining_edges=${2 * n}`,
+      `arm CLK A=${h}, B=${2 * h}; prepare DATA`,
+      `TCR match → pin action; MRLE clears`,
+      `MRL requests shared microengine service`,
+      `service clears latch; next target += ${2 * h}`,
+      `frame complete → arm ACK capture + deadline`,
+      `on ACK: capture TCR; deadline=end+8`,
+      `service tests timestamp; latch result`,
+    ],
+  }[id];
+}

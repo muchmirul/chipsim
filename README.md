@@ -1,88 +1,102 @@
 # ChipSim
 
-ChipSim is an offline, interactive guide to programmable I/O. Follow the same DATA, CLK, and ACK transfer through six architectures, step through their internal state, and see how resource constraints affect the output.
+ChipSim is a local workbench for understanding chip behavior through architecture diagrams, waveforms, registers, and execution traces. It includes six behavioral examples: **RP2040 PIO, TI PRU, NXP FlexIO, PSoC UDB, XMOS xCORE, and NXP eTPU**, plus a format for adding document-backed simulations.
 
-The application is a single HTML file with embedded JavaScript, CSS, and SVG. No installation, build step, account, or internet connection is needed to run it.
+## Start
 
-## Run
-
-Open [index.html](index.html) in a modern browser. Keep the `docs/` directory beside it to open the bundled PDF references offline.
-
-For an optional local server, run this from the repository directory:
+Use Node.js 22.13 or newer:
 
 ```sh
-python3 -m http.server 8000 --bind 127.0.0.1
+cd /home/dev/chipsim
+npm ci
+npm run build
+npm start
 ```
 
-Then open `http://127.0.0.1:8000/`. A selected architecture can be linked with `#chip=pio`; a comparison uses `#chip=pio&compare=pru`.
+Open **http://127.0.0.1:8000**. Alternatively, open the generated **`chipsim.html`** directly in a modern browser. The portable file includes the app and PDF worker; no CDN, account, or model service is needed. Keep `docs/references/` beside it to open the bundled reference PDFs. Vendor PDF links are also recorded in the reference documentation.
 
-## Use the simulator
+For development, use `npm run dev`. It rebuilds JavaScript on changes and serves the app. Rebuild or restart after changing packaged model JSON. If opening `index.html` directly, run the build first so its generated script exists.
 
-1. Set the payload, frame length (8 or 12 bits), clock half-period, and ACK behavior.
-2. Select an architecture, or enable **Compare two**.
-3. Use **Step**, **Back**, **Run/Pause**, **Reset**, or the timeline to inspect execution.
-4. Enable **Try the constraint** to observe that architecture's resource experiment.
-5. Expand **Hardware scope, limitations and official sources** for local PDFs and publisher links.
+## Use the workbench
 
-The diagram highlights active blocks. The recipe highlights the current semantic action. The waveform shows DATA, CLK, and ACK alongside decoded payload and frame timing.
+1. Select a model, set its parameters, and choose **Run**, **Step**, or **Next event**. Drag the tick slider to inspect any point. Space toggles playback; arrow keys step when focus is outside a control.
+2. Inspect the active hardware blocks, signal values, and registers. Highlighted register rows changed during that tick. The waveform shows the full trace with a cursor at the selected tick.
+3. Open **Trace & log** for state changes, events, and before/after values. Filter by event or register name, show changes only, or click a row to seek to it. The log shows history through the current tick, with the latest 500 matching rows displayed.
+4. Export the full primary-model trace as **CSV**, **JSON**, or **VCD**. JSON includes parameters, stimulus, sources, and assumptions. VCD can be loaded in waveform viewers; its nominal `1ns` unit represents one normalized model tick and is not silicon timing.
+5. Use **Save session** / **Open saved session** to preserve the primary model, parameters, stimulus, display format, and cursor. A custom primary model is included in the session JSON; PDF bytes are not included.
 
-Space toggles playback; the left and right arrow keys step backward and forward when focus is outside interactive controls.
+Integer inputs accept `179`, `0xB3`, `0b10110011`, or `0o263`. Plain numbers are decimal. **Display as** changes register and payload presentation without changing their values or moving the cursor. Built-in transfers use the low 8 or 12 payload bits; for example, decimal `300` sends decimal `44` in an 8-bit frame.
 
-**Save offline HTML** exports `chipsim.html` with the current configuration and playback reset to tick zero. The exported simulator runs independently. Its local PDF links require the accompanying `docs/` directory; the PDF files are not embedded in the export.
+**Advanced controls** exposes resource constraints, ACK delay and polling budget, and timed input events. Events are absolute normalized ticks and hold their signal value:
 
-## Architectures and references
+```json
+[{ "tick": 35, "signal": "ack", "value": 1 }]
+```
 
-| Architecture | Modeled mechanism | Bundled reference PDFs |
-| --- | --- | --- |
-| RP2040 PIO | Instruction-driven state machine, FIFO, shift register, and mapped pins | [RP2040 datasheet](docs/references/rp2040-datasheet.pdf#page=312) |
-| TI PRU | AM335x PRU firmware using direct R30 output and R31 input | [AM335x technical reference manual](docs/references/ti-am335x-trm-spruh73q.pdf#page=208) |
-| NXP FlexIO | S32K144-style timer and transmit shifter, with host ACK handling | [AN12174](docs/references/nxp-flexio-an12174.pdf#page=3) |
-| PSoC UDB | Configured PLDs, datapaths, control stores, and routing | [PSoC 5LP architecture TRM](docs/references/infineon-psoc5lp-architecture-trm.pdf#page=165) |
-| XMOS xCORE | Task scheduling and one pending timed port write | [XS3 architecture](docs/references/xmos-xs3-architecture.pdf), [AN03001 clocked I/O](docs/references/xmos-clocked-io-an03001.pdf) |
-| NXP eTPU | Channel match/capture hardware and shared microengine service | [AN2933 channel hardware](docs/references/nxp-etpu-channel-hardware-an2933.pdf), [AN2353 essentials](docs/references/nxp-etpu-essentials-an2353.pdf) |
+An empty event list uses the built-in ACK controls. A nonempty list takes over ACK stimulus. For document models, use their declared input signal names and choose a duration of 1–10,000 ticks. **Compare** shares parameters and stimulus between the six built-in examples; other models use their own saved settings or defaults. Exports cover the primary model.
 
-All eight documents cited by the original simulation are included as complete, unmodified vendor PDFs. The [reference guide](docs/REFERENCES.md) records versions, relevant sections, official download URLs, and how each source relates to the model. The [manifest](docs/references/manifest.json) pins each downloaded file with its size, page count, retrieval date, and SHA-256 checksum.
+## Add a datasheet or reference manual
 
-## Simulation scope
+Click **Add datasheet**, or drop a searchable PDF into the app. ChipSim extracts its text and preserves page numbers and a SHA-256 fingerprint. The workspace supports search, opening the original PDF at a page, and exporting source text for a developer or coding agent.
 
-These are behavioral teaching models. A step is one **normalized protocol tick**, which may summarize several internal operations. The recipes are explanatory pseudocode. The simulator does not execute vendor firmware, reproduce all registers, or claim cycle-accurate timing, electrical behavior, power, or silicon performance.
+A manual with an installed document-backed model opens that model after source verification. A recognized vendor manual also opens its corresponding **existing example**. It does not infer every feature of that chip. An unfamiliar manual opens a source workspace; creating its executable behavior still requires a developer or coding agent to author a model. **There is no LLM integration or automatic interpretation of arbitrary datasheets in this version.**
 
-The shared protocol sends the payload LSB first. DATA is prepared before rising CLK edges. The nominal frame length is `bits × 2 × H` ticks. ACK arrives three ticks after the actual completed frame, or remains missing. Its budget is eight ticks after actual completion; a timely ACK has priority at the deadline by model convention.
+To add a new simulation:
 
-The resource experiments intentionally differ:
+1. Import the manual and select **Export sources for agent**.
+2. Give the source bundle, [AGENTS.md](AGENTS.md), and [model format](docs/MODEL_FORMAT.md) to the developer or agent implementing the peripheral scenario.
+3. Create model JSON with parameters, signals, registers, hardware nodes, state transitions, assumptions, exact page citations, and acceptance checks.
+4. Import it with **Import model**. ChipSim validates its structure, runs its acceptance checks, and checks quoted evidence against attached PDF text. Missing PDFs produce an explicit unverified-source warning; a mismatching attached quote rejects the model.
+5. Inspect and simulate it through the same workbench as the supplied examples.
 
-| Architecture | Experiment |
-| --- | --- |
-| PIO | Withhold the initial FIFO word until tick 4. |
-| PRU | Pause firmware during ticks 4–7. |
-| FlexIO | Keep the host busy during ticks 4–7 while loaded hardware continues. |
-| UDB | Gate the protocol clock during ticks 4–7. |
-| xCORE | Delay the task during ticks 4–9; only an already submitted write can complete. |
-| eTPU | Delay service during ticks 4–9; armed matches can fire until rearming is needed. |
+Try importing [examples/timer.model.json](examples/timer.model.json). It demonstrates counter, compare, enable, and reset behavior. Its scenario is explicitly illustrative. Import the bundled NXP FlexIO application note as well to verify its source quote. To include a model in every build, put its JSON under `models/` and rebuild.
 
-These experiments illustrate constraints and are not a common performance benchmark. Model-specific assumptions appear in the source panels and [reference guide](docs/REFERENCES.md).
+PDFs and imported models persist in this browser's IndexedDB. Different browsers/origins have separate workspaces. Private browsing, browser cleanup, or storage limits can erase it; keep exported source bundles and model files. There is no document sync or backend. Image-only PDFs need OCR before import. Imports are limited to 80 MiB per PDF and 2 MiB per model JSON.
 
-## Repository layout
+## Command-line workflow
+
+PDF extraction requires Poppler (`pdfinfo`, `pdftotext`):
+
+```sh
+npm run extract -- path/to/manual.pdf manual.sources.json
+npm run model -- validate examples/timer.model.json --sources manual.sources.json
+npm run model -- simulate examples/timer.model.json --ticks 40 --format vcd --out timer.vcd
+```
+
+Simulation also accepts `--params parameters.json` and `--inputs events.json`. Numeric values in these JSON files use ordinary JSON numbers. Model JSON has a bounded expression language; it cannot run JavaScript.
+
+## Repository
 
 ```text
-index.html                    Application and all six models
-README.md                     Usage and scope
-THIRD_PARTY_NOTICES.md         Vendor-document attribution
-docs/REFERENCES.md            Source-to-model reference guide
-docs/DEVELOPMENT.md           Code structure and maintenance
-docs/references/*.pdf         Eight complete official reference PDFs
-docs/references/manifest.json Versions, origins, and checksums
-scripts/verify.mjs            Offline integrity and model smoke checks
+index.html                  HTML shell
+src/
+  core/                     Numeric formats and shared transfer protocol
+  models/builtins/           Six architecture implementations
+  models/                   Catalog and implementation recipes
+  model/                    Declarative model validator and interpreter
+  documents/                PDF extraction, recognition, search, local storage
+  trace/                    CSV, JSON, and VCD exports
+  ui/                       Workbench controls, diagrams, waveforms, logs, CSS
+models/                     Optional packaged model JSON
+examples/                   Importable timer model example
+scripts/                    Build, local server, extraction, model CLI, verifier
+test/                       Engine regressions and browser workflow checks
+docs/references/            Eight complete official vendor PDFs and manifest
+docs/                       Model format, development guide, reference index
+AGENTS.md                   Instructions for developers and coding agents
+chipsim.html                Generated portable app, ignored by Git
 ```
 
-## Verify and develop
-
-With Node.js 18 or newer installed, run:
+## Verification and scope
 
 ```sh
-node scripts/verify.mjs
+npm test
+npm run build
+npm run verify
+npx playwright install chromium
+npm run test:ui
 ```
 
-This checks PDF integrity against the manifest, local reference coverage, JavaScript syntax, and baseline success/timeout transfers for all six models. It does not establish hardware accuracy or replace browser inspection. See [DEVELOPMENT.md](docs/DEVELOPMENT.md) before changing a model.
+These are behavioral models of selected mechanisms and scenarios. One tick is a semantic model step. Source quotes and passing acceptance cases help review a model; neither proves hardware accuracy. This workbench does not consume RTL, implement a complete CPU, predict physical area/power, or replace device validation.
 
-ChipSim is based on the supplied `architecture-comparison.html`, with ChipSim branding and the requested Section 8 heading and description removed. The comparison table and six interactive models are retained. Vendor-document attribution is recorded in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Read [development notes](docs/DEVELOPMENT.md), [reference documents](docs/REFERENCES.md), and [third-party notices](THIRD_PARTY_NOTICES.md) for implementation and vendor-document provenance.

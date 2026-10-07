@@ -1,0 +1,29 @@
+{
+  "name": "chipsim",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Document-backed chip behavior visualization and trace workbench",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "dev": "node scripts/build.mjs --watch",
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/*.test.js",
+    "test:ui": "playwright test",
+    "verify": "node scripts/verify.mjs",
+    "extract": "node scripts/extract.mjs",
+    "model": "node scripts/model.mjs",
+    "format": "prettier --write src scripts test models examples index.html package.json '*.md' 'docs/*.md'"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^6.4.299"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "esbuild": "^0.28.2",
+    "prettier": "^3.9.9"
+  }
+}
