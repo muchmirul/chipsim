@@ -16,6 +16,7 @@ import { screenText } from "./render.js";
 import { views } from "./views.js";
 import { StimulusEditor } from "./stimulus-editor.js";
 import { BehaviorTableEditor } from "./behavior-table-editor.js";
+import { RegisterBankEditor } from "./register-bank-editor.js";
 const unquote = (path) =>
   /^(['"]).*\1$/.test(path) ? path.slice(1, -1) : path;
 export class TerminalApp {
@@ -43,6 +44,7 @@ export class TerminalApp {
     this.timer = null;
     this.stimulusEditor = new StimulusEditor(this);
     this.behaviorTableEditor = new BehaviorTableEditor(this);
+    this.registerBankEditor = new RegisterBankEditor(this);
   }
   draw() {
     if (this.closed || this.external) return;
@@ -420,10 +422,16 @@ export class TerminalApp {
           label: "Behavior table · enter custom logic / state transitions",
           value: "behavior-table",
         },
+        {
+          label: "Register bank · enter addresses, masks and access rules",
+          value: "register-bank",
+        },
       ],
       (kind) => {
         if (kind === "behavior-table")
           return this.behaviorTableEditor.create(document);
+        if (kind === "register-bank")
+          return this.registerBankEditor.create(document);
         const choices = suggestions.filter((s) => s.kind === kind);
         const create = (source) =>
           this.scenarioQuestions(document, kind, source);

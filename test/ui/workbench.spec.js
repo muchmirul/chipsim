@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { extractPDFFile } from "../../src/documents/extract-node.js";
 import { buildBehaviorTable } from "../../src/model/behavior-table/build.js";
+import { buildRegisterBank } from "../../src/model/register-bank/build.js";
 async function ready(page, url = "/") {
   await page.goto(url);
   await expect(page.locator("#model-title")).toHaveText("RP2040 PIO");
@@ -937,4 +938,79 @@ test("single-port GPIO original PDF compiles in PDF.js, preserves latch/interrup
   expect(spec).toEqual(terminal.models[0].spec);
   await page.reload();
   await expect(page.locator("#model-title")).toHaveText(spec.name);
+});
+
+test("TUI-authored register banks verify a real manual and preserve 32-bit storage, traces and reload", async ({
+  page,
+}) => {
+  const document = await extractPDFFile(
+    resolve("docs/references/rp2040-datasheet.pdf"),
+  );
+  const { spec } = buildRegisterBank(document, {
+    name: "Entered scratch register storage",
+    width: 32,
+    hardwarePriority: "before",
+    rows: await readFile(
+      "examples/rp2040-watchdog-scratch.registers.txt",
+      "utf8",
+    ),
+    page: 549,
+    quote: "Information persists through soft reset of the chip.",
+    claim:
+      "Table 549 supports the entered relative addresses and 32-bit scratch word storage.",
+    assumptions:
+      "No watchdog counter, address aliases, bootrom or reset domains modeled.",
+  });
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/rp2040-datasheet.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await page
+    .locator("#model-file")
+    .setInputFiles({
+      name: "scratch.model.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(spec)),
+    });
+  await expect(page.locator("#model-title")).toHaveText(spec.name);
+  await page.locator("#advanced-controls").click();
+  await page.locator("#input-events").fill(
+    JSON.stringify([
+      { tick: 0, signal: "request", value: 1 },
+      { tick: 1, signal: "address", value: 12 },
+      { tick: 1, signal: "write_data", value: 0xdeadbeef },
+      { tick: 1, signal: "write", value: 1 },
+      { tick: 1, signal: "request", value: 0 },
+      { tick: 2, signal: "write", value: 0 },
+      { tick: 2, signal: "request", value: 1 },
+      { tick: 3, signal: "address", value: 16 },
+      { tick: 3, signal: "write_data", value: 0xffffffff },
+      { tick: 3, signal: "write", value: 1 },
+      { tick: 3, signal: "request", value: 0 },
+      { tick: 4, signal: "write", value: 0 },
+      { tick: 4, signal: "request", value: 1 },
+      { tick: 5, signal: "reset", value: 1 },
+    ]),
+  );
+  await page.locator("#apply-events").click();
+  await page.locator("#seek").fill("4");
+  await page.locator("#seek").dispatchEvent("input");
+  await expect(
+    page.locator(".register-table tr").filter({ hasText: "read_data" }),
+  ).toContainText("0xFFFFFFFF");
+  await page.locator("#tab-trace").click();
+  await page.locator("#trace-format").selectOption("json");
+  const exported = JSON.parse(
+    await downloaded(page, () => page.locator("#export-trace").click()),
+  );
+  expect(exported.trace[2].signals.read_data).toBe(0xdeadbeef);
+  expect(exported.trace[4].registers.value_SCRATCH1).toBe(0xffffffff);
+  expect(exported.trace[5].registers.value_SCRATCH0).toBe(0);
+  await page.reload();
+  await expect(page.locator("#model-title")).toHaveText(spec.name);
+  await page.locator("#tab-sources").click();
+  await expect(page.locator("#source-panel")).toContainText(
+    "Table 549 supports",
+  );
 });

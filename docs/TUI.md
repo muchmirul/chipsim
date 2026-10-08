@@ -71,6 +71,12 @@ It is Git-ignored. `--workspace PATH` chooses another directory. Terminal and br
 
 Draft review comparison JSON uses `format: "chipsim-trace-comparison"`, version 1. It contains the baseline session, draft model, and all state/phase/signal/register differences in a normalized-tick comparison. Unavailable/uninitialized values are `null`, distinct from numeric zero and `"Z"`. This is an inspection artifact, not a loadable session or acceptance test; identical observed traces do not prove equivalence for other experiments.
 
+## Register-bank authoring
+
+Press `c` and choose **Register bank** to enter explicit `NAME ADDRESS MODE RESET MASK` rows or load `@file`. Choose a 1–32-bit word width, before/after synthetic hardware-set ordering, a source page/quote/claim, and assumptions. Invalid row or quote prompts stay available for correction; Ctrl-U clears the current entry. Source checks and generated acceptance cases must pass before installation. This is a developer-authored path for unsupported register manuals, not inferred PDF semantics.
+
+Use `u` for named addressed reads/writes, `i` or `7` for `set_NAME` injections, `6` for storage changes, and `S`/`M` to save experiments/export models. `reset` is a whole-bank scenario reset; read-to-clear returns the pre-clear word. Hardware set inputs remain asserted until returned to zero. See [REGISTER_BANKS.md](REGISTER_BANKS.md) for masks, ordering, limits, and the real RP2040 scratch-register example.
+
 ## dwfv
 
 Reference: https://github.com/psurply/dwfv. Reviewed revision: `fe89ba62d8ddcf95f8476d6b8a8c5714f1a64b6f` (Cargo version 0.5.0). Its upstream code is MIT licensed; no source code from it is copied into ChipSim.

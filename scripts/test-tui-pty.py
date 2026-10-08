@@ -333,6 +333,34 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored_experiment=json.loads(restored_trace.read_text())
   assert restored_experiment['trace'][3]['signals']['pin_y']==0
   assert restored_experiment['model']['definition']['authoring']==original_model['authoring']
+  send('d');wait('Import PDF')
+  send(str(ROOT/'docs/references/rp2040-datasheet.pdf')+'\r');wait('Loaded RP2040 PIO')
+  send('c');wait('CREATE')
+  send('jjjj\r');wait('Register bank · simulation name')
+  send('Scratch storage experiment\r');wait('Register word width')
+  send('32\r');wait('Register rows')
+  send('@'+str(ROOT/'examples/rp2040-watchdog-scratch.registers.txt')+'\r');wait('Synthetic hardware set')
+  send('before\r');wait('Evidence PDF page')
+  send('549\r');wait('Exact source excerpt')
+  send('Information persists through soft reset of the chip.\r');wait('What the excerpt supports')
+  send('Table 549 supports the entered 32-bit scratch storage words.\r');wait('Additional assumption')
+  send('No physical bus, watchdog counter, aliases or reset domains modeled.\r');wait('Added Scratch storage experiment')
+  send('u');wait('REGISTER ACCESS')
+  send('\r');wait('SCRATCH0')
+  send('j\r');wait('Write SCRATCH0')
+  send('0xDEADBEEF\r');wait('write address 12 at tick 1')
+  send('u');wait('REGISTER ACCESS')
+  send('\r');wait('SCRATCH0')
+  send('\r');wait('read address 12 at tick 2')
+  send('x');wait('EXPORT FULL TRACE')
+  send('j\r');wait('Output path')
+  scratch_trace=Path(workspace)/'scratch-trace.json'
+  send(str(scratch_trace)+'\r');wait('Saved '+str(scratch_trace))
+  scratch=json.loads(scratch_trace.read_text())
+  assert scratch['trace'][1]['registers']['value_SCRATCH0']==0xDEADBEEF
+  assert scratch['trace'][2]['signals']['read_data']==0xDEADBEEF
+  assert len(scratch['model']['definition']['registerMap'])==8
+  assert scratch['model']['definition']['evidence'][0]['page']==549
   send('q');proc.wait(timeout=5)
   end=time.monotonic()+1
   while time.monotonic()<end and select.select([master],[],[],.05)[0]:
@@ -342,7 +370,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored=termios.tcgetattr(slave)
   assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
   assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, custom behavior-table authoring/retry/revision/full-trace-review/restore, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, hierarchical decoder headers, Q0 retention and steady/transition clock lists, released outputs, addressed access, direct pin editing, and terminal cleanup.')
+  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, custom behavior-table authoring/retry/revision/full-trace-review/restore, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, hierarchical decoder headers, Q0 retention and steady/transition clock lists, released outputs, addressed access, guided 32-bit register-bank authoring, direct pin editing, and terminal cleanup.')
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)
