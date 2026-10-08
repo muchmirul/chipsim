@@ -2,6 +2,7 @@ import { recognizeDocument } from "../documents/recognize.js";
 import { compileDocument } from "./profiles/index.js";
 import { readFunctionTables } from "./tables/read.js";
 import { buildFunctionTable } from "./tables/build.js";
+import { buildSequentialTable } from "./tables/sequential-build.js";
 export function analyzeDocument(document, { reservedIds = [] } = {}) {
   const profile = compileDocument(document, { reservedIds });
   if (profile)
@@ -20,7 +21,9 @@ export function analyzeDocument(document, { reservedIds = [] } = {}) {
     reserved = [...reservedIds];
   for (const table of tables)
     try {
-      const compiled = buildFunctionTable(document, table, {
+      const compiled = (
+        table.kind === "sequential" ? buildSequentialTable : buildFunctionTable
+      )(document, table, {
         reservedIds: reserved,
       });
       models.push(compiled);

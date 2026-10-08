@@ -1,18 +1,8 @@
+import { fold, pinId as id, tableId } from "./shared.js";
 import { instancesFor } from "./pins.js";
 import { op, assign, signal, input } from "../builders/shared.js";
 import { validateModel } from "../validate.js";
 import { runChecks } from "../engine.js";
-const fold = (operator, values, empty) =>
-  !values.length
-    ? empty
-    : values.length === 1
-      ? values[0]
-      : op(
-          operator,
-          fold(operator, values.slice(0, Math.ceil(values.length / 2)), empty),
-          fold(operator, values.slice(Math.ceil(values.length / 2)), empty),
-        );
-const id = (label) => "pin_" + label.toLowerCase();
 export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
   const {
       instances,
@@ -122,16 +112,7 @@ export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
   });
   const active = nodes.map((node) => node.id);
   transitions.forEach((transition) => (transition.active = active));
-  let modelId =
-    "table-" +
-    document.sha256.slice(0, 12) +
-    "-p" +
-    table.page +
-    "-t" +
-    table.number.replace(/[^\w]/g, "");
-  const base = modelId;
-  for (let suffix = 2; reservedIds.includes(modelId); suffix++)
-    modelId = base + "-" + suffix;
+  const modelId = tableId(document, table, reservedIds);
   const checks = [],
     exampleInputs = [];
   for (let combination = 0; combination < table.matrix.length; combination++) {

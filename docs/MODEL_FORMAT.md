@@ -244,6 +244,8 @@ npm run model -- simulate my-chip.model.json --params parameters.json --inputs e
 
 Automatically compiled binary logic models include `sourceTable` metadata with compiler ID `binary-function-table-v1`, PDF page/caption, input/output column labels, source rows (input `null` means explicit don't-care), exhaustive output matrix, and instantiated signal labels. This snapshot is displayed for review; executable behavior still resides in `states`. Editing the snapshot alone does not alter simulation rules. Its shape and declared-signal mapping are validated before rendering. See `FUNCTION_TABLES.md` for compilation and scope.
 
+Sequential models use compiler ID `sequential-function-table-v1`. Their input rows can contain `rise`/`fall`, outputs can contain `hold`, and `clock` identifies the input/index and supported edge directions. `symbolRows` preserves original arrows, lowercase set-up symbols, and `no change`. The binary matrix is ordered by previous clock (0, 1), current input combination, then previous output combination; its dimension is `2^(inputs + outputs + 1)` and is capped at 64 entries. The snapshot does not change the executable states or certify source interpretation.
+
 ## Guided scenario creation
 
 Press `c` with a PDF loaded in the TUI to configure a counter, FIFO, or shift-transfer model. The builder checks the cited page and exact excerpt, generates a schema-version-1 definition with explicit assumptions and demonstration inputs, and runs acceptance cases before saving. See `docs/TUI.md` for each scenario's rules. A suggested keyword or bit width is a review aid, not a proof of the modeled behavior.

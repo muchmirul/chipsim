@@ -4,9 +4,7 @@
   "description": "Complete official PDFs cited by ChipSim architecture examples, reviewed document profiles, and data-derived function-table tests. Versions are pinned snapshots.",
   "documents": [
     {
-      "chips": [
-        "pio"
-      ],
+      "chips": ["pio"],
       "path": "docs/references/rp2040-datasheet.pdf",
       "title": "RP2040 Datasheet",
       "publisher": "Raspberry Pi",
@@ -22,9 +20,7 @@
       "model_assumptions": "The model combines multiple instructions into semantic actions. FIFO delay, bounded polling, and normalized timing are model choices; WAIT alone is not a timeout."
     },
     {
-      "chips": [
-        "pru"
-      ],
+      "chips": ["pru"],
       "path": "docs/references/ti-am335x-trm-spruh73q.pdf",
       "title": "AM335x and AMIC110 Sitara Processors Technical Reference Manual",
       "publisher": "Texas Instruments",
@@ -40,9 +36,7 @@
       "model_assumptions": "Only direct-output mode is modeled. Four ticks of unavailable firmware represent a teaching experiment; detailed instruction timing, bus arbitration, and optional shift-output hardware are outside scope."
     },
     {
-      "chips": [
-        "flexio"
-      ],
+      "chips": ["flexio"],
       "path": "docs/references/nxp-flexio-an12174.pdf",
       "title": "Using FlexIO to emulate communications and timing peripherals",
       "publisher": "NXP",
@@ -58,9 +52,7 @@
       "model_assumptions": "The example uses a representative S32K144 resource budget. Register encodings, buffer aliases, and automatic framing are abstracted; custom ACK handling is host software."
     },
     {
-      "chips": [
-        "udb"
-      ],
+      "chips": ["udb"],
       "path": "docs/references/infineon-psoc5lp-architecture-trm.pdf",
       "title": "PSoC 5LP Architecture TRM",
       "publisher": "Cypress / Infineon",
@@ -76,9 +68,7 @@
       "model_assumptions": "The design is a composed UDB network, not a claim that the complete link fits one UDB. Fitting, propagation delay, and exact clock distribution are abstracted."
     },
     {
-      "chips": [
-        "xmos"
-      ],
+      "chips": ["xmos"],
       "path": "docs/references/xmos-xs3-architecture.pdf",
       "title": "The XMOS XS3 Architecture",
       "publisher": "XMOS",
@@ -94,9 +84,7 @@
       "model_assumptions": "The model allows one pending unbuffered timed write. Displayed CLK is a data bit, distinct from the underlying port clock. Time domains and counter wrap are abstracted."
     },
     {
-      "chips": [
-        "xmos"
-      ],
+      "chips": ["xmos"],
       "path": "docs/references/xmos-clocked-io-an03001.pdf",
       "title": "AN03001: XCORE Clocked Input and Output",
       "publisher": "XMOS",
@@ -112,9 +100,7 @@
       "model_assumptions": "This supports the port timing explanation; it is not the executable implementation of ChipSim's DATA/CLK/ACK recipe."
     },
     {
-      "chips": [
-        "etpu"
-      ],
+      "chips": ["etpu"],
       "path": "docs/references/nxp-etpu-channel-hardware-an2933.pdf",
       "title": "Understanding the eTPU Channel Hardware",
       "publisher": "Freescale / NXP",
@@ -130,9 +116,7 @@
       "model_assumptions": "CLK rearming is modeled with two slots. Separate DATA-channel preparation is assumed timely. A missed required CLK target ends the demonstration rather than predicting every later hardware effect."
     },
     {
-      "chips": [
-        "etpu"
-      ],
+      "chips": ["etpu"],
       "path": "docs/references/nxp-etpu-essentials-an2353.pdf",
       "title": "The Essentials of Enhanced Time Processing Unit",
       "publisher": "Freescale / NXP",
@@ -148,9 +132,7 @@
       "model_assumptions": "ACK capture is evaluated by its timestamp, with a model-defined two-tick service delay. These timing constants are teaching assumptions, not device latency specifications."
     },
     {
-      "chips": [
-        "hc595"
-      ],
+      "chips": ["hc595"],
       "path": "docs/references/nexperia-74hc595.pdf",
       "title": "74HC595; 74HCT595 product data sheet",
       "publisher": "Nexperia",
@@ -219,6 +201,44 @@
       "relevant_sections": "5.2 Pin description; 6 Functional description, Table 3",
       "supports": "Four independent data channels using shared select and enable pins, derived from the binary table and pin descriptions. Regression reference, not a fingerprint-specific compiler rule.",
       "model_assumptions": "Ideal instantaneous binary logic; normalized ticks, no electrical or propagation-delay model."
+    },
+    {
+      "chips": [],
+      "compiler": "function-table",
+      "kind": "sequential",
+      "path": "docs/references/nexperia-74hc377.pdf",
+      "title": "74HC377; 74HCT377 product data sheet",
+      "publisher": "Nexperia",
+      "revision": "Rev. 6, 5 August 2024",
+      "source_url": "https://assets.nexperia.com/documents/data-sheet/74HC_HCT377.pdf",
+      "download_url": "https://assets.nexperia.com/documents/data-sheet/74HC_HCT377.pdf?download=1",
+      "retrieved_on": "2026-10-08",
+      "bytes": 267364,
+      "pages": 15,
+      "sha256": "988e8f2ab612e7d4c0bd51a7641356b7de23e7607e5edc7797b6291ef8f567ee",
+      "pdf_start_page": 3,
+      "relevant_sections": "5.2 Pin description; 6 Functional description, Table 3",
+      "supports": "Eight independent retained output bits with shared clock and enable; edge loading and explicit no-change rows derived from table content. Regression reference, not a fingerprint-specific rule.",
+      "model_assumptions": "Configured initial output bits are scenario values, not specified power-on state. Tick zero establishes clock history; ideal edge evaluation omits physical setup/hold constraints, metastability, electrical characteristics, and delays."
+    },
+    {
+      "chips": [],
+      "compiler": "function-table",
+      "kind": "sequential",
+      "path": "docs/references/nexperia-74hc273.pdf",
+      "title": "74HC273; 74HCT273 product data sheet",
+      "publisher": "Nexperia",
+      "revision": "Rev. 8, 5 August 2024",
+      "source_url": "https://assets.nexperia.com/documents/data-sheet/74HC_HCT273.pdf",
+      "download_url": "https://assets.nexperia.com/documents/data-sheet/74HC_HCT273.pdf?download=1",
+      "retrieved_on": "2026-10-08",
+      "bytes": 291622,
+      "pages": 17,
+      "sha256": "1720843d320c8014637001d0df94495f7041c8f723b4b9601d1580547b83fe7b",
+      "pdf_start_page": 4,
+      "relevant_sections": "5.2 Pin description on PDF page 3; 6 Functional description, Table 3 on PDF page 4",
+      "supports": "Eight retained output bits with shared clock and asynchronous reset; reset dominance and edge loading derived from table content. Regression reference, not a fingerprint-specific rule.",
+      "model_assumptions": "Configured initial output bits are scenario values, not specified power-on state. Tick zero establishes clock history; ideal edge evaluation omits physical setup/hold constraints, metastability, electrical characteristics, and delays."
     }
   ]
 }

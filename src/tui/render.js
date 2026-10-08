@@ -428,7 +428,7 @@ function modelInfo(state, height) {
       "",
       "SOURCE FUNCTION TABLE · PDF page " + table.page,
       table.inputs.join(" ") + " → " + table.outputs.join(" "),
-      ...table.rows.map(
+      ...(table.symbolRows || table.rows).map(
         (row) =>
           row.inputs.map((value) => (value === null ? "X" : value)).join(" ") +
           " → " +
