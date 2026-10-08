@@ -75,6 +75,8 @@ For custom logic/state machines, Behavior table accepts rows such as `idle 01 ->
 
 For register-based peripherals, supported command-byte tables offer a source-derived row draft under **Register bank**. Addresses, access labels and known defaults are prefilled; missing reset values and masks remain `?` for review. You can export a row template or choose manual entry to enter `NAME ADDRESS MODE RESET MASK` rows or load `@file`. It supports masked writes, read-only words, write-one-to-clear/set, read-to-clear, and explicit synthetic event ordering. Use `u` for addressed experiments. See [register-bank authoring](docs/REGISTER_BANKS.md) for modes, limitations, and a real 32-bit RP2040 scratch-storage example.
 
+Manuals saved by older versions gain the current table extraction when you open Register bank (or the optional browser's document dialog). ChipSim uses the saved PDF locally, checks its fingerprint and model citations, and preserves your models and experiment. No reimport is needed while the original saved PDF is available.
+
 Try the automatic document paths:
 
 ```sh

@@ -77,6 +77,8 @@ Press `c` and choose **Register bank** to enter explicit `NAME ADDRESS MODE RESE
 
 When a supported command-byte/register-map table is found, Register bank first offers its source-derived draft or manual entry. A selected draft prefills byte width, addresses, access labels, known defaults, source page and quote. Unknown resets and all masks remain `?`; replace them with reviewed scenario choices before creation. Choose **Export row draft** to edit a regular row file outside the TUI; existing files are preserved. Reopen the builder and load it with `@file`. These inventories provide structural facts, without inferring GPIO/interrupt or other peripheral side effects.
 
+Older workspaces refresh their extracted source data from the saved PDF when you open Register bank. This happens once per extraction version, on demand. ChipSim verifies the PDF fingerprint and existing model citations before saving the new cache; it preserves authored models, parameters, stimulus, undo history and the trace cursor. It does not compile or install replacement models during refresh. If the saved PDF is missing or has changed, restore the original or import it with `d`; a failed refresh leaves the cache and experiment intact.
+
 Use `u` for named addressed reads/writes, `i` or `7` for `set_NAME` injections, `6` for storage changes, and `S`/`M` to save experiments/export models. `reset` is a whole-bank scenario reset; read-to-clear returns the pre-clear word. Hardware set inputs remain asserted until returned to zero. See [REGISTER_BANKS.md](REGISTER_BANKS.md) for masks, ordering, limits, and the real RP2040 scratch-register example.
 
 ## dwfv

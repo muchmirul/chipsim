@@ -10,6 +10,7 @@ import { resolve } from "node:path";
 import { extractPDFFile } from "../../src/documents/extract-node.js";
 import { buildBehaviorTable } from "../../src/model/behavior-table/build.js";
 import { buildRegisterBank } from "../../src/model/register-bank/build.js";
+import { EXTRACTION_VERSION } from "../../src/documents/cache.js";
 async function ready(page, url = "/") {
   await page.goto(url);
   await expect(page.locator("#model-title")).toHaveText("RP2040 PIO");
@@ -19,6 +20,59 @@ async function downloaded(page, action) {
   await action();
   const file = await promise;
   return readFile(await file.path(), "utf8");
+}
+async function ageBrowserCache(
+  page,
+  { badBytes = null, editModel = false } = {},
+) {
+  await page.evaluate(
+    ({ badBytes, editModel }) =>
+      new Promise((resolve, reject) => {
+        const request = indexedDB.open("chipsim-workspace", 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result,
+            tx = db.transaction(["documents", "models"], "readwrite");
+          const documents = tx.objectStore("documents"),
+            models = tx.objectStore("models");
+          const saved = documents.getAll();
+          saved.onsuccess = () => {
+            for (const document of saved.result) {
+              delete document.extractionVersion;
+              for (const page of document.pages) delete page.layoutLines;
+              document.tableScanLimit = 32;
+              document.registerScanLimit = 32;
+              document.analysis = {
+                models: [],
+                registerTables: [{ id: "fabricated" }],
+                diagnostics: [{ reason: "Stale analysis" }],
+              };
+              if (badBytes === "missing") delete document.bytes;
+              else if (badBytes) document.bytes = new Uint8Array(badBytes);
+              documents.put(document);
+            }
+          };
+          if (editModel) {
+            const savedModels = models.getAll();
+            savedModels.onsuccess = () => {
+              for (const spec of savedModels.result) {
+                spec.name = "My authored GPIO experiment";
+                spec.assumptions.push(
+                  "An authored assumption refresh must preserve.",
+                );
+                models.put(spec);
+              }
+            };
+          }
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+      }),
+    { badBytes, editModel },
+  );
 }
 function pdfFixture(text) {
   const stream = `BT /F1 12 Tf 40 700 Td (${text.replace(/[()\\]/g, "")}) Tj ET`;
@@ -1064,4 +1118,132 @@ test("register-table inventories match original PDF geometry in both engines and
   await expect(page.locator("#document-info")).toContainText(
     "Register-table drafts · review required",
   );
+});
+
+test("opening an old cached manual refreshes local source tables and preserves its authored model and current experiment", async ({
+  page,
+}) => {
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/ti-tca9534.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await ageBrowserCache(page, { editModel: true });
+  await page.reload();
+  await expect(page.locator("#model-title")).toHaveText(
+    "My authored GPIO experiment",
+  );
+  await page.locator("#advanced-controls").click();
+  await page
+    .locator("#input-events")
+    .fill('[{"tick":2,"signal":"external0","value":179}]');
+  await page.locator("#apply-events").click();
+  await page.locator("#seek").fill("7");
+  await page.locator("#seek").dispatchEvent("input");
+  await page.locator("#value-format").selectOption("decimal");
+  await page.locator("#trace-format").selectOption("json");
+  const before = await downloaded(page, () =>
+      page.locator("#export-trace").click(),
+    ),
+    cursor = await page.locator("#tick-label").textContent(),
+    requests = [];
+  page.on("request", (request) => {
+    if (/^https?:/.test(request.url())) requests.push(request.url());
+  });
+  await page.locator(".document-item").click();
+  await expect(page.locator("#document-info")).toContainText(
+    "Register-table drafts · review required",
+  );
+  await expect(page.locator("#document-info")).not.toContainText(
+    "Refreshing source tables",
+  );
+  await expect(page.locator("#document-info")).not.toContainText(
+    "Stale analysis",
+  );
+  const bundle = JSON.parse(
+    await downloaded(page, () => page.locator("#export-sources").click()),
+  );
+  expect(bundle.documents[0].extractionVersion).toBe(EXTRACTION_VERSION);
+  expect(bundle.documents[0].analysis).toBeUndefined();
+  expect(bundle.documents[0].tableScanLimit).toBeUndefined();
+  expect(bundle.documents[0].registerScanLimit).toBeUndefined();
+  expect(readRegisterTables(bundle.documents[0]).tables[0].rows).toHaveLength(
+    4,
+  );
+  expect(requests).toEqual([]);
+  await page.locator("#close-document").click();
+  await expect(page.locator("#tick-label")).toHaveText(cursor);
+  await expect(page.locator("#value-format")).toHaveValue("decimal");
+  expect(
+    await downloaded(page, () => page.locator("#export-trace").click()),
+  ).toEqual(before);
+  await expect(page.locator("#model-count")).toHaveText("7");
+  await page.reload();
+  await page.locator(".document-item").click();
+  await expect(page.locator("#document-info")).toContainText(
+    "Register-table drafts · review required",
+  );
+  await page.locator("#close-document").click();
+  // Explicit reimport must also replace all stale extraction metadata.
+  await ageBrowserCache(page);
+  await page.reload();
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/ti-tca9534.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await expect(page.locator("#model-title")).toHaveText(
+    "My authored GPIO experiment",
+  );
+  await expect(page.locator("#model-count")).toHaveText("7");
+  await page.locator(".document-item").click();
+  const reimported = JSON.parse(
+    await downloaded(page, () => page.locator("#export-sources").click()),
+  );
+  expect(reimported.documents[0]).toEqual(bundle.documents[0]);
+});
+
+test("cached-manual refresh rejects changed or missing PDF bytes without replacing the source or experiment", async ({
+  page,
+}) => {
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/ti-tca9534.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  for (const [badBytes, reason] of [
+    [
+      [
+        ...pdfFixture(
+          "Different searchable source document. It does not contain the original hardware specification.",
+        ),
+      ],
+      "fingerprint changed",
+    ],
+    ["missing", "Saved PDF bytes are unavailable"],
+  ]) {
+    await ageBrowserCache(page, { badBytes });
+    await page.reload();
+    await page.locator("#step").click();
+    const cursor = await page.locator("#tick-label").textContent();
+    await page.locator("#trace-format").selectOption("json");
+    const before = await downloaded(page, () =>
+      page.locator("#export-trace").click(),
+    );
+    await page.locator(".document-item").click();
+    await expect(page.locator("#document-info")).toContainText(reason);
+    await expect(page.locator("[data-register-draft]")).toHaveCount(0);
+    const bundle = JSON.parse(
+      await downloaded(page, () => page.locator("#export-sources").click()),
+    );
+    expect(bundle.documents[0].extractionVersion).toBeUndefined();
+    expect(bundle.documents[0].analysis.diagnostics[0].reason).toBe(
+      "Stale analysis",
+    );
+    await page.locator("#close-document").click();
+    await expect(page.locator("#tick-label")).toHaveText(cursor);
+    expect(
+      await downloaded(page, () => page.locator("#export-trace").click()),
+    ).toEqual(before);
+    await expect(page.locator("#model-count")).toHaveText("7");
+  }
 });
