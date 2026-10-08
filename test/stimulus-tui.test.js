@@ -238,6 +238,8 @@ test("terminal event scheduling, value/move menus, delete, clear/restore, and un
   key("U");
   assert.equal(s.config.inputs.length, 2);
   key("", "tab");
+  assert.equal(s.view, "activity");
+  key("", "tab");
   assert.equal(s.view, "wave");
 });
 

@@ -22,6 +22,9 @@ try {
   const [pack] = JSON.parse(packed.stdout);
   for (const path of [
     "src/agent/commands.js",
+    "src/agent/activity.js",
+    "src/tui/agent-monitor.js",
+    "src/tui/activity-panel.js",
     "docs/AGENT_WORKFLOW.md",
     "docs/AGENT_PROJECT.md",
     "docs/MODEL_FORMAT.md",
@@ -84,6 +87,11 @@ try {
   const model = join(project, prepared.models[0].file);
   await cli(["search", project, "function"]);
   await cli(["page", project, "1"]);
+  await cli([
+    "note",
+    project,
+    "Reviewing this experiment from an installed agent tool",
+  ]);
   await cli(["check", model, "--project", project]);
   const result = await cli([
     "run",
@@ -93,6 +101,11 @@ try {
     "--out",
     join(cwd, "experiment"),
   ]);
+  assert.ok(
+    (await cli(["activity", project])).events.some(
+      (event) => event.command === "run" && event.status === "succeeded",
+    ),
+  );
   for (const [columns, rows] of [
     [80, 24],
     [120, 40],
@@ -112,6 +125,25 @@ try {
     assert.match(frame.stdout, /CHIPSIM/);
     assert.match(frame.stdout, /HC00/i);
     assert.equal(frame.stderr, "");
+    const monitored = await run(
+      binary,
+      [
+        "--watch",
+        project,
+        "--view",
+        "activity",
+        "--snapshot",
+        "--columns",
+        String(columns),
+        "--rows",
+        String(rows),
+      ],
+      { cwd, maxBuffer: 1048576 },
+    );
+    assert.match(monitored.stdout, /Agent activity/);
+    assert.match(monitored.stdout, /WATCH LIVE/);
+    assert.match(monitored.stdout, /HC00/i);
+    assert.equal(monitored.stderr, "");
   }
   const python = `import json, subprocess, sys
 binary, model, project = sys.argv[1:]
@@ -130,7 +162,7 @@ print("Python subprocess: success and structured error verified")
   );
   process.stdout.write(pythonResult.stdout);
   console.log(
-    `Installed ${pack.filename} offline; Node/Python JSON commands, real PDF/model/run and 80×24/120×40 TUI snapshots passed outside checkout.`,
+    `Installed ${pack.filename} offline; Node/Python JSON commands, real PDF/model/run, agent activity/watch and 80×24/120×40 TUI snapshots passed outside checkout.`,
   );
 } finally {
   await rm(temporary, { recursive: true, force: true });

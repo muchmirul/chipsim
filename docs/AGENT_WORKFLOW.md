@@ -102,6 +102,62 @@ for stimulus. JSON numbers use decimal syntax; the TUI accepts decimal, hex,
 binary and octal entry. Integer CLI options such as `--ticks` also accept explicit
 `0x`, `0b`, and `0o` prefixes. Changing a display base never changes the experiment.
 
+## Live monitoring
+
+Run `chipsim --watch ./chip-work` in a separate terminal before or while the
+agent works. It opens Activity (`8`) and observes the prepared project every
+500 ms. You can choose the initial view with `--view wave`, `--view registers`,
+or `--view activity`. `--snapshot` performs one observation and exits; it does
+not keep watching. The tool never launches or connects to a model provider.
+
+`prepare` records completion; `search` and `page` record requested sources and
+returned page numbers/ranges; `check` and `run` record start, source verification,
+acceptance progress, completion and failures. The monitor also notices JSON
+model creations, changes and removals under `models/`. Edits are shown as awaiting
+check/run, and do not install an unvalidated model. Commands run outside ChipSim,
+direct PDF/editor reads, and the agent's private reasoning are not captured.
+Use an explicit note for other work:
+
+```sh
+chipsim agent note ./chip-work "Reviewing the reset and output-enable rules"
+chipsim agent activity ./chip-work --limit 20
+```
+
+`note` accepts 1–2000 characters. `activity` returns the last 50 events by
+default, up to 200 with `--limit`. Both follow the normal JSON/exit-code protocol.
+The latest 500 command events are retained in
+`.chipsim-agent/activity/<timestamp>-<uuid>.json` within the prepared project.
+Individual files are published atomically so concurrent commands cannot
+interleave records. `.chipsim-agent/latest-run.json` retains the latest
+successful run independently of event retention. Model-edit observations and
+watch errors are local to the open monitor. Logging problems appear as optional
+`activityWarnings` without changing the command's simulation/check outcome.
+
+A run is published after its artifacts and final `result.json` have been
+written. The monitor verifies result/session fingerprints, artifact presence,
+project PDF/cache fingerprints, freshly extracted PDF quotations, schema, acceptance cases and the
+simulated session before replacing its trace. Run outputs can be outside the
+project if they were published by the agent CLI. Older projects are supported:
+completed successful `runs/*/result.json` files can be discovered without a
+journal; these older sessions have no recorded publication fingerprint.
+
+Reload preserves the active view, selected signal by ID (or the first signal if
+absent), display base, zoom and cursor. The cursor is clamped to shorter traces.
+The new run supplies model, parameters, stimulus and duration. It is not merged
+with local edits. Press `W` to pause reload before editing; activity remains
+live, and resuming loads the newest valid completed run. Reload waits while a
+prompt, menu, help, step-details overlay, local operation or external dwfv viewer
+is active. It does not modify model files in the project or persist watched
+models to the TUI workspace. Failed, partial, changed or invalid runs leave the
+working simulation intact. Fault traces remain available for manual `d` import.
+
+In Activity, `j/k` browses events and stops following; `G` follows the newest
+event; `/` filters event text; `h/l` scrolls complete selected-event details.
+Other views show a one-line activity summary. `q` stops polling and restores the
+terminal. Watch mode accepts neither `--params`, `--inputs` nor `--ticks`;
+configure the experiment with `agent run`. This is monitoring discrete model
+experiments, not streaming measurements from physical hardware.
+
 ## Machine interface
 
 Every `chipsim agent` command emits exactly one JSON object to stdout, including
