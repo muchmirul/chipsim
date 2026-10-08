@@ -3,6 +3,8 @@ import {
   compileDocument,
   documentProfiles,
 } from "../src/model/profiles/index.js";
+import { analyzeDocument } from "../src/model/from-document.js";
+import references from "../docs/references/manifest.json" with { type: "json" };
 import { extractPDFFile } from "../src/documents/extract-node.js";
 import { execFileSync } from "node:child_process";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
@@ -53,6 +55,18 @@ try {
       new URL("../" + profile.source.path, import.meta.url).pathname,
     );
     models.push(registerModel(compileDocument(document).spec, [document]));
+  }
+  for (const source of references.documents.filter(
+    (source) => source.compiler === "function-table",
+  )) {
+    const document = await extractPDFFile(
+      new URL("../" + source.path, import.meta.url).pathname,
+    );
+    models.push(
+      ...analyzeDocument(document).models.map((model) =>
+        registerModel(model.spec, [document]),
+      ),
+    );
   }
   for (const model of models) {
     const path = join(directory, model.id + ".vcd");

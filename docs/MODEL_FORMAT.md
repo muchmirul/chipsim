@@ -240,6 +240,10 @@ npm run model -- validate my-chip.model.json --sources manual.sources.json
 npm run model -- simulate my-chip.model.json --params parameters.json --inputs events.json --ticks 100 --format csv --out trace.csv
 ```
 
+## Optional source table
+
+Automatically compiled binary logic models include `sourceTable` metadata with compiler ID `binary-function-table-v1`, PDF page/caption, input/output column labels, source rows (input `null` means explicit don't-care), exhaustive output matrix, and instantiated signal labels. This snapshot is displayed for review; executable behavior still resides in `states`. Editing the snapshot alone does not alter simulation rules. Its shape and declared-signal mapping are validated before rendering. See `FUNCTION_TABLES.md` for compilation and scope.
+
 ## Guided scenario creation
 
 Press `c` with a PDF loaded in the TUI to configure a counter, FIFO, or shift-transfer model. The builder checks the cited page and exact excerpt, generates a schema-version-1 definition with explicit assumptions and demonstration inputs, and runs acceptance cases before saving. See `docs/TUI.md` for each scenario's rules. A suggested keyword or bit width is a review aid, not a proof of the modeled behavior.

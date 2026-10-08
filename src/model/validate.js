@@ -349,6 +349,80 @@ export function validateModel(model, documents = []) {
         `Evidence ${item.id}: attach ${source.filename || source.title || source.id} to verify the quote.`,
       );
   }
+  if (model.sourceTable !== undefined) {
+    const table = model.sourceTable,
+      labels = (values) =>
+        Array.isArray(values) &&
+        values.length &&
+        values.every(
+          (value) =>
+            typeof value === "string" && /^[A-Za-z\d][A-Za-z\d_]*$/.test(value),
+        );
+    if (
+      !table ||
+      typeof table !== "object" ||
+      table.compiler !== "binary-function-table-v1" ||
+      !labels(table.inputs) ||
+      !labels(table.outputs) ||
+      table.inputs.length > 6 ||
+      table.outputs.length > 24 ||
+      typeof table.caption !== "string" ||
+      table.caption.length > 1000
+    )
+      fail("sourceTable", "expected bounded binary-function-table metadata");
+    else {
+      number(table.page, "sourceTable.page", 1, 100000);
+      const bits = (values, length, wildcard = false) =>
+        Array.isArray(values) &&
+        values.length === length &&
+        values.every(
+          (value) => value === 0 || value === 1 || (wildcard && value === null),
+        );
+      if (
+        !Array.isArray(table.rows) ||
+        !table.rows.length ||
+        table.rows.length > 32 ||
+        table.rows.some(
+          (row) =>
+            !row ||
+            !bits(row.inputs, table.inputs.length, true) ||
+            !bits(row.outputs, table.outputs.length),
+        )
+      )
+        fail("sourceTable.rows", "invalid table rows");
+      if (
+        !Array.isArray(table.matrix) ||
+        table.matrix.length !== 2 ** table.inputs.length ||
+        table.matrix.some((row) => !bits(row, table.outputs.length))
+      )
+        fail("sourceTable.matrix", "expected exhaustive binary output matrix");
+      if (
+        !Array.isArray(table.instances) ||
+        !table.instances.length ||
+        table.instances.length > 8 ||
+        table.instances.some(
+          (instance) =>
+            !labels(instance) ||
+            instance.length !== table.inputs.length + table.outputs.length ||
+            instance.some((label, index) => {
+              const signal = definitions.signals?.get(
+                "pin_" + label.toLowerCase(),
+              );
+              return (
+                !signal ||
+                signal.width !== 1 ||
+                signal.direction !==
+                  (index < table.inputs.length ? "input" : "output")
+              );
+            }),
+        )
+      )
+        fail(
+          "sourceTable.instances",
+          "must map to declared binary input/output signals",
+        );
+    }
+  }
   if (model.exampleInputs !== undefined)
     try {
       validateInputs(signals, model.exampleInputs);

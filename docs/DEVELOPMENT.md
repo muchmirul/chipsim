@@ -12,6 +12,8 @@ A model provides a common interface: ID, name, summary, scope, fidelity, paramet
 
 `src/model/profiles/` compiles exact reviewed datasheet versions into JSON models. Imports require the pinned PDF hash, validate cited excerpts against the extracted pages, and run acceptance cases before persistence. The Nexperia 74HC595 profile is the first automatic path for a chip beyond the six architecture examples; existing authored source-linked models take precedence. See `DOCUMENT_PROFILES.md` to extend this registry.
 
+`src/model/tables/` reads positioned function tables and compiles exhaustive binary logic into the shared model language. `src/documents/layout.js` shares geometry handling between Poppler and PDF.js. `src/model/from-document.js` applies reviewed profiles first, then data-derived tables. See `FUNCTION_TABLES.md` for supported symbols, bounds, and rejected cases.
+
 `src/model/templates.js` suggests conservative source excerpts and builds local scenarios using `src/model/builders/`. Counter, FIFO, and shifter rules are explicitly declared assumptions. Source matching confirms provenance, not circuit correctness. The builder validates generated definitions and checks before either interface installs them.
 
 ## Terminal interface
@@ -62,4 +64,4 @@ Quote verification normalizes whitespace and confirms the quote exists on the ci
 
 Timing is normalized, not cycle accurate. eTPU distinguishes capture arrival from shared service time; adjustable ACK capture remains independent of final CLK bookkeeping. VCD files declare a conventional time unit for viewer compatibility, and explicitly label timestamps as normalized ticks. Registers with no value yet are exported as unknown, not zero.
 
-No LLM integration is present. Arbitrary-chip modeling still requires developer interpretation and verification. Importing an unfamiliar manual offers local source search, guided scenarios, a constrained model format, and acceptance checks; it does not reconstruct a complete chip automatically.
+No LLM integration is present. Complete binary function tables can produce models from their content; they do not establish behavior beyond the table scope. Arbitrary-chip modeling still requires developer interpretation and verification. Importing an unfamiliar manual offers local source search, guided scenarios, a constrained model format, and acceptance checks; it does not reconstruct a complete chip automatically.

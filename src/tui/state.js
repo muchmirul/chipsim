@@ -1,4 +1,4 @@
-import { compileDocument } from "../model/profiles/index.js";
+import { analyzeDocument } from "../model/from-document.js";
 import {
   builtinModels,
   defaultParameters,
@@ -40,6 +40,7 @@ export class TuiState {
     this.registerIndex = 0;
     this.registerFilter = "";
     this.infoScroll = 0;
+    this.blockScroll = 0;
     this.documentId = null;
     this.page = 1;
     this.sourceScroll = 0;
@@ -126,6 +127,7 @@ export class TuiState {
     this.modelId = id;
     this.selected = 0;
     this.logIndex = 0;
+    this.blockScroll = 0;
     this.rebuild();
     const document = this.documents.find((d) =>
       this.model.sources.some((s) => s.sha256 === d.sha256),
@@ -328,11 +330,13 @@ export class TuiState {
       const existing = this.documents.find(
         (d) => d.sha256 === extracted.sha256,
       );
-      let document = existing;
-      if (!document) {
-        document = await this.workspace.saveDocument(extracted);
-        this.documents.push(document);
-      }
+      const document = await this.workspace.saveDocument({
+        ...extracted,
+        filename: existing?.filename || extracted.filename,
+        createdAt: existing?.createdAt || extracted.createdAt,
+      });
+      if (existing) this.documents[this.documents.indexOf(existing)] = document;
+      else this.documents.push(document);
       this.documentId = document.id;
       this.page = 1;
       this.sourceScroll = 0;
@@ -356,10 +360,22 @@ export class TuiState {
         )
       ) {
         try {
-          compiled = compileDocument(document, {
+          const analysis = analyzeDocument(document, {
             reservedIds: this.models.map((model) => model.id),
           });
-          if (compiled) await this.installModel(compiled.spec);
+          document.analysis = {
+            models: analysis.models.map((model) => ({
+              id: model.spec.id,
+              name: model.spec.name,
+              method: model.method,
+              checks: model.checks.length,
+            })),
+            diagnostics: analysis.diagnostics,
+          };
+          for (const result of analysis.models)
+            await this.installModel(result.spec);
+          compiled = analysis.models[0] || null;
+          await this.workspace.saveDocument(document);
         } catch (error) {
           errors.push(error.message);
         }
@@ -372,7 +388,9 @@ export class TuiState {
           this.setMessage(
             "Created " +
               selected.name +
-              " from reviewed datasheet profile · " +
+              " from " +
+              compiled.method +
+              " · " +
               compiled.checks.length +
               " checks passed · 5 scope/assumptions",
           );
@@ -380,7 +398,10 @@ export class TuiState {
         this.rebuild();
         this.view = "sources";
         this.setMessage(
-          "PDF imported · c creates a local scenario · / searches this manual",
+          document.analysis?.diagnostics.length
+            ? "PDF imported · table needs review: " +
+                document.analysis.diagnostics[0].reason
+            : "PDF imported · c creates a local scenario · / searches this manual",
         );
       }
       if (errors.length)

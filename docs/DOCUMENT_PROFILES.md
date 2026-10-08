@@ -26,4 +26,4 @@ Validation covers every transferred byte, function-table control combinations, h
 5. Add tests with the actual reference PDF and independent expected results. Exercise the complete PDF-only terminal import, persistence, and browser import if affected. Test filename/content lookalikes and corrupted citations.
 6. Run `npm run verify`, then `npm run build && npm run test:ui` for importer changes. Optionally test VCD with `npm run test:dwfv -- /path/to/dwfv`. Update this guide, reference mappings, and notices.
 
-Unknown PDFs remain searchable and usable for guided scenario creation or authored JSON models. A keyword, filename, or matching chip name cannot silently enable a reviewed profile for an unreviewed document.
+Outside reviewed profiles, complete binary function tables can be compiled from their content; see `FUNCTION_TABLES.md`. Other unknown PDFs remain searchable and usable for guided scenario creation or authored JSON models. A keyword, filename, or matching chip name cannot silently enable a reviewed profile for an unreviewed document.

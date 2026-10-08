@@ -770,6 +770,7 @@ export class TerminalApp {
             s.registerIndex + 1,
           );
         else if (s.view === "model") s.infoScroll++;
+        else if (s.view === "inspect") s.blockScroll++;
         else if (s.view === "log")
           s.logIndex = Math.min(s.logs().length - 1, s.logIndex + 1);
         else if (s.view === "sources") s.sourceScroll++;
@@ -779,6 +780,8 @@ export class TerminalApp {
           s.registerIndex = Math.max(0, s.registerIndex - 1);
         else if (s.view === "model")
           s.infoScroll = Math.max(0, s.infoScroll - 1);
+        else if (s.view === "inspect")
+          s.blockScroll = Math.max(0, s.blockScroll - 1);
         else if (s.view === "log") s.logIndex = Math.max(0, s.logIndex - 1);
         else if (s.view === "sources")
           s.sourceScroll = Math.max(0, s.sourceScroll - 1);

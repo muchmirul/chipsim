@@ -165,6 +165,42 @@
       "relevant_sections": "1 General description; 5 Functional diagram; 6.2 Pin description; 7 Functional description, Table 3",
       "supports": "Eight-stage shifting, independent storage clock, active-low shift reset, simultaneous clock ordering, and output gating.",
       "model_assumptions": "Ideal digital steps; configured initial values are scenario choices, not guaranteed power-on state. Parallel latch value and output-enable flag are represented separately; analog high impedance, propagation delays, and setup/hold constraints are omitted."
+    },
+    {
+      "chips": [],
+      "compiler": "function-table",
+      "path": "docs/references/nexperia-74hc00.pdf",
+      "title": "74HC00; 74HCT00 product data sheet",
+      "publisher": "Nexperia",
+      "revision": "Rev. 11, 29 April 2025",
+      "source_url": "https://assets.nexperia.com/documents/data-sheet/74HC_HCT00.pdf",
+      "download_url": "https://assets.nexperia.com/documents/data-sheet/74HC_HCT00.pdf?download=1",
+      "retrieved_on": "2026-10-08",
+      "bytes": 269586,
+      "pages": 14,
+      "sha256": "dd401970bc0520c2496dd2a8fb8d9c94f29585c61d5f49dab606257d6c92b22f",
+      "pdf_start_page": 3,
+      "relevant_sections": "5.2 Pin description; 6 Functional description, Table 3",
+      "supports": "Binary combinational function table and numbered gate instances. These are regression references, not fingerprint-specific compiler rules.",
+      "model_assumptions": "Ideal instantaneous binary logic. Indexed channels are derived from pin lists; electrical and timing behavior is omitted."
+    },
+    {
+      "chips": [],
+      "compiler": "function-table",
+      "path": "docs/references/nexperia-74hc86.pdf",
+      "title": "74HC86; 74HCT86 product data sheet",
+      "publisher": "Nexperia",
+      "revision": "Rev. 7, 2 April 2024",
+      "source_url": "https://assets.nexperia.com/documents/data-sheet/74HC_HCT86.pdf",
+      "download_url": "https://assets.nexperia.com/documents/data-sheet/74HC_HCT86.pdf?download=1",
+      "retrieved_on": "2026-10-08",
+      "bytes": 233773,
+      "pages": 12,
+      "sha256": "efb3cf17b91fff7687988250bdc2ef53029315237d3960e09bfb3f378bf5298f",
+      "pdf_start_page": 3,
+      "relevant_sections": "5.2 Pin description; 6 Functional description, Table 3",
+      "supports": "Binary combinational function table and numbered gate instances. These are regression references, not fingerprint-specific compiler rules.",
+      "model_assumptions": "Ideal instantaneous binary logic. Indexed channels are derived from pin lists; electrical and timing behavior is omitted."
     }
   ]
 }
