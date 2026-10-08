@@ -378,6 +378,16 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert c6['trace'][1]['registers']['pulse_count']==65535
   assert c6['trace'][9]['signals']['low_limit_hit']==1
   assert c6['trace'][13]['registers']['pulse_count']==2
+  send('4');wait('1 simulation(s) available')
+  send('o');wait('SIMULATIONS')
+  assert 'SCOPE / ACTION' in frame()
+  send('\r');wait('Opened ESP32-C6')
+  assert 'tick 13/34' in frame()
+  send('o');wait('SIMULATIONS')
+  send('j\r');wait('CREATE SIMULATION',timeout=30)
+  assert 'Existing models are preserved' in frame() or 'h/l scroll' in frame()
+  send('\x1b');wait('tick 13/34',absent='CREATE SIMULATION')
+  assert len(list((Path(workspace)/'models').glob('esp32c6-pcnt*.json')))==1
   send('d');wait('Import PDF')
   send(str(ROOT/'docs/references/ti-tca9534.pdf')+'\r');wait('Loaded TCA9534')
   send('c');wait('CREATE')

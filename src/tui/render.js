@@ -1,5 +1,6 @@
 import { formatPayload } from "../core/values.js";
 import { views } from "./views.js";
+import { modelsForDocument } from "../documents/recognize.js";
 export const clean = (text) =>
   String(text ?? "").replace(/[\x00-\x1f\x7f-\x9f]/g, " ");
 const segments = new Intl.Segmenter(undefined, { granularity: "grapheme" });
@@ -322,7 +323,8 @@ function sources(state, height) {
     ];
   const page = document.pages.find((p) => p.number === state.page),
     text = wrapped(page?.text || "", state.columns),
-    max = Math.max(0, text.length - (height - 4));
+    linked = modelsForDocument(document, state.models),
+    max = Math.max(0, text.length - (height - 5));
   state.sourceScroll = Math.min(max, Math.max(0, state.sourceScroll));
   return [
     row(
@@ -336,16 +338,19 @@ function sources(state, height) {
       "selected",
     ),
     row(
-      "j/k scroll · h/l page · / search · n/N matches · c create scenario · Enter choose PDF",
+      (linked.length
+        ? linked.length + " simulation(s) available"
+        : "No simulation linked") + " · o choose/find · c create",
+      "selected",
+    ),
+    row(
+      "j/k scroll · h/l page · / search · n/N matches · Enter choose PDF",
       "dim",
     ),
     ...text
-      .slice(state.sourceScroll, state.sourceScroll + height - 4)
+      .slice(state.sourceScroll, state.sourceScroll + height - 5)
       .map((text) => row(text)),
-    row(
-      "5 model scope/assumptions · c create selected behavior from this manual",
-      "dim",
-    ),
+    row("o simulations and scope for this PDF · B export sources", "dim"),
   ];
 }
 function registerTable(state, height) {
@@ -566,7 +571,7 @@ const help = [
   ],
   [
     "Library",
-    "m select model · d import PDF/model/session · c create · E edit entered table",
+    "m models · o source simulations · d import · c create · E edit entered table",
   ],
   ["Search", "/ search signal names, log, or source pages · n/N repeat"],
   [
@@ -651,10 +656,16 @@ export function render(state) {
     const menu = state.menu,
       title = menu.title;
     let overlay = [section(title, columns)];
-    const first = Math.max(0, menu.selected - Math.floor((rows - 6) / 2));
+    const detail = menu.items[menu.selected]?.detail,
+      detailLines = detail ? wrapped(detail, columns) : [],
+      detailSpace = detail
+        ? Math.min(7, Math.max(3, Math.floor((rows - 6) / 2)))
+        : 0,
+      itemSpace = Math.max(1, rows - 8 - detailSpace),
+      first = Math.max(0, menu.selected - Math.floor(itemSpace / 2));
     overlay.push(
       ...menu.items
-        .slice(first, first + rows - 6)
+        .slice(first, first + itemSpace)
         .map((item, i) =>
           row(
             (first + i === menu.selected ? "› " : "  ") + item.label,
@@ -662,7 +673,22 @@ export function render(state) {
           ),
         ),
     );
+    if (detail) {
+      menu.detailScroll = Math.min(
+        Math.max(0, detailLines.length - detailSpace + 1),
+        Math.max(0, menu.detailScroll || 0),
+      );
+      overlay.push(section("SCOPE / ACTION · h/l scroll", columns));
+      const visible = detailLines.slice(
+        menu.detailScroll,
+        menu.detailScroll + detailSpace - 1,
+      );
+      if (detailLines.length > menu.detailScroll + visible.length)
+        visible[visible.length - 1] = clip(visible.at(-1), columns - 2) + " …";
+      overlay.push(...visible.map((text) => row(text, "dim")));
+    }
     overlay.push(row("j/k or arrows · Enter select · Esc cancel", "dim"));
+    if (detail) while (overlay.length < rows - 6) overlay.push(row(""));
     lines.splice(
       3,
       Math.min(overlay.length, rows - 6),

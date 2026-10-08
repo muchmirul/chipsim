@@ -41,15 +41,22 @@ export const documentProfiles = [
 
 // Matching is byte-exact. A filename, chip name, or excerpt alone never
 // authorizes interpreting an unreviewed datasheet as a known device.
-export function profileForDocument(document) {
-  return (
-    documentProfiles.find(
-      (profile) => profile.source.sha256 === document.sha256,
-    ) || null
+export function profilesForDocument(document) {
+  return documentProfiles.filter(
+    (profile) => profile.source.sha256 === document.sha256,
   );
 }
-export function compileDocument(document, { reservedIds = [] } = {}) {
-  const profile = profileForDocument(document);
+export function profileForDocument(document, { profileId } = {}) {
+  const matches = profilesForDocument(document).filter(
+    (profile) => !profileId || profile.id === profileId,
+  );
+  if (matches.length > 1)
+    throw new Error(
+      "This PDF supports multiple reviewed profiles; choose profileId or use compileDocumentProfiles().",
+    );
+  return matches[0] || null;
+}
+function compileProfile(document, profile, reservedIds) {
   if (!profile) return null;
   const spec = profile.build(profile.source);
   const reserved = new Set(reservedIds);
@@ -76,4 +83,22 @@ export function compileDocument(document, { reservedIds = [] } = {}) {
       revision: profile.source.revision,
     },
   };
+}
+export function compileDocument(
+  document,
+  { reservedIds = [], profileId } = {},
+) {
+  return compileProfile(
+    document,
+    profileForDocument(document, { profileId }),
+    reservedIds,
+  );
+}
+export function compileDocumentProfiles(document, { reservedIds = [] } = {}) {
+  const reserved = [...reservedIds];
+  return profilesForDocument(document).map((profile) => {
+    const result = compileProfile(document, profile, reserved);
+    reserved.push(result.spec.id);
+    return result;
+  });
 }
