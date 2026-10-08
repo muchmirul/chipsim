@@ -1,6 +1,6 @@
 {
   "name": "chipsim",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Document-backed chip behavior visualization and trace workbench",
@@ -8,22 +8,29 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "start": "node scripts/serve.mjs",
-    "dev": "node scripts/build.mjs --watch",
+    "start": "node scripts/chipsim.mjs",
+    "dev": "node scripts/chipsim.mjs",
     "build": "node scripts/build.mjs",
     "test": "node --test test/*.test.js",
     "test:ui": "playwright test",
     "verify": "node scripts/verify.mjs",
     "extract": "node scripts/extract.mjs",
     "model": "node scripts/model.mjs",
-    "format": "prettier --write src scripts test models examples index.html package.json '*.md' 'docs/*.md'"
-  },
-  "dependencies": {
-    "pdfjs-dist": "^6.4.299"
+    "format": "prettier --write src scripts test models examples index.html package.json '*.md' 'docs/*.md'",
+    "tui": "node scripts/chipsim.mjs",
+    "web": "node scripts/serve.mjs",
+    "dev:web": "node scripts/build.mjs --watch",
+    "test:tui": "python3 scripts/test-tui-pty.py",
+    "test:dwfv": "node scripts/verify-dwfv.mjs",
+    "verify:web": "node scripts/verify.mjs --web"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
     "esbuild": "^0.28.2",
-    "prettier": "^3.9.9"
+    "prettier": "^3.9.9",
+    "pdfjs-dist": "^6.4.299"
+  },
+  "bin": {
+    "chipsim": "scripts/chipsim.mjs"
   }
 }

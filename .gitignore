@@ -9,3 +9,5 @@ node_modules/
 chipsim.html
 playwright-report/
 test-results/
+
+.chipsim/

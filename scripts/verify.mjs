@@ -43,23 +43,35 @@ for (const file of [
   "README.md",
   "docs/DEVELOPMENT.md",
   "docs/MODEL_FORMAT.md",
+  "docs/TUI.md",
 ])
   assert.ok((await read(file)).length > 100);
-const html = (await read("chipsim.html")).toString();
-assert.ok(html.includes("ChipSim"));
-assert.ok(!html.includes('src=".generated/app.js"'));
-assert.ok(!html.includes('href="src/ui/styles.css"'));
-assert.ok(!html.includes("The comparison from Section 8"));
+const checkWeb = process.argv.includes("--web");
+if (checkWeb) {
+  const html = (await read("chipsim.html")).toString();
+  assert.ok(html.includes("ChipSim"));
+  assert.ok(!html.includes('src=".generated/app.js"'));
+  assert.ok(!html.includes('href="src/ui/styles.css"'));
+  assert.ok(!html.includes("The comparison from Section 8"));
+}
 execFileSync(
   process.execPath,
   [
     "--test",
-    ...["core.test.js", "model.test.js"].map(
-      (file) => new URL("test/" + file, root).pathname,
-    ),
+    ...(await readdir(new URL("test/", root)))
+      .filter((file) => file.endsWith(".test.js"))
+      .map((file) => new URL("test/" + file, root).pathname),
   ],
   { stdio: "inherit" },
 );
+if (process.platform === "win32") {
+  console.log("PTY verification requires POSIX; skipped on Windows.");
+} else {
+  execFileSync("python3", [new URL("scripts/test-tui-pty.py", root).pathname], {
+    stdio: "inherit",
+    cwd: root,
+  });
+}
 console.log(
-  `Verified 8 PDF fingerprints (${(bytes / 1048576).toFixed(1)} MiB), model coverage, declarative examples, documentation, portable build, and engine regressions.`,
+  `Verified 8 PDF fingerprints (${(bytes / 1048576).toFixed(1)} MiB), model coverage, declarative examples, documentation, engine/builder/TUI checks${checkWeb ? ", and portable browser build" : ""}.`,
 );

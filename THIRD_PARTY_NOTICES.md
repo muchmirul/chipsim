@@ -18,3 +18,7 @@ Original copyright, trademark, license, and usage notices remain inside each doc
 The browser app and portable HTML bundle Mozilla PDF.js (`pdfjs-dist`), including its PDF worker, under Apache License 2.0. The complete license is retained in [docs/licenses/pdfjs-LICENSE.txt](docs/licenses/pdfjs-LICENSE.txt). PDF.js copyright and license comments remain in the generated bundle.
 
 Build and test tools (esbuild, Prettier, and Playwright) are development dependencies; their licenses are distributed with their installed packages. They are not model providers or runtime services.
+
+## Terminal design reference
+
+[dwfv](https://github.com/psurply/dwfv), by Pierre Surply, is an MIT-licensed VCD waveform viewer used as a navigation reference and optional external viewer. ChipSim contains no copied dwfv source and does not bundle its binary. The independently tested revision and interoperability commands are recorded in `docs/TUI.md`.

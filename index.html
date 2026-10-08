@@ -226,7 +226,9 @@
       </div>
       <div id="document-info"></div>
       <div class="document-actions">
-        <button id="open-pdf">Open PDF ↗</button
+        <button id="document-create-model" class="primary">
+          Create simulation</button
+        ><button id="open-pdf">Open PDF ↗</button
         ><button id="export-sources">Export sources for agent</button
         ><button id="document-import-model">Import model</button>
       </div>
@@ -240,7 +242,8 @@
       <details>
         <summary>Adding a simulation for this manual</summary>
         <p>
-          Export its text and page citations, then use
+          Use Create simulation for a counter, FIFO, or shift transfer. For
+          custom behavior, export its text and page citations, then use
           <code>AGENTS.md</code> and <code>docs/MODEL_FORMAT.md</code> to create
           a model. Import the JSON to run it here. ChipSim checks the model,
           acceptance cases, and source quotes against attached PDFs.
@@ -249,6 +252,144 @@
           >Download the timer model example</a
         >
       </details>
+    </dialog>
+    <dialog id="builder-dialog">
+      <div class="dialog-head">
+        <div>
+          <div class="eyebrow">DOCUMENT → SIMULATION</div>
+          <h2>Create a peripheral scenario</h2>
+        </div>
+        <button id="close-builder" aria-label="Close model builder">✕</button>
+      </div>
+      <p class="hint">
+        Select the behavior to explore, cite its source, and review the scenario
+        rules. Everything stays local. This models the chosen behavior; it does
+        not infer the full chip.
+      </p>
+      <form id="builder-form">
+        <div class="builder-top">
+          <div class="parameter">
+            <label for="builder-document">Reference manual</label
+            ><select id="builder-document"></select>
+          </div>
+          <div class="parameter">
+            <label for="builder-kind">Peripheral scenario</label
+            ><select id="builder-kind">
+              <option value="counter">Counter / timer</option>
+              <option value="fifo">FIFO</option>
+              <option value="shifter">Shift transfer</option>
+            </select>
+          </div>
+        </div>
+        <p id="builder-kind-description" class="hint"></p>
+        <div class="builder-columns">
+          <section class="builder-source">
+            <h3>1 · Find source evidence</h3>
+            <label for="builder-search">Search the manual</label
+            ><input
+              id="builder-search"
+              type="search"
+              placeholder="counter width, FIFO, shifter…"
+            />
+            <div id="builder-candidates"></div>
+            <p class="hint">
+              Suggestions match words and widths in the PDF. Verify context;
+              they do not interpret behavior.
+            </p>
+          </section>
+          <section class="builder-settings">
+            <h3>2 · Configure behavior</h3>
+            <div class="parameter">
+              <label for="builder-name">Simulation name</label
+              ><input id="builder-name" type="text" maxlength="160" required />
+            </div>
+            <div class="builder-fields">
+              <div class="parameter" id="builder-field-width">
+                <label for="builder-width" id="builder-width-label"
+                  >Width · bits</label
+                ><input
+                  id="builder-width"
+                  type="number"
+                  min="1"
+                  max="32"
+                  value="16"
+                /><span id="builder-width-hint" class="hint"></span>
+              </div>
+              <div class="parameter" id="builder-field-direction">
+                <label for="builder-direction">Direction / order</label
+                ><select id="builder-direction"></select>
+              </div>
+              <div class="parameter" id="builder-field-match">
+                <label for="builder-match">At compare</label
+                ><select id="builder-match">
+                  <option value="repeat">Reload and toggle output</option>
+                  <option value="halt">Halt and toggle output</option>
+                </select>
+              </div>
+              <div class="parameter" id="builder-field-depth">
+                <label for="builder-depth">FIFO depth · words</label
+                ><input
+                  id="builder-depth"
+                  type="number"
+                  min="1"
+                  max="16"
+                  value="4"
+                />
+              </div>
+              <div class="parameter" id="builder-field-value">
+                <label for="builder-value" id="builder-value-label"
+                  >Default value</label
+                ><input
+                  id="builder-value"
+                  type="text"
+                  value="8"
+                  spellcheck="false"
+                /><span class="hint">Decimal, 0x, 0b, or 0o</span>
+              </div>
+            </div>
+            <h3>3 · Cite and review</h3>
+            <div class="parameter">
+              <label for="builder-page">PDF page · one-based</label
+              ><input id="builder-page" type="number" min="1" value="1" />
+            </div>
+            <div class="parameter">
+              <label for="builder-quote">Exact source excerpt</label
+              ><textarea
+                id="builder-quote"
+                rows="4"
+                maxlength="1000"
+                required
+              ></textarea>
+            </div>
+            <div class="parameter">
+              <label for="builder-claim">What this excerpt supports</label
+              ><textarea
+                id="builder-claim"
+                rows="2"
+                maxlength="2000"
+                required
+              ></textarea>
+            </div>
+            <details class="builder-review" open>
+              <summary>Selected scenario rules</summary>
+              <ul id="builder-rules"></ul>
+              <label for="builder-assumptions"
+                >Additional assumptions or omissions · one per line</label
+              ><textarea id="builder-assumptions" rows="2"></textarea>
+            </details>
+          </section>
+        </div>
+        <div class="builder-bottom">
+          <div id="builder-status" role="status"></div>
+          <button id="builder-run" type="submit" class="primary" disabled>
+            Create &amp; run simulation →
+          </button>
+        </div>
+        <details class="builder-json-details">
+          <summary>Model definition · JSON for developers and agents</summary>
+          <pre id="builder-json"></pre>
+        </details>
+      </form>
     </dialog>
     <noscript
       >ChipSim requires JavaScript. Run npm install and npm run build, then open
