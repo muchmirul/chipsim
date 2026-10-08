@@ -133,6 +133,25 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   send('i');wait('DRIVE INPUT')
   send('\r');wait('1-bit input at tick 4')
   send('0b0\r');wait('Input pin_oe=0')
+  send('d');wait('Import PDF')
+  send(str(ROOT/'docs/references/ti-pca9555.pdf')+'\r');wait('PCA9555')
+  send('u');wait('REGISTER ACCESS')
+  send('jj\r');wait('Output port 0')
+  send('j\r');wait('Write Output port 0')
+  send('0o245\r');wait('write address 2 at tick 1')
+  send('u');wait('REGISTER ACCESS')
+  send('jj\r');wait('Output port 0')
+  send('\r');wait('read address 2 at tick 2')
+  send('x');wait('EXPORT FULL TRACE')
+  send('j\r');wait('Output path')
+  register_trace=Path(workspace)/'register-trace.json'
+  send(str(register_trace)+'\r');wait('Saved '+str(register_trace))
+  registers=json.loads(register_trace.read_text())
+  assert registers['trace'][1]['registers']['output0']==165
+  assert registers['trace'][2]['signals']['read_data']==165
+  assert registers['trace'][4]['registers']['configuration0']==240
+  assert registers['trace'][8]['signals']['int_driver']==0
+  assert registers['trace'][12]['signals']['int_driver']=='Z'
   send('q');proc.wait(timeout=5)
   end=time.monotonic()+1
   while time.monotonic()<end and select.select([master],[],[],.05)[0]:

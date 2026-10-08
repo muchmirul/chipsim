@@ -261,6 +261,38 @@ Binary-input tables with high-impedance outputs use compiler ID `tri-state-funct
 
 Sequential models use compiler ID `sequential-function-table-v1`. Their input rows can contain `rise`/`fall`, outputs can contain `hold`, and `clock` identifies the input/index and supported edge directions. `symbolRows` preserves original arrows, lowercase set-up symbols, and `no change`. The binary matrix is ordered by previous clock (0, 1), current input combination, then previous output combination; its dimension is `2^(inputs + outputs + 1)` and is capped at 64 entries. The snapshot does not change the executable states or certify source interpretation.
 
+## Optional register transaction adapter
+
+`registerInterface` and `registerMap` let the TUI drive authored register behavior using `u`. They do not implement side effects: executable reads/writes/reset/interrupt rules must remain in `states` with independent acceptance cases and source evidence.
+
+```json
+{
+  "registerInterface": {
+    "kind": "toggle-word-v1",
+    "address": "address",
+    "writeData": "write_data",
+    "write": "write",
+    "request": "request",
+    "readData": "read_data",
+    "valid": "valid",
+    "error": "error"
+  },
+  "registerMap": [
+    {
+      "address": 2,
+      "name": "Output port 0",
+      "access": "rw",
+      "value": "reg.output0",
+      "evidence": ["addresses", "output"]
+    }
+  ]
+}
+```
+
+All seven mappings must name distinct declared numeric signals. Address, write data, operation (`0` read, `1` write), and request are inputs; read data, valid, and error are outputs. Operation/request/valid/error are one bit; read/write data widths match. A request-token change after tick zero represents one access, evaluated with that tick's bus fields. Tick zero establishes the request baseline; held tokens must not replay accesses. The model reports acceptance through `valid=1`, rejects through `error=1`, and keeps the read result available at the access tick. These are an adapter contract, not physical bus pins or timing.
+
+The map contains 1–128 unique addresses within the address signal width, names of 1–160 characters, `ro`/`rw` access labels, numeric register/output references of the data width, and 1–16 declared evidence IDs per entry. No addresses, widths, reset values, masks, or side effects are inferred from names. The menu permits writes to read-only entries to inspect the model's explicitly authored response. The PCA9555 profile is an example of executable rules using this metadata.
+
 ## Guided scenario creation
 
 Press `c` with a PDF loaded in the TUI to configure a counter, FIFO, or shift-transfer model. The builder checks the cited page and exact excerpt, generates a schema-version-1 definition with explicit assumptions and demonstration inputs, and runs acceptance cases before saving. See `docs/TUI.md` for each scenario's rules. A suggested keyword or bit width is a review aid, not a proof of the modeled behavior.

@@ -1,5 +1,6 @@
 import manifest from "../../../docs/references/manifest.json" with { type: "json" };
 import { hc595 } from "./hc595.js";
+import { pca9555 } from "./pca9555.js";
 import { validateModel } from "../validate.js";
 import { runChecks } from "../engine.js";
 
@@ -9,6 +10,14 @@ export const documentProfiles = [
     name: "Nexperia 74HC595 / 74HCT595 · Rev. 12",
     source: manifest.documents.find((source) => source.chips.includes("hc595")),
     build: hc595,
+  },
+  {
+    id: "pca9555",
+    name: "TI PCA9555 · SCPS131J",
+    source: manifest.documents.find((source) =>
+      source.chips.includes("pca9555"),
+    ),
+    build: pca9555,
   },
 ];
 

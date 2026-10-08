@@ -5,6 +5,7 @@ import {
   registerModel,
 } from "../models/index.js";
 import { normalizeParameters, validateInputs } from "../model/engine.js";
+import { registerAccessInputs } from "../model/register-access.js";
 import { extractPDFFile } from "../documents/extract-node.js";
 import { modelsForDocument, searchDocument } from "../documents/recognize.js";
 import { readFile, readdir } from "node:fs/promises";
@@ -190,6 +191,41 @@ export class TuiState {
     this.config.duration = ticks;
     this.rebuild();
   }
+  accessRegister(operation, address, value = 0) {
+    const tick = this.tick + 1;
+    const inputs = registerAccessInputs(this.model, this.config.inputs, {
+      tick,
+      operation,
+      address,
+      value,
+    });
+    const duration = Math.max(this.config.duration, tick);
+    const trace = this.model.simulate(this.config.parameters, {
+      inputs,
+      ticks: duration,
+    });
+    const fault = trace.find((snapshot) => snapshot.phase === "fault");
+    if (fault)
+      throw new Error(
+        `Simulation fault at tick ${fault.tick}: ${fault.detail || fault.message}`,
+      );
+    const bus = this.model.registerInterface;
+    const result = trace[tick].signals;
+    if (!result[bus.valid] || result[bus.error])
+      throw new Error(
+        "Register access was not accepted at tick " +
+          tick +
+          "; inspect reset and address rules.",
+      );
+    this.config.inputs = inputs;
+    this.config.duration = duration;
+    this.trace = trace;
+    this.playing = false;
+    this.seek(tick);
+    this.setMessage(
+      `${operation} address ${address} at tick ${tick} · ${operation === "read" ? "read_data=" + result[bus.readData] : "inspect latch/driver changes"}`,
+    );
+  }
   seek(tick) {
     if (!Number.isFinite(tick)) throw new Error("Tick must be finite.");
     this.tick = Math.max(0, Math.min(this.trace.length - 1, Math.round(tick)));
@@ -302,9 +338,24 @@ export class TuiState {
         width: this.model.registers?.find((r) => r.id === id)?.width || 32,
         kind: "registers",
       })),
-    ].filter((item) =>
-      item.id.toLowerCase().includes(this.registerFilter.toLowerCase()),
-    );
+    ]
+      .map((item) => {
+        const entry = this.model.registerMap?.find(
+          (entry) => entry.value === item.id,
+        );
+        return {
+          ...item,
+          address: entry?.address,
+          label: entry
+            ? `0x${entry.address.toString(16).padStart(2, "0")} ${entry.name}`
+            : item.id,
+        };
+      })
+      .filter((item) =>
+        (item.id + " " + item.label)
+          .toLowerCase()
+          .includes(this.registerFilter.toLowerCase()),
+      );
   }
   logs() {
     const query = this.logFilter.toLowerCase();

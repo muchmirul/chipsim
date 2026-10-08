@@ -1,6 +1,6 @@
 # Simulation references
 
-This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All fifteen PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
+This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All sixteen PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
 
 Document revisions below come from document text, rather than PDF modification timestamps. PDF links use one-based viewer page numbers, which may differ from printed page labels. Retrieved on **2026-10-07** unless a later date is listed below.
 
@@ -147,3 +147,16 @@ Exact sizes and SHA-256 checksums are recorded in [manifest.json](references/man
 - **Read:** 7.4 Device Functional Modes, Table 7-1 and its input/output symbol footnotes on PDF page 11.
 - **Supports:** One binary-input buffer whose table defines driven HIGH/LOW and released high-impedance Z outputs. This is a regression reference for data-derived compilation, not a part-number or fingerprint rule.
 - **Model scope:** Ideal instantaneous output updates, including tick zero. Z describes released output drivers; external pulls, resolved bus voltage, contention, electrical loads, propagation delay, and other device features are not inferred. Header annotations are accepted only with complete local symbol definitions.
+
+## PCA9555 I/O expander
+
+- **Model:** `pca9555`, reviewed automatic profile
+- **Version:** SCPS131J, revised March 2021; retrieved 2026-10-08
+- **Publisher:** Texas Instruments
+- **File:** [ti-pca9555.pdf](references/ti-pca9555.pdf#page=19) (49 pages)
+- **Official download:** [PCA9555 datasheet](https://www.ti.com/lit/ds/symlink/pca9555.pdf)
+- **Read:** PDF pages 14–16 (GPIO, POR, interrupt and erratum), 19–21 (addresses, register descriptions, bus transaction limits).
+
+**Supports:** Register addresses/defaults, read-only input ports, retained output latches, input-only polarity inversion, direction and high-impedance output drivers, independent per-port input interrupt acknowledgment, and output-to-input mismatch behavior.
+
+**Model scope:** One explicitly addressed byte per normalized request-token change, with instantaneous input sampling and uncontended driven outputs following their latches. Input/reset interrupt baselines and default external high levels are explicit scenario choices. No physical I²C, persistent pointer, paired multi-byte transfer, other slaves, ACK/NACK races, analog timing/loading, or documented shared-bus interrupt erratum. The unchanged original retains its final-page development-use notice; see `../THIRD_PARTY_NOTICES.md`.
