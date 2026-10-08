@@ -1,6 +1,28 @@
 # ChipSim
 
-ChipSim is a **terminal workbench** for understanding chip behavior through waveforms, hardware blocks, registers, and execution traces. It includes RP2040 PIO, TI PRU, NXP FlexIO, PSoC UDB, XMOS xCORE, and NXP eTPU examples, and supports adding document-backed models.
+ChipSim is a **local simulation tool for hardware developers and coding agents**, with a TUI for waveforms, hardware blocks, registers, and execution traces. An external coding agent can read a manual, author a bounded model, validate its sources and acceptance cases, then hand the experiment to the developer. ChipSim contains no LLM integration. It includes RP2040 PIO, TI PRU, NXP FlexIO, PSoC UDB, XMOS xCORE, and NXP eTPU examples, plus document-backed peripheral models.
+
+## Install for a coding agent
+
+Use Node.js 22.13+ and Poppler (`pdfinfo`, `pdftotext`):
+
+```sh
+npm install --global --prefix "$HOME/.local" --ignore-scripts /home/dev/chipsim
+export PATH="$HOME/.local/bin:$PATH"
+chipsim agent doctor
+chipsim agent prepare /path/to/manual.pdf --out ./chip-work
+```
+
+Start your coding agent in `chip-work` and ask it to read `AGENTS.md`, review any supported models, and model the peripheral you need. The prepared project contains the original PDF, searchable numbered pages, model instructions, and any models that ChipSim can already compile. Unknown manuals may need the agent to author a model explicitly.
+
+```sh
+chipsim agent search ./chip-work "register name"
+chipsim agent check ./chip-work/models/your.model.json --project ./chip-work
+chipsim agent run ./chip-work/models/your.model.json --project ./chip-work --out ./chip-work/runs/first
+chipsim --document ./chip-work/manual.pdf --model ./chip-work/runs/first/session.json
+```
+
+Agent commands return JSON and exit codes without a TTY. Runs produce JSON/CSV/VCD traces and a TUI session. Source checks re-extract the actual pinned PDF. Codex and Pi can call the CLI through their command tools; prime-agent can call it through Python `subprocess`. See [agent workflow and compatibility checks](docs/AGENT_WORKFLOW.md) for the protocol, packaging, limits, and tested invocation routes. Use `chipsim agent help` for command discovery. This is a local package; it has not been published to npm or GitHub.
 
 ## Start the TUI
 
@@ -156,11 +178,12 @@ A noninteractive terminal frame is useful in scripts:
 npm start -- --snapshot --model pio --at 2 --view registers --columns 120 --rows 40
 ```
 
-The optional browser frontend remains available with `npm run build` followed by `npm run web`; `npm run dev:web` watches its JavaScript. `npm start` always launches the TUI. Browser checks use `npm run test:ui`; install their test browser with `npx playwright install chromium`.
+The optional browser frontend remains available with `npm run build` followed by `npm run web`; `npm run dev:web` watches its JavaScript. `npm start` launches the TUI by default; `npm start -- agent help` selects the headless tools. Browser checks use `npm run test:ui`; install their test browser with `npx playwright install chromium`.
 
 ## Repository
 
 ```text
+src/agent/                  Headless project, source retrieval, validation and run tools
 src/tui/                    Terminal state, controls, rendering, disk workspace
 src/core/                   Numeric formats and shared transfer protocol
 src/models/                 Six architecture modules and model catalog

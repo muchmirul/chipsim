@@ -4,6 +4,8 @@ Read `AGENTS.md` before changing simulation behavior or adding a model. The term
 
 ## Architecture
 
+`src/agent/` exposes the process interface for external coding agents. `commands.js` parses a strict versioned JSON protocol; `project.js` prepares isolated PDF/text/model folders and bounded page/search results; `model.js` verifies actual PDF citations and acceptance cases, then exports a trace and portable TUI session. `io.js` bounds file reads and owns new output directories without replacing experiments. It reuses the existing document analyzers, validator, engine and exporters. The CLI shim is `scripts/agent.mjs`, dispatched by the installable `chipsim agent` command. See `AGENT_WORKFLOW.md`; `npm run test:install` packs, installs offline under a temporary prefix, and tests public commands through Node/Python from another directory. No coding-agent provider runs inside ChipSim.
+
 A model provides a common interface: ID, name, summary, scope, fidelity, parameters, signals, topology, source references, assumptions, `simulate(parameters, options)`, and `recipe(parameters)`. Every snapshot carries `tick`, `state`, `phase`, `signals`, `registers`, active node IDs, event text, evidence IDs, and structured changes. Built-in snapshots also retain `original` values for regression inspection. Playback selects snapshots from deterministic traces rather than mutating a running engine.
 
 `src/models/index.js` adapts six built-in architecture modules and registers declarative models. Built-ins retain their mechanism-specific behavior; `src/core/protocol.js` shares payload normalization, edge planning, frame boundaries, ACK stimulus, and terminal outcomes. Resource constraints deliberately produce different stalls, drift, or missed deadlines.
