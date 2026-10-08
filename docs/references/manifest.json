@@ -274,6 +274,24 @@
       "relevant_sections": "8.1\u20138.5.2, especially interrupt/erratum on PDF page 16 and register descriptions on pages 19\u201321",
       "supports": "Two-bank register addresses/defaults, output latches, direction, input inversion, independent input interrupt acknowledgment and released pin drivers. Reviewed fingerprint-specific transaction-level profile.",
       "model_assumptions": "One addressed byte per normalized request-token change; no physical I2C serialization, paired multi-byte alternation, bus-pointer persistence, analog supply/loading, ACK/NACK races, or shared-bus interrupt erratum. Interrupt baseline at reset and high external starting levels are scenario choices."
+    },
+    {
+      "chips": [],
+      "compiler": "function-table",
+      "kind": "retained",
+      "path": "docs/references/renesas-hd74hc77.pdf",
+      "title": "HD74HC77 Datasheet",
+      "publisher": "Renesas Electronics",
+      "revision": "REJ03D0552-0200, Rev. 2.00, 6 October 2005; includes 2010 cover/notices",
+      "source_url": "https://www.renesas.com/en/document/dst/hd74hc77-datasheet",
+      "retrieved_on": "2026-10-08",
+      "bytes": 249214,
+      "pages": 9,
+      "sha256": "d12f71d4ad64ac1edfb4d1abbb56a38bf68af2cded3fe332f241f2c9688f8afb",
+      "pdf_start_page": 3,
+      "relevant_sections": "Function Table and symbol definitions on PDF page 3 (printed page 1); description and pin arrangement on pages 3\u20134",
+      "supports": "One table-level binary latch with level-sensitive data updates and explicit no-change outputs. Regression reference, not a fingerprint-specific rule.",
+      "model_assumptions": "One generic table instance; package replication/group-enable wiring in the diagram is not inferred. Initial output is an explicit scenario value; instantaneous normalized level evaluation omits setup/hold, delays, electrical behavior and other device features. Original reproduction/usage notices are retained; no general redistribution permission is asserted."
     }
   ]
 }

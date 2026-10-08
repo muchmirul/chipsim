@@ -2,6 +2,7 @@ export function validateTableMetadata(model, { fail, number, signals }) {
   if (model.sourceTable !== undefined) {
     const table = model.sourceTable,
       sequential = table?.compiler === "sequential-function-table-v1",
+      retained = table?.compiler === "retained-function-table-v1",
       triState = table?.compiler === "tri-state-function-table-v1",
       labels = (values) =>
         Array.isArray(values) &&
@@ -14,6 +15,7 @@ export function validateTableMetadata(model, { fail, number, signals }) {
       !table ||
       typeof table !== "object" ||
       (!sequential &&
+        !retained &&
         !triState &&
         table.compiler !== "binary-function-table-v1") ||
       !labels(table.inputs) ||
@@ -56,7 +58,7 @@ export function validateTableMetadata(model, { fail, number, signals }) {
               row.outputs,
               table.outputs.length,
               false,
-              sequential,
+              sequential || retained,
               triState,
             ),
         )
@@ -67,38 +69,58 @@ export function validateTableMetadata(model, { fail, number, signals }) {
         table.matrix.length !==
           2 **
             (table.inputs.length +
-              (sequential ? 1 + table.outputs.length : 0)) ||
+              (sequential
+                ? 1 + table.outputs.length
+                : retained
+                  ? table.outputs.length
+                  : 0)) ||
         table.matrix.length > 64 ||
         table.matrix.some(
           (row) => !bits(row, table.outputs.length, false, false, triState),
         )
       )
         fail("sourceTable.matrix", "expected exhaustive binary output matrix");
-      if (sequential) {
+      if (
+        retained &&
+        (table.outputs.length > 2 ||
+          !Array.isArray(table.rows) ||
+          table.rows.length > 8 ||
+          !table.rows.some(
+            (row) =>
+              Array.isArray(row?.outputs) && row.outputs.includes("hold"),
+          ) ||
+          table.clock !== undefined)
+      )
+        fail(
+          "sourceTable",
+          "invalid level-sensitive state/row bounds or clock metadata",
+        );
+      if (sequential || retained) {
         const clock = table.clock,
           rows = Array.isArray(table.rows) ? table.rows : [];
         if (
-          !clock ||
-          !Number.isInteger(clock.index) ||
-          clock.index < 0 ||
-          clock.index >= table.inputs.length ||
-          clock.input !== table.inputs[clock.index] ||
-          !Array.isArray(clock.edges) ||
-          !clock.edges.length ||
-          clock.edges.length > 2 ||
-          clock.edges.some((edge) => !["rise", "fall"].includes(edge)) ||
-          table.outputs.length > 2 ||
-          rows.length > 8 ||
-          rows.some(
-            (row) =>
-              !row ||
-              !Array.isArray(row.inputs) ||
-              row.inputs.some(
-                (value, index) =>
-                  typeof value === "string" &&
-                  (index !== clock.index || !clock.edges.includes(value)),
-              ),
-          )
+          sequential &&
+          (!clock ||
+            !Number.isInteger(clock.index) ||
+            clock.index < 0 ||
+            clock.index >= table.inputs.length ||
+            clock.input !== table.inputs[clock.index] ||
+            !Array.isArray(clock.edges) ||
+            !clock.edges.length ||
+            clock.edges.length > 2 ||
+            clock.edges.some((edge) => !["rise", "fall"].includes(edge)) ||
+            table.outputs.length > 2 ||
+            rows.length > 8 ||
+            rows.some(
+              (row) =>
+                !row ||
+                !Array.isArray(row.inputs) ||
+                row.inputs.some(
+                  (value, index) =>
+                    typeof value === "string" &&
+                    (index !== clock.index || !clock.edges.includes(value)),
+                ),
+            ))
         )
           fail("sourceTable.clock", "invalid sequential clock/row bounds");
         if (
@@ -111,14 +133,15 @@ export function validateTableMetadata(model, { fail, number, signals }) {
               row.inputs.length !== table.inputs.length ||
               row.inputs.some(
                 (value) =>
-                  typeof value !== "string" || !/^[HLhlX01↑↓]$/.test(value),
+                  typeof value !== "string" ||
+                  !(retained ? /^[HLX01]$/ : /^[HLhlX01↑↓]$/).test(value),
               ) ||
               !Array.isArray(row.outputs) ||
               row.outputs.length !== table.outputs.length ||
               row.outputs.some(
                 (value) =>
                   typeof value !== "string" ||
-                  !/^(?:[HL01]|no change)$/.test(value),
+                  !/^(?:[HL01]|no change)$/i.test(value),
               ),
           )
         )

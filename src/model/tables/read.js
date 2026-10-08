@@ -1,15 +1,14 @@
 import { readTableLayouts } from "./layout.js";
 import { readSequentialTable } from "./sequential-read.js";
-import { impedanceQuote } from "./legends.js";
+import { readRetainedTable } from "./retained-read.js";
+import { impedanceQuote, levelSymbols } from "./legends.js";
 function binaryTable(raw) {
   const table = { ...raw, rows: [] },
     triState = raw.rawRows.some((row) => row.outputs.includes("Z"));
   if (triState && !impedanceQuote(table.legend))
     throw new Error("Z requires an explicit high-impedance output definition.");
   if (triState) table.kind = "tri-state";
-  const highLow =
-    /H\s*=\s*HIGH/i.test(table.legend) && /L\s*=\s*LOW/i.test(table.legend);
-  const dontCare = /X\s*=\s*(?:don['’]t|do not)\s+care/i.test(table.legend);
+  const { highLow, dontCare } = levelSymbols(table.legend);
   for (const row of table.rawRows) {
     const cells = [...row.inputs, ...row.outputs];
     if (
@@ -71,13 +70,13 @@ export function readFunctionTables(document) {
   for (const raw of layouts)
     try {
       tables.push(
-        raw.rawRows.some((row) =>
-          [...row.inputs, ...row.outputs].some((cell) =>
-            /[↑↓]|no change/.test(cell),
-          ),
-        )
+        raw.rawRows.some((row) => row.inputs.some((cell) => /[↑↓]/.test(cell)))
           ? readSequentialTable(raw, document)
-          : binaryTable(raw),
+          : raw.rawRows.some((row) =>
+                row.outputs.some((cell) => /^no change$/i.test(cell)),
+              )
+            ? readRetainedTable(raw)
+            : binaryTable(raw),
       );
     } catch (error) {
       diagnostics.push({

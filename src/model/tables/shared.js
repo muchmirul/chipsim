@@ -1,5 +1,10 @@
 import { op } from "../builders/shared.js";
 export const pinId = (label) => "pin_" + label.toLowerCase();
+export const bits = (value, count) =>
+  Array.from(
+    { length: count },
+    (_, index) => (value >> (count - 1 - index)) & 1,
+  );
 export const fold = (operator, values, empty) =>
   !values.length
     ? empty

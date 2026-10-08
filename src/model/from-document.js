@@ -3,6 +3,7 @@ import { compileDocument } from "./profiles/index.js";
 import { readFunctionTables } from "./tables/read.js";
 import { buildFunctionTable } from "./tables/build.js";
 import { buildSequentialTable } from "./tables/sequential-build.js";
+import { buildRetainedTable } from "./tables/retained-build.js";
 export function analyzeDocument(document, { reservedIds = [] } = {}) {
   const profile = compileDocument(document, { reservedIds });
   if (profile)
@@ -22,7 +23,11 @@ export function analyzeDocument(document, { reservedIds = [] } = {}) {
   for (const table of tables)
     try {
       const compiled = (
-        table.kind === "sequential" ? buildSequentialTable : buildFunctionTable
+        table.kind === "sequential"
+          ? buildSequentialTable
+          : table.kind === "retained"
+            ? buildRetainedTable
+            : buildFunctionTable
       )(document, table, {
         reservedIds: reserved,
       });

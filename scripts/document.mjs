@@ -7,7 +7,7 @@ const args = process.argv.slice(2),
   file = args[0];
 if (!file || ["--help", "-h"].includes(file)) {
   console.log(
-    "Usage: npm run document -- manual.pdf [--out model.json] [--json]\nAnalyze a local PDF using reviewed profiles and complete binary or supported edge-triggered function tables. --out requires exactly one generated model.",
+    "Usage: npm run document -- manual.pdf [--out model.json] [--json]\nAnalyze a local PDF using reviewed profiles and complete binary, level-sensitive retained-state, or supported edge-triggered function tables. --out requires exactly one generated model.",
   );
   process.exit(0);
 }

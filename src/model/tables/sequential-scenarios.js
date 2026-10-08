@@ -1,40 +1,10 @@
 import { bits, nextOutputs } from "./sequential-read.js";
 import { pinId } from "./shared.js";
-import { input } from "../builders/shared.js";
+import { inputVectors } from "./input-vectors.js";
 export function sequentialScenarios(table, instances, shared) {
   const count = table.inputs.length,
     outCount = table.outputs.length;
-  // Emit shared inputs once; rotate private data without rotating the clock.
-  const events = (values, tick, rotate = true) => {
-    const inputs = [],
-      vectors = [];
-    instances.forEach((instance, index) => {
-      const vector = [...values];
-      const privateBits = table.inputs
-        .map((label, bit) => ({ label, bit }))
-        .filter(
-          ({ label, bit }) =>
-            !shared.includes(label) && bit !== table.clock.index,
-        );
-      let data = privateBits.reduce(
-        (value, { bit }) => (value << 1) | values[bit],
-        0,
-      );
-      data = (data + (rotate ? index : 0)) % 2 ** privateBits.length;
-      privateBits.forEach(
-        ({ bit }, offset) =>
-          (vector[bit] = (data >> (privateBits.length - 1 - offset)) & 1),
-      );
-      vector.forEach((value, bit) => {
-        if (
-          !inputs.some((event) => event.signal === pinId(instance.labels[bit]))
-        )
-          inputs.push(input(tick, pinId(instance.labels[bit]), value));
-      });
-      vectors.push(vector);
-    });
-    return { inputs, vectors };
-  };
+  const events = inputVectors(table, instances, shared, [table.clock.index]);
   const checks = [];
   for (let previousClock = 0; previousClock < 2; previousClock++)
     for (let value = 0; value < 2 ** count; value++)

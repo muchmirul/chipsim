@@ -3,7 +3,14 @@
 export function documentTitle(info, filename) {
   const generic =
     /^(?:data\s*sheet|product data\s*sheet|(?:technical )?reference manual|untitled)$/i;
-  for (const value of [info?.Subject, info?.Title])
+  // A bare catalog/revision code is useful provenance but a poor display title
+  // when the publisher supplied a descriptive title as well.
+  const code = /^[A-Z]{2,}[A-Z\d]+-\d{4,}$/;
+  const candidates =
+    typeof info?.Subject === "string" && code.test(info.Subject.trim())
+      ? [info?.Title, info?.Subject]
+      : [info?.Subject, info?.Title];
+  for (const value of candidates)
     if (
       typeof value === "string" &&
       value.trim() &&

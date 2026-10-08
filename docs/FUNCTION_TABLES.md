@@ -1,6 +1,6 @@
 # Function-table compilation
 
-ChipSim can derive combinational and supported edge-triggered logic from a new PDF's published function table locally, without a model provider or a chip-specific fingerprint rule. Geometry identifies columns; explicit table symbols define behavior. This covers complete binary mappings, binary-input tables with defined high-impedance outputs, and bounded sequential tables with documented clock-edge semantics. Arbitrary prose, general stateful devices, analog behavior, and entire reference manuals remain outside automatic interpretation.
+ChipSim can derive combinational and supported edge-triggered logic from a new PDF's published function table locally, without a model provider or a chip-specific fingerprint rule. Geometry identifies columns; explicit table symbols define behavior. This covers complete binary mappings, binary-input tables with defined high-impedance outputs, complete level-sensitive retention tables, and bounded sequential tables with documented clock-edge semantics. Arbitrary prose, general stateful devices, analog behavior, and entire reference manuals remain outside automatic interpretation.
 
 ```sh
 npm start -- --document docs/references/nexperia-74hc00.pdf
@@ -58,7 +58,21 @@ Sequential tables have at most two output columns, eight source rows, and 64 com
 
 Physical set-up/hold constraints, recovery/removal times, metastability, voltage thresholds, and propagation delays are omitted. Lowercase levels are evaluated as ideal values present at the edge; all input events in a normalized tick precede evaluation together. The demonstration prepares data one abstract tick before toggling the clock; that spacing does not prove physical timing compliance.
 
-The 74HC377 and 74HC273 PDFs are regression sources for enable/hold and asynchronous-reset behavior. Their rows and pin lists supply the generated logic; neither part number nor fingerprint selects the behavior. `p` edits initial retained bits; `i` drives clock/control/data pins. General counters, bus/register side effects, transparent latches, unsupported state symbols, or ambiguous complementary-output headers still require reviewed models.
+The 74HC377 and 74HC273 PDFs are regression sources for enable/hold and asynchronous-reset behavior. Their rows and pin lists supply the generated logic; neither part number nor fingerprint selects the behavior. `p` edits initial retained bits; `i` drives clock/control/data pins. General counters, bus/register side effects, unsupported retention/clock semantics, unsupported state symbols, or ambiguous complementary-output headers still require reviewed models.
+
+## Level-sensitive retention tables
+
+Complete binary tables with explicit `No change` outputs can compile without clock edges. Literal H/L or 0/1 rows update immediately; `No change` retains that output's prior bit. Every current-input/prior-output combination must be covered, including held states that reveal disagreeing wildcard overlaps. Missing rows never become hold behavior. Tables require an explicitly covered condition that holds all outputs, used to establish each prior state in acceptance checks.
+
+Bounds are two output columns, eight source rows, and 64 input/state combinations (`2^(inputs + outputs)`). Inputs support defined H/L, 0/1, and defined don't-care/irrelevant X; outputs support binary levels and case-insensitive literal `No change`. Edge arrows, lower-case setup qualifiers, symbolic prior-state references, Z, and unspecified outputs require other supported semantics or review. Complete adjacent definitions such as `H: High level`, `L: Low level`, `X: Irrelevant` are supported; qualified or continued legend prose is rejected.
+
+The Renesas HD74HC77 reference supplies a table on PDF page 3 (printed page 1). Its generic `Data`, `Enable G`, and `Q` headings describe one table instance. `Enable G` becomes `EnableG` in model identifiers only when geometry identifies the two adjacent words as one heading. Package replication and grouped-enable wiring in its pin diagram are not inferred. This model demonstrates the table's latch behavior, rather than the whole four-latch package.
+
+```sh
+npm start -- --document docs/references/renesas-hd74hc77.pdf
+```
+
+`p` configures initial retained bits; `i` drives data or enable. Tick zero applies the level rows immediately. The default Gray-code sweep changes one input at a time in the first table instance so you can see data following an open enable and holding behind a closed enable. Other indexed instances use offset data patterns. Initial bits and normalized timing are explicit scenario choices; simultaneous enable/data events cannot prove physical setup/hold compliance. Source symbols remain visible in Model view, exported JSON, and browser Sources.
 
 ## Extending the compiler
 
