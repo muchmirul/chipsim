@@ -215,6 +215,38 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert clock['trace'][15]['registers']['pair_pin_clk']==3
   assert clock['model']['definition']['sourceTable']['symbolRows'][1]['inputs'][1]=='L, H, ↓'
   assert clock['model']['definition']['sourceTable']['retention']['symbol']=='Q0'
+  # Author custom rows from a real source, including correction of an incomplete file.
+  send('d');wait('Import PDF')
+  send(str(ROOT/'docs/references/nexperia-74hc00.pdf')+'\r');wait('74HC00; 74HCT00')
+  send('c');wait('CREATE')
+  send('jjj\r');wait('Behavior table · simulation name')
+  send('Reviewed NAND\r');wait('Input pin names')
+  send('\r');wait('Output pin names')
+  send('\r');wait('State names')
+  send('\r');wait('Rows · state BITS')
+  rules=Path(workspace)/'nand.rules.txt'
+  rules.write_text('logic 00 -> logic / 1\n')
+  send('@'+str(rules)+'\r');wait('No row covers')
+  rules.write_text((ROOT/'examples/nand.rules.txt').read_text())
+  send('\x15@'+str(rules)+'\r');wait('Evidence PDF page')
+  send('0x3\r');wait('Exact source excerpt')
+  send('Quad 2-input NAND gate\r');wait('What this excerpt supports')
+  send('Entered rows match the single NAND function on this page.\r');wait('Additional assumption')
+  send('One gate; normalized steps; package replication omitted.\r');wait('4 checks passed')
+  authored=json.loads((Path(workspace)/'models'/'reviewed-nand.json').read_text())
+  assert 'sourceTable' not in authored
+  assert 'not inferred from the PDF' in authored['scope']
+  assert authored['evidence'][0]['page']==3
+  send('t');wait('Go to normalized tick')
+  send('3\r');wait('tick 3/')
+  send('6');wait('reg.behavior_state')
+  send('x');wait('EXPORT FULL TRACE')
+  send('j\r');wait('Output path')
+  authored_trace=Path(workspace)/'authored-trace.json'
+  send(str(authored_trace)+'\r');wait('Saved '+str(authored_trace))
+  authored=json.loads(authored_trace.read_text())
+  assert [s['signals']['pin_y'] for s in authored['trace'][1:5]]==[1,1,0,1]
+  assert authored['trace'][3]['state']=='state_logic'
   send('q');proc.wait(timeout=5)
   end=time.monotonic()+1
   while time.monotonic()<end and select.select([master],[],[],.05)[0]:
@@ -224,7 +256,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored=termios.tcgetattr(slave)
   assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
   assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, Q0 retention and steady/transition clock lists, released outputs, addressed access, direct pin editing, and terminal cleanup.')
+  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, custom behavior-table authoring and retry, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, Q0 retention and steady/transition clock lists, released outputs, addressed access, direct pin editing, and terminal cleanup.')
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)

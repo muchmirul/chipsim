@@ -1,0 +1,5 @@
+low 0X -> low / =
+low 10 -> high / 0
+low 11 -> high / 1
+high 0X -> low / =
+high 1X -> high / =

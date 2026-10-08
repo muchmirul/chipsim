@@ -18,6 +18,7 @@ import {
 } from "../src/models/index.js";
 import { exportVCD } from "../src/trace/export.js";
 import { buildScenario } from "../src/model/templates.js";
+import { buildBehaviorTable } from "../src/model/behavior-table/build.js";
 const viewer = process.argv[2] || process.env.CHIPSIM_DWFV || "dwfv",
   directory = await mkdtemp(join(tmpdir(), "chipsim-dwfv-"));
 try {
@@ -50,6 +51,23 @@ try {
       ),
     ),
   ];
+  models.push(
+    registerModel(
+      buildBehaviorTable(document, {
+        name: "behavior-table",
+        inputs: "RESET ENABLE",
+        outputs: "Q",
+        states: "idle armed",
+        rules:
+          "* 1X -> idle / 0; idle 00 -> idle / =; idle 01 -> armed / 1; armed 00 -> armed / =; armed 01 -> idle / 0",
+        page: 1,
+        quote: document.pages[0].text,
+        claim:
+          "Interoperability fixture; all state behavior is developer selected.",
+      }).spec,
+      [document],
+    ),
+  );
   for (const profile of documentProfiles) {
     const document = await extractPDFFile(
       new URL("../" + profile.source.path, import.meta.url).pathname,

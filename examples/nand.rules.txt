@@ -1,0 +1,3 @@
+logic 0X -> logic / 1
+logic X0 -> logic / 1
+logic 11 -> logic / 0

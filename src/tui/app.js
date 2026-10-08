@@ -15,6 +15,7 @@ import { writeJSON } from "./workspace.js";
 import { screenText } from "./render.js";
 import { views } from "./views.js";
 import { StimulusEditor } from "./stimulus-editor.js";
+import { BehaviorTableEditor } from "./behavior-table-editor.js";
 const unquote = (path) =>
   /^(['"]).*\1$/.test(path) ? path.slice(1, -1) : path;
 export class TerminalApp {
@@ -41,6 +42,7 @@ export class TerminalApp {
     this.resizeHandler = () => this.draw();
     this.timer = null;
     this.stimulusEditor = new StimulusEditor(this);
+    this.behaviorTableEditor = new BehaviorTableEditor(this);
   }
   draw() {
     if (this.closed || this.external) return;
@@ -408,12 +410,20 @@ export class TerminalApp {
     const document = this.state.document,
       suggestions = suggestScenarios(document);
     this.menu(
-      "CREATE · choose peripheral",
-      templates.map((template) => ({
-        label: template.label + " · " + template.description,
-        value: template.id,
-      })),
+      "CREATE · choose model builder",
+      [
+        ...templates.map((template) => ({
+          label: template.label + " · " + template.description,
+          value: template.id,
+        })),
+        {
+          label: "Behavior table · enter custom logic / state transitions",
+          value: "behavior-table",
+        },
+      ],
       (kind) => {
+        if (kind === "behavior-table")
+          return this.behaviorTableEditor.create(document);
         const choices = suggestions.filter((s) => s.kind === kind);
         const create = (source) =>
           this.scenarioQuestions(document, kind, source);

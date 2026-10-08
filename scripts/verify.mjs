@@ -76,6 +76,7 @@ for (const file of [
   "docs/TUI.md",
   "docs/DOCUMENT_PROFILES.md",
   "docs/FUNCTION_TABLES.md",
+  "docs/BEHAVIOR_TABLES.md",
 ])
   assert.ok((await read(file)).length > 100);
 const checkWeb = process.argv.includes("--web");

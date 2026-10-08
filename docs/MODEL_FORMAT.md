@@ -301,7 +301,9 @@ The map contains 1–128 unique addresses within the address signal width, names
 
 ## Guided scenario creation
 
-Press `c` with a PDF loaded in the TUI to configure a counter, FIFO, or shift-transfer model. The builder checks the cited page and exact excerpt, generates a schema-version-1 definition with explicit assumptions and demonstration inputs, and runs acceptance cases before saving. See `docs/TUI.md` for each scenario's rules. A suggested keyword or bit width is a review aid, not a proof of the modeled behavior.
+Press `c` with a PDF loaded in the TUI to configure a counter, FIFO, shift-transfer model, or custom behavior table. The builder checks the cited page and exact excerpt, generates a schema-version-1 definition with explicit assumptions and demonstration inputs, and runs acceptance cases before saving. See `docs/TUI.md` for each scenario's rules. A suggested keyword or bit width is a review aid, not a proof of the modeled behavior.
+
+Developer-entered behavior tables compile to ordinary `states`, `signals`, and a `behavior_state` register. `initialize` sets the configurable named `initialState` parameter and `initialOutputs` word at tick zero; the first entered row executes at tick one and transitions to a `state_<name>` state. The state register is updated with the same transition. Original rows and state-code mappings are explicit assumptions; these models do not use `sourceTable` to claim automatic extraction. `BEHAVIOR_TABLES.md` specifies input wildcards, explicit output retention, complete coverage, and bounds. Source checks confirm quotation provenance; generated cases exhaust the entered rules without certifying their hardware interpretation.
 
 ## Limits and extensions
 
