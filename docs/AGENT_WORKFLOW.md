@@ -15,8 +15,9 @@ chipsim agent doctor
 chipsim agent help
 ```
 
-This is a local install, not an npm registry release. No GitHub remote is
-configured yet. A user-writable prefix avoids administrator installation:
+Clone the source from [GitHub](https://github.com/muchmirul/chipsim) and install
+from that checkout; this is not an npm registry release. A user-writable prefix
+avoids administrator installation:
 
 ```sh
 npm install --global --prefix "$HOME/.local" --ignore-scripts /absolute/path/to/chipsim

@@ -7,7 +7,9 @@ ChipSim is a **local simulation tool for hardware developers and coding agents**
 Use Node.js 22.13+ and Poppler (`pdfinfo`, `pdftotext`):
 
 ```sh
-npm install --global --prefix "$HOME/.local" --ignore-scripts /home/dev/chipsim
+git clone https://github.com/muchmirul/chipsim.git
+cd chipsim
+npm install --global --prefix "$HOME/.local" --ignore-scripts "$PWD"
 export PATH="$HOME/.local/bin:$PATH"
 chipsim agent doctor
 chipsim agent prepare /path/to/manual.pdf --out ./chip-work
@@ -22,7 +24,7 @@ chipsim agent run ./chip-work/models/your.model.json --project ./chip-work --out
 chipsim --document ./chip-work/manual.pdf --model ./chip-work/runs/first/session.json
 ```
 
-Agent commands return JSON and exit codes without a TTY. Runs produce JSON/CSV/VCD traces and a TUI session. Source checks re-extract the actual pinned PDF. Codex and Pi can call the CLI through their command tools; prime-agent can call it through Python `subprocess`. See [agent workflow and compatibility checks](docs/AGENT_WORKFLOW.md) for the protocol, packaging, limits, and tested invocation routes. Use `chipsim agent help` for command discovery. This is a local package; it has not been published to npm or GitHub.
+Agent commands return JSON and exit codes without a TTY. Runs produce JSON/CSV/VCD traces and a TUI session. Source checks re-extract the actual pinned PDF. Codex and Pi can call the CLI through their command tools; prime-agent can call it through Python `subprocess`. See [agent workflow and compatibility checks](docs/AGENT_WORKFLOW.md) for the protocol, packaging, limits, and tested invocation routes. Use `chipsim agent help` for command discovery. Install from the [GitHub repository](https://github.com/muchmirul/chipsim); the package has not been published to the npm registry.
 
 ## Start the TUI
 
