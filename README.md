@@ -81,6 +81,7 @@ npm start -- --document docs/references/ti-pca9555.pdf
 npm start -- --document docs/references/nexperia-74hc00.pdf
 npm start -- --document docs/references/nexperia-74hc86.pdf
 npm start -- --document docs/references/nexperia-74hc157.pdf
+npm start -- --document docs/references/renesas-hd74hc138.pdf
 npm start -- --document docs/references/nexperia-74hc377.pdf
 npm start -- --document docs/references/nexperia-74hc273.pdf
 npm start -- --document docs/references/ti-sn74lvc1g125.pdf
@@ -93,6 +94,8 @@ Sequential tables expose retained outputs and clock-history registers. `p` confi
 The 74HC595 model exposes DS, SHCP, STCP, MR, OE, Q7S, shift/storage registers, retained parallel data, and a drive-enable flag. The default stimulus shifts `0xB3`, latches it, toggles output enable, and demonstrates reset behavior. `parallel_pins` shows the stored byte when enabled and `Z` when released; `parallel_latch` always shows retained data. See [reviewed profiles](docs/DOCUMENT_PROFILES.md) for scope and extension instructions.
 
 The PCA9555 model exposes eight addressed GPIO registers, two external input bytes, sixteen individual output drivers, input inversion, and an open-drain interrupt driver. Press `u`, select a register, then Read or Write. Accesses execute at the next tick and seek to the result; `6` shows named register addresses and `3` shows the event and changes. `i` changes external inputs. Later scheduled register accesses retain their address, operation, and data. Save experiments with `S`. This is a byte-transaction model: physical I²C, paired multi-byte transfers, and the documented shared-bus interrupt erratum are outside scope.
+
+The HD74HC138 PDF automatically creates a decoder table model with six inputs, eight outputs, and complete enable/select coverage. The parser reads hierarchical centered headers and adjacent numeric subscripts; it does not select behavior by part number. Use `i` to enable it and change the select bits.
 
 The HD74HC77 PDF creates one latch table instance automatically. Its output follows data while enabled and retains its prior bit while disabled; the default sweep demonstrates both. `p` sets the initial scenario bit and `i` changes data/enable. Package replication and grouped-enable wiring from its pin diagram remain outside this model. See [function-table scope](docs/FUNCTION_TABLES.md).
 

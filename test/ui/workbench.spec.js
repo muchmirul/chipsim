@@ -1,3 +1,4 @@
+import { analyzeDocument } from "../../src/model/from-document.js";
 import { documentProfiles } from "../../src/model/profiles/index.js";
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
@@ -733,6 +734,59 @@ test("real binary function tables compile from PDF layout and display all indepe
   await expect(page.locator("#model-count")).toHaveText("8");
   await page.reload();
   await expect(page.locator("#model-title")).toContainText("74HC86; 74HCT86");
+});
+
+test("hierarchical centered decoder headers compile in PDF.js with enable gating and every output preserved", async ({
+  page,
+}) => {
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/renesas-hd74hc138.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await expect(page.locator("#model-title")).toContainText("HD74HC138");
+  await page.locator("#tab-sources").click();
+  const exported = JSON.parse(
+    await downloaded(page, () => page.locator("[data-export-model]").click()),
+  );
+  expect(exported.sourceTable.inputs).toEqual([
+    "G1",
+    "G2A",
+    "G2B",
+    "C",
+    "B",
+    "A",
+  ]);
+  expect(exported.sourceTable.outputs).toEqual(
+    Array.from({ length: 8 }, (_, at) => "Y" + at),
+  );
+  expect(exported.checks).toHaveLength(64);
+  const terminal = analyzeDocument(
+    await extractPDFFile(resolve("docs/references/renesas-hd74hc138.pdf")),
+  ).models[0].spec;
+  expect(exported.sourceTable).toEqual(terminal.sourceTable);
+  await page.locator("#advanced-controls").click();
+  await page.locator("#input-events").fill(
+    JSON.stringify([
+      { tick: 0, signal: "pin_g1", value: 1 },
+      { tick: 1, signal: "pin_a", value: 1 },
+      { tick: 2, signal: "pin_g2a", value: 1 },
+    ]),
+  );
+  await page.locator("#apply-events").click();
+  await page.locator("#tab-trace").click();
+  await page.locator("#trace-format").selectOption("json");
+  const trace = JSON.parse(
+    await downloaded(page, () => page.locator("#export-trace").click()),
+  );
+  expect(trace.trace[0].signals.pin_y0).toBe(0);
+  expect(trace.trace[1].signals.pin_y1).toBe(0);
+  expect(trace.trace[1].signals.pin_y0).toBe(1);
+  expect(
+    Array.from({ length: 8 }, (_, at) => trace.trace[2].signals["pin_y" + at]),
+  ).toEqual(Array(8).fill(1));
+  await page.reload();
+  await expect(page.locator("#model-title")).toContainText("HD74HC138");
 });
 
 test("multiplexer PDF shares enable/select across four independent data channels", async ({

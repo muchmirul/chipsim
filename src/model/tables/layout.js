@@ -1,5 +1,6 @@
 import { plainLegend } from "./legends.js";
 import { numberedNotes } from "./layout-notes.js";
+import { centeredHeaders, signalSubscripts } from "./centered-headers.js";
 const normalized = (text) => text.replace(/\s+/g, " ").trim();
 const caption =
   /\b(?:Table\s+([\w.-]+)[.:]?\s*)?((?:function|truth)\s+table)\b/i;
@@ -44,7 +45,7 @@ const lineText = (line) =>
     .join(" ");
 const signalName = /^[a-zA-Z][a-zA-Z\d_]*$/;
 const boundary =
-  /^(?:\d+(?:\.\d+)*\.?\s+[A-Za-z]|Table\s+\d+|Rev\.\d|Product data sheet|Product Folder Links:|Copyright\b|www\.)|All information|©/i;
+  /^(?:\d+(?:\.\d+)*\.?\s+[A-Za-z]|Table\s+\d+|Rev\.\d|Product data sheet|Product Folder Links:|Copyright\b|www\.)|All information|©|^Pin Arrangement$/i;
 function parseLayout(page, start, ordinal) {
   const lines = page.layoutLines,
     heading = lineText(lines[start]),
@@ -64,13 +65,26 @@ function parseLayout(page, start, ordinal) {
   const markers = new Set(),
     notes = new Set();
   const header = (line) =>
-    tokens(line).flatMap((word) => {
-      const annotation = /\((\d{1,2})\)$/.exec(word.text);
-      if (!annotation) return [word];
-      markers.add(annotation[1]);
-      const text = word.text.slice(0, annotation.index);
-      return text ? [{ ...word, text }] : [];
-    });
+    signalSubscripts(
+      tokens(line).flatMap((word) => {
+        const annotation = /\((\d{1,2})\)$/.exec(word.text);
+        if (!annotation) return [word];
+        markers.add(annotation[1]);
+        const text = word.text.slice(0, annotation.index);
+        return text ? [{ ...word, text }] : [];
+      }),
+    );
+  let centered;
+  try {
+    centered = centeredHeaders(
+      lines,
+      start,
+      header,
+      (line) => caption.test(lineText(line)) || boundary.test(lineText(line)),
+    );
+  } catch (error) {
+    return fail(error.message);
+  }
   let group = -1;
   for (
     let index = start + 1;
@@ -87,6 +101,7 @@ function parseLayout(page, start, ordinal) {
     }
     if (caption.test(lineText(lines[index]))) break;
   }
+  if (centered) group = centered.group;
   if (group < 0)
     return fail("Cannot identify separate input/output column headings.");
   let groups = header(lines[group]);
@@ -98,7 +113,9 @@ function parseLayout(page, start, ordinal) {
     : -Infinity;
   const output = groups.find((word) => /^Outputs?$/i.test(word.text));
   let names, split, rowStart;
-  if (
+  if (centered) {
+    ({ names, split, rowStart } = centered);
+  } else if (
     groups.every((word) => /^(?:Inputs?|Outputs?|Control)$/i.test(word.text))
   ) {
     let nameLine = group + 1;
