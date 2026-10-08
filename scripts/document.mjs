@@ -7,26 +7,43 @@ const args = process.argv.slice(2),
   file = args[0];
 if (!file || ["--help", "-h"].includes(file)) {
   console.log(
-    "Usage: npm run document -- manual.pdf [--out model.json] [--json]\nAnalyze a local PDF using reviewed profiles and complete binary, level-sensitive retained-state, or supported edge-triggered function tables. Register-table inventories are review drafts, not executable models. --out requires exactly one generated model.",
+    "Usage: npm run document -- manual.pdf [--model model-id] [--out model.json] [--json]\nAnalyze a local PDF using reviewed profiles and complete binary, level-sensitive retained-state, or supported edge-triggered function tables. Register-table inventories are review drafts, not executable models. --out requires exactly one selected model; use --model to select one when the manual supports several.",
   );
   process.exit(0);
 }
 try {
   let output = null,
-    json = false;
+    json = false,
+    modelId = null;
   for (let index = 1; index < args.length; index++) {
     if (args[index] === "--json") json = true;
     else if (args[index] === "--out" && args[index + 1]) output = args[++index];
+    else if (args[index] === "--model" && args[index + 1])
+      modelId = args[++index];
     else throw new Error("Unknown or incomplete option " + args[index]);
   }
   const document = await extractPDFFile(file),
     analysis = analyzeDocument(document);
+  if (modelId) {
+    const selected = analysis.models.find(
+      (result) => result.spec.id === modelId,
+    );
+    if (!selected)
+      throw new Error(
+        "Model " +
+          modelId +
+          " is not supported by this PDF. Available: " +
+          (analysis.models.map((result) => result.spec.id).join(", ") ||
+            "none"),
+      );
+    analysis.models = [selected];
+  }
   if (output) {
     if (analysis.models.length !== 1)
       throw new Error(
         "--out needs exactly one compilable model; found " +
           analysis.models.length +
-          ". Use --json to inspect all results.",
+          ". Use --json to inspect all results, then --model to select an ID.",
       );
     const path = resolve(output);
     await mkdir(dirname(path), { recursive: true });

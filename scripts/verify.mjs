@@ -43,7 +43,7 @@ for (const profile of documentProfiles) {
   const document = await extractPDFFile(
     new URL(profile.source.path, root).pathname,
   );
-  const compiled = compileDocument(document);
+  const compiled = compileDocument(document, { profileId: profile.id });
   assert.equal(compiled.spec.id, profile.id);
   assert.ok(compiled.checks.every((check) => check.passed));
 }

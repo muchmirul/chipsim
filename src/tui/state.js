@@ -460,10 +460,14 @@ export class TuiState {
     );
     return backup;
   }
-  async refreshDocument(id, onProgress = () => {}) {
+  async refreshDocument(
+    id,
+    onProgress = () => {},
+    { force = false, validate = () => {} } = {},
+  ) {
     const existing = this.documents.find((document) => document.id === id);
     if (!existing) throw new Error("Saved reference document was not found.");
-    if (!needsDocumentRefresh(existing)) return existing;
+    if (!force && !needsDocumentRefresh(existing)) return existing;
     if (!existing.filePath)
       throw new Error(
         "Saved PDF is unavailable. Import the original PDF with d to refresh its source tables.",
@@ -489,6 +493,8 @@ export class TuiState {
         model.sources.some((source) => source.sha256 === document.sha256)
       )
         registerModel(model.spec, documents);
+    // Source-finder compilation/checks must also pass before cache replacement.
+    await validate(document);
     const saved = await this.workspace.saveDocument(document);
     this.documents[this.documents.indexOf(existing)] = saved;
     return saved;
@@ -519,7 +525,8 @@ export class TuiState {
         }
       });
       if (!this.models.some((m) => m.id === this.modelId)) this.modelId = "pio";
-      let compiled = null;
+      let compiled = null,
+        createdCount = 0;
       if (
         !this.models.some(
           (model) =>
@@ -544,6 +551,7 @@ export class TuiState {
           for (const result of analysis.models)
             await this.installModel(result.spec);
           compiled = analysis.models[0] || null;
+          createdCount = analysis.models.length;
           await this.workspace.saveDocument(document);
         } catch (error) {
           errors.push(error.message);
@@ -555,7 +563,9 @@ export class TuiState {
         this.selectModel(selected.id);
         if (compiled)
           this.setMessage(
-            "Created " +
+            (createdCount > 1
+              ? "Created " + createdCount + " simulations · o choose · "
+              : "Created ") +
               selected.name +
               " from " +
               compiled.method +

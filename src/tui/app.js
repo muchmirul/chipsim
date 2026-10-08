@@ -17,6 +17,7 @@ import { views } from "./views.js";
 import { StimulusEditor } from "./stimulus-editor.js";
 import { BehaviorTableEditor } from "./behavior-table-editor.js";
 import { RegisterBankEditor } from "./register-bank-editor.js";
+import { SourceSimulations } from "./source-simulations.js";
 const unquote = (path) =>
   /^(['"]).*\1$/.test(path) ? path.slice(1, -1) : path;
 export class TerminalApp {
@@ -45,6 +46,7 @@ export class TerminalApp {
     this.stimulusEditor = new StimulusEditor(this);
     this.behaviorTableEditor = new BehaviorTableEditor(this);
     this.registerBankEditor = new RegisterBankEditor(this);
+    this.sourceSimulations = new SourceSimulations(this);
   }
   draw() {
     if (this.closed || this.external) return;
@@ -727,10 +729,22 @@ export class TerminalApp {
         this.draw();
         return;
       }
-      if (["up", "k"].includes(key.name) || text === "k")
+      if (["up", "k"].includes(key.name) || text === "k") {
         menu.selected = Math.max(0, menu.selected - 1);
-      else if (["down", "j"].includes(key.name) || text === "j")
+        menu.detailScroll = 0;
+      } else if (["down", "j"].includes(key.name) || text === "j") {
         menu.selected = Math.min(menu.items.length - 1, menu.selected + 1);
+        menu.detailScroll = 0;
+      } else if (
+        menu.items[menu.selected]?.detail &&
+        (["right", "l"].includes(key.name) || text === "l")
+      )
+        menu.detailScroll = (menu.detailScroll || 0) + 1;
+      else if (
+        menu.items[menu.selected]?.detail &&
+        (["left", "h"].includes(key.name) || text === "h")
+      )
+        menu.detailScroll = Math.max(0, (menu.detailScroll || 0) - 1);
       else if (key.name === "return") {
         try {
           s.menu = null;
@@ -800,6 +814,7 @@ export class TerminalApp {
           ),
         );
       else if (k === "c") this.createScenario();
+      else if (k === "o") this.sourceSimulations.open();
       else if (k === "E") this.behaviorTableEditor.edit();
       else if (k === "x") this.exportMenu();
       else if (k === "V") this.openViewer();

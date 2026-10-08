@@ -41,6 +41,7 @@ The local workspace defaults to `.chipsim/` in the current directory. PDFs, extr
 | `F`, `f`           | Cycle numeric display; find a selected signal value                      |
 | `/`, `n`, `N`      | Search/filter; repeat signal/source search                               |
 | `d`, `c`           | Import PDF/model/session; create a sourced peripheral scenario           |
+| `o`                | Choose or find simulations for the current reference PDF                |
 | `x`, `S`, `M`, `B` | Export trace, save session, export model JSON, export source bundle      |
 | `V`                | Open the current trace in installed `dwfv`                               |
 | `?`, Esc, `q`      | Help, close a prompt/menu, quit                                          |
@@ -76,6 +77,8 @@ For custom logic/state machines, Behavior table accepts rows such as `idle 01 ->
 For register-based peripherals, supported command-byte tables offer a source-derived row draft under **Register bank**. Addresses, access labels and known defaults are prefilled; missing reset values and masks remain `?` for review. You can export a row template or choose manual entry to enter `NAME ADDRESS MODE RESET MASK` rows or load `@file`. It supports masked writes, read-only words, write-one-to-clear/set, read-to-clear, and explicit synthetic event ordering. Use `u` for addressed experiments. See [register-bank authoring](docs/REGISTER_BANKS.md) for modes, limitations, and a real 32-bit RP2040 scratch-storage example.
 
 Manuals saved by older versions gain the current table extraction when you open Register bank (or the optional browser's document dialog). ChipSim uses the saved PDF locally, checks its fingerprint and model citations, and preserves your models and experiment. No reimport is needed while the original saved PDF is available.
+
+In Sources (`4`), press `o` to see simulations associated with that PDF and their declared scope. `j/k` selects an item; `h/l` scrolls its scope. **Find supported simulations in saved PDF** checks the original saved bytes and previews available compiled models, including support added since the PDF was imported. Enter creates the selected model under an unused ID; Esc keeps the current experiment. Existing authored models remain available. Unknown behavior can be entered through **Create a sourced scenario**.
 
 Try the automatic document paths:
 
@@ -138,6 +141,7 @@ npm run test:tui
 npm run verify
 npm run document -- path/to/manual.pdf --json
 npm run document -- path/to/manual.pdf --out generated.model.json
+npm run document -- path/to/manual.pdf --model model-id --out selected.model.json
 npm run extract -- path/to/manual.pdf manual.sources.json
 npm run model -- validate examples/timer.model.json --sources manual.sources.json
 npm run model -- simulate examples/timer.model.json --ticks 40 --format vcd --out timer.vcd

@@ -88,7 +88,11 @@ try {
     const document = await extractPDFFile(
       new URL("../" + profile.source.path, import.meta.url).pathname,
     );
-    models.push(registerModel(compileDocument(document).spec, [document]));
+    models.push(
+      registerModel(compileDocument(document, { profileId: profile.id }).spec, [
+        document,
+      ]),
+    );
   }
   for (const source of references.documents.filter(
     (source) => source.compiler === "function-table",

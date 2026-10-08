@@ -1,6 +1,6 @@
 import { readRegisterTables } from "./register-tables/read.js";
 import { recognizeDocument } from "../documents/recognize.js";
-import { compileDocument } from "./profiles/index.js";
+import { compileDocumentProfiles } from "./profiles/index.js";
 import { readFunctionTables } from "./tables/read.js";
 import { buildFunctionTable } from "./tables/build.js";
 import { buildSequentialTable } from "./tables/sequential-build.js";
@@ -8,10 +8,13 @@ import { buildRetainedTable } from "./tables/retained-build.js";
 export function analyzeDocument(document, { reservedIds = [] } = {}) {
   const registerInventory = readRegisterTables(document);
   const registerTables = registerInventory.tables;
-  const profile = compileDocument(document, { reservedIds });
-  if (profile)
+  const profiles = compileDocumentProfiles(document, { reservedIds });
+  if (profiles.length)
     return {
-      models: [{ ...profile, method: "reviewed datasheet profile" }],
+      models: profiles.map((profile) => ({
+        ...profile,
+        method: "reviewed datasheet profile",
+      })),
       registerTables,
       diagnostics: registerInventory.diagnostics,
     };
