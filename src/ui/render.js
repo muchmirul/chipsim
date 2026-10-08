@@ -1,16 +1,6 @@
-import { formatPayload } from "../core/values.js";
-export const escape = (value) =>
-  String(value ?? "").replace(
-    /[&<>"']/g,
-    (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
-        c
-      ],
-  );
-export const valueText = (value, format, width = 8) =>
-  typeof value === "number" && value >= 0
-    ? formatPayload(value, format, width)
-    : String(value);
+import { escape, valueText } from "./values.js";
+import { logicWave } from "./logic-wave.js";
+export { escape, valueText } from "./values.js";
 export function diagram(model, snapshot, format) {
   const nodes = model.topology.nodes.map((n, i) => ({
     ...n,
@@ -69,6 +59,9 @@ export function waveform(model, trace, tick) {
     .map((signal, i) => {
       const y = 36 + i * 37,
         color = ["#078084", "#7557a6", "#ae741c"][i % 3];
+      if (trace.some((s) => s.signals[signal.id] === "Z")) {
+        return logicWave(signal, trace, { y, color, x, last });
+      }
       if (signal.width === 1) {
         let path = `M${x(0)} ${y - trace[0].signals[signal.id] * 15}`;
         for (let j = 1; j < trace.length; j++)
@@ -79,7 +72,7 @@ export function waveform(model, trace, tick) {
         (s, j) =>
           !j || s.signals[signal.id] !== trace[j - 1].signals[signal.id],
       );
-      return `<text x="0" y="${y - 4}">${escape(signal.label || signal.id)}</text><line x1="${left}" x2="${right}" y1="${y}" y2="${y}" stroke="${color}"/>${boundaries.map((s) => `<text x="${x(s.tick) + 2}" y="${y - 7}">${escape(formatPayload(s.signals[signal.id], "hex", signal.width))}</text>`).join("")}`;
+      return `<text x="0" y="${y - 4}">${escape(signal.label || signal.id)}</text><line x1="${left}" x2="${right}" y1="${y}" y2="${y}" stroke="${color}"/>${boundaries.map((s) => `<text x="${x(s.tick) + 2}" y="${y - 7}">${escape(valueText(s.signals[signal.id], "hex", signal.width))}</text>`).join("")}`;
     })
     .join("");
   return `<div class="wave-card"><div class="card-bar"><h3>${escape(model.name)} · Signals</h3><span class="hint">Full trace · normalized ticks · cursor ${tick}</span></div><div class="wave-scroll"><svg class="wave-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Signal waveform for ${escape(model.name)}">${marks}${signals}<rect x="${x(tick)}" y="18" width="${Math.max(0, right - x(tick))}" height="${height - 26}" fill="#fff" opacity=".5"/><line x1="${x(tick)}" x2="${x(tick)}" y1="17" y2="${height - 9}" stroke="#18394b" stroke-width="1.5"/></svg></div></div>`;

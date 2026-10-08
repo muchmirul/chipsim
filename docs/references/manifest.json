@@ -239,6 +239,25 @@
       "relevant_sections": "5.2 Pin description on PDF page 3; 6 Functional description, Table 3 on PDF page 4",
       "supports": "Eight retained output bits with shared clock and asynchronous reset; reset dominance and edge loading derived from table content. Regression reference, not a fingerprint-specific rule.",
       "model_assumptions": "Configured initial output bits are scenario values, not specified power-on state. Tick zero establishes clock history; ideal edge evaluation omits physical setup/hold constraints, metastability, electrical characteristics, and delays."
+    },
+    {
+      "chips": [],
+      "compiler": "function-table",
+      "kind": "tri-state",
+      "path": "docs/references/ti-sn74lvc1g125.pdf",
+      "title": "SN74LVC1G125 Single Bus Buffer Gate With 3-State Output",
+      "publisher": "Texas Instruments",
+      "revision": "SCES223U, revised August 2026",
+      "source_url": "https://www.ti.com/lit/ds/symlink/sn74lvc1g125.pdf",
+      "download_url": "https://www.ti.com/lit/ds/symlink/sn74lvc1g125.pdf",
+      "retrieved_on": "2026-10-08",
+      "bytes": 3056649,
+      "pages": 52,
+      "sha256": "1098d46e4565695e9823a08309bc581e2c9ead26b19e99a43a011a38642b27ca",
+      "pdf_start_page": 11,
+      "relevant_sections": "7.4 Device Functional Modes, Table 7-1 and its input/output symbol footnotes on PDF page 11",
+      "supports": "One buffer with binary data/enable inputs and explicit high-impedance output. Regression reference; behavior is compiled from table content, without a fingerprint-specific rule.",
+      "model_assumptions": "Ideal instantaneous output evaluation, including tick zero. Z means the output driver is released, not a resolved bus voltage. External pull-ups, contention, electrical load, propagation delay and other device features are outside scope."
     }
   ]
 }

@@ -17,6 +17,7 @@ function parsePayload(raw) {
   return Number.isSafeInteger(value) ? { value, format } : null;
 }
 function formatPayload(value, format, bits = 8) {
+  if (value === "Z") return "Z";
   if (format === "decimal") return String(value);
   if (format === "binary") return "0b" + value.toString(2).padStart(bits, "0");
   if (format === "octal")

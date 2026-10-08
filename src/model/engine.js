@@ -1,6 +1,7 @@
 import { validateInputs } from "./stimulus.js";
 export { validateInputs } from "./stimulus.js";
 import { operators, validateModel } from "./validate.js";
+import { HIGH_IMPEDANCE, truth } from "../core/logic.js";
 
 export function evaluate(expr, context) {
   if (typeof expr === "string") {
@@ -17,10 +18,15 @@ export function evaluate(expr, context) {
   if (!operators.has(expr.op)) throw new Error(`Unknown operator ${expr.op}`);
   if (expr.op === "select")
     return evaluate(
-      expr.args[evaluate(expr.args[0], context) ? 1 : 2],
+      expr.args[truth(evaluate(expr.args[0], context)) ? 1 : 2],
       context,
     );
   const [a, b] = expr.args.map((arg) => evaluate(arg, context));
+  if (
+    (a === HIGH_IMPEDANCE || b === HIGH_IMPEDANCE) &&
+    !["eq", "ne"].includes(expr.op)
+  )
+    throw new Error(`High-impedance Z cannot be used with ${expr.op}`);
   switch (expr.op) {
     case "add":
       return a + b;
@@ -146,8 +152,15 @@ export function simulateModel(model, supplied = {}, options = {}) {
       }
       const [kind, id] = action.target.split("."),
         definitions = kind === "reg" ? model.registers : model.signals;
-      const width = definitions.find((item) => item.id === id).width,
+      const definition = definitions.find((item) => item.id === id),
+        width = definition.width,
         value = evaluate(action.value, context);
+      if (value === HIGH_IMPEDANCE) {
+        if (kind !== "signal" || !definition.triState)
+          throw new Error(`${action.target}: Z requires a tri-state output`);
+        context.signals[id] = HIGH_IMPEDANCE;
+        continue;
+      }
       if (!Number.isSafeInteger(value) && typeof value !== "boolean")
         throw new Error(`${action.target}: result is not a safe integer`);
       context[kind === "reg" ? "registers" : "signals"][id] =
@@ -171,7 +184,7 @@ export function simulateModel(model, supplied = {}, options = {}) {
       } else if (!state.terminal && !fault) {
         execute(state.tick);
         const transition = state.transitions.find((transition) =>
-          evaluate(transition.when, context),
+          truth(evaluate(transition.when, context)),
         );
         if (transition) {
           execute(transition.actions);

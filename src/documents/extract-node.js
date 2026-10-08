@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { basename, resolve } from "node:path";
+import { documentTitle } from "./title.js";
 const run = promisify(execFile);
 export async function extractPDFFile(input, { onProgress = () => {} } = {}) {
   const path = resolve(input),
@@ -45,9 +46,13 @@ export async function extractPDFFile(input, { onProgress = () => {} } = {}) {
   const document = {
     id: sha256.slice(0, 24),
     filename: basename(path),
-    title:
-      /^Subject:\s+(.+)$/m.exec(info)?.[1]?.trim().slice(0, 300) ||
-      basename(path, ".pdf"),
+    title: documentTitle(
+      {
+        Subject: /^Subject:[ \t]*(.*)$/m.exec(info)?.[1],
+        Title: /^Title:[ \t]*(.*)$/m.exec(info)?.[1],
+      },
+      basename(path),
+    ),
     sha256,
     size: bytes.length,
     pageCount,

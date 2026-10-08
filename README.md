@@ -58,7 +58,7 @@ Press `i` to select an input pin and set its value at the cursor. This replaces 
 ## From a manual to a simulation
 
 1. Press `d` and enter the PDF path. ChipSim extracts searchable text locally, preserves page numbers, and fingerprints the PDF.
-2. Complete combinational or supported edge-triggered function tables can create models directly from their rows and pin lists; see [function-table compilation](docs/FUNCTION_TABLES.md). The reviewed Nexperia 74HC595/74HCT595 Rev. 12 datasheet automatically creates a model with eight behavior checks. List supported automatic profiles with `npm start -- --list-profiles`. A manual with an installed matching model opens that model after source verification. Recognized vendor manuals also open their corresponding existing example.
+2. Complete combinational tables (including explicitly defined `Z` outputs) or supported edge-triggered function tables can create models directly from their rows and pin lists; see [function-table compilation](docs/FUNCTION_TABLES.md). The reviewed Nexperia 74HC595/74HCT595 Rev. 12 datasheet automatically creates a model with eight behavior checks. List supported automatic profiles with `npm start -- --list-profiles`. A manual with an installed matching model opens that model after source verification. Recognized vendor manuals also open their corresponding existing example.
 3. For a new manual, inspect/search Sources (`4`, `/`) and press `c`. Choose **counter/timer**, **FIFO**, or **shift transfer**, then select a source excerpt.
 4. Configure width, direction, depth, or compare behavior. Cite the PDF page and exact excerpt, explain its relevance, and declare additional assumptions. The generated model must pass its acceptance cases and quote checks before it is saved and opened.
 5. Run it in the same waveform, register, and log interface. Press `5` to review the selected rules and `M` to export editable model JSON.
@@ -74,11 +74,14 @@ npm start -- --document docs/references/nexperia-74hc86.pdf
 npm start -- --document docs/references/nexperia-74hc157.pdf
 npm start -- --document docs/references/nexperia-74hc377.pdf
 npm start -- --document docs/references/nexperia-74hc273.pdf
+npm start -- --document docs/references/ti-sn74lvc1g125.pdf
 ```
 
 Sequential tables expose retained outputs and clock-history registers. `p` configures the initial output bits, which are scenario values rather than guaranteed power-on state; `i` drives clock, control, or data inputs. The original table arrows and lowercase set-up symbols remain visible in Model view. Physical set-up/hold timing is omitted; see [function-table scope](docs/FUNCTION_TABLES.md).
 
-The 74HC595 model exposes DS, SHCP, STCP, MR, OE, Q7S, shift/storage registers, retained parallel data, and a drive-enable flag. The default stimulus shifts `0xB3`, latches it, toggles output enable, and demonstrates reset behavior. The retained data must be read with the enable flag; it is not a driven bus when disabled. See [reviewed profiles](docs/DOCUMENT_PROFILES.md) for scope and extension instructions.
+The 74HC595 model exposes DS, SHCP, STCP, MR, OE, Q7S, shift/storage registers, retained parallel data, and a drive-enable flag. The default stimulus shifts `0xB3`, latches it, toggles output enable, and demonstrates reset behavior. `parallel_pins` shows the stored byte when enabled and `Z` when released; `parallel_latch` always shows retained data. See [reviewed profiles](docs/DOCUMENT_PROFILES.md) for scope and extension instructions.
+
+`Z` means an output driver is released. Waveforms, registers, logs, and CSV/JSON/VCD preserve it; `f` can find the next `Z` on a tri-state output. Numeric formats do not turn it into zero, and binary edge jumps skip transitions involving `Z`. This does not resolve shared buses, external pull-ups, floating-node voltage, or contention. Inputs remain explicitly driven integer levels.
 
 For behavior beyond these builders, export the sources with `B`, then use [AGENTS.md](AGENTS.md) and [docs/MODEL_FORMAT.md](docs/MODEL_FORMAT.md) to author a custom JSON model. Import it with `d`. Missing PDFs produce unverified-source warnings; a mismatching attached page/quote rejects the model.
 
@@ -133,7 +136,7 @@ src/ui/                     Optional browser frontend
 models/, examples/          Packaged/importable model JSON
 scripts/                    TUI entry, model CLI, extraction, build, checks
 test/                      Engine, terminal, and browser tests
-docs/references/            Fourteen complete official PDFs and fingerprint manifest
+docs/references/            Fifteen complete official PDFs and fingerprint manifest
 AGENTS.md                   Developer and coding-agent instructions
 ```
 

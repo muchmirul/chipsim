@@ -1,3 +1,4 @@
+import { numberedLegend } from "./legends.js";
 const normalized = (text) => text.replace(/\s+/g, " ").trim();
 const caption =
   /\b(?:Table\s+([\w.-]+)[.:]?\s*)?((?:function|truth)\s+table)\b/i;
@@ -19,6 +20,8 @@ const tokens = (line) =>
     .sort((a, b) => a.x - b.x);
 const lineText = (line) => line.cells.map((cell) => cell.text).join(" ");
 const signalName = /^[a-zA-Z][a-zA-Z\d_]*$/;
+const boundary =
+  /^(?:\d+(?:\.\d+)*\.?\s+[A-Za-z]|Table\s+\d+|Product data sheet|Product Folder Links:|Copyright\b|www\.)|All information|©/i;
 function parseLayout(page, start) {
   const lines = page.layoutLines,
     heading = lineText(lines[start]),
@@ -35,13 +38,23 @@ function parseLayout(page, start) {
     table: null,
     diagnostic: { page: page.number, caption: table.caption, reason },
   });
+  const markers = new Set(),
+    notes = new Set();
+  const header = (line) =>
+    tokens(line).flatMap((word) => {
+      const annotation = /\((\d{1,2})\)$/.exec(word.text);
+      if (!annotation) return [word];
+      markers.add(annotation[1]);
+      const text = word.text.slice(0, annotation.index);
+      return text ? [{ ...word, text }] : [];
+    });
   let group = -1;
   for (
     let index = start + 1;
     index < Math.min(lines.length, start + 12);
     index++
   ) {
-    const words = tokens(lines[index]);
+    const words = header(lines[index]);
     if (
       words.some((w) => /^Outputs?$/i.test(w.text)) &&
       words.some((w) => /^(?:Inputs?|Control)$/i.test(w.text))
@@ -53,7 +66,7 @@ function parseLayout(page, start) {
   }
   if (group < 0)
     return fail("Cannot identify separate input/output column headings.");
-  let groups = tokens(lines[group]);
+  let groups = header(lines[group]);
   const modeColumn = /^Operating modes /i.test(lineText(lines[group]));
   if (modeColumn)
     groups = groups.filter((word) => !/^(?:Operating|modes)$/i.test(word.text));
@@ -65,11 +78,14 @@ function parseLayout(page, start) {
   if (
     groups.every((word) => /^(?:Inputs?|Outputs?|Control)$/i.test(word.text))
   ) {
-    names = tokens(lines[group + 1] || { cells: [] }).filter(
+    let nameLine = group + 1;
+    while (nameLine < lines.length && !header(lines[nameLine]).length)
+      nameLine++;
+    names = header(lines[nameLine] || { cells: [] }).filter(
       (word) => word.x >= left,
     );
     split = names.findIndex((name) => name.x + name.width / 2 >= output.x - 2);
-    rowStart = group + 2;
+    rowStart = nameLine + 1;
   } else {
     // Inline cells such as "Input nA | Input nB | Output nY" explicitly
     // declare each role and need no positional guess about the split.
@@ -112,14 +128,33 @@ function parseLayout(page, start) {
   for (let index = rowStart; index < lines.length; index++) {
     const text = lineText(lines[index]).trim();
     const row = tokens(lines[index]).filter((word) => word.x >= left);
+    if (/^\(\d{1,2}\)\s+[HLXZ]\s*=/.test(text)) {
+      if (!table.rawRows.length)
+        return fail("A legend occurs before any table rows.");
+      // Only adjacent, complete numbered symbol-definition lines are accepted.
+      // Footnotes with timing qualifications or continued text require review.
+      let note = index;
+      for (; note < Math.min(lines.length, index + 8); note++) {
+        const definition = normalized(lineText(lines[note]));
+        const parsed = numberedLegend(definition);
+        if (!parsed) break;
+        if (!parsed.valid)
+          return fail(
+            "Numbered symbol footnotes must contain complete, unqualified definitions.",
+          );
+        notes.add(parsed.marker);
+        table.legend += " " + definition;
+      }
+      if (note < lines.length && !boundary.test(lineText(lines[note]).trim()))
+        return fail("Continued or additional footnote text requires review.");
+      break;
+    }
     // Pure binary rows may start with a digit. Test the section delimiter only
     // when the row contains words beyond the supported cell vocabulary.
     if (
       (!row.length ||
-        !row.every((word) => /^(?:[HLhlX01↑↓]|no|change)$/.test(word.text))) &&
-      /^(?:\d+(?:\.\d+)*\.?\s+[A-Za-z]|Table\s+\d+|Product data sheet)|All information|©/i.test(
-        text,
-      )
+        !row.every((word) => /^(?:[HLhlXZ01↑↓]|no|change)$/.test(word.text))) &&
+      boundary.test(text)
     )
       break;
     if (!row.length) continue;
@@ -156,6 +191,10 @@ function parseLayout(page, start) {
   }
   if (!table.rawRows.length)
     return fail("A function table must contain 1–32 unambiguous rows.");
+  if ([...markers].some((marker) => !notes.has(marker)))
+    return fail(
+      "A header footnote has no complete local symbol definition; review required.",
+    );
   return { table, diagnostic: null };
 }
 export function readTableLayouts(document) {

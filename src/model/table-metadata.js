@@ -2,6 +2,7 @@ export function validateTableMetadata(model, { fail, number, signals }) {
   if (model.sourceTable !== undefined) {
     const table = model.sourceTable,
       sequential = table?.compiler === "sequential-function-table-v1",
+      triState = table?.compiler === "tri-state-function-table-v1",
       labels = (values) =>
         Array.isArray(values) &&
         values.length &&
@@ -12,7 +13,9 @@ export function validateTableMetadata(model, { fail, number, signals }) {
     if (
       !table ||
       typeof table !== "object" ||
-      (!sequential && table.compiler !== "binary-function-table-v1") ||
+      (!sequential &&
+        !triState &&
+        table.compiler !== "binary-function-table-v1") ||
       !labels(table.inputs) ||
       !labels(table.outputs) ||
       table.inputs.length > 6 ||
@@ -23,13 +26,20 @@ export function validateTableMetadata(model, { fail, number, signals }) {
       fail("sourceTable", "expected bounded function-table metadata");
     else {
       number(table.page, "sourceTable.page", 1, 100000);
-      const bits = (values, length, wildcard = false, state = false) =>
+      const bits = (
+        values,
+        length,
+        wildcard = false,
+        state = false,
+        released = false,
+      ) =>
         Array.isArray(values) &&
         values.length === length &&
         values.every(
           (value) =>
             value === 0 ||
             value === 1 ||
+            (released && !wildcard && value === "Z") ||
             (wildcard && value === null) ||
             (state &&
               (wildcard ? ["rise", "fall"].includes(value) : value === "hold")),
@@ -42,7 +52,13 @@ export function validateTableMetadata(model, { fail, number, signals }) {
           (row) =>
             !row ||
             !bits(row.inputs, table.inputs.length, true, sequential) ||
-            !bits(row.outputs, table.outputs.length, false, sequential),
+            !bits(
+              row.outputs,
+              table.outputs.length,
+              false,
+              sequential,
+              triState,
+            ),
         )
       )
         fail("sourceTable.rows", "invalid table rows");
@@ -53,7 +69,9 @@ export function validateTableMetadata(model, { fail, number, signals }) {
             (table.inputs.length +
               (sequential ? 1 + table.outputs.length : 0)) ||
         table.matrix.length > 64 ||
-        table.matrix.some((row) => !bits(row, table.outputs.length))
+        table.matrix.some(
+          (row) => !bits(row, table.outputs.length, false, false, triState),
+        )
       )
         fail("sourceTable.matrix", "expected exhaustive binary output matrix");
       if (sequential) {
@@ -119,6 +137,19 @@ export function validateTableMetadata(model, { fail, number, signals }) {
               return (
                 !signal ||
                 signal.width !== 1 ||
+                (triState &&
+                  index >= table.inputs.length &&
+                  [table.rows, table.matrix].some(
+                    (rows) =>
+                      Array.isArray(rows) &&
+                      rows.some(
+                        (row) =>
+                          (Array.isArray(row) ? row : row?.outputs)?.[
+                            index - table.inputs.length
+                          ] === "Z",
+                      ),
+                  ) &&
+                  signal.triState !== true) ||
                 signal.direction !==
                   (index < table.inputs.length ? "input" : "output")
               );

@@ -16,6 +16,8 @@ A model provides a common interface: ID, name, summary, scope, fidelity, paramet
 
 `src/model/templates.js` suggests conservative source excerpts and builds local scenarios using `src/model/builders/`. Counter, FIFO, and shifter rules are explicitly declared assumptions. Source matching confirms provenance, not circuit correctness. The builder validates generated definitions and checks before either interface installs them.
 
+`src/core/logic.js` defines released-driver state Z, guarded truth evaluation, and VCD bit encoding. Only explicitly declared tri-state output signals can store Z; input stimulus and internal registers remain numeric. The interpreter must reject Z in numeric/boolean operations and conditions rather than relying on JavaScript coercion. Combinational table compilation supports explicitly defined Z outputs; sequential Z tables are still outside automatic scope. `src/ui/values.js` shares escaped browser values and `src/ui/logic-wave.js` draws release segments without numeric waveform coordinates for Z.
+
 ## Terminal interface
 
 `src/tui/state.js` owns model selection, configuration, trace navigation, source search, and sessions. `src/tui/app.js` owns keyboard input, prompts, playback, and external-viewer handoff. `src/tui/render.js` draws terminal frames and strips control characters from untrusted content. `src/tui/workspace.js` stores copied PDFs, extracted text, and model JSON under `.chipsim/`; it uses atomic JSON replacement. Keep simulation behavior out of these modules.

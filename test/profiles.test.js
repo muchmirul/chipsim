@@ -111,6 +111,10 @@ test("function-table control combinations preserve reset priority and simultaneo
               assert.equal(snapshot.signals.parallel_latch, expectedStorage);
               assert.equal(snapshot.signals.q7s, expectedShift >> 7);
               assert.equal(snapshot.signals.outputs_enabled, 1 - outputDisable);
+              assert.equal(
+                snapshot.signals.parallel_pins,
+                outputDisable ? "Z" : expectedStorage,
+              );
             }
 });
 

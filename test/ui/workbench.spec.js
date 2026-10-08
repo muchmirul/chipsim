@@ -376,6 +376,55 @@ test("builder FIFO and shift models run their example stimulus offline", async (
   await expect(page.locator(".register-table")).toContainText("0xB3");
 });
 
+test("binary-input tri-state PDF compiles locally and preserves released outputs across views, exports and reload", async ({
+  page,
+}) => {
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/ti-sn74lvc1g125.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await expect(page.locator("#model-title")).toContainText("Function Table");
+  await expect(page.locator("#model-title")).toContainText("SN74LVC1G125");
+  await page.locator("#seek").fill("4");
+  await page.locator("#seek").dispatchEvent("input");
+  await expect(
+    page.locator(".register-table tr").filter({ hasText: "pin_y" }),
+  ).toContainText("Z");
+  await expect(page.locator(".high-impedance")).toHaveCount(1);
+  await expect(page.locator(".wave-svg")).toContainText("high impedance");
+  const geometry = await page
+    .locator(".wave-svg")
+    .evaluate((svg) => svg.outerHTML);
+  expect(geometry).not.toMatch(/NaN|undefined/);
+  await page.locator("#tab-sources").click();
+  await expect(page.locator("#source-panel")).toContainText("Z");
+  const spec = JSON.parse(
+    await downloaded(page, () => page.locator("[data-export-model]").click()),
+  );
+  expect(spec.sourceTable.compiler).toBe("tri-state-function-table-v1");
+  expect(spec.sourceTable.matrix).toEqual([[0], [1], ["Z"], ["Z"]]);
+  await page.locator("#tab-trace").click();
+  await page.locator("#trace-format").selectOption("json");
+  const trace = JSON.parse(
+    await downloaded(page, () => page.locator("#export-trace").click()),
+  );
+  for (const s of trace.trace)
+    expect(s.signals.pin_y).toBe(s.signals.pin_oe ? "Z" : s.signals.pin_a);
+  await page.locator("#trace-format").selectOption("vcd");
+  const vcd = await downloaded(page, () =>
+    page.locator("#export-trace").click(),
+  );
+  expect(vcd).toContain("bz v2");
+  await page.reload();
+  await expect(page.locator("#model-title")).toHaveText(spec.name);
+  await page.locator("#seek").fill("4");
+  await page.locator("#seek").dispatchEvent("input");
+  await expect(
+    page.locator(".register-table tr").filter({ hasText: "pin_y" }),
+  ).toContainText("Z");
+});
+
 test("reviewed real datasheet automatically creates a sourced chip model", async ({
   page,
 }) => {
@@ -389,6 +438,14 @@ test("reviewed real datasheet automatically creates a sourced chip model", async
   await page.locator("#seek").fill("18");
   await page.locator("#seek").dispatchEvent("input");
   await expect(page.locator(".register-table")).toContainText("0xB3");
+  await expect(
+    page.locator(".register-table tr").filter({ hasText: "parallel_pins" }),
+  ).toContainText("Z");
+  await page.locator("#seek").fill("20");
+  await page.locator("#seek").dispatchEvent("input");
+  await expect(
+    page.locator(".register-table tr").filter({ hasText: "parallel_pins" }),
+  ).toContainText("0xB3");
   await page.locator("#tab-sources").click();
   await expect(page.locator("#source-panel")).toContainText(
     "Initial shift/storage values",

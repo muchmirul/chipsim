@@ -747,9 +747,14 @@ export class TerminalApp {
         s.format = formats[(formats.indexOf(s.format) + 1) % formats.length];
       } else if (k === "f")
         this.prompt("Find selected signal value", 0, (text) => {
-          const parsed = parsePayload(text);
+          const parsed =
+            /^z$/i.test(text.trim()) && s.signal.triState
+              ? { value: "Z" }
+              : parsePayload(text);
           if (!parsed)
-            throw new Error("Use a decimal, hex, binary, or octal value.");
+            throw new Error(
+              "Use decimal, hex, binary, octal, or Z for a tri-state output.",
+            );
           const found = s.trace.find(
             (snapshot) =>
               snapshot.tick > s.tick &&

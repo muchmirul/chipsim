@@ -3,6 +3,7 @@ import { instancesFor } from "./pins.js";
 import { op, assign, signal, input } from "../builders/shared.js";
 import { validateModel } from "../validate.js";
 import { runChecks } from "../engine.js";
+import { impedanceQuote } from "./legends.js";
 export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
   const {
       instances,
@@ -10,7 +11,8 @@ export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
       pinPages,
       shared = [],
     } = instancesFor(document, table),
-    count = table.inputs.length;
+    count = table.inputs.length,
+    triState = table.kind === "tri-state";
   const allLabels = [
     ...new Set(instances.flatMap((instance) => instance.labels)),
   ];
@@ -34,9 +36,12 @@ export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
           ...signal(id(label), 1, "input"),
           label,
         })),
-      ...outputNames.map((label) => ({
+      ...outputNames.map((label, index) => ({
         ...signal(id(label), 1, "output"),
         label,
+        ...(table.rows.some((row) => row.outputs[index] === "Z")
+          ? { triState: true }
+          : {}),
       })),
     );
     const conditions = table.rows.map((row) =>
@@ -54,11 +59,32 @@ export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
       actions.push(
         assign(
           "signal." + id(label),
-          fold(
-            "or",
-            conditions.filter((_, row) => table.rows[row].outputs[index] === 1),
-            false,
-          ),
+          table.rows.some((row) => row.outputs[index] === "Z")
+            ? op(
+                "select",
+                fold(
+                  "or",
+                  conditions.filter(
+                    (_, row) => table.rows[row].outputs[index] === "Z",
+                  ),
+                  false,
+                ),
+                "Z",
+                fold(
+                  "or",
+                  conditions.filter(
+                    (_, row) => table.rows[row].outputs[index] === 1,
+                  ),
+                  false,
+                ),
+              )
+            : fold(
+                "or",
+                conditions.filter(
+                  (_, row) => table.rows[row].outputs[index] === 1,
+                ),
+                false,
+              ),
         ),
       ),
     );
@@ -171,11 +197,15 @@ export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
     name: document.title + " · " + table.caption,
     fidelity: "behavioral",
     summary:
-      "Combinational behavior compiled from a complete binary function table; " +
+      "Combinational behavior compiled from a complete " +
+      (triState ? "binary-input/tri-state-output" : "binary") +
+      " function table; " +
       instances.length +
       " instance(s).",
     scope:
-      "Only the binary input/output function of " +
+      "Only the " +
+      (triState ? "binary-input/tri-state-output" : "binary input/output") +
+      " function of " +
       table.caption +
       " on PDF page " +
       table.page +
@@ -220,8 +250,20 @@ export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
         page: table.page,
         quote: table.caption,
         claim:
-          "The positioned binary table supplies the output mapping stored in sourceTable; all input combinations are covered without conflicting overlaps.",
+          "The positioned table supplies the output mapping stored in sourceTable; all binary input combinations are covered without conflicting overlaps.",
       },
+      ...(triState
+        ? [
+            {
+              id: "output-release",
+              sourceId: "manual",
+              page: table.page,
+              quote: impedanceQuote(table.legend),
+              claim:
+                "Z explicitly denotes a high-impedance output driver state, distinct from digital zero or one.",
+            },
+          ]
+        : []),
       ...(indexed
         ? pinPages.map((page, index) => ({
             id: "pin-instances" + (index ? "-" + (index + 1) : ""),
@@ -237,10 +279,17 @@ export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
       "H/L represent ideal digital 1/0 as defined in the table. X is a wildcard only when explicitly defined as a don't-care input. No output values are filled for missing cells.",
       "Outputs settle immediately at each normalized tick, including tick zero. All input events at one tick are simultaneous.",
       "The default stimulus sweeps input combinations, with a two-tick dwell and rotated patterns for independent instances. This is demonstration stimulus, not an internal chip clock.",
+      ...(triState
+        ? [
+            "Z means this output driver is released. No shared-bus resolution, external pull-ups, floating-node voltage, contention, or electrical load is inferred. Inputs remain explicitly driven binary values.",
+          ]
+        : []),
     ],
     checks,
     sourceTable: {
-      compiler: "binary-function-table-v1",
+      compiler: triState
+        ? "tri-state-function-table-v1"
+        : "binary-function-table-v1",
       page: table.page,
       caption: table.caption,
       inputs: table.inputs,

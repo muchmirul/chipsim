@@ -1,13 +1,21 @@
 import { readTableLayouts } from "./layout.js";
 import { readSequentialTable } from "./sequential-read.js";
+import { impedanceQuote } from "./legends.js";
 function binaryTable(raw) {
-  const table = { ...raw, rows: [] };
+  const table = { ...raw, rows: [] },
+    triState = raw.rawRows.some((row) => row.outputs.includes("Z"));
+  if (triState && !impedanceQuote(table.legend))
+    throw new Error("Z requires an explicit high-impedance output definition.");
+  if (triState) table.kind = "tri-state";
   const highLow =
     /H\s*=\s*HIGH/i.test(table.legend) && /L\s*=\s*LOW/i.test(table.legend);
   const dontCare = /X\s*=\s*(?:don['’]t|do not)\s+care/i.test(table.legend);
   for (const row of table.rawRows) {
     const cells = [...row.inputs, ...row.outputs];
-    if (cells.some((cell) => !/^[HLX01]$/.test(cell)))
+    if (
+      row.inputs.some((cell) => !/^[HLX01]$/.test(cell)) ||
+      row.outputs.some((cell) => !/^[HLXZ01]$/.test(cell))
+    )
       throw new Error(
         "A table row contains unsupported edge/state/tri-state symbols, footnotes, or prose.",
       );
@@ -23,7 +31,9 @@ function binaryTable(raw) {
       inputs: row.inputs.map((cell) =>
         cell === "X" ? null : ["H", "1"].includes(cell) ? 1 : 0,
       ),
-      outputs: row.outputs.map((cell) => (["H", "1"].includes(cell) ? 1 : 0)),
+      outputs: row.outputs.map((cell) =>
+        cell === "Z" ? "Z" : ["H", "1"].includes(cell) ? 1 : 0,
+      ),
     });
   }
   table.matrix = [];

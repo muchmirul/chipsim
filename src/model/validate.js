@@ -1,5 +1,6 @@
 import { validateTableMetadata } from "./table-metadata.js";
 import { validateInputs } from "./stimulus.js";
+import { HIGH_IMPEDANCE } from "../core/logic.js";
 const identifier = /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/;
 const forbidden = new Set(["__proto__", "prototype", "constructor"]);
 export const operators = new Set([
@@ -129,12 +130,27 @@ export function validateModel(model, documents = []) {
   ])
     for (const item of items) {
       number(item.width, `${kind}.${item.id}.width`, 1, 32);
-      number(
-        item.initial,
-        `${kind}.${item.id}.initial`,
-        0,
-        2 ** item.width - 1,
-      );
+      if (
+        item.triState !== undefined &&
+        (kind !== "signals" ||
+          typeof item.triState !== "boolean" ||
+          (item.triState && item.direction !== "output"))
+      )
+        fail(
+          `${kind}.${item.id}.triState`,
+          "use a boolean on output signals only",
+        );
+      if (!(
+        kind === "signals" &&
+        item.triState === true &&
+        item.initial === HIGH_IMPEDANCE
+      ))
+        number(
+          item.initial,
+          `${kind}.${item.id}.initial`,
+          0,
+          2 ** item.width - 1,
+        );
       if (kind === "signals" && !["input", "output"].includes(item.direction))
         fail(`signals.${item.id}.direction`, "use input or output");
     }
@@ -207,6 +223,13 @@ export function validateModel(model, documents = []) {
           fail(`${path}[${i}].target`, "input signals are driven by stimulus");
       }
       expression(action.value, `${path}[${i}].value`);
+      if (
+        action.value === HIGH_IMPEDANCE &&
+        (typeof action.target !== "string" ||
+          !action.target.startsWith("signal.") ||
+          !definitions.signals?.get(action.target.slice(7))?.triState)
+      )
+        fail(`${path}[${i}].value`, "Z requires a declared tri-state output");
     });
   };
   const refs = (items, kind, path) => {
@@ -313,8 +336,16 @@ export function validateModel(model, documents = []) {
       continue;
     }
     number(check.ticks, `checks[${i}].ticks`, 1, 10000);
-    for (const key of Object.keys(check.expect))
+    for (const key of Object.keys(check.expect)) {
       if (key !== "state") reference(key, `checks[${i}].expect`);
+      if (
+        key !== "state" &&
+        check.expect[key] === HIGH_IMPEDANCE &&
+        (!key.startsWith("signal.") ||
+          !definitions.signals?.get(key.slice(7))?.triState)
+      )
+        fail(`checks[${i}].expect`, "Z requires a declared tri-state output");
+    }
   }
   for (const source of sources)
     if (!/^[a-f0-9]{64}$/.test(source.sha256 || ""))
