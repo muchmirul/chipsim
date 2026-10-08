@@ -466,7 +466,7 @@ const help = [
   ["Zoom", "+/- zoom · = fit trace · z center cursor"],
   [
     "Simulation",
-    "Space run/pause · r reset · p parameters · a stimulus JSON/file · T duration",
+    "Space run/pause · r reset · p parameters · i drive input · a stimulus JSON/file · T duration",
   ],
   ["Data", "F cycle hex/decimal/binary/octal · f find selected signal value"],
   [
@@ -546,7 +546,7 @@ export function render(state) {
     section(state.busy ? "WORKING" : "COMMANDS", columns),
     row(state.message, state.error ? "error" : "status"),
     row(
-      "q quit · ? help · m models · p params · d import · c create · x export",
+      "q quit · ? help · m models · p params · i pins · d import · c create · x export",
       "dim",
     ),
   );

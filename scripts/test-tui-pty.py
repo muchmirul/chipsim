@@ -87,6 +87,20 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   table_models=[json.loads(path.read_text()) for path in (Path(workspace)/'models').glob('*.json')]
   table=next(model for model in table_models if 'sourceTable' in model)
   assert len(table['sourceTable']['instances'])==4 and len(table['signals'])==12
+  send('d');wait('Import PDF')
+  send(str(ROOT/'docs/references/nexperia-74hc157.pdf')+'\r');wait('74HC157; 74HCT157')
+  send('6');wait('signal.pin_e')
+  send('i');wait('DRIVE INPUT')
+  send('\r');wait('1-bit input at tick 0')
+  send('0x1\r');wait('Input pin_e=1')
+  send('x');wait('EXPORT FULL TRACE')
+  send('j\r');wait('Output path')
+  mux_trace=Path(workspace)/'mux-trace.json'
+  send(str(mux_trace)+'\r');wait('Saved '+str(mux_trace))
+  mux=json.loads(mux_trace.read_text())
+  assert mux['trace'][0]['signals']['pin_e']==1
+  assert all(mux['trace'][0]['signals'][f'pin_{channel}y']==0 for channel in range(1,5))
+  assert len(mux['trace'][0]['signals'])==14
   send('q');proc.wait(timeout=5)
   end=time.monotonic()+1
   while time.monotonic()<end and select.select([master],[],[],.05)[0]:
@@ -96,7 +110,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored=termios.tcgetattr(slave)
   assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
   assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-  print('PTY verified: stepping, format preservation, decimal input, register/log views, JSON export, resize, PDF-to-model creation, reviewed-datasheet and generic function-table compilation, and terminal cleanup.')
+  print('PTY verified: stepping, formats, register/log views, JSON export, resize, sourced scenarios, reviewed profiles, generic function tables, shared-pin compilation and direct input editing, and terminal cleanup.')
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)

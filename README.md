@@ -35,6 +35,7 @@ The local workspace defaults to `.chipsim/` in the current directory. PDFs, extr
 | `[`, `]`, `t`      | Previous/next model change; jump to a tick                                |
 | `+`, `-`, `=`, `z` | Zoom in/out, fit the trace, center cursor                                 |
 | `m`, `p`, `a`, `T` | Choose model, edit parameters, load stimulus, set document-model duration |
+| `i`                | Drive an input pin at the cursor                                          |
 | `F`, `f`           | Cycle numeric display; find a selected signal value                       |
 | `/`, `n`, `N`      | Search/filter; repeat signal/source search                                |
 | `d`, `c`           | Import PDF/model/session; create a sourced peripheral scenario            |
@@ -52,7 +53,7 @@ Input events drive a signal at an absolute normalized tick and hold their value:
 [{ "tick": 35, "signal": "ack", "value": 1 }]
 ```
 
-Use `a` to enter a single-line JSON array or load an events file. Empty stimulus uses the built-in ACK controls. Parameter editing includes resource constraints, ACK delay, and polling budget. Custom models use their declared inputs; FIFO and shifter scenarios include an initial demonstration stimulus.
+Press `i` to select an input pin and set its value at the cursor. This replaces that pin's event at the current tick, keeps the cursor, and preserves later scheduled events. Values hold until the next event for that pin. Output pins cannot be driven. Use `a` to enter a single-line JSON array or load an events file. Empty stimulus uses the built-in ACK controls. Parameter editing includes resource constraints, ACK delay, and polling budget. Custom models use their declared inputs; FIFO and shifter scenarios include an initial demonstration stimulus.
 
 ## From a manual to a simulation
 
@@ -70,6 +71,7 @@ Try the automatic document paths:
 npm start -- --document docs/references/nexperia-74hc595.pdf
 npm start -- --document docs/references/nexperia-74hc00.pdf
 npm start -- --document docs/references/nexperia-74hc86.pdf
+npm start -- --document docs/references/nexperia-74hc157.pdf
 ```
 
 The 74HC595 model exposes DS, SHCP, STCP, MR, OE, Q7S, shift/storage registers, retained parallel data, and a drive-enable flag. The default stimulus shifts `0xB3`, latches it, toggles output enable, and demonstrates reset behavior. The retained data must be read with the enable flag; it is not a driven bus when disabled. See [reviewed profiles](docs/DOCUMENT_PROFILES.md) for scope and extension instructions.
@@ -127,7 +129,7 @@ src/ui/                     Optional browser frontend
 models/, examples/          Packaged/importable model JSON
 scripts/                    TUI entry, model CLI, extraction, build, checks
 test/                      Engine, terminal, and browser tests
-docs/references/            Eleven complete official PDFs and fingerprint manifest
+docs/references/            Twelve complete official PDFs and fingerprint manifest
 AGENTS.md                   Developer and coding-agent instructions
 ```
 

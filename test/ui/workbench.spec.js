@@ -489,3 +489,39 @@ test("real binary function tables compile from PDF layout and display all indepe
   await page.reload();
   await expect(page.locator("#model-title")).toContainText("74HC86; 74HCT86");
 });
+
+test("multiplexer PDF shares enable/select across four independent data channels", async ({
+  page,
+}) => {
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/nexperia-74hc157.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await expect(page.locator("#model-title")).toContainText("74HC157; 74HCT157");
+  await page.locator("#tab-sources").click();
+  await expect(page.locator("#source-panel")).toContainText(
+    "Shared input pins: E, S",
+  );
+  const spec = JSON.parse(
+    await downloaded(page, () => page.locator("[data-export-model]").click()),
+  );
+  expect(spec.signals).toHaveLength(14);
+  expect(spec.sourceTable.instances).toEqual(
+    [1, 2, 3, 4].map((n) => ["E", "S", n + "I0", n + "I1", n + "Y"]),
+  );
+  await page.locator("#tab-trace").click();
+  await page.locator("#trace-format").selectOption("json");
+  const exported = JSON.parse(
+    await downloaded(page, () => page.locator("#export-trace").click()),
+  );
+  for (const snapshot of exported.trace)
+    for (let channel = 1; channel <= 4; channel++)
+      expect(snapshot.signals[`pin_${channel}y`]).toBe(
+        snapshot.signals.pin_e
+          ? 0
+          : snapshot.signals[`pin_${channel}i${snapshot.signals.pin_s}`],
+      );
+  await page.reload();
+  await expect(page.locator("#model-title")).toContainText("74HC157; 74HCT157");
+});

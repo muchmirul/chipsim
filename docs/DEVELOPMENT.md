@@ -20,6 +20,8 @@ A model provides a common interface: ID, name, summary, scope, fidelity, paramet
 
 `src/tui/state.js` owns model selection, configuration, trace navigation, source search, and sessions. `src/tui/app.js` owns keyboard input, prompts, playback, and external-viewer handoff. `src/tui/render.js` draws terminal frames and strips control characters from untrusted content. `src/tui/workspace.js` stores copied PDFs, extracted text, and model JSON under `.chipsim/`; it uses atomic JSON replacement. Keep simulation behavior out of these modules.
 
+Input-pin experiments use `TuiState.driveInput`: replace one pin/tick event, validate widths/direction, simulate before committing, and retain the cursor. A fault rejects the experiment without replacing the previous trace/stimulus. Shared-pin compilation resolves pin declarations in `src/model/tables/pins.js`; common controls are emitted once and remain consistent across every indexed channel.
+
 `src/documents/extract-node.js` runs Poppler using argument arrays without a shell. It preserves one-based PDF page numbers and hashes the original bytes. `src/documents/recognize.js` uses pinned fingerprints or conservative name matches and associates authored models by source SHA-256. Recognition selects existing behavior; it does not invent a chip implementation. A newly attached source revalidates installed models.
 
 The terminal runtime uses Node.js built-ins and has no npm runtime dependencies. Node.js 22.13+ is required. Poppler is required only for PDF extraction. Python 3 on POSIX is needed for the real terminal test. Rust and dwfv are optional external tools, with no Rust dependency in ChipSim.
@@ -51,7 +53,7 @@ For behavior beyond the expression language, add a reviewed simulator under `src
 - `npm test`: numeric formats, built-in width/ACK combinations and constraints, model execution order, wrapping, provenance, builders, and terminal state/rendering.
 - `npm run test:tui`: real POSIX PTY interaction, raw mode restoration, navigation, numeric inputs, export, resize, and PDF-to-model creation.
 - `npm run verify`: all unit and PTY checks plus all pinned PDF fingerprints and reviewed profile checks, model coverage, example acceptance cases, and documentation existence. No browser build required.
-- `npm run test:dwfv -- /path/to/dwfv`: optional real VCD parser interoperability for six built-ins, two generated scenarios, and reviewed datasheet models, including unknown register values.
+- `npm run test:dwfv -- /path/to/dwfv`: optional real VCD parser interoperability for six built-ins, two generated scenarios, reviewed profiles, and compiled function-table models, including unknown register values.
 - `npm run build && npm run verify:web`: default verification plus the portable browser bundle.
 - `npm run test:ui`: Chromium controls, exports, local PDF extraction/storage, sourced model import/rejection, guided builders, sessions, mobile layout, and offline direct-file use.
 - `npm run format`: Prettier for repository JavaScript, JSON, HTML, and Markdown.

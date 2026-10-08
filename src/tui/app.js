@@ -129,7 +129,7 @@ export class TerminalApp {
     const m = this.state.model;
     if (!m.parameters.length) {
       this.state.setMessage(
-        "This model has no runtime parameters. Edit or recreate its definition to change fixed resources.",
+        "This model has no runtime parameters · i drives input pins · a loads stimulus",
       );
       return;
     }
@@ -174,6 +174,50 @@ export class TerminalApp {
             },
           );
       },
+    );
+  }
+  inputMenu() {
+    const s = this.state,
+      inputs = s.model.signals.filter((signal) => signal.direction === "input");
+    if (!inputs.length) {
+      s.setMessage("This model has no externally driven inputs.");
+      return;
+    }
+    const preferred =
+      s.view === "registers"
+        ? s.registers()[s.registerIndex]?.id?.replace(/^signal\./, "")
+        : s.signal.id;
+    this.menu(
+      "DRIVE INPUT · tick " + s.tick,
+      inputs.map((signal) => ({
+        label:
+          (signal.label || signal.id) +
+          " = " +
+          formatPayload(s.snapshot.signals[signal.id], s.format, signal.width),
+        value: signal,
+      })),
+      (signal) =>
+        this.prompt(
+          (signal.label || signal.id) +
+            " · " +
+            signal.width +
+            "-bit input at tick " +
+            s.tick,
+          formatPayload(s.snapshot.signals[signal.id], s.format, signal.width),
+          (text) => {
+            const parsed = parsePayload(text);
+            if (!parsed)
+              throw new Error("Use decimal, 0x, 0b, or 0o whole numbers.");
+            s.driveInput(signal.id, parsed.value);
+          },
+          {
+            help: "Replaces this pin's event at the cursor. Other events remain scheduled. The value holds until this pin's next event.",
+          },
+        ),
+      Math.max(
+        0,
+        inputs.findIndex((signal) => signal.id === preferred),
+      ),
     );
   }
   async saveTrace(format, path) {
@@ -628,6 +672,7 @@ export class TerminalApp {
           s.models.findIndex((m) => m.id === s.modelId),
         );
       else if (k === "p") this.parameterMenu();
+      else if (k === "i") this.inputMenu();
       else if (k === "d")
         this.prompt("Import PDF, model JSON, or session JSON", "", (path) =>
           this.task(() =>

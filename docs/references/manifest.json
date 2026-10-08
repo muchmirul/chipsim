@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "retrieved_on": "2026-10-07",
-  "description": "Complete official PDFs cited by ChipSim architecture examples and reviewed document profiles. Versions are pinned snapshots.",
+  "description": "Complete official PDFs cited by ChipSim architecture examples, reviewed document profiles, and data-derived function-table tests. Versions are pinned snapshots.",
   "documents": [
     {
       "chips": [
@@ -201,6 +201,24 @@
       "relevant_sections": "5.2 Pin description; 6 Functional description, Table 3",
       "supports": "Binary combinational function table and numbered gate instances. These are regression references, not fingerprint-specific compiler rules.",
       "model_assumptions": "Ideal instantaneous binary logic. Indexed channels are derived from pin lists; electrical and timing behavior is omitted."
+    },
+    {
+      "chips": [],
+      "compiler": "function-table",
+      "path": "docs/references/nexperia-74hc157.pdf",
+      "title": "74HC157; 74HCT157 product data sheet",
+      "publisher": "Nexperia",
+      "revision": "Rev. 10, 28 May 2024",
+      "source_url": "https://assets.nexperia.com/documents/data-sheet/74HC_HCT157.pdf",
+      "download_url": "https://assets.nexperia.com/documents/data-sheet/74HC_HCT157.pdf?download=1",
+      "retrieved_on": "2026-10-08",
+      "bytes": 275579,
+      "pages": 15,
+      "sha256": "74a09a3b77c06c228313c8183270732a82604dd9c36845529813baedee9d9949",
+      "pdf_start_page": 3,
+      "relevant_sections": "5.2 Pin description; 6 Functional description, Table 3",
+      "supports": "Four independent data channels using shared select and enable pins, derived from the binary table and pin descriptions. Regression reference, not a fingerprint-specific compiler rule.",
+      "model_assumptions": "Ideal instantaneous binary logic; normalized ticks, no electrical or propagation-delay model."
     }
   ]
 }
