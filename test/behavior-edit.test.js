@@ -367,6 +367,9 @@ test("TUI draft editing supports error correction, review without mutation, exte
   await choose("review");
   assert.match(state.menu.title, /DRAFT REVIEW/);
   assert.ok(state.menu.items.some((item) => item.label === "Q: 1 → 0"));
+  assert.ok(
+    state.menu.items.some((item) => /Full trace:.*first 1/.test(item.label)),
+  );
   assert.deepEqual(clone(state.session()), before);
   for (const [columns, rows] of [
     [80, 24],
@@ -379,6 +382,29 @@ test("TUI draft editing supports error correction, review without mutation, exte
     assert.ok(frame.every((row) => displayWidth(row.text) <= columns));
     assert.match(screenText(state), /Q: 1 → 0/);
   }
+  await choose("differences");
+  assert.match(state.menu.title, /TRACE DIFFERENCES/);
+  assert.equal(state.menu.items[1].value.tick, 1);
+  state.menu.selected = 1;
+  app.key("", { name: "return" });
+  assert.match(state.menu.title, /TICK 1 DIFFERENCES/);
+  assert.ok(
+    state.menu.items.some((item) => item.label === "signal.pin_q: 1 → 0"),
+  );
+  app.key("", { name: "return" });
+  await choose("export");
+  const compared = join(state.workspace.path, "review", "comparison.json");
+  await submit(compared);
+  const comparison = JSON.parse(await readFile(compared, "utf8"));
+  assert.equal(comparison.format, "chipsim-trace-comparison");
+  assert.deepEqual(comparison.baseline, before);
+  assert.equal(comparison.comparison.firstDifference, 1);
+  assert.equal(
+    comparison.draft.authoring.configuration.rules,
+    "* XX -> idle / 0",
+  );
+  assert.deepEqual(clone(state.session()), before);
+  await choose("back");
   app.key("", { name: "return" });
   await choose("save");
   assert.equal(state.tick, 3);

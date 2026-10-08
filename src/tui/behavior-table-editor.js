@@ -9,6 +9,7 @@ import {
 import { buildBehaviorTable } from "../model/behavior-table/build.js";
 import { modelId } from "../model/builders/sourced.js";
 import { behaviorDraft } from "../model/behavior-table/authoring.js";
+import { TraceReview } from "./trace-review.js";
 
 export async function behaviorRows(value) {
   if (!value.trim().startsWith("@")) return value;
@@ -357,6 +358,7 @@ export class BehaviorTableEditor {
           draft.document,
           draft.options,
         );
+        let review;
         const lines = [
           checks.length +
             " checks passed · source quote verified · entered rules remain developer assumptions",
@@ -365,6 +367,7 @@ export class BehaviorTableEditor {
           const preview = state.previewRevision(spec),
             before = state.snapshot,
             after = preview.trace[state.tick];
+          review = new TraceReview(app, preview, () => this.review());
           lines.push(
             "Current tick " +
               state.tick +
@@ -383,14 +386,20 @@ export class BehaviorTableEditor {
                 " → " +
                 after.signals[signal.id],
             );
+          lines.push(
+            `Full trace: ${review.comparison.changedTicks} changed ticks / ${review.comparison.ticks} · first ${review.comparison.firstDifference ?? "none"} · Enter to inspect`,
+          );
         } catch (error) {
           lines.push("Current experiment: " + error.message);
         }
         lines.push(...spec.authoring.configuration.rules.split("\n"));
         app.menu(
           "DRAFT REVIEW · working model kept",
-          lines.map((label) => ({ label, value: null })),
-          () => this.menu(9),
+          lines.map((label) => ({
+            label,
+            value: label.startsWith("Full trace:") ? "differences" : null,
+          })),
+          (choice) => (choice === "differences" ? review.menu() : this.menu(9)),
         );
       } catch (error) {
         this.menu(9);

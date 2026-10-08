@@ -258,11 +258,17 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   send('Forced-high test scenario; not vendor NAND behavior.\r');wait('› Additional assumption')
   send('jj\r');wait('DRAFT REVIEW')
   wait('Y: 0 → 1')
+  send('jjj\r');wait('TRACE DIFFERENCES')
+  wait('first 3')
+  send('\r');wait('TICK 3 DIFFERENCES')
+  wait('signal.pin_y: 0 → 1')
   assert json.loads((Path(workspace)/'models'/'reviewed-nand.json').read_text())==original_model
   # Inspect the affected menu at both supported terminal sizes.
   fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',40,120,0,0))
   proc.send_signal(__import__('signal').SIGWINCH)
-  wait('Y: 0 → 1')
+  wait('signal.pin_y: 0 → 1')
+  send('\r');wait('TRACE DIFFERENCES')
+  send('k\r');wait('DRAFT REVIEW')
   send('\r');wait('› Review draft')
   send('j\r');wait('Saved revision')
   wait('tick 3/')
@@ -292,7 +298,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored=termios.tcgetattr(slave)
   assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
   assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, custom behavior-table authoring/retry/revision/review/restore, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, Q0 retention and steady/transition clock lists, released outputs, addressed access, direct pin editing, and terminal cleanup.')
+  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, custom behavior-table authoring/retry/revision/full-trace-review/restore, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, Q0 retention and steady/transition clock lists, released outputs, addressed access, direct pin editing, and terminal cleanup.')
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)

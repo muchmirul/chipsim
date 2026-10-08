@@ -46,7 +46,7 @@ Counter models include reset/enable, up/down counting, periodic toggle or halt-a
 
 Use `M` to export a document model and `B` to export the current document's source bundle. Sources omit local file paths and PDF bytes from that bundle. A developer/agent can extend the model using `AGENTS.md` and `MODEL_FORMAT.md`, then reload it with `d`.
 
-Uppercase `E` revises an entered behavior table: edit fields, review outputs at the current tick without committing, save a compatible revision or new copy, export rows, and restore revision backups. Esc retains the draft in memory; Discard clears it. See `BEHAVIOR_TABLES.md` for compatibility, source checks, independent cases, and backup limits.
+Uppercase `E` revises an entered behavior table: edit fields, review outputs at the current tick or browse full-trace differences without committing, save a compatible revision or new copy, export rows, and restore revision backups. Esc retains the draft in memory; Discard clears it. See `BEHAVIOR_TABLES.md` for compatibility, source checks, independent cases, and backup limits.
 
 ## Persistence and exports
 
@@ -64,6 +64,8 @@ By default `.chipsim/` lives in the launch directory:
 It is Git-ignored. `--workspace PATH` chooses another directory. Terminal and browser workspaces are separate; shared model/session JSON is portable between interfaces. Session JSON includes the primary model, parameters, inputs, duration, tick, and display format; it does not include PDFs.
 
 `x` exports the complete primary trace as CSV, JSON, or VCD. JSON includes provenance and a custom model's executable definition. Values not yet defined, such as an unarmed deadline, appear as unknown in VCD. VCD timestamps carry a nominal `1ns` scale for tool compatibility; each unit is an abstract model tick.
+
+Draft review comparison JSON uses `format: "chipsim-trace-comparison"`, version 1. It contains the baseline session, draft model, and all state/phase/signal/register differences in a normalized-tick comparison. Unavailable/uninitialized values are `null`, distinct from numeric zero and `"Z"`. This is an inspection artifact, not a loadable session or acceptance test; identical observed traces do not prove equivalence for other experiments.
 
 ## dwfv
 
