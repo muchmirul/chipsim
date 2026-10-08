@@ -1,3 +1,4 @@
+import { typedInputs } from "./typed-pins.js";
 function pattern(label) {
   const prefix = /^n([A-Za-z]\w*)$/.exec(label),
     suffix = /^([A-Za-z]\w*?)n$/.exec(label);
@@ -12,7 +13,7 @@ const indexed = (label) => !!pattern(label);
 // channels. Read its column role, rather than inferring it from its name.
 export function inputDeclarations(page, label) {
   const lines = page.layoutLines || [],
-    declarations = [];
+    declarations = typedInputs(page, label);
   for (let index = 0; index < lines.length; index++) {
     const cells = lines[index].cells;
     const symbol = cells.find((cell) => cell.text === "Symbol"),

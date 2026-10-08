@@ -1,4 +1,6 @@
 import { bits } from "./shared.js";
+import { levelSymbols } from "./legends.js";
+import { clockMask, matchesClock } from "./clock-patterns.js";
 export { bits } from "./shared.js";
 export function nextOutputs(table, previousClock, values, retained) {
   const clock = values[table.clock.index];
@@ -7,6 +9,8 @@ export function nextOutputs(table, previousClock, values, retained) {
       if (expected === null) return true;
       if (expected === "rise") return previousClock === 0 && clock === 1;
       if (expected === "fall") return previousClock === 1 && clock === 0;
+      if (typeof expected === "object")
+        return matchesClock(expected.clock, previousClock, clock);
       return expected === values[index];
     }),
   );
@@ -39,9 +43,8 @@ export function nextOutputs(table, previousClock, values, retained) {
 }
 export function readSequentialTable(raw, document) {
   const table = { ...raw, kind: "sequential", rows: [] };
-  const highLow =
-      /\bH\s*=\s*HIGH/.test(table.legend) && /\bL\s*=\s*LOW/.test(table.legend),
-    dontCare = /X\s*=\s*(?:don['’]t|do not)\s+care/i.test(table.legend),
+  const { inputHighLow, outputHighLow } = levelSymbols(table.legend);
+  const dontCare = /X\s*=\s*(?:don['’]t|do not)\s+care/i.test(table.legend),
     setupHigh = /\bh\s*=\s*HIGH voltage level one set-up time prior/.test(
       table.legend,
     ),
@@ -50,18 +53,63 @@ export function readSequentialTable(raw, document) {
     );
   const arrowColumns = new Set(),
     edges = new Set();
+  const defineArrow = (cell) => {
+    const direction = cell === "↑" ? "LOW-to-HIGH" : "HIGH-to-LOW",
+      words = cell === "↑" ? "low to high" : "high to low";
+    if (
+      !new RegExp(
+        cell +
+          "\\s*=\\s*(?:" +
+          direction +
+          " (?:clock )?transition|input transitioning from " +
+          words +
+          ")",
+        "i",
+      ).test(table.legend)
+    )
+      throw new Error(
+        "Clock arrows require an explicit transition definition.",
+      );
+  };
+  const q0 = table.rawRows.some((row) => row.outputs.includes("Q0"));
+  if (q0) {
+    if (
+      table.outputs.length !== 1 ||
+      table.outputs[0] !== "Q" ||
+      !/\bQ0\s*=\s*previous state\b/i.test(table.legend)
+    )
+      throw new Error(
+        "Q0 needs an explicit local previous-state definition and one unambiguous Q output.",
+      );
+    table.retention = {
+      symbol: "Q0",
+      output: "Q",
+      definition: "previous state",
+    };
+  }
+  const maskColumns = new Set();
   for (const row of table.rawRows) {
     const inputs = row.inputs.map((cell, index) => {
-      if (cell === "↑" || cell === "↓") {
-        const direction = cell === "↑" ? "LOW-to-HIGH" : "HIGH-to-LOW";
+      const mask = clockMask(cell);
+      if (mask !== null) {
+        for (const atom of cell.split(/\s*,\s*/)) {
+          if (atom === "↑" || atom === "↓") defineArrow(atom);
+          else if (/[HL]/.test(atom) && !inputHighLow)
+            throw new Error("The table does not define H and L input levels.");
+        }
         if (
-          !new RegExp(
-            cell + "\\s*=\\s*" + direction + " (?:clock )?transition",
-          ).test(table.legend)
+          !row.outputs.every(
+            (output) => output === "Q0" || /^no change$/i.test(output),
+          )
         )
           throw new Error(
-            "Clock arrows require an explicit transition definition.",
+            "Clock alternatives currently require explicit retention on every output.",
           );
+        maskColumns.add(index);
+        return { clock: mask };
+      }
+      if (cell === "↑" || cell === "↓") {
+        defineArrow(cell);
         arrowColumns.add(index);
         edges.add(cell === "↑" ? "rise" : "fall");
         return cell === "↑" ? "rise" : "fall";
@@ -79,16 +127,16 @@ export function readSequentialTable(raw, document) {
         return cell === "h" ? 1 : 0;
       }
       if (/^[HL01]$/.test(cell)) {
-        if (/^[HL]$/.test(cell) && !highLow)
+        if (/^[HL]$/.test(cell) && !inputHighLow)
           throw new Error("The table does not define H and L voltage levels.");
         return ["H", "1"].includes(cell) ? 1 : 0;
       }
       throw new Error("Unsupported sequential input symbol " + cell + ".");
     });
     const outputs = row.outputs.map((cell) => {
-      if (cell === "no change") return "hold";
+      if (/^no change$/i.test(cell) || (cell === "Q0" && q0)) return "hold";
       if (/^[HL01]$/.test(cell)) {
-        if (/^[HL]$/.test(cell) && !highLow)
+        if (/^[HL]$/.test(cell) && !outputHighLow)
           throw new Error("The table does not define H and L voltage levels.");
         return ["H", "1"].includes(cell) ? 1 : 0;
       }
@@ -103,10 +151,15 @@ export function readSequentialTable(raw, document) {
       "A sequential table must explicitly identify one edge-triggered clock column.",
     );
   const clockIndex = [...arrowColumns][0];
+  if ([...maskColumns].some((index) => index !== clockIndex))
+    throw new Error(
+      "Alternatives are supported only in the documented clock column.",
+    );
   table.clock = {
     index: clockIndex,
     input: table.inputs[clockIndex],
     edges: [...edges],
+    ...(maskColumns.size ? { pairs: true } : {}),
   };
   const trigger = document.pages.flatMap((page) => {
     const quote = /(?:positive|negative)?[- ]?edge[- ]trigger(?:ed)?/i

@@ -9,18 +9,19 @@ npm start -- --document docs/references/nexperia-74hc157.pdf
 npm start -- --document docs/references/nexperia-74hc377.pdf
 npm start -- --document docs/references/nexperia-74hc273.pdf
 npm start -- --document docs/references/ti-sn74lvc1g125.pdf
+npm start -- --document docs/references/ti-sn74ahc273-q1.pdf
 npm run document -- path/to/manual.pdf --json
 npm run document -- path/to/manual.pdf --out generated.model.json
 ```
 
-These documents are regression references. Their behavior is read from their rows; it is not selected by their filename, part number, or fingerprint. Consistent numbered pin lists establish all four channels for the NAND/XOR/multiplexer sources and all eight for the sequential sources. Common control pins are shared across channels, while data inputs and outputs remain separate.
+These documents are regression references. Their behavior is read from their rows; it is not selected by their filename, part number, or fingerprint. Consistent numbered pin lists establish all four channels for the NAND/XOR/multiplexer sources and all eight for the Nexperia sequential sources. Common control pins are shared across channels, while data inputs and outputs remain separate. Generic unindexed headings describe one table instance; package replication is not inferred.
 
 ## What happens on import
 
 1. Import bytes and compute SHA-256. A source-linked authored model takes precedence; a reviewed profile handles its exact supported revision.
 2. Otherwise find function/truth-table captions and preserve positioned text on those pages. The terminal uses Poppler word coordinates; the optional browser uses PDF.js text coordinates. Old cached documents receive fresh page geometry on reimport.
 3. Read explicit input/output headers and signal labels. Tables can have a separate signal-header row or inline headers such as `Input A`, `Input B`, `Output Y`.
-4. Read each row without filling blank cells. Explicit `Operating modes` description columns are excluded by position; their text is never interpreted as logic. H/L require the page's HIGH/LOW legend. X is an input wildcard only when defined as don't-care. Literal 0/1 are binary values. Combinational output Z requires an explicit high-impedance definition. Numbered header annotations can refer to complete, adjacent symbol definitions below the rows; missing, continued, or qualified footnotes require review.
+4. Read each row without filling blank cells. Explicit `Operating modes` description columns are excluded by position; their text is never interpreted as logic. H/L require local HIGH/LOW definitions. X is an input wildcard only when defined as don't-care. Literal 0/1 are binary values. Combinational output Z requires an explicit high-impedance definition. Numbered header annotations can refer to complete, adjacent symbol definitions below the rows. A numbered definition may wrap onto at most three following lines with matching content indentation and gaps of at most 16 PDF points; the complete joined note must consist of supported definitions. Missing definitions, incompatible wraps, and timing/prose qualifications require review.
 5. Expand every binary input combination (and previous-clock/output combinations for sequential tables). Reject gaps and disagreeing overlaps. Agreeing wildcard overlaps are valid.
 6. Generate bounded expressions, independent instances, exhaustive acceptance cases, a demonstration input sweep, and a source-table snapshot. Validate the definition and evidence, run checks, save it, and open the trace.
 
@@ -32,7 +33,7 @@ Combinational tables have up to six input columns, 24 output columns, and 32 sou
 
 Undefined arrows, unsupported hold/state notation, Z without an explicit definition, unspecified outputs, ambiguous headings, conflicting pin ranges, incomplete rows, and merged/blank logic cells require review. Missing values are not copied from preceding rows. An unsupported table leaves the PDF available for search and guided modeling; diagnostics explain the reason. Both interfaces scan geometry on at most 32 function-table/pin-description candidate pages per import and report this bound when reached. Built-in architecture manuals retain their existing example workflow.
 
-Tables may mix shared input controls with indexed data signals. A shared control must have a positioned pin description with `Symbol`, `Pin`, and `Description` columns that unambiguously declares one numbered input pin. Shared outputs, conflicting pin numbers, missing roles, and bidirectional pins require review. Common controls are defined and driven once, while each indexed channel evaluates its own data against those controls. Generated checks keep controls consistent across channels and rotate only private inputs.
+Tables may mix shared input controls with indexed data signals. A shared control must have a positioned pin description that unambiguously declares one numbered input pin. Supported roles are `Symbol`, `Pin`, `Description`, or `NAME`, `NO.`, `TYPE`, `DESCRIPTION` with a complete local `Signal Types: I = Input, O = Output...` definition and type `I`. Shared outputs, conflicting pin numbers, missing roles, and bidirectional pins require review. Common controls are defined and driven once, while each indexed channel evaluates its own data against those controls. Generated checks keep controls consistent across channels and rotate only private inputs.
 
 Press `i` in the TUI to drive an input pin at the current tick without writing JSON. Later scheduled input events are retained.
 
@@ -50,15 +51,23 @@ Z represents this output driver being released. It is not zero, retained data, a
 
 Sequential tables must identify one clock column using `↑` or `↓`, explicitly define the arrow as a LOW-to-HIGH/HIGH-to-LOW transition, and have a matching positioned pin description declaring an edge-triggered clock input. An exact source quotation establishes the edge-triggered contract. Levels H/L and don't-care X require definitions as for binary tables. Lowercase h/l require explicit HIGH/LOW set-up-level definitions. Literal output `no change` retains the prior output.
 
+Sequential input/output definitions can be separate (`L = input low`, `H = output high`), provided each role has both levels defined. Literal `Q0`, including tightly adjacent PDF subscript text, is also supported only for one output column named `Q` and an explicit local `Q0 = previous state` definition. Other symbolic references, complements, undefined Q0, and qualified retention require review; no missing cell is filled.
+
+A clock cell can list two to four distinct alternatives separated by commas, such as `L, H, ↓`, only when every output in that row explicitly retains. Within these lists, L/0 means steady low, H/1 means steady high, and arrows mean transitions. `L, H, ↓` therefore excludes a rising edge even though its current level is high. Standalone level cells retain their ordinary current-level meaning. Lists on other inputs, duplicate alternatives, undefined symbols, or non-retaining rows reject compilation.
+
 The compiler evaluates every previous-clock, current-input, and retained-output combination. Missing **active** clock transitions reject compilation; conflicting updates and overlaps that disagree for any retained state also reject. Outside documented active edges, patterns omitted from the table retain outputs under the documented edge-triggered contract. Asynchronous level rows still take effect immediately and can dominate a coincident clock edge when the rows specify that behavior.
 
 Generated models use declared clock-history/edge registers and output signals as storage. Tick zero establishes the supplied clock level without manufacturing an edge; asynchronous rows can act then. `initialOutputs` configures retained output bits in instance order, with the first output column of the first instance in the least significant bit. These are explicit scenario values, not guaranteed silicon power-on state. Undriven input pins default to ideal digital zero as a scenario choice.
+
+Models with clock lists also expose a two-bit clock-pair register: 0 = steady low, 1 = rising, 2 = falling, 3 = steady high. It records the previous/current pair before updating clock history, so source-row logs continue to distinguish an edge from a held level. Tick zero initializes the pair as steady at the supplied level.
 
 Sequential tables have at most two output columns, eight source rows, and 64 combinations across inputs + previous clock + previous outputs (`2^(inputs + outputs + 1)`). Instantiated model limits still apply. Every combination becomes an executable acceptance case. Original arrows, lowercase qualifiers, and `no change` cells remain in the source snapshot and both interfaces.
 
 Physical set-up/hold constraints, recovery/removal times, metastability, voltage thresholds, and propagation delays are omitted. Lowercase levels are evaluated as ideal values present at the edge; all input events in a normalized tick precede evaluation together. The demonstration prepares data one abstract tick before toggling the clock; that spacing does not prove physical timing compliance.
 
 The 74HC377 and 74HC273 PDFs are regression sources for enable/hold and asynchronous-reset behavior. Their rows and pin lists supply the generated logic; neither part number nor fingerprint selects the behavior. `p` edits initial retained bits; `i` drives clock/control/data pins. General counters, bus/register side effects, unsupported retention/clock semantics, unsupported state symbols, or ambiguous complementary-output headers still require reviewed models.
+
+The TI SN74AHC273-Q1 reference uses `L, H, ↓` and explicitly defined Q0 on PDF page 12, with its typed rising-edge clock declaration on PDF page 3. It compiles one generic CLR/CLK/D/Q instance. Neither the generic table headings nor the package diagram establish a supported mapping to eight indexed channels, so package replication is omitted. Both PDF extraction engines are checked against this original source, along with independent four-step input sequences, reset priority, and steady-high data changes.
 
 ## Level-sensitive retention tables
 
@@ -76,6 +85,6 @@ npm start -- --document docs/references/renesas-hd74hc77.pdf
 
 ## Extending the compiler
 
-`src/documents/layout.js` normalizes positioned rows. `src/model/tables/layout.js` reads positioned headers/cells. `read.js` dispatches combinational and sequential symbol interpretation; `legends.js` validates complete numbered definitions. `sequential-read.js` validates sequential clock/state coverage. `src/model/tables/pins.js` resolves indexed instances and validates shared pin declarations. `build.js` and `sequential-build.js` convert validated tables to the existing model language; `sequential-scenarios.js` produces input sweeps and acceptance cases; `src/model/from-document.js` coordinates profiles and tables for both interfaces. Keep parsing, model generation, and rendering separate.
+`src/documents/layout.js` normalizes positioned rows. `src/model/tables/layout.js` reads positioned headers/cells; `layout-notes.js` joins bounded footnote wraps; `legends.js` validates complete definitions. `read.js` dispatches symbol interpretation; `sequential-read.js` validates sequential clock/state coverage; `clock-patterns.js` defines clock pairs and pin-edge matching. `pins.js` resolves indexed instances and validates shared pin declarations; `typed-pins.js` reads typed pin roles. `build.js` and `sequential-build.js` convert validated tables to the existing model language; `sequential-scenarios.js` produces input sweeps and acceptance cases; `src/model/from-document.js` coordinates profiles and tables for both interfaces. Keep parsing, model generation, and rendering separate.
 
 A new syntax must have real document examples and independent expected behavior. Include negative cases for ambiguous layouts and unsupported semantics. Do not silently infer merged cells, overwrite authored models, or claim whole-chip coverage from a small function table. Review the exported source snapshot and executable rules when adapting a generated model.

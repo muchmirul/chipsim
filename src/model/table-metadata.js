@@ -1,3 +1,8 @@
+import {
+  isClockMask,
+  isClockAlternatives,
+  clockMask,
+} from "./tables/clock-patterns.js";
 export function validateTableMetadata(model, { fail, number, signals }) {
   if (model.sourceTable !== undefined) {
     const table = model.sourceTable,
@@ -44,7 +49,9 @@ export function validateTableMetadata(model, { fail, number, signals }) {
             (released && !wildcard && value === "Z") ||
             (wildcard && value === null) ||
             (state &&
-              (wildcard ? ["rise", "fall"].includes(value) : value === "hold")),
+              (wildcard
+                ? ["rise", "fall"].includes(value) || isClockMask(value)
+                : value === "hold")),
         );
       if (
         !Array.isArray(table.rows) ||
@@ -97,7 +104,10 @@ export function validateTableMetadata(model, { fail, number, signals }) {
         );
       if (sequential || retained) {
         const clock = table.clock,
-          rows = Array.isArray(table.rows) ? table.rows : [];
+          rows = Array.isArray(table.rows) ? table.rows : [],
+          masks = rows.some(
+            (row) => Array.isArray(row?.inputs) && row.inputs.some(isClockMask),
+          );
         if (
           sequential &&
           (!clock ||
@@ -109,6 +119,8 @@ export function validateTableMetadata(model, { fail, number, signals }) {
             !clock.edges.length ||
             clock.edges.length > 2 ||
             clock.edges.some((edge) => !["rise", "fall"].includes(edge)) ||
+            (clock.pairs !== undefined && clock.pairs !== true) ||
+            (clock.pairs === true) !== masks ||
             table.outputs.length > 2 ||
             rows.length > 8 ||
             rows.some(
@@ -117,12 +129,30 @@ export function validateTableMetadata(model, { fail, number, signals }) {
                 !Array.isArray(row.inputs) ||
                 row.inputs.some(
                   (value, index) =>
-                    typeof value === "string" &&
-                    (index !== clock.index || !clock.edges.includes(value)),
+                    (typeof value === "string" &&
+                      (index !== clock.index ||
+                        !clock.edges.includes(value))) ||
+                    (isClockMask(value) &&
+                      (index !== clock.index ||
+                        !Array.isArray(row.outputs) ||
+                        row.outputs.some((output) => output !== "hold"))),
                 ),
             ))
         )
           fail("sourceTable.clock", "invalid sequential clock/row bounds");
+        const retention = table.retention,
+          priorOutput =
+            sequential &&
+            table.outputs.length === 1 &&
+            table.outputs[0] === "Q" &&
+            retention?.symbol === "Q0" &&
+            retention.output === "Q" &&
+            retention.definition === "previous state";
+        if (retention !== undefined && !priorOutput)
+          fail(
+            "sourceTable.retention",
+            "Q0 requires one Q output and an explicit previous-state definition",
+          );
         if (
           !Array.isArray(table.symbolRows) ||
           table.symbolRows.length !== rows.length ||
@@ -132,20 +162,59 @@ export function validateTableMetadata(model, { fail, number, signals }) {
               !Array.isArray(row.inputs) ||
               row.inputs.length !== table.inputs.length ||
               row.inputs.some(
-                (value) =>
+                (value, index) =>
                   typeof value !== "string" ||
-                  !(retained ? /^[HLX01]$/ : /^[HLhlX01↑↓]$/).test(value),
+                  (!(retained ? /^[HLX01]$/ : /^[HLhlX01↑↓]$/).test(value) &&
+                    !(
+                      sequential &&
+                      clock?.pairs === true &&
+                      index === clock.index &&
+                      isClockAlternatives(value)
+                    )),
               ) ||
               !Array.isArray(row.outputs) ||
               row.outputs.length !== table.outputs.length ||
               row.outputs.some(
                 (value) =>
                   typeof value !== "string" ||
-                  !/^(?:[HL01]|no change)$/i.test(value),
+                  (!/^(?:[HL01]|no change)$/i.test(value) &&
+                    !(priorOutput && value === "Q0")),
               ),
           )
         )
           fail("sourceTable.symbolRows", "expected bounded source symbols");
+        if (
+          retention !== undefined &&
+          !(
+            Array.isArray(table.symbolRows) &&
+            table.symbolRows.some(
+              (row) =>
+                Array.isArray(row?.outputs) && row.outputs.includes("Q0"),
+            )
+          )
+        )
+          fail(
+            "sourceTable.retention",
+            "retention definition has no matching source symbol",
+          );
+        if (
+          sequential &&
+          Array.isArray(table.symbolRows) &&
+          rows.some((row, index) => {
+            const pattern = row?.inputs?.[clock?.index],
+              source = table.symbolRows[index];
+            return (
+              (isClockMask(pattern) &&
+                (!isClockAlternatives(source?.inputs?.[clock.index]) ||
+                  clockMask(source.inputs[clock.index]) !== pattern.clock)) ||
+              (source?.outputs?.[0] === "Q0" && row?.outputs?.[0] !== "hold")
+            );
+          })
+        )
+          fail(
+            "sourceTable",
+            "clock alternatives and Q0 must agree with their normalized source rows",
+          );
       }
       if (
         !Array.isArray(table.instances) ||

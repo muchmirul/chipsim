@@ -58,4 +58,5 @@ export const hasFunctionTable = (text) =>
   /\b(?:function|truth)\s+table\b/i.test(text);
 export const hasTableLayout = (text) =>
   hasFunctionTable(text) ||
+  /\bPin\s+Functions\b/i.test(text) ||
   /\bTable\s+[\w.-]+\s+Pin\s+description\b/i.test(text);

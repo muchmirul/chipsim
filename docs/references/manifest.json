@@ -292,6 +292,24 @@
       "relevant_sections": "Function Table and symbol definitions on PDF page 3 (printed page 1); description and pin arrangement on pages 3\u20134",
       "supports": "One table-level binary latch with level-sensitive data updates and explicit no-change outputs. Regression reference, not a fingerprint-specific rule.",
       "model_assumptions": "One generic table instance; package replication/group-enable wiring in the diagram is not inferred. Initial output is an explicit scenario value; instantaneous normalized level evaluation omits setup/hold, delays, electrical behavior and other device features. Original reproduction/usage notices are retained; no general redistribution permission is asserted."
+    },
+    {
+      "chips": [],
+      "compiler": "function-table",
+      "kind": "sequential",
+      "path": "docs/references/ti-sn74ahc273-q1.pdf",
+      "title": "SN74AHC273-Q1 Automotive Octal D-Type Flip-Flops with Clear",
+      "publisher": "Texas Instruments",
+      "revision": "SLVSJA7A, revised June 2026",
+      "source_url": "https://www.ti.com/lit/ds/symlink/sn74ahc273-q1.pdf",
+      "retrieved_on": "2026-10-08",
+      "bytes": 1769129,
+      "pages": 30,
+      "sha256": "832098c1b03bef8b708ad4c8e3525fe7200745eeae5fda088d87a08adeb7d58d",
+      "pdf_start_page": 12,
+      "relevant_sections": "Pin Functions on PDF page 3; 7.4 Device Functional Modes, Table 7-1 and local symbol footnotes on PDF page 12",
+      "supports": "One generic table-level flip-flop: rising-edge capture, asynchronous clear, grouped inactive-clock alternatives, and explicitly defined Q0 retention. Rows determine behavior; no fingerprint-specific rule.",
+      "model_assumptions": "One table instance, without inferring the eight numbered package channels. Initial Q is a scenario value. Ideal normalized digital steps omit setup/hold violations, metastability, propagation delays and electrical behavior. Original usage notices remain; this local development repository asserts no general redistribution permission."
     }
   ]
 }
