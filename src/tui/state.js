@@ -1,3 +1,4 @@
+import { compileDocument } from "../model/profiles/index.js";
 import {
   builtinModels,
   defaultParameters,
@@ -346,10 +347,36 @@ export class TuiState {
         }
       });
       if (!this.models.some((m) => m.id === this.modelId)) this.modelId = "pio";
+      let compiled = null;
+      if (
+        !this.models.some(
+          (model) =>
+            model.kind === "document" &&
+            model.sources.some((source) => source.sha256 === document.sha256),
+        )
+      ) {
+        try {
+          compiled = compileDocument(document, {
+            reservedIds: this.models.map((model) => model.id),
+          });
+          if (compiled) await this.installModel(compiled.spec);
+        } catch (error) {
+          errors.push(error.message);
+        }
+      }
       const matches = modelsForDocument(document, this.models);
       const selected = matches.find((m) => m.kind === "document") || matches[0];
-      if (selected) this.selectModel(selected.id);
-      else {
+      if (selected) {
+        this.selectModel(selected.id);
+        if (compiled)
+          this.setMessage(
+            "Created " +
+              selected.name +
+              " from reviewed datasheet profile · " +
+              compiled.checks.length +
+              " checks passed · 5 scope/assumptions",
+          );
+      } else {
         this.rebuild();
         this.view = "sources";
         this.setMessage(
