@@ -70,6 +70,8 @@ for (const directory of ["models", "examples"])
       registerModel(JSON.parse(await read(directory + "/" + file)));
 for (const file of [
   "AGENTS.md",
+  "docs/AGENT_WORKFLOW.md",
+  "docs/AGENT_PROJECT.md",
   "README.md",
   "docs/DEVELOPMENT.md",
   "docs/MODEL_FORMAT.md",

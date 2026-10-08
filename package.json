@@ -3,7 +3,17 @@
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "Document-backed chip behavior visualization and trace workbench",
+  "description": "Local chip simulation tools for coding agents and terminal inspection",
+  "files": [
+    "src/",
+    "scripts/",
+    "docs/",
+    "models/",
+    "examples/",
+    "AGENTS.md",
+    "THIRD_PARTY_NOTICES.md",
+    "index.html"
+  ],
   "engines": {
     "node": ">=22.13.0"
   },
@@ -23,7 +33,9 @@
     "test:tui": "python3 scripts/test-tui-pty.py",
     "test:dwfv": "node scripts/verify-dwfv.mjs",
     "verify:web": "node scripts/verify.mjs --web",
-    "document": "node scripts/document.mjs"
+    "document": "node scripts/document.mjs",
+    "agent": "node scripts/agent.mjs",
+    "test:install": "node scripts/test-install.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

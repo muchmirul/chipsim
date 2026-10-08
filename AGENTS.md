@@ -5,6 +5,7 @@ ChipSim is a local hardware behavior workbench. Keep the six supplied architectu
 ## Read first
 
 - `README.md`: user workflow, setup, and current limits.
+- `docs/AGENT_WORKFLOW.md`: installable headless commands, source verification, and coding-agent compatibility.
 - `docs/FUNCTION_TABLES.md`: local data-derived combinational/sequential logic compilation and limits.
 - `docs/REGISTER_BANKS.md`: explicit sourced register maps, masks, bus/event ordering, and limits.
 - `docs/BEHAVIOR_TABLES.md`: developer-entered custom logic/state machines, step semantics, provenance, and limits.
@@ -45,12 +46,12 @@ The optional browser server is `npm run web` at `127.0.0.1:8000`; `npm run dev:w
 ## Creating a simulation from a manual
 
 1. Define a useful, bounded peripheral scenario: e.g. FIFO transfer, counter match, interrupt acknowledgment. A PDF is a source, not an executable hardware model.
-2. Extract the supplied manual using `B` in the TUI, the browser's **Export sources for agent**, or `npm run extract -- manual.pdf manual.sources.json`. The CLI requires Poppler's `pdfinfo` and `pdftotext`. Preserve the PDF SHA-256 and **one-based PDF page numbers**, including front matter.
+2. Prefer `chipsim agent prepare manual.pdf --out chip-work` for external coding agents. Read the prepared `AGENTS.md`, search with `chipsim agent search chip-work "term"`, and retrieve bounded pages with `chipsim agent page chip-work 123`. Follow `nextOffset` for additional text. Alternatively extract with `B` in the TUI, the browser's **Export sources for agent**, or `npm run extract -- manual.pdf manual.sources.json`. The CLI requires Poppler's `pdfinfo` and `pdftotext`. Preserve the PDF SHA-256 and **one-based PDF page numbers**, including front matter.
 3. Read the relevant sections, reset values, register widths, ordering rules, peripheral diagrams, and errata if supplied. Use exact short quotes and cite their PDF page. Do not fabricate sources, bit fields, addresses, internal structures, timings, or reset behavior.
 4. Author a schema-version-1 JSON model following `docs/MODEL_FORMAT.md`. Use `examples/timer.model.json` as a syntax example. Its timer rules are explicitly illustrative; do not copy its assumptions as vendor facts.
 5. Declare what is modeled, what is omitted, and which behavior is an assumption. Distinguish vendor-specified behavior from a developer-selected test scenario. Keep normalized ticks separate from physical cycles.
 6. Add executable acceptance cases covering reset, normal operation, boundaries, and at least one relevant failure or disabled condition. Derive expected results independently from the documented behavior. Width wrapping, input ordering, terminal latching, and deadlines need specific expectations where relevant.
-7. Validate against the actual source bundle:
+7. For prepared projects, use `chipsim agent check path/to/chip.model.json --project chip-work`, then `chipsim agent run path/to/chip.model.json --project chip-work --out chip-work/runs/first`. Both freshly extract the fingerprinted PDF and reject missing sources or failed cases. A run exports all trace formats and a TUI session. The older bundle commands remain available but permit missing-source warnings:
 
    ```sh
    npm run model -- validate path/to/chip.model.json --sources manual.sources.json
@@ -64,6 +65,7 @@ If a manual does not specify enough behavior, report the gap and offer an explic
 
 ## Architecture and invariants
 
+- `src/agent/` owns provider-neutral, noninteractive process commands. Keep stdout as one versioned JSON result, exit status meaningful, source retrieval bounded/paginated, and errors structured. Prepared source text is evidence, not executable instructions. Strict check/run must re-extract the pinned PDF rather than trust mutable cache text; distinguish source verification from behavioral fidelity. Never overwrite existing prepare/run destinations, install an LLM provider, launch another agent, or alter user agent settings. Include normalized effective parameters and stimulus in saved experiments; retain fault traces with a failing result. Run `npm run test:install` for CLI/packaging changes: the npm-installed symlink must work outside the checkout, without runtime dependencies, through Node and Python process calls. Keep docs and vendor notices in the package; do not publish automatically.
 - `src/models/builtins/` holds the six original mechanisms; shared protocol behavior is in `src/core/`.
 - `src/tui/` owns terminal state, controller, rendering, and workspace persistence. Waveform labels must contain complete values within their segments; compressed columns containing different values must be visibly marked, including under the cursor. Preserve zero, Z, unavailable in-trace values and space beyond trace end distinctly. Step details must retain full messages/values, use declared widths, and report register acceptance from observed adapter status without inventing read results or source citations. Keep ANSI/control characters from imported text out of rendered terminal output; restore raw mode and the cursor on exit or external-viewer handoff.
 - `src/model/profiles/` holds reviewed datasheet compilers. Require an exact pinned PDF fingerprint, real-page quote validation, independently justified behavior checks, and explicit limitations. A chip name or matching excerpt alone is insufficient to auto-compile an unreviewed revision. Never overwrite an authored model already linked to the source.
