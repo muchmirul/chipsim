@@ -362,6 +362,23 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert len(scratch['model']['definition']['registerMap'])==8
   assert scratch['model']['definition']['evidence'][0]['page']==549
   send('d');wait('Import PDF')
+  send(str(ROOT/'docs/references/espressif-esp32-c6-trm.pdf')+'\r');wait('ESP32-C6 · PCNT channel 0',timeout=30)
+  send('p');wait('PARAMETERS')
+  send('\r');wait('Rising edge')
+  send('0x2\r');wait('Updated positive_mode')
+  send('t');wait('Go to normalized tick')
+  send('13\r');wait('tick 13/34')
+  send('x');wait('EXPORT FULL TRACE')
+  send('j\r');wait('Output path')
+  c6_trace=Path(workspace)/'esp32c6-pcnt-trace.json'
+  send(str(c6_trace)+'\r');wait('Saved '+str(c6_trace))
+  c6=json.loads(c6_trace.read_text())
+  assert c6['model']['id']=='esp32c6-pcnt'
+  assert c6['parameters']['positive_mode']==2
+  assert c6['trace'][1]['registers']['pulse_count']==65535
+  assert c6['trace'][9]['signals']['low_limit_hit']==1
+  assert c6['trace'][13]['registers']['pulse_count']==2
+  send('d');wait('Import PDF')
   send(str(ROOT/'docs/references/ti-tca9534.pdf')+'\r');wait('Loaded TCA9534')
   send('c');wait('CREATE')
   send('jjjj\r');wait('REGISTER TABLE')

@@ -23,6 +23,8 @@ The unchanged TI SN74AHC273-Q1 data sheet (SLVSJA7A, June 2026) is retained as a
 
 The unchanged TI TCA9534 data sheet (SCPS197D, revised October 2017; complete official copy retrieved October 2026) is retained as a local development reference for the modeled TI device. Its final-page notice restricts resource use to development of applications using the described TI products. All original notices remain; no general redistribution permission is asserted.
 
+The ESP32-C6 Technical Reference Manual v1.2 (20 March 2026) was supplied by the user and copied unchanged as a local development reference. Copyright © 2026 Espressif Systems (Shanghai) Co., Ltd.; all rights reserved. Its final-page disclaimer grants no express or implied intellectual-property license. All original notices remain; inclusion does not assert general redistribution permission or apply a repository-wide license to this PDF.
+
 ## Bundled software
 
 The browser app and portable HTML bundle Mozilla PDF.js (`pdfjs-dist`), including its PDF worker, under Apache License 2.0. The complete license is retained in [docs/licenses/pdfjs-LICENSE.txt](docs/licenses/pdfjs-LICENSE.txt). PDF.js copyright and license comments remain in the generated bundle.

@@ -1247,3 +1247,54 @@ test("cached-manual refresh rejects changed or missing PDF bytes without replaci
     await expect(page.locator("#model-count")).toHaveText("7");
   }
 });
+
+test("the supplied ESP32-C6 manual opens the same reviewed PCNT model in PDF.js and supports numeric parameter experiments", async ({
+  page,
+}) => {
+  test.setTimeout(120000);
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/espressif-esp32-c6-trm.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden({ timeout: 90000 });
+  await expect(page.locator("#model-title")).toHaveText(
+    "ESP32-C6 · PCNT channel 0",
+  );
+  for (const [tick, count, magnitude] of [
+    [9, "0x0000", "0x0000"],
+    [11, "0xFFFF", "0x0001"],
+    [13, "0xFFFE", "0x0002"],
+    [19, "0x0000", "0x0000"],
+  ]) {
+    await page.locator("#seek").fill(String(tick));
+    await page.locator("#seek").dispatchEvent("input");
+    await expect(
+      page.locator(".register-table tr").filter({ hasText: "pulse_count" }),
+    ).toContainText(count);
+    await expect(
+      page.locator(".register-table tr").filter({ hasText: "magnitude" }),
+    ).toContainText(magnitude);
+  }
+  await page.locator("#tab-sources").click();
+  await expect(page.locator("#source-panel")).toContainText(
+    "channel 1 disabled",
+  );
+  const spec = JSON.parse(
+    await downloaded(page, () => page.locator("[data-export-model]").click()),
+  );
+  const terminal = analyzeDocument(
+    await extractPDFFile("docs/references/espressif-esp32-c6-trm.pdf"),
+  );
+  expect(spec).toEqual(terminal.models[0].spec);
+  await page.locator("#parameter-control_high_mode").fill("0x2");
+  await page.locator("#parameter-control_high_mode").press("Tab");
+  await page.locator("#trace-format").selectOption("json");
+  const trace = JSON.parse(
+    await downloaded(page, () => page.locator("#export-trace").click()),
+  );
+  expect(trace.parameters.control_high_mode).toBe(2);
+  expect(trace.trace[11].registers.pulse_count).toBe(0);
+  expect(trace.trace[11].signals.count_down).toBe(0);
+  await page.reload();
+  await expect(page.locator("#model-title")).toHaveText(spec.name);
+});

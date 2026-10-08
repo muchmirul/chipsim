@@ -64,7 +64,7 @@ Press uppercase `E` on an entered behavior-table model to edit its rules and cit
 ## From a manual to a simulation
 
 1. Press `d` and enter the PDF path. ChipSim extracts searchable text locally, preserves page numbers, and fingerprints the PDF.
-2. Complete combinational tables (including explicitly defined `Z` outputs) or supported edge-triggered and level-sensitive retention tables can create models directly from their rows and pin lists; see [function-table compilation](docs/FUNCTION_TABLES.md). Reviewed profiles cover Nexperia 74HC595/74HCT595 Rev. 12, TI PCA9555 SCPS131J, and TI TCA9534 SCPS197D. List supported automatic profiles with `npm start -- --list-profiles`. A manual with an installed matching model opens that model after source verification. Recognized vendor manuals also open their corresponding existing example.
+2. Complete combinational tables (including explicitly defined `Z` outputs) or supported edge-triggered and level-sensitive retention tables can create models directly from their rows and pin lists; see [function-table compilation](docs/FUNCTION_TABLES.md). Reviewed profiles cover Nexperia 74HC595/74HCT595 Rev. 12, TI PCA9555 SCPS131J, TI TCA9534 SCPS197D, and ESP32-C6 TRM v1.2 **PCNT channel 0**. List supported automatic profiles with `npm start -- --list-profiles`. A manual with an installed matching model opens that model after source verification. Recognized vendor manuals also open their corresponding existing example.
 3. For a new manual, inspect/search Sources (`4`, `/`) and press `c`. Choose **counter/timer**, **FIFO**, **shift transfer**, a custom **behavior table**, or an addressed **register bank**. Cite a relevant source excerpt.
 4. Configure width, direction, depth, compare behavior, or custom state/input/output rows. Cite the PDF page and exact excerpt, explain its relevance, and declare additional assumptions. The generated model must pass its acceptance cases and quote checks before it is saved and opened.
 5. Run it in the same waveform, register, and log interface. Press `5` to review the selected rules and `M` to export editable model JSON.
@@ -83,6 +83,7 @@ Try the automatic document paths:
 npm start -- --document docs/references/nexperia-74hc595.pdf
 npm start -- --document docs/references/ti-pca9555.pdf
 npm start -- --document docs/references/ti-tca9534.pdf
+npm start -- --document docs/references/espressif-esp32-c6-trm.pdf
 npm start -- --document docs/references/nexperia-74hc00.pdf
 npm start -- --document docs/references/nexperia-74hc86.pdf
 npm start -- --document docs/references/nexperia-74hc157.pdf
@@ -113,6 +114,8 @@ The SN74AHC273-Q1 PDF creates one flip-flop table instance from its rows, wrappe
 For behavior beyond these builders, export the sources with `B`, then use [AGENTS.md](AGENTS.md) and [docs/MODEL_FORMAT.md](docs/MODEL_FORMAT.md) to author a custom JSON model. Import it with `d`. Missing PDFs produce unverified-source warnings; a mismatching attached page/quote rejects the model.
 
 PDFs are limited to 80 MiB and must have searchable text; scanned PDFs need OCR first. Keep exported models/source bundles when moving between machines. The TUI workspace and browser storage are separate.
+
+The ESP32-C6 manual opens one PCNT channel with signed pulse counting, rising/falling-edge modes, control-level reversal/inhibition, pause/clear and static count limits. See [the terminal walkthrough](docs/ESP32_C6_PCNT.md). CPU execution, other peripherals, interrupts, filtering and live MMIO are outside this profile.
 
 ## DWFV reference and interoperability
 
@@ -163,7 +166,7 @@ src/ui/                     Optional browser frontend
 models/, examples/          Packaged/importable model JSON
 scripts/                    TUI entry, model CLI, extraction, build, checks
 test/                      Engine, terminal, and browser tests
-docs/references/            Twenty complete official PDFs and fingerprint manifest
+docs/references/            Twenty-one complete vendor PDFs and fingerprint manifest
 AGENTS.md                   Developer and coding-agent instructions
 ```
 

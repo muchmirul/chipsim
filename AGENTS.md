@@ -9,6 +9,7 @@ ChipSim is a local hardware behavior workbench. Keep the six supplied architectu
 - `docs/REGISTER_BANKS.md`: explicit sourced register maps, masks, bus/event ordering, and limits.
 - `docs/BEHAVIOR_TABLES.md`: developer-entered custom logic/state machines, step semantics, provenance, and limits.
 - `docs/DOCUMENT_PROFILES.md`: reviewed automatic datasheet compilation and extension requirements.
+- `docs/ESP32_C6_PCNT.md`: the user-selected ESP32-C6 manual, single-channel scope, signed counts and terminal experiments.
 - `docs/TUI.md`: primary terminal interface, keys, source workflow, and dwfv interoperability.
 - `docs/MODEL_FORMAT.md`: the declarative model contract and execution order.
 - `docs/DEVELOPMENT.md`: source layout, build, verification, and extension points.
