@@ -1,4 +1,4 @@
-import { hasTableLayout, popplerLines } from "./layout.js";
+import { hasTableLayout, hasRegisterTable, popplerLines } from "./layout.js";
 import { recognizeDocument } from "./recognize.js";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
@@ -64,42 +64,44 @@ export async function extractPDFFile(input, { onProgress = () => {} } = {}) {
     createdAt: new Date().toISOString(),
   };
   const recognized = recognizeDocument(document);
-  if (
+  const scanFunctions =
     !recognized ||
     !["pio", "pru", "flexio", "udb", "xmos", "etpu"].includes(
       recognized.modelId,
-    )
-  ) {
-    const candidates = document.pages
-      .filter((page) => hasTableLayout(page.text))
-      .slice(0, 32);
-    for (const page of candidates) {
-      onProgress(
-        "Reading function-table layout on PDF page " + page.number + "…",
+    );
+  const functionPages = scanFunctions
+    ? document.pages.filter((page) => hasTableLayout(page.text))
+    : [];
+  const registerPages = document.pages.filter((page) =>
+    hasRegisterTable(page.text),
+  );
+  const candidates = [
+    ...new Set([...functionPages.slice(0, 32), ...registerPages.slice(0, 32)]),
+  ];
+  for (const page of candidates) {
+    onProgress("Reading table layout on PDF page " + page.number + "…");
+    try {
+      const { stdout: xml } = await run(
+        "pdftotext",
+        [
+          "-f",
+          String(page.number),
+          "-l",
+          String(page.number),
+          "-bbox-layout",
+          "-enc",
+          "UTF-8",
+          path,
+          "-",
+        ],
+        { encoding: "utf8", maxBuffer: 8 * 1024 * 1024 },
       );
-      try {
-        const { stdout: xml } = await run(
-          "pdftotext",
-          [
-            "-f",
-            String(page.number),
-            "-l",
-            String(page.number),
-            "-bbox-layout",
-            "-enc",
-            "UTF-8",
-            path,
-            "-",
-          ],
-          { encoding: "utf8", maxBuffer: 8 * 1024 * 1024 },
-        );
-        page.layoutLines = popplerLines(xml);
-      } catch (error) {
-        page.layoutError = "Table geometry unavailable: " + error.message;
-      }
+      page.layoutLines = popplerLines(xml);
+    } catch (error) {
+      page.layoutError = "Table geometry unavailable: " + error.message;
     }
-    if (document.pages.filter((page) => hasTableLayout(page.text)).length > 32)
-      document.tableScanLimit = 32;
   }
+  if (functionPages.length > 32) document.tableScanLimit = 32;
+  if (registerPages.length > 32) document.registerScanLimit = 32;
   return document;
 }

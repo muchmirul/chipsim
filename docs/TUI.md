@@ -75,6 +75,8 @@ Draft review comparison JSON uses `format: "chipsim-trace-comparison"`, version 
 
 Press `c` and choose **Register bank** to enter explicit `NAME ADDRESS MODE RESET MASK` rows or load `@file`. Choose a 1–32-bit word width, before/after synthetic hardware-set ordering, a source page/quote/claim, and assumptions. Invalid row or quote prompts stay available for correction; Ctrl-U clears the current entry. Source checks and generated acceptance cases must pass before installation. This is a developer-authored path for unsupported register manuals, not inferred PDF semantics.
 
+When a supported command-byte/register-map table is found, Register bank first offers its source-derived draft or manual entry. A selected draft prefills byte width, addresses, access labels, known defaults, source page and quote. Unknown resets and all masks remain `?`; replace them with reviewed scenario choices before creation. Choose **Export row draft** to edit a regular row file outside the TUI; existing files are preserved. Reopen the builder and load it with `@file`. These inventories provide structural facts, without inferring GPIO/interrupt or other peripheral side effects.
+
 Use `u` for named addressed reads/writes, `i` or `7` for `set_NAME` injections, `6` for storage changes, and `S`/`M` to save experiments/export models. `reset` is a whole-bank scenario reset; read-to-clear returns the pre-clear word. Hardware set inputs remain asserted until returned to zero. See [REGISTER_BANKS.md](REGISTER_BANKS.md) for masks, ordering, limits, and the real RP2040 scratch-register example.
 
 ## dwfv

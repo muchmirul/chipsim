@@ -361,6 +361,25 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert scratch['trace'][2]['signals']['read_data']==0xDEADBEEF
   assert len(scratch['model']['definition']['registerMap'])==8
   assert scratch['model']['definition']['evidence'][0]['page']==549
+  send('d');wait('Import PDF')
+  send(str(ROOT/'docs/references/ti-tca9534.pdf')+'\r');wait('Loaded TCA9534')
+  send('c');wait('CREATE')
+  send('jjjj\r');wait('REGISTER TABLE')
+  send('j\r');wait('Register bank · simulation name')
+  send('Reviewed command storage\r');wait('Register word width')
+  send('\r');wait('Register rows')
+  send('\r');wait('replace ?')
+  send('Input_Port 0 ro 255 0; Output_Port 1 rw 255 255; Polarity_Inversion 2 rw 0 255; Configuration 3 rw 255 255\r');wait('Synthetic hardware set')
+  send('before\r');wait('Evidence PDF page')
+  send('\r');wait('Exact source excerpt')
+  send('\r');wait('What the excerpt supports')
+  send('\r');wait('Additional assumption')
+  send('Storage only; GPIO and INT side effects omitted; input initialization is a high scenario.\r');wait('Added Reviewed command storage')
+  reviewed=json.loads((Path(workspace)/'models'/'reviewed-command-storage.json').read_text())
+  assert reviewed['registerMap'][1]['address']==1
+  assert reviewed['evidence'][0]['page']==19
+  assert reviewed['evidence'][0]['quote']=='Table 3. Command Byte Table'
+  assert not any(pin['id']=='int_driver' for pin in reviewed['signals'])
   send('q');proc.wait(timeout=5)
   end=time.monotonic()+1
   while time.monotonic()<end and select.select([master],[],[],.05)[0]:
@@ -370,7 +389,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored=termios.tcgetattr(slave)
   assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
   assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, custom behavior-table authoring/retry/revision/full-trace-review/restore, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, hierarchical decoder headers, Q0 retention and steady/transition clock lists, released outputs, addressed access, guided 32-bit register-bank authoring, direct pin editing, and terminal cleanup.')
+  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, custom behavior-table authoring/retry/revision/full-trace-review/restore, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, hierarchical decoder headers, Q0 retention and steady/transition clock lists, released outputs, addressed access, guided 32-bit register-bank authoring, extracted register-table review and unresolved-field rejection, direct pin editing, and terminal cleanup.')
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)

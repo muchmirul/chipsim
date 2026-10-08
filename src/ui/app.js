@@ -1,3 +1,8 @@
+import {
+  readRegisterTables,
+  registerDraftRows,
+} from "../model/register-tables/read.js";
+import { registerInventory } from "./register-tables.js";
 import { analyzeDocument } from "../model/from-document.js";
 import {
   builtinModels,
@@ -294,6 +299,7 @@ async function main() {
           )
           .join("<br>") +
         "</p>";
+    $("document-info").innerHTML += registerInventory(d);
     $("document-search").value = "";
     documentResults();
     if (!$("document-dialog").open) $("document-dialog").showModal();
@@ -390,6 +396,7 @@ async function main() {
                 method: model.method,
                 checks: model.checks.length,
               })),
+              registerTables: analysis.registerTables,
               diagnostics: analysis.diagnostics,
             };
             for (const result of analysis.models)
@@ -672,6 +679,18 @@ async function main() {
   });
   $("close-document").onclick = () => $("document-dialog").close();
   $("document-info").onclick = (e) => {
+    const draft = e.target.closest("[data-register-draft]");
+    if (draft) {
+      const table = readRegisterTables(currentDocument).tables.find(
+        (item) => item.id === draft.dataset.registerDraft,
+      );
+      if (table)
+        download(
+          registerDraftRows(table).replace(/; /g, "\n") + "\n",
+          table.id + ".registers.txt",
+        );
+      return;
+    }
     const button = e.target.closest("[data-document-model]");
     if (button) {
       selectModel(button.dataset.documentModel);

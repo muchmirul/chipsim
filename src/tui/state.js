@@ -506,6 +506,7 @@ export class TuiState {
               method: model.method,
               checks: model.checks.length,
             })),
+            registerTables: analysis.registerTables,
             diagnostics: analysis.diagnostics,
           };
           for (const result of analysis.models)

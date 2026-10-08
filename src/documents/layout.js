@@ -1,5 +1,5 @@
 // Common geometry for Poppler words and PDF.js text items. Rows are retained
-// only on pages with function tables; paragraph extraction remains unchanged.
+// on selected table pages; paragraph extraction remains unchanged.
 export function positionedLines(items) {
   const words = items
     .filter(
@@ -60,3 +60,8 @@ export const hasTableLayout = (text) =>
   hasFunctionTable(text) ||
   /\bPin\s+Functions\b/i.test(text) ||
   /\bTable\s+[\w.-]+\s+Pin\s+description\b/i.test(text);
+
+export const hasRegisterTable = (text) =>
+  /\bTable\s+[\w.-]+\.\s*(?:Command Byte(?: Table)?|Register Map)\b/i.test(
+    text.replace(/\s+/g, " "),
+  );
