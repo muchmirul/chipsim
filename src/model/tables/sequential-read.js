@@ -1,8 +1,5 @@
-export const bits = (value, count) =>
-  Array.from(
-    { length: count },
-    (_, index) => (value >> (count - 1 - index)) & 1,
-  );
+import { bits } from "./shared.js";
+export { bits } from "./shared.js";
 export function nextOutputs(table, previousClock, values, retained) {
   const clock = values[table.clock.index];
   const matched = table.rows.filter((row) =>

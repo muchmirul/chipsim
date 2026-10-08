@@ -1,4 +1,4 @@
-import { numberedLegend } from "./legends.js";
+import { numberedLegend, plainLegend } from "./legends.js";
 const normalized = (text) => text.replace(/\s+/g, " ").trim();
 const caption =
   /\b(?:Table\s+([\w.-]+)[.:]?\s*)?((?:function|truth)\s+table)\b/i;
@@ -8,6 +8,7 @@ const tokens = (line) =>
       const text = cell.text;
       return Array.from(text.matchAll(/\S+/g), (match) => ({
         text: match[0],
+        group: cell,
         x:
           cell.x +
           ((cell.width || text.length) * match.index) /
@@ -21,14 +22,14 @@ const tokens = (line) =>
 const lineText = (line) => line.cells.map((cell) => cell.text).join(" ");
 const signalName = /^[a-zA-Z][a-zA-Z\d_]*$/;
 const boundary =
-  /^(?:\d+(?:\.\d+)*\.?\s+[A-Za-z]|Table\s+\d+|Product data sheet|Product Folder Links:|Copyright\b|www\.)|All information|©/i;
-function parseLayout(page, start) {
+  /^(?:\d+(?:\.\d+)*\.?\s+[A-Za-z]|Table\s+\d+|Rev\.\d|Product data sheet|Product Folder Links:|Copyright\b|www\.)|All information|©/i;
+function parseLayout(page, start, ordinal) {
   const lines = page.layoutLines,
     heading = lineText(lines[start]),
     match = caption.exec(heading);
   const table = {
     page: page.number,
-    number: match[1] || String(start),
+    number: match[1] || "u" + ordinal,
     caption: normalized(heading),
     inputs: [],
     outputs: [],
@@ -84,6 +85,29 @@ function parseLayout(page, start) {
     names = header(lines[nameLine] || { cells: [] }).filter(
       (word) => word.x >= left,
     );
+    // Explicit two-word headings such as "Enable G" are one label, with
+    // whitespace joined for the model identifier. Do not fill unnamed cells.
+    const compound = (word, next) =>
+      next &&
+      /^(?:Enable|Clock|Reset)$/.test(word.text) &&
+      signalName.test(next.text) &&
+      (word.group === next.group ||
+        next.x - word.x - word.width <=
+          Math.max(2, (word.width / word.text.length) * 0.8));
+    names = names.flatMap((word, index, words) => {
+      if (index && compound(words[index - 1], word)) return [];
+      if (compound(word, words[index + 1])) {
+        const next = words[index + 1];
+        return [
+          {
+            ...word,
+            text: word.text + next.text,
+            width: next.x + next.width - word.x,
+          },
+        ];
+      }
+      return [word];
+    });
     split = names.findIndex((name) => name.x + name.width / 2 >= output.x - 2);
     rowStart = nameLine + 1;
   } else {
@@ -128,6 +152,22 @@ function parseLayout(page, start) {
   for (let index = rowStart; index < lines.length; index++) {
     const text = lineText(lines[index]).trim();
     const row = tokens(lines[index]).filter((word) => word.x >= left);
+    if (plainLegend(text)) {
+      if (!table.rawRows.length)
+        return fail("A legend occurs before any table rows.");
+      let note = index;
+      for (; note < Math.min(lines.length, index + 8); note++) {
+        const definition = normalized(lineText(lines[note]));
+        const parsed = plainLegend(definition);
+        if (!parsed) break;
+        if (!parsed.valid)
+          return fail("Symbol definitions must be complete and unqualified.");
+        table.legend += " " + definition;
+      }
+      if (note < lines.length && !boundary.test(lineText(lines[note]).trim()))
+        return fail("Continued or additional legend text requires review.");
+      break;
+    }
     if (/^\(\d{1,2}\)\s+[HLXZ]\s*=/.test(text)) {
       if (!table.rawRows.length)
         return fail("A legend occurs before any table rows.");
@@ -153,7 +193,9 @@ function parseLayout(page, start) {
     // when the row contains words beyond the supported cell vocabulary.
     if (
       (!row.length ||
-        !row.every((word) => /^(?:[HLhlXZ01↑↓]|no|change)$/.test(word.text))) &&
+        !row.every((word) =>
+          /^(?:[HLhlXZ01↑↓]|no|change)$/i.test(word.text),
+        )) &&
       boundary.test(text)
     )
       break;
@@ -178,7 +220,7 @@ function parseLayout(page, start) {
       cells.some(
         (values, index) =>
           values.length > 1 &&
-          !(index >= split && values.join(" ") === "no change"),
+          !(index >= split && /^no change$/i.test(values.join(" "))),
       )
     )
       return fail("Multiple values map to one column.");
@@ -212,7 +254,7 @@ export function readTableLayouts(document) {
     let seen = 0;
     for (let index = 0; index < page.layoutLines.length; index++)
       if (caption.test(lineText(page.layoutLines[index]))) {
-        const result = parseLayout(page, index);
+        const result = parseLayout(page, index, seen + 1);
         if (result.table) tables.push(result.table);
         else diagnostics.push(result.diagnostic);
         if (++seen >= 32) break;

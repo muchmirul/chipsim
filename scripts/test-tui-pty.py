@@ -152,6 +152,22 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert registers['trace'][4]['registers']['configuration0']==240
   assert registers['trace'][8]['signals']['int_driver']==0
   assert registers['trace'][12]['signals']['int_driver']=='Z'
+  send('d');wait('Import PDF')
+  send(str(ROOT/'docs/references/renesas-hd74hc77.pdf')+'\r');wait('HD74HC77 Datasheet')
+  send('t');wait('Go to normalized tick')
+  send('4\r');wait('tick 4/')
+  send('6');wait('signal.pin_data')
+  send('i');wait('DRIVE INPUT')
+  send('\r');wait('1-bit input at tick 4')
+  send('0x1\r');wait('Input pin_data=1')
+  send('x');wait('EXPORT FULL TRACE')
+  send('j\r');wait('Output path')
+  latch_trace=Path(workspace)/'latch-trace.json'
+  send(str(latch_trace)+'\r');wait('Saved '+str(latch_trace))
+  latch=json.loads(latch_trace.read_text())
+  assert latch['trace'][4]['signals']['pin_q']==1
+  assert latch['trace'][10]['signals']['pin_data']==0 and latch['trace'][10]['signals']['pin_q']==1
+  assert latch['model']['definition']['sourceTable']['compiler']=='retained-function-table-v1'
   send('q');proc.wait(timeout=5)
   end=time.monotonic()+1
   while time.monotonic()<end and select.select([master],[],[],.05)[0]:
@@ -161,7 +177,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored=termios.tcgetattr(slave)
   assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
   assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-  print('PTY verified: stepping, formats, register/log views, exports, resize, sourced scenarios, reviewed profiles, combinational/sequential/tri-state tables, shared inputs, retained state, released outputs, direct pin editing, and terminal cleanup.')
+  print('PTY verified: stepping, formats, register/log views, exports, resize, sourced scenarios, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, retained state, released outputs, addressed access, direct pin editing, and terminal cleanup.')
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)

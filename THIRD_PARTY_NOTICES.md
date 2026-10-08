@@ -28,3 +28,7 @@ Build and test tools (esbuild, Prettier, and Playwright) are development depende
 ## Terminal design reference
 
 [dwfv](https://github.com/psurply/dwfv), by Pierre Surply, is an MIT-licensed VCD waveform viewer used as a navigation reference and optional external viewer. ChipSim contains no copied dwfv source and does not bundle its binary. The independently tested revision and interoperability commands are recorded in `docs/TUI.md`.
+
+## Renesas development reference
+
+The unchanged HD74HC77 reference (REJ03D0552-0200, Rev. 2.00, October 2005; official copy with 2010 front matter) is retained in this local development repository with all original notices. Its notice pages require prior written consent for reproduction/duplication; inclusion does not assert general redistribution permission or grant a repository-wide license to this PDF.

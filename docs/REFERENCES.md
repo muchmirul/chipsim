@@ -1,6 +1,6 @@
 # Simulation references
 
-This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All sixteen PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
+This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All seventeen PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
 
 Document revisions below come from document text, rather than PDF modification timestamps. PDF links use one-based viewer page numbers, which may differ from printed page labels. Retrieved on **2026-10-07** unless a later date is listed below.
 
@@ -160,3 +160,13 @@ Exact sizes and SHA-256 checksums are recorded in [manifest.json](references/man
 **Supports:** Register addresses/defaults, read-only input ports, retained output latches, input-only polarity inversion, direction and high-impedance output drivers, independent per-port input interrupt acknowledgment, and output-to-input mismatch behavior.
 
 **Model scope:** One explicitly addressed byte per normalized request-token change, with instantaneous input sampling and uncontended driven outputs following their latches. Input/reset interrupt baselines and default external high levels are explicit scenario choices. No physical I²C, persistent pointer, paired multi-byte transfer, other slaves, ACK/NACK races, analog timing/loading, or documented shared-bus interrupt erratum. The unchanged original retains its final-page development-use notice; see `../THIRD_PARTY_NOTICES.md`.
+
+## HD74HC77 latch function table
+
+- **Version:** REJ03D0552-0200, Rev. 2.00, 6 October 2005; official copy includes the 2010 cover and notices. Retrieved 2026-10-08.
+- **Publisher:** Renesas Electronics.
+- **File:** [renesas-hd74hc77.pdf](references/renesas-hd74hc77.pdf#page=3) (9 complete PDF pages; original notices retained).
+- **Official source:** [HD74HC77 datasheet](https://www.renesas.com/en/document/dst/hd74hc77-datasheet).
+- **Read:** PDF page 3 (printed page 1), Function Table and H/L/X definitions; the description and package diagram are on PDF pages 3–4.
+- **Supports:** One table-level latch with explicit level-sensitive updates and retention. Regression source for data-derived compilation; no part-number or fingerprint rule selects its behavior.
+- **Model scope:** Generic `Data`, `Enable G`, and `Q` columns describe one table instance. No package replication or grouped-enable pin wiring is inferred from the diagram. Initial state and instantaneous normalized evaluation are scenario choices; physical setup/hold, propagation delays, electrical behavior, and other device features are omitted. The reproduction notices remain unchanged; no general redistribution permission is asserted.

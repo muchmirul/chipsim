@@ -261,6 +261,8 @@ Binary-input tables with high-impedance outputs use compiler ID `tri-state-funct
 
 Sequential models use compiler ID `sequential-function-table-v1`. Their input rows can contain `rise`/`fall`, outputs can contain `hold`, and `clock` identifies the input/index and supported edge directions. `symbolRows` preserves original arrows, lowercase set-up symbols, and `no change`. The binary matrix is ordered by previous clock (0, 1), current input combination, then previous output combination; its dimension is `2^(inputs + outputs + 1)` and is capped at 64 entries. The snapshot does not change the executable states or certify source interpretation.
 
+Level-sensitive models use compiler ID `retained-function-table-v1`. Rows use binary/wildcard inputs and binary/`hold` outputs; `symbolRows` preserves the original `No change` spelling. `matrix` exhaustively enumerates current input combinations then prior output combinations (`2^(inputs + outputs)`), without a previous-clock dimension. Bounds are two outputs, eight rows, and 64 combinations; `clock` metadata is not allowed. The executable states apply level rows at tick zero and later steps; the metadata remains a source snapshot, not an interpreter side effect.
+
 ## Optional register transaction adapter
 
 `registerInterface` and `registerMap` let the TUI drive authored register behavior using `u`. They do not implement side effects: executable reads/writes/reset/interrupt rules must remain in `states` with independent acceptance cases and source evidence.

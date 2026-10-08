@@ -557,6 +557,43 @@ test("register-level PDF profile shares source checks, released pins, interrupt 
   await expect(page.locator("#model-title")).toHaveText(spec.name);
 });
 
+test("level-sensitive PDF compiles from complete rows with stable identity, follows enabled data, holds while closed, and persists without a model service", async ({
+  page,
+}) => {
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/renesas-hd74hc77.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await expect(page.locator("#model-title")).toHaveText(
+    "HD74HC77 Datasheet · Function Table",
+  );
+  for (const [tick, value] of [
+    [4, "0x0"],
+    [6, "0x1"],
+    [10, "0x1"],
+  ]) {
+    await page.locator("#seek").fill(String(tick));
+    await page.locator("#seek").dispatchEvent("input");
+    await expect(
+      page.locator(".register-table tr").filter({ hasText: "pin_q" }),
+    ).toContainText(value);
+  }
+  await page.locator("#tab-sources").click();
+  await expect(page.locator("#source-panel")).toContainText("No change");
+  await expect(page.locator("#source-panel")).toContainText("package latches");
+  const spec = JSON.parse(
+    await downloaded(page, () => page.locator("[data-export-model]").click()),
+  );
+  expect(spec.id).toBe("level-table-d12f71d4ad64-p3-tu1");
+  expect(spec.sourceTable.compiler).toBe("retained-function-table-v1");
+  expect(spec.checks).toHaveLength(8);
+  expect(spec.sourceTable.instances).toHaveLength(1);
+  expect(spec.registers).toHaveLength(0);
+  await page.reload();
+  await expect(page.locator("#model-title")).toHaveText(spec.name);
+});
+
 test("real binary function tables compile from PDF layout and display all independent channels", async ({
   page,
 }) => {
