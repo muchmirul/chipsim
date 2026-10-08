@@ -10,6 +10,8 @@ A model provides a common interface: ID, name, summary, scope, fidelity, paramet
 
 `src/model/validate.js` validates the declarative contract. `src/model/engine.js` evaluates bounded expressions and transitions without dynamic code execution. `src/model/stimulus.js` validates timed input events for both models and callers. Imported models must pass acceptance cases before registration; attached documents verify exact evidence quotations and page numbers.
 
+`src/model/profiles/` compiles exact reviewed datasheet versions into JSON models. Imports require the pinned PDF hash, validate cited excerpts against the extracted pages, and run acceptance cases before persistence. The Nexperia 74HC595 profile is the first automatic path for a chip beyond the six architecture examples; existing authored source-linked models take precedence. See `DOCUMENT_PROFILES.md` to extend this registry.
+
 `src/model/templates.js` suggests conservative source excerpts and builds local scenarios using `src/model/builders/`. Counter, FIFO, and shifter rules are explicitly declared assumptions. Source matching confirms provenance, not circuit correctness. The builder validates generated definitions and checks before either interface installs them.
 
 ## Terminal interface
@@ -46,8 +48,8 @@ For behavior beyond the expression language, add a reviewed simulator under `src
 
 - `npm test`: numeric formats, built-in width/ACK combinations and constraints, model execution order, wrapping, provenance, builders, and terminal state/rendering.
 - `npm run test:tui`: real POSIX PTY interaction, raw mode restoration, navigation, numeric inputs, export, resize, and PDF-to-model creation.
-- `npm run verify`: all unit and PTY checks plus eight pinned PDF fingerprints, model coverage, example acceptance cases, and documentation existence. No browser build required.
-- `npm run test:dwfv -- /path/to/dwfv`: optional real VCD parser interoperability for six built-ins and two generated models, including unknown register values.
+- `npm run verify`: all unit and PTY checks plus all pinned PDF fingerprints and reviewed profile checks, model coverage, example acceptance cases, and documentation existence. No browser build required.
+- `npm run test:dwfv -- /path/to/dwfv`: optional real VCD parser interoperability for six built-ins, two generated scenarios, and reviewed datasheet models, including unknown register values.
 - `npm run build && npm run verify:web`: default verification plus the portable browser bundle.
 - `npm run test:ui`: Chromium controls, exports, local PDF extraction/storage, sourced model import/rejection, guided builders, sessions, mobile layout, and offline direct-file use.
 - `npm run format`: Prettier for repository JavaScript, JSON, HTML, and Markdown.

@@ -42,7 +42,9 @@ export function modelsForDocument(document, models) {
   );
   const recognized = recognizeDocument(document);
   if (recognized && !linked.some((model) => model.id === recognized.modelId)) {
-    const builtin = models.find((model) => model.id === recognized.modelId);
+    const builtin = models.find(
+      (model) => model.kind === "builtin" && model.id === recognized.modelId,
+    );
     if (builtin) linked.push(builtin);
   }
   return linked;

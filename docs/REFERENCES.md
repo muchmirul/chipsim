@@ -1,6 +1,6 @@
 # Simulation references
 
-This directory documents the official sources for the current six behavioral models. All eight PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
+This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All nine PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
 
 Document revisions below come from document text, rather than PDF modification timestamps. PDF links use one-based viewer page numbers, which may differ from printed page labels. Retrieved on **2026-10-07**.
 
@@ -107,6 +107,19 @@ Document revisions below come from document text, rather than PDF modification t
 **Supports:** Shared microengine, memory, channels, and hardware-assisted timing.
 
 **Model scope:** ACK capture is evaluated by its timestamp, with a model-defined two-tick service delay. These timing constants are teaching assumptions, not device latency specifications.
+
+## 74HC595 / 74HCT595
+
+- **Profile:** `hc595`, automatically compiled when the exact reviewed PDF is imported.
+- **Version:** Rev. 12, 20 March 2024.
+- **Publisher:** Nexperia.
+- **File:** [nexperia-74hc595.pdf](references/nexperia-74hc595.pdf#page=1) (21 pages).
+- **Official download:** [74HC595 / 74HCT595 datasheet](https://assets.nexperia.com/documents/data-sheet/74HC_HCT595.pdf).
+- **Read:** General description, Figure 4 on PDF page 3, and Table 3 on PDF page 5.
+
+**Supports:** Eight-stage serial shifting, independent storage capture, shift-only reset, simultaneous-clock ordering, and output gating. The compiler retains page citations and runs behavior checks.
+
+**Model scope:** Ideal digital steps with configurable initial scenario values. Retained parallel data and output drive enable are separate signals. Physical delays, voltage thresholds, and electrical high impedance are omitted. Retrieved on **2026-10-08**.
 
 ## File integrity
 

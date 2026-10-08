@@ -1,3 +1,4 @@
+import { documentProfiles } from "../../src/model/profiles/index.js";
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -276,15 +277,13 @@ test("a PDF becomes a counter simulation through the local guided builder", asyn
   page,
 }) => {
   await ready(page);
-  await page
-    .locator("#document-file")
-    .setInputFiles({
-      name: "ExampleDevice.pdf",
-      mimeType: "application/pdf",
-      buffer: pdfFixture(
-        "ExampleDevice reference manual. A 16-bit counter increments when enabled. RESET clears the counter.",
-      ),
-    });
+  await page.locator("#document-file").setInputFiles({
+    name: "ExampleDevice.pdf",
+    mimeType: "application/pdf",
+    buffer: pdfFixture(
+      "ExampleDevice reference manual. A 16-bit counter increments when enabled. RESET clears the counter.",
+    ),
+  });
   await expect(page.locator("#document-dialog")).toBeVisible();
   await page.locator("#document-create-model").click();
   await expect(page.locator("#builder-dialog")).toBeVisible();
@@ -320,15 +319,13 @@ test("builder blocks wrong page evidence and invalid numeric configuration", asy
   page,
 }) => {
   await ready(page);
-  await page
-    .locator("#document-file")
-    .setInputFiles({
-      name: "counter.pdf",
-      mimeType: "application/pdf",
-      buffer: pdfFixture(
-        "Counter manual. A 16-bit counter can count up or down and has enable and reset controls.",
-      ),
-    });
+  await page.locator("#document-file").setInputFiles({
+    name: "counter.pdf",
+    mimeType: "application/pdf",
+    buffer: pdfFixture(
+      "Counter manual. A 16-bit counter can count up or down and has enable and reset controls.",
+    ),
+  });
   await page.locator("#document-create-model").click();
   await page.locator("#builder-value").fill("not-a-number");
   await expect(page.locator("#builder-run")).toBeDisabled();
@@ -349,15 +346,13 @@ test("builder FIFO and shift models run their example stimulus offline", async (
   page,
 }) => {
   await ready(page, "file://" + resolve("chipsim.html"));
-  await page
-    .locator("#document-file")
-    .setInputFiles({
-      name: "logic.pdf",
-      mimeType: "application/pdf",
-      buffer: pdfFixture(
-        "Logic peripheral manual. An 8-bit FIFO stores words. The shifter is an 8-bit shift register.",
-      ),
-    });
+  await page.locator("#document-file").setInputFiles({
+    name: "logic.pdf",
+    mimeType: "application/pdf",
+    buffer: pdfFixture(
+      "Logic peripheral manual. An 8-bit FIFO stores words. The shifter is an 8-bit shift register.",
+    ),
+  });
   await page.locator("#document-create-model").click();
   await page.locator("#builder-kind").selectOption("fifo");
   await page.locator("#builder-name").fill("Local FIFO");
@@ -379,4 +374,89 @@ test("builder FIFO and shift models run their example stimulus offline", async (
   await page.locator("#seek").fill("33");
   await page.locator("#seek").dispatchEvent("input");
   await expect(page.locator(".register-table")).toContainText("0xB3");
+});
+
+test("reviewed real datasheet automatically creates a sourced chip model", async ({
+  page,
+}) => {
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/nexperia-74hc595.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await expect(page.locator("#model-title")).toHaveText("74HC595 / 74HCT595");
+  await expect(page.locator("#model-count")).toHaveText("7");
+  await page.locator("#seek").fill("18");
+  await page.locator("#seek").dispatchEvent("input");
+  await expect(page.locator(".register-table")).toContainText("0xB3");
+  await page.locator("#tab-sources").click();
+  await expect(page.locator("#source-panel")).toContainText(
+    "Initial shift/storage values",
+  );
+  const spec = JSON.parse(
+    await downloaded(page, () => page.locator("[data-export-model]").click()),
+  );
+  expect(spec.id).toBe("hc595");
+  expect(spec.checks).toHaveLength(8);
+  await page.reload();
+  await expect(page.locator("#model-title")).toHaveText(spec.name);
+});
+
+test("automatic browser models preserve ID collisions and compile previously cached PDFs", async ({
+  page,
+}) => {
+  await ready(page);
+  const profile = documentProfiles[0],
+    unrelated = profile.build(profile.source);
+  unrelated.name = "Unrelated authored model";
+  unrelated.sources[0].sha256 = "f".repeat(64);
+  await page
+    .locator("#model-file")
+    .setInputFiles({
+      name: "unrelated.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(unrelated)),
+    });
+  await expect(page.locator("#model-title")).toHaveText(unrelated.name);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/nexperia-74hc595.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await expect(page.locator("#model-title")).toHaveText("74HC595 / 74HCT595");
+  await expect(page.locator("#model-count")).toHaveText("8");
+  await expect(page.locator('[data-model="hc595"]')).toContainText(
+    unrelated.name,
+  );
+  await page.locator("#tab-sources").click();
+  const generated = JSON.parse(
+    await downloaded(page, () => page.locator("[data-export-model]").click()),
+  );
+  expect(generated.id).not.toBe(unrelated.id);
+  // Reproduce a workspace with the PDF cached before its profile was available.
+  await page.evaluate(
+    (id) =>
+      new Promise((resolve, reject) => {
+        const request = indexedDB.open("chipsim-workspace", 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result,
+            tx = db.transaction("models", "readwrite");
+          tx.objectStore("models").delete(id);
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+      }),
+    generated.id,
+  );
+  await page.reload();
+  await expect(page.locator("#model-count")).toHaveText("7");
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/nexperia-74hc595.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await expect(page.locator("#model-title")).toHaveText(generated.name);
+  await expect(page.locator("#model-count")).toHaveText("8");
 });

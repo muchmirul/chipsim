@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+import {
+  compileDocument,
+  documentProfiles,
+} from "../src/model/profiles/index.js";
+import { extractPDFFile } from "../src/documents/extract-node.js";
 import { execFileSync } from "node:child_process";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -43,6 +48,12 @@ try {
       ),
     ),
   ];
+  for (const profile of documentProfiles) {
+    const document = await extractPDFFile(
+      new URL("../" + profile.source.path, import.meta.url).pathname,
+    );
+    models.push(registerModel(compileDocument(document).spec, [document]));
+  }
   for (const model of models) {
     const path = join(directory, model.id + ".vcd");
     await writeFile(

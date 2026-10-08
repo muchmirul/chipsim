@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "retrieved_on": "2026-10-07",
-  "description": "Complete official PDFs cited by the six ChipSim teaching models. Versions are pinned snapshots, not a promise of latest revisions.",
+  "description": "Complete official PDFs cited by ChipSim architecture examples and reviewed document profiles. Versions are pinned snapshots.",
   "documents": [
     {
       "chips": [
@@ -146,6 +146,25 @@
       "relevant_sections": "3 Channel Hardware; 4 Memory; 5 The Microengine",
       "supports": "Shared microengine, memory, channels, and hardware-assisted timing.",
       "model_assumptions": "ACK capture is evaluated by its timestamp, with a model-defined two-tick service delay. These timing constants are teaching assumptions, not device latency specifications."
+    },
+    {
+      "chips": [
+        "hc595"
+      ],
+      "path": "docs/references/nexperia-74hc595.pdf",
+      "title": "74HC595; 74HCT595 product data sheet",
+      "publisher": "Nexperia",
+      "revision": "Rev. 12, 20 March 2024",
+      "source_url": "https://assets.nexperia.com/documents/data-sheet/74HC_HCT595.pdf",
+      "download_url": "https://assets.nexperia.com/documents/data-sheet/74HC_HCT595.pdf?download=1",
+      "retrieved_on": "2026-10-08",
+      "bytes": 338688,
+      "pages": 21,
+      "sha256": "fa24207e780cd8c4cdb9018d67eb83e53ee75578fc126bda6f59f0d84ceb211a",
+      "pdf_start_page": 1,
+      "relevant_sections": "1 General description; 5 Functional diagram; 6.2 Pin description; 7 Functional description, Table 3",
+      "supports": "Eight-stage shifting, independent storage clock, active-low shift reset, simultaneous clock ordering, and output gating.",
+      "model_assumptions": "Ideal digital steps; configured initial values are scenario choices, not guaranteed power-on state. Parallel latch value and output-enable flag are represented separately; analog high impedance, propagation delays, and setup/hold constraints are omitted."
     }
   ]
 }

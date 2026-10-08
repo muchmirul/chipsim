@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { documentProfiles } from "../src/model/profiles/index.js";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -7,10 +8,24 @@ import { TerminalApp } from "../src/tui/app.js";
 import { screenText } from "../src/tui/render.js";
 import { normalizeParameters } from "../src/model/engine.js";
 export async function main(args = process.argv.slice(2)) {
-  const usage = `ChipSim · terminal hardware behavior workbench\nUsage: npm start -- [options]\n  --model pio|pru|flexio|udb|xmos|etpu|model.json\n  --document manual.pdf       Import and associate a source document\n  --dwfv /path/to/dwfv        Optional external viewer command
+  const usage = `ChipSim · terminal hardware behavior workbench\nUsage: npm start -- [options]\n  --model pio|pru|flexio|udb|xmos|etpu|model.json\n  --document manual.pdf       Import, associate, or compile a reviewed datasheet
+  --list-profiles              List reviewed automatic document profiles\n  --dwfv /path/to/dwfv        Optional external viewer command
   --workspace .chipsim        Persistent local workspace directory\n  --params parameters.json    Parameter overrides\n  --inputs events.json        Timed input stimulus\n  --ticks 100                 Duration for document models\n  --snapshot                  Print one terminal frame without a TTY\n  --at 0 --columns 120 --rows 40  Snapshot dimensions and cursor\n  --view wave|inspect|log|sources|model|registers\n  --no-color                  Disable colored text\n  --help                      Show this help\n\nInside the TUI: ? help · m models · p params · d import · c create · q quit.\nOptional waveform viewer: V opens the exported trace in installed dwfv.\n`;
   if (args.includes("--help") || args.includes("-h")) {
     process.stdout.write(usage);
+    return;
+  }
+  if (args.includes("--list-profiles")) {
+    process.stdout.write(
+      "Reviewed automatic document profiles (exact PDF fingerprints):\n" +
+        documentProfiles
+          .map(
+            (profile) =>
+              `${profile.id} · ${profile.name}\n  PDF: ${profile.source.path}\n  SHA-256: ${profile.source.sha256}`,
+          )
+          .join("\n") +
+        "\nOpen with --document PATH. Other documents remain available for guided modeling.\n",
+    );
     return;
   }
   const options = {};

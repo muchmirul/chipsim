@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+import {
+  documentProfiles,
+  compileDocument,
+} from "../src/model/profiles/index.js";
+import { extractPDFFile } from "../src/documents/extract-node.js";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
@@ -23,12 +28,24 @@ for (const source of manifest.documents) {
   );
   assert.match(source.source_url, /^https:\/\//);
   for (const id of source.chips) {
-    assert.ok(builtinModels.some((m) => m.id === id));
+    assert.ok(
+      builtinModels.some((m) => m.id === id) ||
+        documentProfiles.some((profile) => profile.id === id),
+    );
     covered.add(id);
   }
   bytes += data.length;
 }
-assert.equal(paths.size, 8);
+assert.equal(paths.size, manifest.documents.length);
+for (const profile of documentProfiles) {
+  assert.ok(paths.has(profile.source.path));
+  const document = await extractPDFFile(
+    new URL(profile.source.path, root).pathname,
+  );
+  const compiled = compileDocument(document);
+  assert.equal(compiled.spec.id, profile.id);
+  assert.ok(compiled.checks.every((check) => check.passed));
+}
 for (const model of builtinModels) {
   assert.ok(covered.has(model.id));
   assert.ok(model.sources.length);
@@ -44,6 +61,7 @@ for (const file of [
   "docs/DEVELOPMENT.md",
   "docs/MODEL_FORMAT.md",
   "docs/TUI.md",
+  "docs/DOCUMENT_PROFILES.md",
 ])
   assert.ok((await read(file)).length > 100);
 const checkWeb = process.argv.includes("--web");
@@ -73,5 +91,5 @@ if (process.platform === "win32") {
   });
 }
 console.log(
-  `Verified 8 PDF fingerprints (${(bytes / 1048576).toFixed(1)} MiB), model coverage, declarative examples, documentation, engine/builder/TUI checks${checkWeb ? ", and portable browser build" : ""}.`,
+  `Verified ${paths.size} PDF fingerprints (${(bytes / 1048576).toFixed(1)} MiB), model coverage, declarative examples, documentation, engine/builder/TUI checks${checkWeb ? ", and portable browser build" : ""}.`,
 );

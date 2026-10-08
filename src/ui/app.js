@@ -1,3 +1,4 @@
+import { compileDocument } from "../model/profiles/index.js";
 import {
   builtinModels,
   registerModel,
@@ -306,7 +307,7 @@ async function main() {
     $("import-progress").hidden = false;
     try {
       for (const file of files) {
-        const document = await extractPDF(file, {
+        let document = await extractPDF(file, {
           signal: importController.signal,
           onProgress: ({ completed: page, total }) => {
             $("progress-label").textContent =
@@ -315,7 +316,13 @@ async function main() {
           },
           onFirstPages: (document) => {
             const match = recognizeDocument(document);
-            if (match) {
+            if (
+              match &&
+              models.some(
+                (model) =>
+                  model.kind === "builtin" && model.id === match.modelId,
+              )
+            ) {
               selectModel(match.modelId);
               notice(
                 "Recognized " +
@@ -328,12 +335,8 @@ async function main() {
           },
         });
         const existing = documents.find((d) => d.sha256 === document.sha256);
-        if (existing) {
-          notice("This PDF is already in the workspace.");
-          openDocument(existing.id);
-          continue;
-        }
-        documents.push(document);
+        if (existing) document = existing;
+        else documents.push(document);
         const persisted = await saveRecord("documents", document);
         const sourceErrors = [];
         for (let i = 0; i < models.length; i++)
@@ -351,6 +354,23 @@ async function main() {
         library();
         controls();
         rebuild();
+        let compiled = null;
+        if (
+          !models.some(
+            (model) =>
+              model.kind === "document" &&
+              model.sources.some((source) => source.sha256 === document.sha256),
+          )
+        ) {
+          try {
+            compiled = compileDocument(document, {
+              reservedIds: models.map((model) => model.id),
+            });
+            if (compiled) await installModel(compiled.spec);
+          } catch (error) {
+            sourceErrors.push(error.message);
+          }
+        }
         const available = modelsForDocument(document, models);
         const linked =
           available.find((m) => m.kind === "document") || available[0];
@@ -361,7 +381,9 @@ async function main() {
               file.name +
               ". Opened " +
               linked.name +
-              "; the upload does not generate new chip behavior." +
+              (compiled
+                ? "; created from a reviewed local datasheet profile. Inspect scope and assumptions before using the result."
+                : "; the upload does not generate new chip behavior.") +
               (persisted
                 ? ""
                 : " Browser storage is unavailable; export sources to keep this document."),
