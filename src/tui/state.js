@@ -225,8 +225,12 @@ export class TuiState {
         kind === "any"
           ? before !== after
           : kind === "rise"
-            ? after > before
-            : after < before
+            ? typeof before === "number" &&
+              typeof after === "number" &&
+              after > before
+            : typeof before === "number" &&
+              typeof after === "number" &&
+              after < before
       ) {
         this.seek(direction > 0 ? index : index);
         return;

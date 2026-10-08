@@ -1,6 +1,7 @@
 import { positionedLines, hasTableLayout } from "./layout.js";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/build/pdf.mjs";
 import workerSource from "pdfjs-dist/build/pdf.worker.min.mjs";
+import { documentTitle } from "./title.js";
 
 GlobalWorkerOptions.workerSrc = URL.createObjectURL(
   new Blob([workerSource], { type: "text/javascript" }),
@@ -24,7 +25,7 @@ export async function extractPDF(
     id: sha256.slice(0, 24),
     sha256,
     filename: file.name,
-    title: file.name.replace(/\.pdf$/i, ""),
+    title: documentTitle(null, file.name),
     size: file.size,
     pages: [],
     bytes,
@@ -40,11 +41,7 @@ export async function extractPDF(
   document.pageCount = pdf.numPages;
   try {
     const metadata = await pdf.getMetadata();
-    if (
-      typeof metadata.info?.Subject === "string" &&
-      metadata.info.Subject.trim()
-    )
-      document.title = metadata.info.Subject.trim().slice(0, 300);
+    document.title = documentTitle(metadata.info, file.name);
   } catch {
     /* Metadata is optional; text and bytes remain authoritative. */
   }

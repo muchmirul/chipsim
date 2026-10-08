@@ -69,13 +69,19 @@ try {
     );
   }
   for (const model of models) {
-    const path = join(directory, model.id + ".vcd");
-    await writeFile(
-      path,
-      exportVCD(model, model.simulate(defaultParameters(model))),
-    );
+    const path = join(directory, model.id + ".vcd"),
+      trace = model.simulate(defaultParameters(model));
+    await writeFile(path, exportVCD(model, trace));
     const stats = execFileSync(viewer, [path, "--stats"], { encoding: "utf8" });
     assert.match(stats, /signals_/);
+    for (const signal of model.signals.filter((s) => s.triState)) {
+      const released = trace.find((s) => s.signals[signal.id] === "Z");
+      assert.ok(released, "Demonstration must exercise output release");
+      const at = execFileSync(viewer, [path, "--at", String(released.tick)], {
+        encoding: "utf8",
+      });
+      assert.match(at, new RegExp("signals_" + signal.id + ".*h[zZ]+"));
+    }
     console.log(model.id + ": dwfv parsed signals and registers");
   }
   const at = execFileSync(viewer, [join(directory, "pio.vcd"), "--at", "2"], {

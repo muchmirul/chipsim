@@ -118,6 +118,21 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   send('d');wait('Import PDF')
   send(str(ROOT/'docs/references/nexperia-74hc273.pdf')+'\r');wait('74HC273; 74HCT273')
   send('6');wait('signal.pin_mr')
+  send('d');wait('Import PDF')
+  send(str(ROOT/'docs/references/ti-sn74lvc1g125.pdf')+'\r');wait('SN74LVC1G125')
+  send('t');wait('Go to normalized tick')
+  send('4\r');wait('tick 4/')
+  send('6');wait('signal.pin_y')
+  send('x');wait('EXPORT FULL TRACE')
+  send('j\r');wait('Output path')
+  buffer_trace=Path(workspace)/'buffer-trace.json'
+  send(str(buffer_trace)+'\r');wait('Saved '+str(buffer_trace))
+  buffer=json.loads(buffer_trace.read_text())
+  assert buffer['trace'][4]['signals']['pin_y']=='Z'
+  assert buffer['trace'][2]['signals']['pin_y']==1
+  send('i');wait('DRIVE INPUT')
+  send('\r');wait('1-bit input at tick 4')
+  send('0b0\r');wait('Input pin_oe=0')
   send('q');proc.wait(timeout=5)
   end=time.monotonic()+1
   while time.monotonic()<end and select.select([master],[],[],.05)[0]:
@@ -127,7 +142,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored=termios.tcgetattr(slave)
   assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
   assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-  print('PTY verified: stepping, formats, register/log views, exports, resize, sourced scenarios, reviewed profiles, combinational/sequential tables, shared inputs, retained state, direct pin editing, and terminal cleanup.')
+  print('PTY verified: stepping, formats, register/log views, exports, resize, sourced scenarios, reviewed profiles, combinational/sequential/tri-state tables, shared inputs, retained state, released outputs, direct pin editing, and terminal cleanup.')
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)

@@ -67,6 +67,19 @@ Optional `exampleInputs` supplies default demonstration stimulus using the event
 
 Register/signal widths are 1–32 bits. Initial values must fit. Assignment wraps modulo `2 ** width`, including negative arithmetic results. Integer parameter bounds are unsigned safe integers from 0 to `0xFFFFFFFF`. UI fields accept decimal or `0x`/`0b`/`0o` prefixes, but JSON files use ordinary JSON numbers. Enum options and defaults are strings. Set `advanced: true` on a parameter to place it under Advanced controls.
 
+Output signals can optionally declare `"triState": true`. These accept unsigned values of their declared width or literal `"Z"`, including as their initial value. Z releases the entire driver/bus; mixed 0/1/Z vectors are not supported. Inputs and registers remain numeric. Omitted/false `triState` preserves the numeric signal contract. A Z assignment to another target faults; a literal Z initial value or assignment to an undeclared tri-state output rejects validation.
+
+Use a conditional value to gate a driver:
+
+```json
+{
+  "target": "signal.out",
+  "value": { "op": "select", "args": ["param.enabled", "reg.data", "Z"] }
+}
+```
+
+`eq`/`ne` can compare Z explicitly. Arithmetic, bitwise/logical operators, ordering comparisons, and branching conditions reject Z rather than coercing it to zero or true. A selected branch can return Z; unselected branches remain unevaluated. Acceptance cases may expect `"Z"` on a declared tri-state output. Waveforms and CSV/JSON/VCD preserve it (VCD `z` repeated to the bus width). Z represents a released output driver, not a resolved bus voltage; external pulls, contention, floating-node voltage, and analog effects are outside this contract.
+
 Input stimulus can be supplied separately or stored in the model's optional `exampleInputs` array:
 
 ```json
@@ -243,6 +256,8 @@ npm run model -- simulate my-chip.model.json --params parameters.json --inputs e
 ## Optional source table
 
 Automatically compiled binary logic models include `sourceTable` metadata with compiler ID `binary-function-table-v1`, PDF page/caption, input/output column labels, source rows (input `null` means explicit don't-care), exhaustive output matrix, and instantiated signal labels. This snapshot is displayed for review; executable behavior still resides in `states`. Editing the snapshot alone does not alter simulation rules. Its shape and declared-signal mapping are validated before rendering. See `FUNCTION_TABLES.md` for compilation and scope.
+
+Binary-input tables with high-impedance outputs use compiler ID `tri-state-function-table-v1`. Rows/matrix outputs may be 0, 1, or `"Z"`; every instantiated output column that contains Z must map to a declared tri-state output. Input rows remain binary/wildcard values. These tables require explicit Z definitions; unknown outputs and state/clock symbols are not treated as combinational logic.
 
 Sequential models use compiler ID `sequential-function-table-v1`. Their input rows can contain `rise`/`fall`, outputs can contain `hold`, and `clock` identifies the input/index and supported edge directions. `symbolRows` preserves original arrows, lowercase set-up symbols, and `no change`. The binary matrix is ordered by previous clock (0, 1), current input combination, then previous output combination; its dimension is `2^(inputs + outputs + 1)` and is capped at 64 entries. The snapshot does not change the executable states or certify source interpretation.
 

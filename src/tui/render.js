@@ -93,7 +93,11 @@ function waveform(state, height) {
         continue;
       }
       const changed = previous !== undefined && previous !== value;
-      if (signal.width === 1) {
+      if (value === "Z") {
+        top[col] = " ";
+        middle[col] = !col || changed ? "Z" : "·";
+        bottom[col] = " ";
+      } else if (signal.width === 1) {
         top[col] = value ? "─" : changed ? "┐" : " ";
         bottom[col] = value ? (changed ? "┘" : " ") : "─";
         if (changed && value) top[col] = "┌";

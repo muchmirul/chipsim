@@ -1,6 +1,6 @@
 # Simulation references
 
-This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All fourteen PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
+This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All fifteen PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
 
 Document revisions below come from document text, rather than PDF modification timestamps. PDF links use one-based viewer page numbers, which may differ from printed page labels. Retrieved on **2026-10-07** unless a later date is listed below.
 
@@ -137,3 +137,13 @@ These two unchanged Nexperia references, retrieved on **2026-10-08**, test data-
 ## File integrity
 
 Exact sizes and SHA-256 checksums are recorded in [manifest.json](references/manifest.json). Run `node scripts/verify.mjs` from the repository root to check the local copies. The bundled PDFs are reference material; collecting them does not certify that every behavior in the simulation matches hardware.
+
+## SN74LVC1G125 buffer function table
+
+- **Version:** SCES223U, revised August 2026; retrieved 2026-10-08.
+- **Publisher:** Texas Instruments.
+- **File:** [ti-sn74lvc1g125.pdf](references/ti-sn74lvc1g125.pdf#page=11) (52 pages; original bytes and final-page notice preserved).
+- **Official source:** [SN74LVC1G125 data sheet](https://www.ti.com/lit/ds/symlink/sn74lvc1g125.pdf).
+- **Read:** 7.4 Device Functional Modes, Table 7-1 and its input/output symbol footnotes on PDF page 11.
+- **Supports:** One binary-input buffer whose table defines driven HIGH/LOW and released high-impedance Z outputs. This is a regression reference for data-derived compilation, not a part-number or fingerprint rule.
+- **Model scope:** Ideal instantaneous output updates, including tick zero. Z describes released output drivers; external pulls, resolved bus voltage, contention, electrical loads, propagation delay, and other device features are not inferred. Header annotations are accepted only with complete local symbol definitions.
