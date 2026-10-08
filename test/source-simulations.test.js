@@ -141,6 +141,7 @@ test("a cached ESP32-C6 manual offers scope review and creates a selected model 
   await idle(state);
   assert.match(state.menu.title, /CREATE SIMULATION/);
   assert.equal(state.menu.items[0].value.id, "esp32c6-pcnt");
+  assert.equal(state.menu.items[1].value.id, "esp32c6-gpio");
   assert.deepEqual(experiment(state), before);
   assert.deepEqual(await state.workspace.records("models"), savedModels);
   for (const [columns, rows] of [
@@ -172,6 +173,18 @@ test("a cached ESP32-C6 manual offers scope review and creates a selected model 
   const restored = new TuiState({ workspace: state.workspace.path });
   await restored.initialize();
   assert.ok(restored.models.some((model) => model.id === "esp32c6-pcnt"));
+  assert.ok(!restored.models.some((model) => model.id === "esp32c6-gpio"));
+  const oldModel = state.model.spec;
+  await app.sourceSimulations.find(state.document);
+  assert.equal(state.menu.items[1].value.id, "esp32c6-gpio");
+  app.key("j");
+  enter(app);
+  await idle(state);
+  assert.equal(state.modelId, "esp32c6-gpio");
+  assert.deepEqual(
+    state.models.find((model) => model.id === "esp32c6-pcnt").spec,
+    oldModel,
+  );
 });
 
 test("opening the active source simulation preserves the experiment and explicit new copies preserve authored models", async (t) => {

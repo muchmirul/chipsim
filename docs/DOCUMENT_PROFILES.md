@@ -9,7 +9,7 @@ npm start -- --document docs/references/nexperia-74hc595.pdf
 
 Importing a supported PDF with `d` does the same thing. The importer hashes the actual bytes, extracts pages locally, selects an exact matching profile, validates its citations, runs its acceptance cases, saves its JSON definition, and opens the resulting simulation. No model JSON import or builder interaction is required. A source-linked authored model already in the workspace takes precedence, preserving developer edits. An unrelated model with the same ID is retained; the automatic model receives a unique catalog ID.
 
-One manual can have several reviewed peripheral profiles. `profilesForDocument()` returns all exact matches and `compileDocumentProfiles()` compiles all of them while reserving distinct model IDs. `analyzeDocument()` exposes the complete set to both importers. The singular `compileDocument()` accepts `profileId`; it rejects ambiguous selection instead of silently returning the first peripheral. Every selected profile still requires its own scope, citations and checks. ESP32-C6 currently ships only the PCNT channel-0 profile; this registry support does not imply additional peripherals are implemented.
+One manual can have several reviewed peripheral profiles. `profilesForDocument()` returns all exact matches and `compileDocumentProfiles()` compiles all of them while reserving distinct model IDs. `analyzeDocument()` exposes the complete set to both importers. The singular `compileDocument()` accepts `profileId`; it rejects ambiguous selection instead of silently returning the first peripheral. Every selected profile still requires its own scope, citations and checks. ESP32-C6 supplies PCNT channel 0 and GPIO output registers as two independently scoped profiles from one manual.
 
 In the terminal, `o` lists source-linked models and can find supported simulations again from a cached PDF. Finding only previews results; Enter creates one under an unused ID, preserving authored models. The CLI lists all results with `npm run document -- manual.pdf --json`; `--model ID --out selected.model.json` exports a specific result. Without `--model`, `--out` still requires exactly one compilable result.
 
@@ -44,6 +44,12 @@ The abstraction accepts one individually addressed byte per request-token change
 The user-supplied ESP32-C6 TRM v1.2 (20 March 2026) opens a reviewed single-channel PCNT model. It implements signed 16-bit pulse counting, both edge-mode encodings, control keep/reverse/inhibit, pause/clear, and static positive/negative limit clearing. Tick zero establishes pulse history. Raw words and separate sign/magnitude signals preserve negative counts in every numeric format.
 
 The complete PDF is bundled unchanged; its fingerprint, page citations and sixteen acceptance cases gate compilation. Independent mode-table and signed-boundary oracles, both extraction engines, terminal persistence and trace exports check the scope. Channel 1, filters, interrupts/watchpoint latches, MMIO, live limit updates, clock synchronization, other units/peripherals and CPU execution are excluded. See [ESP32_C6_PCNT.md](ESP32_C6_PCNT.md) for the terminal walkthrough and assumptions.
+
+## ESP32-C6 GPIO output registers
+
+The same pinned TRM also compiles `esp32c6-gpio`. Chapter 7 defines OUT/ENABLE, their atomic write-one set/clear aliases, and a preconfigured simple-output path. The model stores bits 0–30, exposes both complete masks and one selectable 0/1/Z logical driver, and uses GPIO-relative offsets with completed 32-bit word transactions. Alias reads are explicitly unsupported, invalid bit 31 is normalized by the adapter, and package routing/electrical behavior are not inferred. Sixteen embedded checks, an independent all-bit BigInt oracle, both extraction engines and terminal/browser workflows cover the scope. See [ESP32_C6_GPIO.md](ESP32_C6_GPIO.md).
+
+A fresh import installs both ESP32 profiles. `o` chooses installed simulations; its explicit Find action adds a selected profile to an older workspace without replacing authored models. Reimport keeps the active linked peripheral selected. This GPIO factory is independent of the I/O-expander core because its enable polarity, word masks, aliases and omissions differ.
 
 ## Shared reviewed GPIO behavior
 

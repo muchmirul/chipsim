@@ -346,7 +346,7 @@
       "model_assumptions": "Completed individually addressed bytes on normalized request-token changes; no physical I2C/SMBus, slave-address pins, command-pointer persistence, repeated bus bytes, ACK interrupt races, delays, supply ramps, pulls/loading or contention. External high starting levels and interrupt reset baseline are explicit scenarios; power_reset abstracts completed POR. Original development-use notices remain; no general redistribution permission is asserted."
     },
     {
-      "chips": ["esp32c6-pcnt"],
+      "chips": ["esp32c6-pcnt", "esp32c6-gpio"],
       "path": "docs/references/espressif-esp32-c6-trm.pdf",
       "title": "ESP32-C6 Technical Reference Manual",
       "publisher": "Espressif Systems",
@@ -358,9 +358,9 @@
       "pages": 1394,
       "sha256": "e08d5b61ebcfa2a78f9735e3f721817cb1dc2df9cf05096d2f0399eaba9f1734",
       "pdf_start_page": 1012,
-      "relevant_sections": "Chapter 31: mode tables pp. 1014-1015; signed counter and control pp. 1015-1016; field definitions pp. 1020-1023",
-      "supports": "One PCNT unit, channel 0: rising/falling-edge count modes, keep/reverse/inhibit control, pause, clear, static signed high/low count limits.",
-      "model_assumptions": "Channel 1 and filtering disabled; ideal sampled levels and pre-run configuration. No MMIO, interrupts/watchpoint latches, live limit updates, GPIO routing, other units/peripherals, CPU or physical timing. Original copyright/notices retained for local development; no general redistribution permission asserted."
+      "relevant_sections": "Chapter 31: PCNT mode tables pp. 1014-1015, counter/control pp. 1015-1016, fields pp. 1020-1023. Chapter 7: GPIO routing pp. 250-251/280, output/enable registers pp. 270-273, package restrictions p. 244",
+      "supports": "Two reviewed scopes: PCNT channel 0 edge/control modes, pause/clear and static signed limits; GPIO OUT/ENABLE latches and their atomic set/clear aliases in a preconfigured simple-output path.",
+      "model_assumptions": "PCNT: channel 1/filtering disabled, ideal levels and static configuration; no MMIO, interrupts/watchpoints or live limits. GPIO: relative addressed completed words, fixed routing, selected logical driver; no inputs, alias readback, package mapping, ETM, open drain or IO MUX programming; invalid bit 31 normalized to zero. Both omit CPU and physical timing. Original copyright/notices retained for local development; no general redistribution permission asserted."
     }
   ]
 }

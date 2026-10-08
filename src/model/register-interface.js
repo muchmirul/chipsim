@@ -71,13 +71,19 @@ export function validateRegisterInterface(
       item.name.length > 160
     )
       fail(path + ".name", "expected a name of 1–160 characters");
-    if (!["ro", "rw"].includes(item.access))
-      fail(path + ".access", "use ro or rw");
+    if (!["ro", "rw", "wo"].includes(item.access))
+      fail(path + ".access", "use ro, rw, or wo");
     const match = /^(reg|signal)\.([a-zA-Z][\w-]*)$/.exec(item.value || "");
     const target =
       match &&
       definitions[match[1] === "reg" ? "registers" : "signals"].get(match[2]);
-    if (
+    if (item.access === "wo") {
+      if (item.value !== undefined)
+        fail(
+          path + ".value",
+          "omit value for a write-only action; no readback is declared",
+        );
+    } else if (
       !target ||
       target.width !== dataWidth ||
       target.triState ||

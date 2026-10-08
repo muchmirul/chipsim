@@ -12,7 +12,9 @@ The original user-supplied copy works too:
 npm start -- --document /home/dev/raspi/esp32-c6_technical_reference_manual_en.pdf
 ```
 
-This opens **one PCNT unit, channel 0**, with channel 1 and filtering disabled. It does not run firmware or simulate the whole SoC. Matching and source checks run locally without an LLM.
+A fresh import also installs [GPIO output registers](ESP32_C6_GPIO.md); `o` selects between them.
+
+PCNT opens **one PCNT unit, channel 0**, with channel 1 and filtering disabled. It does not run firmware or simulate the whole SoC. Matching and source checks run locally without an LLM.
 
 ## Inspect the demonstration
 

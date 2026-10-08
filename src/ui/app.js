@@ -481,7 +481,10 @@ async function main() {
         }
         const available = modelsForDocument(document, models);
         const linked =
-          available.find((m) => m.kind === "document") || available[0];
+          available.find((m) => m.id === compiled?.spec.id) ||
+          available.find((m) => m.kind === "document" && m.id === modelId) ||
+          available.find((m) => m.kind === "document") ||
+          available[0];
         if (linked) {
           selectModel(linked.id);
           notice(
