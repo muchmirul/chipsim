@@ -27,6 +27,11 @@ export function readRegisterRows(text, width) {
       throw new Error(
         prefix + "names must be unique identifiers of 1–32 characters.",
       );
+    if (rawReset === "?" || rawMask === "?")
+      throw new Error(
+        prefix +
+          "replace ? reset/mask fields with reviewed scenario values; the source table did not supply them.",
+      );
     const address = parsePayload(rawAddress)?.value,
       reset = parsePayload(rawReset)?.value,
       mask = parsePayload(rawMask)?.value;

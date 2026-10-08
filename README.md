@@ -73,7 +73,7 @@ The guided builder creates **selected peripheral scenarios**. Word/width suggest
 
 For custom logic/state machines, Behavior table accepts rows such as `idle 01 -> armed / 1` and explicit hold outputs (`=`), with input wildcards (`X`). Enter rows in the TUI or load `@path/to/rules.txt`. Missing combinations and conflicting overlaps reject creation; models retain their source quotations and entered rules. See [behavior-table authoring](docs/BEHAVIOR_TABLES.md) for real-source examples, clock history, and limits. This is a developer-authored path for unsupported manuals.
 
-For register-based peripherals, choose **Register bank** to enter `NAME ADDRESS MODE RESET MASK` rows or load `@file`. It supports masked writes, read-only words, write-one-to-clear/set, read-to-clear, and explicit synthetic event ordering. Use `u` for addressed experiments. See [register-bank authoring](docs/REGISTER_BANKS.md) for modes, limitations, and a real 32-bit RP2040 scratch-storage example.
+For register-based peripherals, supported command-byte tables offer a source-derived row draft under **Register bank**. Addresses, access labels and known defaults are prefilled; missing reset values and masks remain `?` for review. You can export a row template or choose manual entry to enter `NAME ADDRESS MODE RESET MASK` rows or load `@file`. It supports masked writes, read-only words, write-one-to-clear/set, read-to-clear, and explicit synthetic event ordering. Use `u` for addressed experiments. See [register-bank authoring](docs/REGISTER_BANKS.md) for modes, limitations, and a real 32-bit RP2040 scratch-storage example.
 
 Try the automatic document paths:
 

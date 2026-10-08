@@ -1,3 +1,4 @@
+import { readRegisterTables } from "./register-tables/read.js";
 import { recognizeDocument } from "../documents/recognize.js";
 import { compileDocument } from "./profiles/index.js";
 import { readFunctionTables } from "./tables/read.js";
@@ -5,21 +6,29 @@ import { buildFunctionTable } from "./tables/build.js";
 import { buildSequentialTable } from "./tables/sequential-build.js";
 import { buildRetainedTable } from "./tables/retained-build.js";
 export function analyzeDocument(document, { reservedIds = [] } = {}) {
+  const registerInventory = readRegisterTables(document);
+  const registerTables = registerInventory.tables;
   const profile = compileDocument(document, { reservedIds });
   if (profile)
     return {
       models: [{ ...profile, method: "reviewed datasheet profile" }],
-      diagnostics: [],
+      registerTables,
+      diagnostics: registerInventory.diagnostics,
     };
   const recognized = recognizeDocument(document);
   if (
     recognized &&
     ["pio", "pru", "flexio", "udb", "xmos", "etpu"].includes(recognized.modelId)
   )
-    return { models: [], diagnostics: [] };
+    return {
+      models: [],
+      registerTables,
+      diagnostics: registerInventory.diagnostics,
+    };
   const { tables, diagnostics } = readFunctionTables(document),
     models = [],
     reserved = [...reservedIds];
+  diagnostics.push(...registerInventory.diagnostics);
   for (const table of tables)
     try {
       const compiled = (
@@ -47,5 +56,5 @@ export function analyzeDocument(document, { reservedIds = [] } = {}) {
         document.tableScanLimit +
         " pages.",
     });
-  return { models, diagnostics };
+  return { models, registerTables, diagnostics };
 }

@@ -1,3 +1,7 @@
+import {
+  readRegisterTables,
+  registerDraftRows,
+} from "../../src/model/register-tables/read.js";
 import { analyzeDocument } from "../../src/model/from-document.js";
 import { documentProfiles } from "../../src/model/profiles/index.js";
 import { test, expect } from "@playwright/test";
@@ -966,13 +970,11 @@ test("TUI-authored register banks verify a real manual and preserve 32-bit stora
     .locator("#document-file")
     .setInputFiles("docs/references/rp2040-datasheet.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
-  await page
-    .locator("#model-file")
-    .setInputFiles({
-      name: "scratch.model.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(spec)),
-    });
+  await page.locator("#model-file").setInputFiles({
+    name: "scratch.model.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(spec)),
+  });
   await expect(page.locator("#model-title")).toHaveText(spec.name);
   await page.locator("#advanced-controls").click();
   await page.locator("#input-events").fill(
@@ -1012,5 +1014,54 @@ test("TUI-authored register banks verify a real manual and preserve 32-bit stora
   await page.locator("#tab-sources").click();
   await expect(page.locator("#source-panel")).toContainText(
     "Table 549 supports",
+  );
+});
+
+test("register-table inventories match original PDF geometry in both engines and export unresolved review drafts", async ({
+  page,
+}) => {
+  await ready(page);
+  for (const filename of ["ti-tca9534.pdf", "ti-pca9555.pdf"]) {
+    const document = await extractPDFFile(
+      resolve("docs/references/" + filename),
+    );
+    const inventory = readRegisterTables(document);
+    await page
+      .locator("#document-file")
+      .setInputFiles("docs/references/" + filename);
+    await expect(page.locator("#import-progress")).toBeHidden();
+    await page.locator(".document-item").filter({ hasText: filename }).click();
+    await expect(page.locator("#document-info")).toContainText(
+      "Register-table drafts · review required",
+    );
+    await expect(page.locator("#document-info")).toContainText(
+      "not executable simulations",
+    );
+    await page.locator("#document-info summary").click();
+    const rows = await downloaded(page, () =>
+      page.locator("[data-register-draft]").click(),
+    );
+    expect(rows.trim()).toEqual(
+      registerDraftRows(inventory.tables[0]).replace(/; /g, "\n"),
+    );
+    expect(rows).toContain("ro ? ?");
+    expect(rows).toContain("rw 0xFF ?");
+    const bundle = JSON.parse(
+      await downloaded(page, () => page.locator("#export-sources").click()),
+    );
+    const browserDocument = bundle.documents.find(
+      (d) => d.filename === filename,
+    );
+    expect(readRegisterTables(browserDocument)).toEqual(inventory);
+    expect(browserDocument.analysis.registerTables).toEqual(inventory.tables);
+    await page.locator("#close-document").click();
+  }
+  await page.reload();
+  await page
+    .locator(".document-item")
+    .filter({ hasText: "ti-tca9534.pdf" })
+    .click();
+  await expect(page.locator("#document-info")).toContainText(
+    "Register-table drafts · review required",
   );
 });

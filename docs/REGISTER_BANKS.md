@@ -4,6 +4,16 @@ Import a searchable manual with `d`, press `c`, and choose **Register bank**. Th
 
 The builder does not infer a register map or semantics from PDF prose. A matching source quote establishes provenance; generated checks establish consistency with the entered rules. Review every address, width, reset domain, access mode, mask, and ordering rule against the manual before treating the experiment as a device model. Its scope, rules, synthetic events, and omissions remain visible in Model view (`5`) and exported JSON (`M`).
 
+## Extracted register-table drafts
+
+Import also reads supported positioned **Command Byte** and **Register Map** tables into a review inventory. This path currently requires explicit hex address, REGISTER, PROTOCOL, and POWER-UP DEFAULT headings; literal byte addresses; Read byte or Read/write byte access; and complete eight-bit 0/1/X default patterns. Optional CONTROL REGISTER BITS columns must name every descending bit through B0, agree with the literal addresses, and cover every combination. Missing cells, duplicates, unsupported qualifiers/continuations, inconsistent control bits, and ambiguous geometry reject the table rather than filling it.
+
+After `c` → Register bank, choose **Enter rows manually** or a detected source table. Selecting a table prefills its byte width, addresses, access labels, known numeric defaults, source page, and caption quote. A reset containing X remains `?`; every operation mask remains `?`, since the table does not specify writable/clearable masks or side effects. Enter does not bypass these fields: the parser requires explicit reviewed values before creation. The selected table's eight-bit width and source page stay fixed; use manual entry for another width/source. Generated names replace spaces/punctuation with underscores only as editable aliases; conflicting aliases require manual naming.
+
+Use **Export row draft** in the same menu to write a local `.registers.txt` template for editing. Existing files are preserved; choose a new output path. Fill each `?`, review masks/modes against the relevant behavioral sections, and load the file with `@path`. Creating a storage bank from these facts does not reproduce GPIO direction, input inversion, interrupt acknowledgment, command-pointer history, or other peripheral logic. Those need reviewed executable rules, such as the existing GPIO profiles. Edited rows remain developer-entered assumptions, rather than automatic table-derived behavior.
+
+The original TCA9534 and PCA9555 PDFs supply four-row and eight-row regression examples on PDF page 19. Their Input Port defaults remain unknown in the inventory. `npm run document -- manual.pdf --json` includes `registerTables` separately from compiled `models`; `--out` still requires one actual executable model. The optional browser's document dialog displays the same inventory and exports the same unresolved row templates. Both text engines retain geometry for up to 32 register-table pages, independently of the existing function-table scan; scan limits and unsupported tables produce diagnostics. Inventories and row templates are local review data, not simulations.
+
 ## Rows and modes
 
 Choose one word width from 1 to 32 bits for the bank, then enter rows separated by semicolons or load a regular text file with `@path/to/registers.txt`:

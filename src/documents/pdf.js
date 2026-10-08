@@ -1,4 +1,4 @@
-import { positionedLines, hasTableLayout } from "./layout.js";
+import { positionedLines, hasTableLayout, hasRegisterTable } from "./layout.js";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/build/pdf.mjs";
 import workerSource from "pdfjs-dist/build/pdf.worker.min.mjs";
 import { documentTitle } from "./title.js";
@@ -50,7 +50,8 @@ export async function extractPDF(
     throw new Error("The document exceeds 20000 pages.");
   }
   try {
-    let tablePages = 0;
+    let tablePages = 0,
+      registerPages = 0;
     for (let number = 1; number <= pdf.numPages; number++) {
       if (signal?.aborted)
         throw new DOMException("Document extraction canceled", "AbortError");
@@ -68,21 +69,25 @@ export async function extractPDF(
         if (item.hasEOL) text += "\n";
       }
       const extracted = { number, text: text.trim() };
-      if (hasTableLayout(text)) {
-        tablePages++;
-        if (tablePages > 32) document.tableScanLimit = 32;
-        else
-          extracted.layoutLines = positionedLines(
-            content.items
-              .filter((item) => "str" in item)
-              .map((item) => ({
-                text: item.str,
-                x: item.transform[4],
-                y: -item.transform[5],
-                width: item.width,
-              })),
-          );
-      }
+      const functionTable = hasTableLayout(text),
+        registerTable = hasRegisterTable(text);
+      if (functionTable && ++tablePages > 32) document.tableScanLimit = 32;
+      if (registerTable && ++registerPages > 32)
+        document.registerScanLimit = 32;
+      if (
+        (functionTable && tablePages <= 32) ||
+        (registerTable && registerPages <= 32)
+      )
+        extracted.layoutLines = positionedLines(
+          content.items
+            .filter((item) => "str" in item)
+            .map((item) => ({
+              text: item.str,
+              x: item.transform[4],
+              y: -item.transform[5],
+              width: item.width,
+            })),
+        );
       document.pages.push(extracted);
       page.cleanup();
       if (number === Math.min(5, pdf.numPages)) onFirstPages(document);
