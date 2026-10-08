@@ -85,6 +85,7 @@ If a manual does not specify enough behavior, report the gap and offer an explic
 - Draft trace comparisons must use identical experiment parameters, input events, and duration, and leave model, configuration, history, and cursor unchanged. Preserve zero, unavailable values, and Z distinctly. Compare observable state/phase/signals/registers without treating log wording or styling as hardware differences. Identical traces establish only the compared experiment, not whole-model equivalence.
 - CSV, JSON, and VCD describe the same trace. JSON includes model provenance and parameters; VCD time units are normalized ticks, not a claim of nanosecond timing.
 - No LLM integration is requested for this stage. Document bytes and text stay local. Do not introduce model providers, API keys, uploads, telemetry, or background network calls.
+- Version extracted source caches in `documents/cache.js`; upgrade old records on demand from the saved PDF bytes. Require an unchanged fingerprint and valid existing model citations before saving. Replace obsolete scan/analysis data, retain document identity, and preserve authored models, experiment parameters, inputs, history and cursor. Do not install compiled models or rebuild the trace during cache refresh. Missing/changed sources or failed verification must leave the prior cache and experiment intact.
 - Escape all document/model text before HTML rendering. Validate geometry and references before rendering imported models. Do not trust document metadata or imported JSON.
 
 ## Finishing changes

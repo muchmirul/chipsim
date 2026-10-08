@@ -6,6 +6,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { basename, resolve } from "node:path";
 import { documentTitle } from "./title.js";
+import { EXTRACTION_VERSION } from "./cache.js";
 const run = promisify(execFile);
 export async function extractPDFFile(input, { onProgress = () => {} } = {}) {
   const path = resolve(input),
@@ -44,6 +45,7 @@ export async function extractPDFFile(input, { onProgress = () => {} } = {}) {
     );
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   const document = {
+    extractionVersion: EXTRACTION_VERSION,
     id: sha256.slice(0, 24),
     filename: basename(path),
     title: documentTitle(

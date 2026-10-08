@@ -2,6 +2,7 @@ import { positionedLines, hasTableLayout, hasRegisterTable } from "./layout.js";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/build/pdf.mjs";
 import workerSource from "pdfjs-dist/build/pdf.worker.min.mjs";
 import { documentTitle } from "./title.js";
+import { EXTRACTION_VERSION } from "./cache.js";
 
 GlobalWorkerOptions.workerSrc = URL.createObjectURL(
   new Blob([workerSource], { type: "text/javascript" }),
@@ -22,6 +23,7 @@ export async function extractPDF(
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
   const document = {
+    extractionVersion: EXTRACTION_VERSION,
     id: sha256.slice(0, 24),
     sha256,
     filename: file.name,

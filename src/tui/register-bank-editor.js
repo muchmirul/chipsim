@@ -8,6 +8,7 @@ import { parsePayload } from "../core/values.js";
 import { readRegisterRows } from "../model/register-bank/read.js";
 import { buildRegisterBank } from "../model/register-bank/build.js";
 import { textRows, askQuestion, newModelId } from "./authoring.js";
+import { needsDocumentRefresh } from "../documents/cache.js";
 
 export class RegisterBankEditor {
   constructor(app) {
@@ -54,6 +55,20 @@ export class RegisterBankEditor {
     );
   }
   create(document, table = null, selected = false) {
+    if (!selected && needsDocumentRefresh(document))
+      return this.app.task(async () => {
+        const refreshed = await this.app.state.refreshDocument(
+          document.id,
+          (message) => {
+            this.app.state.setMessage(message);
+            this.app.draw();
+          },
+        );
+        this.app.state.setMessage(
+          "Saved PDF refreshed · models and experiment preserved",
+        );
+        this.create(refreshed);
+      });
     const inventory = readRegisterTables(document);
     if (!selected && inventory.tables.length)
       return this.app.menu(

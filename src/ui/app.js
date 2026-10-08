@@ -13,6 +13,7 @@ import packagedModels from "../../.generated/models.js";
 import { parsePayload, formatPayload } from "../core/values.js";
 import { normalizeParameters, validateInputs } from "../model/engine.js";
 import { extractPDF } from "../documents/pdf.js";
+import { needsDocumentRefresh, replaceExtraction } from "../documents/cache.js";
 import {
   recognizeDocument,
   modelsForDocument,
@@ -44,7 +45,8 @@ async function main() {
     currentDocument = null,
     importController = null;
   const settings = new Map(),
-    urls = new Map();
+    urls = new Map(),
+    documentRefreshes = new Map();
   function notice(message, error = false) {
     $("notice").textContent = message;
     $("notice").hidden = false;
@@ -283,14 +285,13 @@ async function main() {
     if (view === "trace") logs();
     if (view === "sources") sources();
   }
-  function openDocument(id) {
-    currentDocument = documents.find((d) => d.id === id);
+  function documentInfo() {
     const d = currentDocument,
       available = modelsForDocument(d, models);
     $("document-title").textContent = d.filename;
     $("document-info").innerHTML =
       `${d.pages.length} pages · ${(d.size / 1048576).toFixed(1)} MiB · ${available.length ? "Existing models: " + available.map((m) => `<button data-document-model="${escape(m.id)}">${escape(m.name)} →</button>`).join(" ") : "No matching simulation yet. Export this source bundle to create a model with a developer or coding agent."}<br><code>SHA-256: ${d.sha256}</code>`;
-    if (d.analysis?.diagnostics.length)
+    if (d.analysis?.diagnostics?.length)
       $("document-info").innerHTML +=
         "<p>" +
         d.analysis.diagnostics
@@ -300,9 +301,78 @@ async function main() {
           .join("<br>") +
         "</p>";
     $("document-info").innerHTML += registerInventory(d);
+  }
+  async function refreshStoredDocument(existing) {
+    if (!documentRefreshes.has(existing.id)) {
+      const refresh = (async () => {
+        if (!existing.bytes)
+          throw new Error(
+            "Saved PDF bytes are unavailable. Import the original PDF again to refresh its source tables.",
+          );
+        const extracted = await extractPDF(
+          new File([existing.bytes], existing.filename, {
+            type: "application/pdf",
+          }),
+        );
+        // A simultaneous explicit import may already have replaced this record.
+        if (!documents.includes(existing))
+          return documents.find((document) => document.id === existing.id);
+        const document = replaceExtraction(existing, extracted),
+          nextDocuments = documents.map((item) =>
+            item === existing ? document : item,
+          );
+        for (const model of models)
+          if (
+            model.kind === "document" &&
+            model.sources.some((source) => source.sha256 === document.sha256)
+          )
+            registerModel(model.spec, nextDocuments);
+        const persisted = await saveRecord("documents", document);
+        documents[documents.indexOf(existing)] = document;
+        library();
+        if (!persisted)
+          notice(
+            "Source tables refreshed for this session. Browser storage is unavailable; export sources to keep them.",
+          );
+        return document;
+      })();
+      documentRefreshes.set(existing.id, refresh);
+    }
+    try {
+      return await documentRefreshes.get(existing.id);
+    } finally {
+      documentRefreshes.delete(existing.id);
+    }
+  }
+  async function openDocument(id) {
+    currentDocument = documents.find((d) => d.id === id);
+    const existing = currentDocument;
+    documentInfo();
     $("document-search").value = "";
     documentResults();
     if (!$("document-dialog").open) $("document-dialog").showModal();
+    if (!needsDocumentRefresh(existing)) return;
+    $("document-info").insertAdjacentHTML(
+      "beforeend",
+      "<p>Refreshing source tables from the saved PDF…</p>",
+    );
+    try {
+      const refreshed = await refreshStoredDocument(existing);
+      if (currentDocument?.id === id) {
+        currentDocument = refreshed;
+        documentInfo();
+        documentResults();
+      }
+    } catch (error) {
+      if (currentDocument?.id === id) {
+        documentInfo();
+        $("document-info").insertAdjacentHTML(
+          "beforeend",
+          `<p>${escape(error.message)}</p>`,
+        );
+      }
+      notice(error.message, true);
+    }
   }
   function documentResults() {
     if (!currentDocument) return;
@@ -355,9 +425,11 @@ async function main() {
             }
           },
         });
+        // Finish pending cache writes before an explicit reimport replaces them.
+        await Promise.allSettled(documentRefreshes.values());
         const existing = documents.find((d) => d.sha256 === document.sha256);
         if (existing) {
-          document = { ...existing, pages: document.pages };
+          document = replaceExtraction(existing, document);
           documents[documents.indexOf(existing)] = document;
         } else documents.push(document);
         const persisted = await saveRecord("documents", document);

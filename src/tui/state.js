@@ -7,6 +7,7 @@ import {
 import { normalizeParameters, validateInputs } from "../model/engine.js";
 import { registerAccessInputs } from "../model/register-access.js";
 import { extractPDFFile } from "../documents/extract-node.js";
+import { needsDocumentRefresh, replaceExtraction } from "../documents/cache.js";
 import { modelsForDocument, searchDocument } from "../documents/recognize.js";
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -459,6 +460,39 @@ export class TuiState {
     );
     return backup;
   }
+  async refreshDocument(id, onProgress = () => {}) {
+    const existing = this.documents.find((document) => document.id === id);
+    if (!existing) throw new Error("Saved reference document was not found.");
+    if (!needsDocumentRefresh(existing)) return existing;
+    if (!existing.filePath)
+      throw new Error(
+        "Saved PDF is unavailable. Import the original PDF with d to refresh its source tables.",
+      );
+    let extracted;
+    try {
+      extracted = await extractPDFFile(existing.filePath, { onProgress });
+    } catch (error) {
+      if (error.code === "ENOENT")
+        throw new Error(
+          "Saved PDF is missing. Restore it or import the original PDF with d to refresh its source tables.",
+        );
+      throw error;
+    }
+    const document = replaceExtraction(existing, extracted),
+      documents = this.documents.map((item) =>
+        item === existing ? document : item,
+      );
+    // Preflight citations without reinstalling models or resetting experiments.
+    for (const model of this.models)
+      if (
+        model.kind === "document" &&
+        model.sources.some((source) => source.sha256 === document.sha256)
+      )
+        registerModel(model.spec, documents);
+    const saved = await this.workspace.saveDocument(document);
+    this.documents[this.documents.indexOf(existing)] = saved;
+    return saved;
+  }
   async loadFile(path, onProgress = () => {}) {
     path = resolve(path);
     if (/\.pdf$/i.test(path)) {
@@ -466,11 +500,9 @@ export class TuiState {
       const existing = this.documents.find(
         (d) => d.sha256 === extracted.sha256,
       );
-      const document = await this.workspace.saveDocument({
-        ...extracted,
-        filename: existing?.filename || extracted.filename,
-        createdAt: existing?.createdAt || extracted.createdAt,
-      });
+      const document = await this.workspace.saveDocument(
+        existing ? replaceExtraction(existing, extracted) : extracted,
+      );
       if (existing) this.documents[this.documents.indexOf(existing)] = document;
       else this.documents.push(document);
       this.documentId = document.id;

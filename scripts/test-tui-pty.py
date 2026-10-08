@@ -13,11 +13,11 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
  captured=''
  def frame():
   return ANSI.sub('',captured[captured.rfind('\x1b[H'):]).replace('\r','')
- def wait(text,timeout=8):
+ def wait(text,timeout=8,absent=None):
   global captured
   end=time.monotonic()+timeout
   while time.monotonic()<end:
-   if text in frame():return frame()
+   if text in frame() and (absent is None or absent not in frame()):return frame()
    if select.select([master],[],[],.05)[0]:
     try:chunk=os.read(master,65536)
     except OSError:break
@@ -389,7 +389,30 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored=termios.tcgetattr(slave)
   assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
   assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, custom behavior-table authoring/retry/revision/full-trace-review/restore, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, hierarchical decoder headers, Q0 retention and steady/transition clock lists, released outputs, addressed access, guided 32-bit register-bank authoring, extracted register-table review and unresolved-field rejection, direct pin editing, and terminal cleanup.')
+  # An older workspace gains register geometry on demand after restarting.
+  cache_path=next(path for path in (Path(workspace)/'documents').glob('*.json') if json.loads(path.read_text())['filename']=='ti-tca9534.pdf')
+  cached=json.loads(cache_path.read_text())
+  cached.pop('extractionVersion',None)
+  cached.pop('analysis',None)
+  for page in cached['pages']:page.pop('layoutLines',None)
+  cache_path.write_text(json.dumps(cached))
+  captured=''
+  proc=subprocess.Popen([NODE,'scripts/chipsim.mjs','--workspace',workspace,'--model','reviewed-command-storage','--no-color'],cwd=ROOT,stdin=slave,stdout=slave,stderr=slave,close_fds=True)
+  wait('Reviewed command storage')
+  send('ll');wait('tick 2/')
+  send('c');wait('CREATE')
+  send('jjjj\r');wait('REGISTER TABLE')
+  refreshed=json.loads(cache_path.read_text())
+  assert refreshed['extractionVersion']==1
+  assert refreshed['sha256']==cached['sha256']
+  assert next(page for page in refreshed['pages'] if page['number']==19)['layoutLines']
+  assert json.loads((Path(workspace)/'models'/'reviewed-command-storage.json').read_text())==reviewed
+  send('\x1b');wait('tick 2/',absent='REGISTER TABLE')
+  send('q');proc.wait(timeout=5)
+  assert proc.returncode==0
+  restored=termios.tcgetattr(slave)
+  assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
+  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, custom behavior-table authoring/retry/revision/full-trace-review/restore, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, hierarchical decoder headers, Q0 retention and steady/transition clock lists, released outputs, addressed access, guided 32-bit register-bank authoring, extracted register-table review and unresolved-field rejection, old-workspace refresh after restart, direct pin editing, and terminal cleanup.')
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)
