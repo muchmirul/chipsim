@@ -1,5 +1,4 @@
-import { open, readFile, writeFile } from "node:fs/promises";
-import { constants } from "node:fs";
+import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { parsePayload } from "../core/values.js";
 import {
@@ -7,40 +6,11 @@ import {
   readBehaviorTable,
 } from "../model/behavior-table/read.js";
 import { buildBehaviorTable } from "../model/behavior-table/build.js";
-import { modelId } from "../model/builders/sourced.js";
+import { textRows, askQuestion, newModelId } from "./authoring.js";
 import { behaviorDraft } from "../model/behavior-table/authoring.js";
 import { TraceReview } from "./trace-review.js";
 
-export async function behaviorRows(value) {
-  if (!value.trim().startsWith("@")) return value;
-  const path = value.trim().slice(1),
-    unquoted = /^(['"]).*\1$/.test(path) ? path.slice(1, -1) : path,
-    file = await open(
-      resolve(unquoted),
-      constants.O_RDONLY | constants.O_NONBLOCK,
-    );
-  try {
-    const info = await file.stat();
-    if (!info.isFile() || info.size > 65536)
-      throw new Error("Rules must be a regular text file of at most 64 KiB.");
-    const bytes = Buffer.alloc(65537);
-    let length = 0;
-    while (length < bytes.length) {
-      const read = await file.read(
-        bytes,
-        length,
-        bytes.length - length,
-        length,
-      );
-      if (!read.bytesRead) break;
-      length += read.bytesRead;
-    }
-    if (length > 65536) throw new Error("Rules file exceeds 64 KiB.");
-    return bytes.subarray(0, length).toString("utf8");
-  } finally {
-    await file.close();
-  }
-}
+export const behaviorRows = (value) => textRows(value);
 
 // Terminal authoring only. Rule semantics/provenance/checks live in model/.
 export class BehaviorTableEditor {
@@ -148,33 +118,7 @@ export class BehaviorTableEditor {
     ];
   }
   ask(question, options, value, next) {
-    const app = this.app,
-      state = app.state;
-    let pending;
-    app.prompt(
-      question.label,
-      value,
-      (text) =>
-        app.task(async () => {
-          try {
-            options[question.key] = question.parse
-              ? await question.parse(text)
-              : text;
-          } catch (error) {
-            state.prompt = pending;
-            pending.error = error.message;
-            throw error;
-          }
-          return next();
-        }),
-      {
-        allowEmpty: question.allowEmpty,
-        help:
-          question.help ||
-          "Developer-authored rows are not inferred from the PDF. Check the cited source and declare omissions; entered-rule checks do not prove hardware fidelity.",
-      },
-    );
-    pending = state.prompt;
+    return askQuestion(this.app, question, options, value, next);
   }
   create(document) {
     const app = this.app,
@@ -202,14 +146,7 @@ export class BehaviorTableEditor {
     next(0);
   }
   newId(name) {
-    const base = modelId(name);
-    let id = base,
-      suffix = 2;
-    while (this.app.state.models.some((model) => model.id === id)) {
-      const tail = "-" + suffix++;
-      id = base.slice(0, 64 - tail.length) + tail;
-    }
-    return id;
+    return newModelId(this.app.state, name);
   }
   edit() {
     const state = this.app.state,
