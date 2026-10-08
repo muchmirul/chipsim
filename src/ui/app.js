@@ -15,6 +15,7 @@ import {
 } from "../documents/recognize.js";
 import { saveRecord, records } from "../documents/store.js";
 import { exportCSV, exportJSON, exportVCD, download } from "../trace/export.js";
+import { createModelBuilder } from "./creator.js";
 import { escape, inspect, waveform, logRows } from "./render.js";
 
 async function main() {
@@ -53,7 +54,7 @@ async function main() {
     if (!settings.has(m.id))
       settings.set(m.id, {
         parameters: defaultParameters(m),
-        inputs: [],
+        inputs: structuredClone(m.exampleInputs || []),
         duration: m.duration || 100,
       });
     return settings.get(m.id);
@@ -388,8 +389,11 @@ async function main() {
   async function importModel(file) {
     if (file.size > 2 * 1048576)
       throw new Error("Model JSON must be under 2 MiB.");
-    const spec = JSON.parse(await file.text()),
-      registered = registerModel(spec, documents);
+    await installModel(JSON.parse(await file.text()));
+    $("model-file").value = "";
+  }
+  async function installModel(spec) {
+    const registered = registerModel(spec, documents);
     const index = models.findIndex((m) => m.id === registered.id);
     if (index >= 0) models[index] = registered;
     else models.push(registered);
@@ -604,6 +608,15 @@ async function main() {
   $("model-file").onchange = guarded(
     () => $("model-file").files[0] && importModel($("model-file").files[0]),
   );
+  const builder = createModelBuilder({
+    getDocuments: () => documents,
+    getModels: () => models,
+    onCreate: installModel,
+  });
+  $("document-create-model").onclick = guarded(() => {
+    $("document-dialog").close();
+    builder.open(currentDocument);
+  });
   $("close-document").onclick = () => $("document-dialog").close();
   $("document-info").onclick = (e) => {
     const button = e.target.closest("[data-document-model]");

@@ -19,7 +19,7 @@ A ChipSim model describes a bounded behavior scenario. It is JSON data interpret
 | `assumptions`              | Nonempty array separating assumed behavior from source facts               |
 | `checks`                   | At least one executable acceptance case                                    |
 
-Optional `duration` sets the default run length to 1–10,000 ticks. The default is 100. IDs start with a letter and contain letters, digits, `_`, or `-`, up to 64 characters. `constructor`, `prototype`, and `__proto__` are forbidden. IDs must be unique within each collection. The six built-in catalog IDs (`pio`, `pru`, `flexio`, `udb`, `xmos`, `etpu`) are reserved.
+Optional `exampleInputs` supplies default demonstration stimulus using the event format below. Optional `duration` sets the default run length to 1–10,000 ticks. The default is 100. IDs start with a letter and contain letters, digits, `_`, or `-`, up to 64 characters. `constructor`, `prototype`, and `__proto__` are forbidden. IDs must be unique within each collection. The six built-in catalog IDs (`pio`, `pru`, `flexio`, `udb`, `xmos`, `etpu`) are reserved.
 
 ## Parameters, signals, registers
 
@@ -67,7 +67,7 @@ Optional `duration` sets the default run length to 1–10,000 ticks. The default
 
 Register/signal widths are 1–32 bits. Initial values must fit. Assignment wraps modulo `2 ** width`, including negative arithmetic results. Integer parameter bounds are unsigned safe integers from 0 to `0xFFFFFFFF`. UI fields accept decimal or `0x`/`0b`/`0o` prefixes, but JSON files use ordinary JSON numbers. Enum options and defaults are strings. Set `advanced: true` on a parameter to place it under Advanced controls.
 
-Input stimulus is supplied separately from the model:
+Input stimulus can be supplied separately or stored in the model's optional `exampleInputs` array:
 
 ```json
 [
@@ -76,7 +76,7 @@ Input stimulus is supplied separately from the model:
 ]
 ```
 
-Only input signals can be driven; each value must fit its width. Events apply before actions at that absolute tick and hold until changed. Events are sorted by tick; events for the same tick preserve supplied order. The last event for a signal at a tick wins. Values outside the simulated duration are not applied. At most 10,000 events are allowed.
+Only input signals can be driven; each value must fit its width. Events apply before actions at that absolute tick and hold until changed. Events are sorted by tick; events for the same tick preserve supplied order. The last event for a signal at a tick wins. Values outside the simulated duration are not applied. At most 10,000 events are allowed. The TUI, browser, and simulation CLI use `exampleInputs` unless the caller supplies stimulus; an explicit empty array disables the demonstration events. Acceptance cases use only their own `inputs` (or none) and never inherit demonstration stimulus.
 
 ## Expressions and actions
 
@@ -104,9 +104,10 @@ An expression object has exactly an operator name and an argument array:
 | `eq`, `ne`, `lt`, `le`, `gt`, `ge` | Strict equality/inequality and comparisons                               |
 | `and`, `or`, `not`                 | Boolean result; all supplied argument expressions are evaluated          |
 | `bitAnd`, `bitOr`, `bitXor`        | Unsigned 32-bit bitwise operations                                       |
+| `select`                           | Conditional value; evaluates only the selected branch                    |
 | `shiftLeft`, `shiftRight`          | Unsigned 32-bit shifts; JavaScript's low-five-bit shift-count convention |
 
-`not` takes one argument; every other operator takes two. Expressions are limited to 16 levels of nesting. Arithmetic results written to a register or signal must be safe integers or booleans. Use numerical operands for arithmetic; type errors or unsafe results stop the run with a fault snapshot.
+`select` takes three arguments: condition, true branch, false branch. Only the selected branch is evaluated. `not` takes one argument; other operators take two. Expressions are limited to 16 levels of nesting. Arithmetic results written to a register or signal must be safe integers or booleans. Use numerical operands for arithmetic; type errors or unsafe results stop the run with a fault snapshot.
 
 Actions assign declared registers/output signals, or emit a log message:
 
@@ -238,6 +239,10 @@ Validate and simulate from the terminal:
 npm run model -- validate my-chip.model.json --sources manual.sources.json
 npm run model -- simulate my-chip.model.json --params parameters.json --inputs events.json --ticks 100 --format csv --out trace.csv
 ```
+
+## Guided scenario creation
+
+Press `c` with a PDF loaded in the TUI to configure a counter, FIFO, or shift-transfer model. The builder checks the cited page and exact excerpt, generates a schema-version-1 definition with explicit assumptions and demonstration inputs, and runs acceptance cases before saving. See `docs/TUI.md` for each scenario's rules. A suggested keyword or bit width is a review aid, not a proof of the modeled behavior.
 
 ## Limits and extensions
 

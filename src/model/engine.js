@@ -1,4 +1,6 @@
-import { operators, ModelError, validateModel } from "./validate.js";
+import { validateInputs } from "./stimulus.js";
+export { validateInputs } from "./stimulus.js";
+import { operators, validateModel } from "./validate.js";
 
 export function evaluate(expr, context) {
   if (typeof expr === "string") {
@@ -13,6 +15,11 @@ export function evaluate(expr, context) {
   }
   if (!expr || typeof expr !== "object") return expr;
   if (!operators.has(expr.op)) throw new Error(`Unknown operator ${expr.op}`);
+  if (expr.op === "select")
+    return evaluate(
+      expr.args[evaluate(expr.args[0], context) ? 1 : 2],
+      context,
+    );
   const [a, b] = expr.args.map((arg) => evaluate(arg, context));
   switch (expr.op) {
     case "add":
@@ -85,34 +92,6 @@ export function normalizeParameters(definitions, supplied = {}) {
   return result;
 }
 
-export function validateInputs(signals, inputs) {
-  if (!Array.isArray(inputs) || inputs.length > 10000)
-    throw new Error("Input events must be an array with at most 10000 entries");
-  return inputs
-    .map((event) => {
-      const signal = signals.find(
-        (signal) => signal.id === event.signal && signal.direction === "input",
-      );
-      if (!signal) throw new Error(`Unknown input signal ${event.signal}`);
-      if (
-        !Number.isSafeInteger(event.tick) ||
-        event.tick < 0 ||
-        event.tick > 10000
-      )
-        throw new Error("Input event tick must be between 0 and 10000");
-      if (
-        !Number.isSafeInteger(event.value) ||
-        event.value < 0 ||
-        event.value >= 2 ** signal.width
-      )
-        throw new Error(
-          `Invalid ${signal.width}-bit input value for ${signal.id}`,
-        );
-      return { tick: event.tick, signal: event.signal, value: event.value };
-    })
-    .sort((a, b) => a.tick - b.tick);
-}
-
 export function changesBetween(previous, current) {
   const changes = [];
   for (const kind of ["signals", "registers"])
@@ -139,7 +118,10 @@ export function simulateModel(model, supplied = {}, options = {}) {
   const ticks = options.ticks ?? model.duration ?? 100;
   if (!Number.isInteger(ticks) || ticks < 1 || ticks > 10000)
     throw new Error("Duration must be 1-10000 ticks");
-  const inputs = validateInputs(model.signals, options.inputs || []),
+  const inputs = validateInputs(
+      model.signals,
+      options.inputs ?? model.exampleInputs ?? [],
+    ),
     states = new Map(model.states.map((s) => [s.id, s]));
   const context = {
     tick: 0,

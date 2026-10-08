@@ -1,3 +1,4 @@
+import { validateInputs } from "./stimulus.js";
 const identifier = /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/;
 const forbidden = new Set(["__proto__", "prototype", "constructor"]);
 export const operators = new Set([
@@ -20,6 +21,7 @@ export const operators = new Set([
   "bitXor",
   "shiftLeft",
   "shiftRight",
+  "select",
 ]);
 
 export class ModelError extends Error {
@@ -171,7 +173,7 @@ export function validateModel(model, documents = []) {
       fail(path, "expected a literal, reference, or {op,args}");
       return;
     }
-    const arity = expr.op === "not" ? 1 : 2;
+    const arity = expr.op === "not" ? 1 : expr.op === "select" ? 3 : 2;
     if (expr.args.length !== arity)
       fail(path + ".args", `expected ${arity} arguments`);
     expr.args.forEach((arg, i) =>
@@ -347,6 +349,12 @@ export function validateModel(model, documents = []) {
         `Evidence ${item.id}: attach ${source.filename || source.title || source.id} to verify the quote.`,
       );
   }
+  if (model.exampleInputs !== undefined)
+    try {
+      validateInputs(signals, model.exampleInputs);
+    } catch (error) {
+      fail("exampleInputs", error.message);
+    }
   if (errors.length) throw new ModelError(errors);
   return { model, warnings };
 }

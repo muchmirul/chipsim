@@ -83,10 +83,10 @@ export function exportVCD(model, trace) {
   let previous = null;
   for (const snapshot of trace) {
     const changes = variables.flatMap((variable, index) => {
-      const value = snapshot[variable.kind][variable.id] ?? 0;
+      const value = snapshot[variable.kind][variable.id];
       if (previous && previous[variable.kind][variable.id] === value) return [];
       return [
-        `b${(Math.trunc(value) >>> 0).toString(2).padStart(variable.width, "0")} ${code(index)}`,
+        `b${value === undefined ? "x".repeat(variable.width) : (Math.trunc(value) >>> 0).toString(2).padStart(variable.width, "0")} ${code(index)}`,
       ];
     });
     if (changes.length) lines.push("#" + snapshot.tick, ...changes);

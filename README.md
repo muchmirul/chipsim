@@ -1,102 +1,122 @@
 # ChipSim
 
-ChipSim is a local workbench for understanding chip behavior through architecture diagrams, waveforms, registers, and execution traces. It includes six behavioral examples: **RP2040 PIO, TI PRU, NXP FlexIO, PSoC UDB, XMOS xCORE, and NXP eTPU**, plus a format for adding document-backed simulations.
+ChipSim is a **terminal workbench** for understanding chip behavior through waveforms, hardware blocks, registers, and execution traces. It includes RP2040 PIO, TI PRU, NXP FlexIO, PSoC UDB, XMOS xCORE, and NXP eTPU examples, and supports adding document-backed models.
 
-## Start
+## Start the TUI
 
 Use Node.js 22.13 or newer:
 
 ```sh
 cd /home/dev/chipsim
-npm ci
-npm run build
 npm start
 ```
 
-Open **http://127.0.0.1:8000**. Alternatively, open the generated **`chipsim.html`** directly in a modern browser. The portable file includes the app and PDF worker; no CDN, account, or model service is needed. Keep `docs/references/` beside it to open the bundled reference PDFs. Vendor PDF links are also recorded in the reference documentation.
+The terminal app uses Node's built-in modules; it needs no browser, model service, or Rust installation. PDF import uses Poppler's `pdfinfo` and `pdftotext`. A terminal of at least **80 columns × 24 rows** is recommended. Press **`?`** for help and **`q`** to quit.
 
-For development, use `npm run dev`. It rebuilds JavaScript on changes and serves the app. Rebuild or restart after changing packaged model JSON. If opening `index.html` directly, run the build first so its generated script exists.
+Open a manual or model directly:
 
-## Use the workbench
+```sh
+npm start -- --document path/to/manual.pdf
+npm start -- --model examples/timer.model.json
+npm start -- --model pio --params parameters.json --inputs events.json
+```
 
-1. Select a model, set its parameters, and choose **Run**, **Step**, or **Next event**. Drag the tick slider to inspect any point. Space toggles playback; arrow keys step when focus is outside a control.
-2. Inspect the active hardware blocks, signal values, and registers. Highlighted register rows changed during that tick. The waveform shows the full trace with a cursor at the selected tick.
-3. Open **Trace & log** for state changes, events, and before/after values. Filter by event or register name, show changes only, or click a row to seek to it. The log shows history through the current tick, with the latest 500 matching rows displayed.
-4. Export the full primary-model trace as **CSV**, **JSON**, or **VCD**. JSON includes parameters, stimulus, sources, and assumptions. VCD can be loaded in waveform viewers; its nominal `1ns` unit represents one normalized model tick and is not silicon timing.
-5. Use **Save session** / **Open saved session** to preserve the primary model, parameters, stimulus, display format, and cursor. A custom primary model is included in the session JSON; PDF bytes are not included.
+The local workspace defaults to `.chipsim/` in the current directory. PDFs, extracted text, and imported models persist there; it is Git-ignored. Use `--workspace /path/to/workspace` to choose another location. Saved sessions and model JSON can also be loaded with `d`.
 
-Integer inputs accept `179`, `0xB3`, `0b10110011`, or `0o263`. Plain numbers are decimal. **Display as** changes register and payload presentation without changing their values or moving the cursor. Built-in transfers use the low 8 or 12 payload bits; for example, decimal `300` sends decimal `44` in an 8-bit frame.
+## Main controls
 
-**Advanced controls** exposes resource constraints, ACK delay and polling budget, and timed input events. Events are absolute normalized ticks and hold their signal value:
+| Key                | Action                                                                    |
+| ------------------ | ------------------------------------------------------------------------- |
+| `1`–`6`, Tab       | Waveforms, hardware blocks, log, source text, model details, registers    |
+| `h` / `l`, arrows  | Move one tick; move PDF page in Sources                                   |
+| `j` / `k`, arrows  | Select signal, log row, or register; scroll source/model text             |
+| Space, `r`         | Run/pause; reset                                                          |
+| `w`, `e`, `b`      | Next rising edge, next falling edge, previous rising edge                 |
+| `[`, `]`, `t`      | Previous/next model change; jump to a tick                                |
+| `+`, `-`, `=`, `z` | Zoom in/out, fit the trace, center cursor                                 |
+| `m`, `p`, `a`, `T` | Choose model, edit parameters, load stimulus, set document-model duration |
+| `F`, `f`           | Cycle numeric display; find a selected signal value                       |
+| `/`, `n`, `N`      | Search/filter; repeat signal/source search                                |
+| `d`, `c`           | Import PDF/model/session; create a sourced peripheral scenario            |
+| `x`, `S`, `M`, `B` | Export trace, save session, export model JSON, export source bundle       |
+| `V`                | Open the current trace in installed `dwfv`                                |
+| `?`, Esc, `q`      | Help, close a prompt/menu, quit                                           |
+
+The full register view includes before/after changes. The log supports filtering, changes-only mode (`C`), and seeking with Enter. Model details show scope, assumptions, references, and implementation recipes. Source text keeps one-based PDF page numbers and supports search.
+
+Integer inputs accept `179`, `0xB3`, `0b10110011`, or `0o263`. Plain digit strings are decimal. `F` changes presentation without changing values or moving the cursor. Built-in transfers use the low 8 or 12 payload bits; decimal `300` sends decimal `44` in an 8-bit frame.
+
+Input events drive a signal at an absolute normalized tick and hold their value:
 
 ```json
 [{ "tick": 35, "signal": "ack", "value": 1 }]
 ```
 
-An empty event list uses the built-in ACK controls. A nonempty list takes over ACK stimulus. For document models, use their declared input signal names and choose a duration of 1–10,000 ticks. **Compare** shares parameters and stimulus between the six built-in examples; other models use their own saved settings or defaults. Exports cover the primary model.
+Use `a` to enter a single-line JSON array or load an events file. Empty stimulus uses the built-in ACK controls. Parameter editing includes resource constraints, ACK delay, and polling budget. Custom models use their declared inputs; FIFO and shifter scenarios include an initial demonstration stimulus.
 
-## Add a datasheet or reference manual
+## From a manual to a simulation
 
-Click **Add datasheet**, or drop a searchable PDF into the app. ChipSim extracts its text and preserves page numbers and a SHA-256 fingerprint. The workspace supports search, opening the original PDF at a page, and exporting source text for a developer or coding agent.
+1. Press `d` and enter the PDF path. ChipSim extracts searchable text locally, preserves page numbers, and fingerprints the PDF.
+2. A manual with an installed matching model opens that model after source verification. Recognized vendor manuals also open their corresponding existing example.
+3. For a new manual, inspect/search Sources (`4`, `/`) and press `c`. Choose **counter/timer**, **FIFO**, or **shift transfer**, then select a source excerpt.
+4. Configure width, direction, depth, or compare behavior. Cite the PDF page and exact excerpt, explain its relevance, and declare additional assumptions. The generated model must pass its acceptance cases and quote checks before it is saved and opened.
+5. Run it in the same waveform, register, and log interface. Press `5` to review the selected rules and `M` to export editable model JSON.
 
-A manual with an installed document-backed model opens that model after source verification. A recognized vendor manual also opens its corresponding **existing example**. It does not infer every feature of that chip. An unfamiliar manual opens a source workspace; creating its executable behavior still requires a developer or coding agent to author a model. **There is no LLM integration or automatic interpretation of arbitrary datasheets in this version.**
+The guided builder creates **selected peripheral scenarios**. Word/width suggestions are text matches, not automatic chip interpretation. Register addresses, detailed bus semantics, clock domains, analog behavior, and unmodeled chip features are not inferred from arbitrary PDFs. All chosen scenario rules remain explicit assumptions for review. **No LLM integration is present.**
 
-To add a new simulation:
+For behavior beyond these builders, export the sources with `B`, then use [AGENTS.md](AGENTS.md) and [docs/MODEL_FORMAT.md](docs/MODEL_FORMAT.md) to author a custom JSON model. Import it with `d`. Missing PDFs produce unverified-source warnings; a mismatching attached page/quote rejects the model.
 
-1. Import the manual and select **Export sources for agent**.
-2. Give the source bundle, [AGENTS.md](AGENTS.md), and [model format](docs/MODEL_FORMAT.md) to the developer or agent implementing the peripheral scenario.
-3. Create model JSON with parameters, signals, registers, hardware nodes, state transitions, assumptions, exact page citations, and acceptance checks.
-4. Import it with **Import model**. ChipSim validates its structure, runs its acceptance checks, and checks quoted evidence against attached PDF text. Missing PDFs produce an explicit unverified-source warning; a mismatching attached quote rejects the model.
-5. Inspect and simulate it through the same workbench as the supplied examples.
+PDFs are limited to 80 MiB and must have searchable text; scanned PDFs need OCR first. Keep exported models/source bundles when moving between machines. The TUI workspace and browser storage are separate.
 
-Try importing [examples/timer.model.json](examples/timer.model.json). It demonstrates counter, compare, enable, and reset behavior. Its scenario is explicitly illustrative. Import the bundled NXP FlexIO application note as well to verify its source quote. To include a model in every build, put its JSON under `models/` and rebuild.
+## DWFV reference and interoperability
 
-PDFs and imported models persist in this browser's IndexedDB. Different browsers/origins have separate workspaces. Private browsing, browser cleanup, or storage limits can erase it; keep exported source bundles and model files. There is no document sync or backend. Image-only PDFs need OCR before import. Imports are limited to 80 MiB per PDF and 2 MiB per model JSON.
+[dwfv](https://github.com/psurply/dwfv) informed the vi-style navigation and waveform controls. ChipSim implements its own terminal interface around the simulation engine; it also exports standard VCD for dwfv. No dwfv source code is bundled.
 
-## Command-line workflow
-
-PDF extraction requires Poppler (`pdfinfo`, `pdftotext`):
+To use its viewer, install it using the upstream instructions, then press `V`. A custom build can be selected with:
 
 ```sh
+npm start -- --dwfv /path/to/dwfv
+```
+
+VCD's nominal `1ns` unit represents **one normalized model tick**, not physical nanosecond timing. Unarmed registers export as unknown values. See [docs/TUI.md](docs/TUI.md) for controls, workspace behavior, and the verified upstream revision.
+
+## Developer commands
+
+```sh
+npm ci
+npm test
+npm run test:tui
+npm run verify
 npm run extract -- path/to/manual.pdf manual.sources.json
 npm run model -- validate examples/timer.model.json --sources manual.sources.json
 npm run model -- simulate examples/timer.model.json --ticks 40 --format vcd --out timer.vcd
 ```
 
-Simulation also accepts `--params parameters.json` and `--inputs events.json`. Numeric values in these JSON files use ordinary JSON numbers. Model JSON has a bounded expression language; it cannot run JavaScript.
+Use `--params parameters.json` and `--inputs events.json` for command-line simulation. The model language is bounded JSON data and cannot execute JavaScript. Put validated JSON under `models/` to include it in the terminal catalog.
+
+A noninteractive terminal frame is useful in scripts:
+
+```sh
+npm start -- --snapshot --model pio --at 2 --view registers --columns 120 --rows 40
+```
+
+The optional browser frontend remains available with `npm run build` followed by `npm run web`; `npm run dev:web` watches its JavaScript. `npm start` always launches the TUI. Browser checks use `npm run test:ui`; install their test browser with `npx playwright install chromium`.
 
 ## Repository
 
 ```text
-index.html                  HTML shell
-src/
-  core/                     Numeric formats and shared transfer protocol
-  models/builtins/           Six architecture implementations
-  models/                   Catalog and implementation recipes
-  model/                    Declarative model validator and interpreter
-  documents/                PDF extraction, recognition, search, local storage
-  trace/                    CSV, JSON, and VCD exports
-  ui/                       Workbench controls, diagrams, waveforms, logs, CSS
-models/                     Optional packaged model JSON
-examples/                   Importable timer model example
-scripts/                    Build, local server, extraction, model CLI, verifier
-test/                       Engine regressions and browser workflow checks
-docs/references/            Eight complete official vendor PDFs and manifest
-docs/                       Model format, development guide, reference index
-AGENTS.md                   Instructions for developers and coding agents
-chipsim.html                Generated portable app, ignored by Git
+src/tui/                    Terminal state, controls, rendering, disk workspace
+src/core/                   Numeric formats and shared transfer protocol
+src/models/                 Six architecture modules and model catalog
+src/model/                  Declarative interpreter, validator, scenario builders
+src/documents/              Local PDF extraction, recognition, search, storage
+src/trace/                  CSV, JSON, and VCD exports
+src/ui/                     Optional browser frontend
+models/, examples/          Packaged/importable model JSON
+scripts/                    TUI entry, model CLI, extraction, build, checks
+test/                      Engine, terminal, and browser tests
+docs/references/            Eight complete official PDFs and fingerprint manifest
+AGENTS.md                   Developer and coding-agent instructions
 ```
 
-## Verification and scope
-
-```sh
-npm test
-npm run build
-npm run verify
-npx playwright install chromium
-npm run test:ui
-```
-
-These are behavioral models of selected mechanisms and scenarios. One tick is a semantic model step. Source quotes and passing acceptance cases help review a model; neither proves hardware accuracy. This workbench does not consume RTL, implement a complete CPU, predict physical area/power, or replace device validation.
-
-Read [development notes](docs/DEVELOPMENT.md), [reference documents](docs/REFERENCES.md), and [third-party notices](THIRD_PARTY_NOTICES.md) for implementation and vendor-document provenance.
+These are behavioral models of selected mechanisms. Source quotes and acceptance cases help review a model; neither proves silicon accuracy. ChipSim does not consume RTL, reconstruct a complete chip automatically, or predict physical area/power. See [development notes](docs/DEVELOPMENT.md), [reference documents](docs/REFERENCES.md), and [third-party notices](THIRD_PARTY_NOTICES.md).

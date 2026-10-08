@@ -225,22 +225,18 @@ test("uploading a manual opens its installed sourced model after verification", 
     claim: "Counter increments while enabled.",
   };
   await ready(page);
-  await page
-    .locator("#model-file")
-    .setInputFiles({
-      name: "counter.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(spec)),
-    });
+  await page.locator("#model-file").setInputFiles({
+    name: "counter.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(spec)),
+  });
   await expect(page.locator("#model-title")).toHaveText(spec.name);
   await page.locator('[data-model="pio"]').click();
-  await page
-    .locator("#document-file")
-    .setInputFiles({
-      name: "exampledevice.pdf",
-      mimeType: "application/pdf",
-      buffer: bytes,
-    });
+  await page.locator("#document-file").setInputFiles({
+    name: "exampledevice.pdf",
+    mimeType: "application/pdf",
+    buffer: bytes,
+  });
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toHaveText(spec.name);
   await expect(page.locator("#document-dialog")).toBeHidden();
@@ -257,13 +253,11 @@ test("an attached manual rejects a previously unverified mismatching model safel
   spec.evidence[0].quote =
     "This statement is absent from the actual vendor reference.";
   await ready(page);
-  await page
-    .locator("#model-file")
-    .setInputFiles({
-      name: "bad-source.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(spec)),
-    });
+  await page.locator("#model-file").setInputFiles({
+    name: "bad-source.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(spec)),
+  });
   await expect(page.locator("#model-count")).toHaveText("7");
   await page
     .locator("#document-file")
@@ -276,4 +270,113 @@ test("an attached manual rejects a previously unverified mismatching model safel
   await expect(page.locator("#model-title")).toHaveText("NXP FlexIO");
   await page.locator("#step").click();
   await expect(page.locator("#tick-label")).toHaveText("1 / 59");
+});
+
+test("a PDF becomes a counter simulation through the local guided builder", async ({
+  page,
+}) => {
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles({
+      name: "ExampleDevice.pdf",
+      mimeType: "application/pdf",
+      buffer: pdfFixture(
+        "ExampleDevice reference manual. A 16-bit counter increments when enabled. RESET clears the counter.",
+      ),
+    });
+  await expect(page.locator("#document-dialog")).toBeVisible();
+  await page.locator("#document-create-model").click();
+  await expect(page.locator("#builder-dialog")).toBeVisible();
+  await expect(page.locator("#builder-width")).toHaveValue("16");
+  await expect(page.locator("#builder-status")).toContainText(
+    "4 acceptance checks passed",
+  );
+  await page.locator("#builder-name").fill("ExampleDevice timer");
+  await page.locator("#builder-value").fill("0x03");
+  await page.locator("#builder-run").click();
+  await expect(page.locator("#builder-dialog")).toBeHidden();
+  await expect(page.locator("#model-title")).toHaveText("ExampleDevice timer");
+  await expect(page.locator("#model-count")).toHaveText("7");
+  await page.locator("#step").click();
+  await page.locator("#step").click();
+  await page.locator("#step").click();
+  await expect(page.locator(".register-table")).toContainText("0x1");
+  await page.locator("#tab-sources").click();
+  await expect(page.locator("#source-panel")).toContainText(
+    "Source quotations verify textual provenance",
+  );
+  await expect(page.locator("#source-panel")).toContainText("page 1");
+  const exported = JSON.parse(
+    await downloaded(page, () => page.locator("[data-export-model]").click()),
+  );
+  expect(exported.parameters[0].default).toBe(3);
+  expect(exported.sources[0].sha256).toHaveLength(64);
+  await page.reload();
+  await expect(page.locator("#model-title")).toHaveText("ExampleDevice timer");
+});
+
+test("builder blocks wrong page evidence and invalid numeric configuration", async ({
+  page,
+}) => {
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles({
+      name: "counter.pdf",
+      mimeType: "application/pdf",
+      buffer: pdfFixture(
+        "Counter manual. A 16-bit counter can count up or down and has enable and reset controls.",
+      ),
+    });
+  await page.locator("#document-create-model").click();
+  await page.locator("#builder-value").fill("not-a-number");
+  await expect(page.locator("#builder-run")).toBeDisabled();
+  await expect(page.locator("#builder-status")).toContainText(
+    "whole default value",
+  );
+  await page.locator("#builder-value").fill("3");
+  await page
+    .locator("#builder-quote")
+    .fill("A statement not present in this PDF.");
+  await expect(page.locator("#builder-run")).toBeDisabled();
+  await expect(page.locator("#builder-status")).toContainText(
+    "quote does not occur",
+  );
+});
+
+test("builder FIFO and shift models run their example stimulus offline", async ({
+  page,
+}) => {
+  await ready(page, "file://" + resolve("chipsim.html"));
+  await page
+    .locator("#document-file")
+    .setInputFiles({
+      name: "logic.pdf",
+      mimeType: "application/pdf",
+      buffer: pdfFixture(
+        "Logic peripheral manual. An 8-bit FIFO stores words. The shifter is an 8-bit shift register.",
+      ),
+    });
+  await page.locator("#document-create-model").click();
+  await page.locator("#builder-kind").selectOption("fifo");
+  await page.locator("#builder-name").fill("Local FIFO");
+  await page.locator("#builder-depth").fill("2");
+  await page.locator("#builder-run").click();
+  await expect(page.locator("#model-title")).toHaveText("Local FIFO");
+  await page.locator("#step").click();
+  await page.locator("#step").click();
+  await page.locator("#step").click();
+  await expect(page.locator(".current-event")).toContainText("overflow");
+  await page.locator(".document-item").click();
+  await page.locator("#document-create-model").click();
+  await page.locator("#builder-kind").selectOption("shifter");
+  await page.locator("#builder-name").fill("Local shifter");
+  await page.locator("#builder-direction").selectOption("msb");
+  await page.locator("#builder-value").fill("0xB3");
+  await page.locator("#builder-run").click();
+  await expect(page.locator("#model-title")).toHaveText("Local shifter");
+  await page.locator("#seek").fill("33");
+  await page.locator("#seek").dispatchEvent("input");
+  await expect(page.locator(".register-table")).toContainText("0xB3");
 });

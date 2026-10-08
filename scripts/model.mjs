@@ -34,7 +34,7 @@ try {
         : defaultParameters(model),
       inputs = option("inputs")
         ? JSON.parse(await readFile(option("inputs"), "utf8"))
-        : [];
+        : model.exampleInputs || [];
     const trace = model.simulate(parameters, {
       ticks: option("ticks") ? Number(option("ticks")) : undefined,
       inputs,

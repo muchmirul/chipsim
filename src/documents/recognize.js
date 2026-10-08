@@ -69,7 +69,7 @@ export function sourceBundle(documents) {
     format: "chipsim-source-bundle",
     version: 1,
     createdAt: new Date().toISOString(),
-    documents: documents.map(({ bytes, ...document }) => document),
+    documents: documents.map(({ bytes, filePath, ...document }) => document),
     instructions:
       "Use AGENTS.md and docs/MODEL_FORMAT.md to build a sourced behavioral model. Preserve PDF page numbers and SHA-256. Import the resulting model JSON into ChipSim; do not assume that a datasheet specifies every internal behavior.",
   };

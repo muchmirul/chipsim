@@ -5,6 +5,7 @@ ChipSim is a local hardware behavior workbench. Keep the six supplied architectu
 ## Read first
 
 - `README.md`: user workflow, setup, and current limits.
+- `docs/TUI.md`: primary terminal interface, keys, source workflow, and dwfv interoperability.
 - `docs/MODEL_FORMAT.md`: the declarative model contract and execution order.
 - `docs/DEVELOPMENT.md`: source layout, build, verification, and extension points.
 - `docs/REFERENCES.md`: pinned vendor PDFs and model scope.
@@ -17,25 +18,28 @@ Use Node.js 22.13 or newer:
 
 ```sh
 npm ci
-npm run build
+npm start
 npm test
 npm run verify
-npm run dev
 ```
 
-For changes affecting UI, document import, exports, or offline behavior, also run:
+`npm start` and `npm run dev` launch the TUI. The default verification checks all engine/builder/terminal unit tests, real PTY interaction, and pinned vendor sources. PDF import requires Poppler's `pdfinfo` and `pdftotext`; the PTY test requires Python 3 on POSIX.
+
+For terminal changes, inspect the affected view at 80×24 and 120×40, and run `npm run test:tui`. For browser changes, also run:
 
 ```sh
+npm run build
+npm run verify:web
 npx playwright install chromium
 npm run test:ui
 ```
 
-The development server listens on `127.0.0.1:8000`. `npm run dev` rebuilds JavaScript and writes the portable HTML. After adding or changing packaged JSON under `models/`, restart it or run `npm run build` again. Open the app and inspect the affected view at desktop and mobile sizes for layout changes.
+The optional browser server is `npm run web` at `127.0.0.1:8000`; `npm run dev:web` watches and rebuilds it. Restart the watcher after changing packaged model JSON. Keep simulations, parameters, stimulus, source verification, and export formats shared between interfaces.
 
 ## Creating a simulation from a manual
 
 1. Define a useful, bounded peripheral scenario: e.g. FIFO transfer, counter match, interrupt acknowledgment. A PDF is a source, not an executable hardware model.
-2. Extract the supplied manual using the app's **Export sources for agent**, or `npm run extract -- manual.pdf manual.sources.json`. The CLI requires Poppler's `pdfinfo` and `pdftotext`. Preserve the PDF SHA-256 and **one-based PDF page numbers**, including front matter.
+2. Extract the supplied manual using `B` in the TUI, the browser's **Export sources for agent**, or `npm run extract -- manual.pdf manual.sources.json`. The CLI requires Poppler's `pdfinfo` and `pdftotext`. Preserve the PDF SHA-256 and **one-based PDF page numbers**, including front matter.
 3. Read the relevant sections, reset values, register widths, ordering rules, peripheral diagrams, and errata if supplied. Use exact short quotes and cite their PDF page. Do not fabricate sources, bit fields, addresses, internal structures, timings, or reset behavior.
 4. Author a schema-version-1 JSON model following `docs/MODEL_FORMAT.md`. Use `examples/timer.model.json` as a syntax example. Its timer rules are explicitly illustrative; do not copy its assumptions as vendor facts.
 5. Declare what is modeled, what is omitted, and which behavior is an assumption. Distinguish vendor-specified behavior from a developer-selected test scenario. Keep normalized ticks separate from physical cycles.
@@ -47,7 +51,7 @@ The development server listens on `127.0.0.1:8000`. `npm run dev` rebuilds JavaS
    npm run model -- simulate path/to/chip.model.json --ticks 100 --format json --out trace.json
    ```
 
-8. Import the PDF and model JSON in the browser. Confirm that source verification succeeds, inspect transitions and register changes, and export a trace. A quote match proves textual provenance; it does not prove the interpretation or silicon accuracy.
+8. Import the PDF and model JSON with `d` in the TUI (and in the browser if browser behavior changed). Confirm that source verification succeeds, inspect transitions and register changes, and export a trace. A quote match proves textual provenance; it does not prove the interpretation or silicon accuracy.
 9. For a checked-in model, put JSON under `models/`, rerun the build, and add focused tests. Check redistribution terms before checking in a new vendor PDF. Add reference provenance to the manifest and notices when appropriate; preserve existing PDF bytes and hashes.
 
 If a manual does not specify enough behavior, report the gap and offer an explicit configurable assumption. Do not claim that an invented model was generated accurately from the datasheet.
@@ -55,6 +59,8 @@ If a manual does not specify enough behavior, report the gap and offer an explic
 ## Architecture and invariants
 
 - `src/models/builtins/` holds the six original mechanisms; shared protocol behavior is in `src/core/`.
+- `src/tui/` owns terminal state, controller, rendering, and workspace persistence. Keep ANSI/control characters from imported text out of rendered terminal output; restore raw mode and the cursor on exit or external-viewer handoff.
+- `src/model/templates.js` and `src/model/builders/` provide guided, sourced peripheral scenarios. Their generated rules are explicit assumptions, not inferred vendor behavior.
 - `src/model/validate.js` is the authoritative model validator. `src/model/engine.js` interprets bounded expressions and state transitions. Imported models are data: never execute embedded JavaScript, `eval`, or dynamic functions.
 - Input events drive **input** signals only, before a model step, and hold values until changed. Actions can write declared registers and output signals only.
 - Actions execute in order; values wrap at their declared width. At most one transition is taken per tick. Terminal states latch, while externally driven signals remain observable.
