@@ -10,13 +10,25 @@ Views are:
 
 1. **Waveforms**: signal shapes, cursor, selected value, compact register summary, and current event. `j/k` selects a signal and scrolls the visible signal list.
 2. **Hardware blocks**: active resources, live node values, and connections. A resource marked ACTIVE participated at the selected tick. `j/k` scrolls the block grid when it exceeds the terminal height.
-3. **Log**: all trace events, with changes-only mode on by default. `/` filters by state/event/register text; uppercase `C` toggles changes-only. Select a row and Enter seeks to its tick.
+3. **Log**: all trace events, with changes-only mode on by default. `/` filters by state/event/register text; uppercase `C` toggles changes-only. Select a row and Enter seeks to its tick and opens complete step details.
 4. **Sources**: the imported PDF's text by original PDF page. `h/l` changes pages, `j/k` scrolls, `/` searches, `n/N` cycles matching pages. Enter chooses a cached PDF or imports the first bundled source when no document is loaded.
 5. **Model**: scope, assumptions, parameters, source fingerprints, evidence quotations, warnings, and implementation recipe. `j/k` scrolls.
 6. **Registers**: every signal/register and its change at this tick. `j/k` selects, `/` filters, and `h/l` moves the timeline.
 7. **Input stimulus**: explicit scheduled pin events, values, hold intervals, and events outside the current trace. `j/k` selects a row; Enter opens edit/move/remove/seek actions. `i` schedules an event at a chosen tick. `/` filters pin names or tick numbers; `F` changes numeric presentation.
 
 Prompts accept Enter for their displayed default. Type a value to replace it; Backspace deletes, Ctrl-U clears, and Esc cancels. Boolean and enum parameters have menus. Integer parameters support decimal, hexadecimal, binary, and octal. Released output drivers display `Z` in every numeric format. Waveforms show labeled middle/dotted segments; `f` accepts `Z` for tri-state output search. Rising/falling edge jumps require numeric levels; any-change navigation includes releases and re-enables. `i` opens input-pin editing at the cursor. Select a pin, enter a decimal/hex/binary/octal value, and its outputs/logs/waveforms are recomputed while preserving the cursor. It replaces an existing event for that pin/tick and keeps other scheduled events. Values hold until the pin's next event. Invalid widths or simulation faults keep the previous trace and stimulus. `S` saves the edited stimulus with a session. Long or multiline input stimulus should be loaded from a JSON file with `a`.
+
+## Reading waveforms and step details
+
+Bus labels stay inside their constant-value segment. A complete shorter spelling, such as `0xB3` instead of `0x000000B3`, can appear when space is limited; it represents the same value and base. If no complete label fits, `…` marks the segment. Press `+` to zoom in, `-` to zoom out, and `=` to fit. The selected signal's exact value remains below the waveforms, and `6` lists exact values at the cursor.
+
+When a terminal column covers multiple ticks with different values, `≋` marks that column. A short pulse or a release/re-enable cannot silently become a flat level through downsampling. This marker does not specify the number or ordering of transitions; zoom in or step to inspect them. `x` denotes unavailable data inside the trace, `Z` a released driver, and blank space lies outside the trace. The cursor does not overwrite a numeric label or hide a mixed-value marker. These are display conventions, not new simulated logic states.
+
+Press **Enter** in Waveforms, Hardware blocks, or Registers to inspect the current step. In Log, Enter selects that row's tick and opens the same view. It pauses playback and shows the full event message, any fault/detail text, changed values at their declared widths, explicit scheduled inputs in order, and the step's source citations. Long messages, identifiers and values wrap without losing text. `j/k` or arrows scroll, PageUp/PageDown move a page, and Home/End or `0/$` jump to the beginning/end. `[` and `]` inspect the previous/next changed tick. `F` changes the numeric base. Esc, Enter or `q` closes the details without editing the experiment.
+
+For register-interface models, details identify the mapped offset, operation, write data or accepted read result, and the model's adapter status. An ignored/rejected read does not present the previous `read_data` as a new result. Register effects remain defined by the model; the inspector does not infer them from names. At tick zero, the request level is only an initialization baseline.
+
+Press `s` in details to choose a step citation and open its exact page in an already-loaded PDF. Missing PDFs leave the details open with an import hint; steps without individual citations say so. Model view (`5`) still supplies the overall references and assumptions. Inspection leaves parameters, stimulus, history and exported trace data unchanged; navigating explicitly moves the cursor.
 
 ## Input stimulus timeline
 

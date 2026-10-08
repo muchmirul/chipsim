@@ -38,6 +38,7 @@ The local workspace defaults to `.chipsim/` in the current directory. PDFs, extr
 | `i`                | Drive an input pin at the cursor                                         |
 | `u`                | Read/write an addressed register at the next tick                        |
 | `U`, `R`           | Undo/redo an input or register experiment                                |
+| Enter              | Inspect full step details; in Log, seek the selected event               |
 | `F`, `f`           | Cycle numeric display; find a selected signal value                      |
 | `/`, `n`, `N`      | Search/filter; repeat signal/source search                               |
 | `d`, `c`           | Import PDF/model/session; create a sourced peripheral scenario           |
