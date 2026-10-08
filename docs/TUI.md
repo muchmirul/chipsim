@@ -81,12 +81,14 @@ Older workspaces refresh their extracted source data from the saved PDF when you
 
 Use `u` for named addressed reads/writes, `i` or `7` for `set_NAME` injections, `6` for storage changes, and `S`/`M` to save experiments/export models. `reset` is a whole-bank scenario reset; read-to-clear returns the pre-clear word. Hardware set inputs remain asserted until returned to zero. See [REGISTER_BANKS.md](REGISTER_BANKS.md) for masks, ordering, limits, and the real RP2040 scratch-register example.
 
+For the supplied ESP32-C6 manual, see [the PCNT channel-0 walkthrough](ESP32_C6_PCNT.md). Importing it opens a bounded signed pulse-count experiment; parameters configure edges, control modes and limits. Other ESP32-C6 blocks are not simulated.
+
 ## dwfv
 
 Reference: https://github.com/psurply/dwfv. Reviewed revision: `fe89ba62d8ddcf95f8476d6b8a8c5714f1a64b6f` (Cargo version 0.5.0). Its upstream code is MIT licensed; no source code from it is copied into ChipSim.
 
 The reference informed `h/j/k/l`, edge navigation, cursor positioning, zoom, and search. ChipSim implements these around its simulation state and source workspace. Press uppercase `V` to export the current trace and launch an installed `dwfv`. Quit its viewer to return to ChipSim. For a custom executable use `--dwfv /path/to/dwfv` or `CHIPSIM_DWFV`.
 
-Upstream installation instructions include `cargo install dwfv` or cloning the repository and `cargo install --path .`. Rust is required for installing/building that optional viewer, not for ChipSim itself. Compatibility was checked against the reviewed checkout using traces from all six built-ins and 32-bit FIFO/shifter scenarios, including undefined register values. All reviewed profiles (74HC595, PCA9555, and TCA9534) and compiled function-table models are included in the interoperability check too.
+Upstream installation instructions include `cargo install dwfv` or cloning the repository and `cargo install --path .`. Rust is required for installing/building that optional viewer, not for ChipSim itself. Compatibility was checked against the reviewed checkout using traces from all six built-ins and 32-bit FIFO/shifter scenarios, including undefined register values. All reviewed profiles (74HC595, PCA9555, TCA9534, and ESP32-C6 PCNT) and compiled function-table models are included in the interoperability check too.
 
 Run `npm run test:dwfv -- /path/to/dwfv` to repeat parser checks with a chosen binary. `npm run test:tui` runs real POSIX terminal tests covering keyboard controls, export, resize, PDF-to-model creation, and terminal mode restoration. Node tests also verify rendering at 80×24 and 120×40. The app restores the cursor and previous terminal mode on normal quit, Ctrl-C, and handled termination.

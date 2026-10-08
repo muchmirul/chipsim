@@ -35,6 +35,12 @@ Use `npm start -- --document docs/references/ti-tca9534.pdf`, then `u` to select
 
 The abstraction accepts one individually addressed byte per request-token change after tick zero. `power_reset` denotes completed POR, not a hardware reset pin; the initial/reset interrupt baseline is an explicit scenario assumption. Real persistent command pointers, slave-address pins, I²C/SMBus serialization, repeated bytes, ACK-related interrupt-loss races, supply ramps, pulls, loading, contention, and physical delays are omitted. Unmapped addresses produce tool-level errors, not simulated silicon NACKs. Page 17 supplies the interrupt/POR behavior; pages 19–20 supply the register contract. Sixteen acceptance cases, all-byte direction/inversion checks, an independent mixed-operation oracle, PDF-only terminal/browser import, and session/VCD checks cover the declared scope.
 
+## ESP32-C6 PCNT channel 0
+
+The user-supplied ESP32-C6 TRM v1.2 (20 March 2026) opens a reviewed single-channel PCNT model. It implements signed 16-bit pulse counting, both edge-mode encodings, control keep/reverse/inhibit, pause/clear, and static positive/negative limit clearing. Tick zero establishes pulse history. Raw words and separate sign/magnitude signals preserve negative counts in every numeric format.
+
+The complete PDF is bundled unchanged; its fingerprint, page citations and sixteen acceptance cases gate compilation. Independent mode-table and signed-boundary oracles, both extraction engines, terminal persistence and trace exports check the scope. Channel 1, filters, interrupts/watchpoint latches, MMIO, live limit updates, clock synchronization, other units/peripherals and CPU execution are excluded. See [ESP32_C6_PCNT.md](ESP32_C6_PCNT.md) for the terminal walkthrough and assumptions.
+
 ## Shared reviewed GPIO behavior
 
 `src/model/registers/gpio-expander.js` builds the digital register actions shared by PCA9555 and TCA9534. Each reviewed factory supplies complete explicit byte addresses, names, and writable reset values for one or two ports. Source evidence, device-specific limitations, stimulus, and acceptance cases remain in the individual profile. The core does not recognize PDFs or infer semantics from chip names; reuse requires reviewing the new device's register and interrupt behavior against its actual manual. Similar product names or address maps alone are insufficient.

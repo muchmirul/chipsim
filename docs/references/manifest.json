@@ -344,6 +344,23 @@
       "relevant_sections": "8.3.1\u20138.4.1 on PDF page 17; 8.6.2/Table 3 on page 19; 8.6.3/Tables 4\u20137 on page 20; bus transaction limits on pages 21\u201323",
       "supports": "Single eight-bit GPIO port with four addressed registers, documented defaults/access, input-only polarity inversion, released output drivers, and input mismatch interrupt acknowledgment. Reviewed exact-fingerprint transaction-level profile.",
       "model_assumptions": "Completed individually addressed bytes on normalized request-token changes; no physical I2C/SMBus, slave-address pins, command-pointer persistence, repeated bus bytes, ACK interrupt races, delays, supply ramps, pulls/loading or contention. External high starting levels and interrupt reset baseline are explicit scenarios; power_reset abstracts completed POR. Original development-use notices remain; no general redistribution permission is asserted."
+    },
+    {
+      "chips": ["esp32c6-pcnt"],
+      "path": "docs/references/espressif-esp32-c6-trm.pdf",
+      "title": "ESP32-C6 Technical Reference Manual",
+      "publisher": "Espressif Systems",
+      "revision": "Version 1.2, 20 March 2026",
+      "source_url": "https://www.espressif.com/sites/default/files/documentation/esp32-c6_technical_reference_manual_en.pdf",
+      "retrieved_on": "2026-10-08",
+      "provided_from": "User-selected /home/dev/raspi/esp32-c6_technical_reference_manual_en.pdf; original bytes preserved",
+      "bytes": 12683821,
+      "pages": 1394,
+      "sha256": "e08d5b61ebcfa2a78f9735e3f721817cb1dc2df9cf05096d2f0399eaba9f1734",
+      "pdf_start_page": 1012,
+      "relevant_sections": "Chapter 31: mode tables pp. 1014-1015; signed counter and control pp. 1015-1016; field definitions pp. 1020-1023",
+      "supports": "One PCNT unit, channel 0: rising/falling-edge count modes, keep/reverse/inhibit control, pause, clear, static signed high/low count limits.",
+      "model_assumptions": "Channel 1 and filtering disabled; ideal sampled levels and pre-run configuration. No MMIO, interrupts/watchpoint latches, live limit updates, GPIO routing, other units/peripherals, CPU or physical timing. Original copyright/notices retained for local development; no general redistribution permission asserted."
     }
   ]
 }

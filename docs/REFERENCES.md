@@ -1,8 +1,22 @@
 # Simulation references
 
-This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All twenty PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
+This directory documents the vendor sources for the six architecture examples and reviewed datasheet profiles. All twenty-one PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
 
 Document revisions below come from document text, rather than PDF modification timestamps. PDF links use one-based viewer page numbers, which may differ from printed page labels. Retrieved on **2026-10-07** unless a later date is listed below.
+
+## ESP32-C6 Technical Reference Manual
+
+- **Model:** `esp32c6-pcnt`, one PCNT unit/channel 0
+- **Version:** v1.2, 20 March 2026 (revision history on PDF page 1389)
+- **Publisher:** Espressif Systems
+- **File:** [espressif-esp32-c6-trm.pdf](references/espressif-esp32-c6-trm.pdf#page=1012) (1,394 pages)
+- **Origin:** User-selected local manual, copied unchanged on 2026-10-08.
+- **Vendor URL:** [ESP32-C6 TRM](https://www.espressif.com/sites/default/files/documentation/esp32-c6_technical_reference_manual_en.pdf)
+- **Read:** Chapter 31, especially pages 1014–1016 and 1020–1023.
+
+**Supports:** Pulse edge/control modes, signed 16-bit counting, pause/clear, and high/low limit clearing.
+
+**Model scope:** Channel 0, static configuration, channel 1/filtering disabled, ideal stable levels. MMIO, interrupts/watchpoints, live limits, synchronization and other chip blocks are omitted. Hit flags are tool observations, not interrupt bits. See [the walkthrough](ESP32_C6_PCNT.md). Original copyright and disclaimer notices remain; this local development copy does not assert general redistribution permission.
 
 ## RP2040 Datasheet
 
