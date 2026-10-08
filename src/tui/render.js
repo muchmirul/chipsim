@@ -373,7 +373,7 @@ function registerTable(state, height) {
       );
     lines.push(
       row(
-        pad((index === state.registerIndex ? "› " : "  ") + item.id, 25) +
+        pad((index === state.registerIndex ? "› " : "  ") + item.label, 25) +
           pad(
             display(item.value, state.format, item.width),
             Math.min(36, Math.floor((state.columns - 25) / 2)),
@@ -390,6 +390,7 @@ function registerTable(state, height) {
   lines.push(
     row(
       "j/k choose · h/l tick · / filter · F format · " +
+        (state.model.registerInterface ? "u access · " : "") +
         items.length +
         " fields",
       "dim",
@@ -403,6 +404,16 @@ function modelInfo(state, height) {
     "MODEL: " + m.name,
     "FIDELITY: " + m.fidelity,
     "SCOPE: " + m.scope,
+    ...(m.registerMap
+      ? [
+          "",
+          "REGISTER MAP",
+          ...m.registerMap.map(
+            (entry) =>
+              `0x${entry.address.toString(16)} ${entry.name} · ${entry.access} · ${entry.value} · evidence: ${entry.evidence.join(", ")}`,
+          ),
+        ]
+      : []),
     "",
     "ASSUMPTIONS",
     ...m.assumptions.map((a) => "• " + a),
@@ -473,6 +484,10 @@ const help = [
     "Space run/pause · r reset · p parameters · i drive input · a stimulus JSON/file · T duration",
   ],
   ["Data", "F cycle hex/decimal/binary/octal · f find selected signal value"],
+  [
+    "Registers",
+    "u addressed read/write at next tick · 6 inspect latches and values",
+  ],
   [
     "Library",
     "m select model · d import PDF, model, or session · c create sourced scenario",

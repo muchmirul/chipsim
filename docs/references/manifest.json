@@ -258,6 +258,22 @@
       "relevant_sections": "7.4 Device Functional Modes, Table 7-1 and its input/output symbol footnotes on PDF page 11",
       "supports": "One buffer with binary data/enable inputs and explicit high-impedance output. Regression reference; behavior is compiled from table content, without a fingerprint-specific rule.",
       "model_assumptions": "Ideal instantaneous output evaluation, including tick zero. Z means the output driver is released, not a resolved bus voltage. External pull-ups, contention, electrical load, propagation delay and other device features are outside scope."
+    },
+    {
+      "chips": ["pca9555"],
+      "path": "docs/references/ti-pca9555.pdf",
+      "title": "PCA9555 Remote 16-bit I2C and SMBus I/O Expander with Interrupt Output and Configuration Registers",
+      "publisher": "Texas Instruments",
+      "revision": "SCPS131J, revised March 2021",
+      "source_url": "https://www.ti.com/lit/ds/symlink/pca9555.pdf",
+      "retrieved_on": "2026-10-08",
+      "bytes": 2803580,
+      "pages": 49,
+      "sha256": "9b5cc24c3c9e286a7132e27267f98e8b8b36f02ead2157d66df2676de3a474cb",
+      "pdf_start_page": 19,
+      "relevant_sections": "8.1\u20138.5.2, especially interrupt/erratum on PDF page 16 and register descriptions on pages 19\u201321",
+      "supports": "Two-bank register addresses/defaults, output latches, direction, input inversion, independent input interrupt acknowledgment and released pin drivers. Reviewed fingerprint-specific transaction-level profile.",
+      "model_assumptions": "One addressed byte per normalized request-token change; no physical I2C serialization, paired multi-byte alternation, bus-pointer persistence, analog supply/loading, ACK/NACK races, or shared-bus interrupt erratum. Interrupt baseline at reset and high external starting levels are scenario choices."
     }
   ]
 }

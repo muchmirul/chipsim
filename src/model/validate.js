@@ -1,4 +1,5 @@
 import { validateTableMetadata } from "./table-metadata.js";
+import { validateRegisterInterface } from "./register-interface.js";
 import { validateInputs } from "./stimulus.js";
 import { HIGH_IMPEDANCE } from "../core/logic.js";
 const identifier = /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/;
@@ -382,6 +383,7 @@ export function validateModel(model, documents = []) {
       );
   }
   validateTableMetadata(model, { fail, number, signals: definitions.signals });
+  validateRegisterInterface(model, { fail, number, definitions });
   if (model.exampleInputs !== undefined)
     try {
       validateInputs(signals, model.exampleInputs);

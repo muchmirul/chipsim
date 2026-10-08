@@ -28,7 +28,7 @@ test("reviewed datasheet profile requires exact bytes and its quoted evidence", 
   assert.equal(compiled.spec.id, "hc595");
   assert.equal(compiled.checks.length, 8);
   assert.ok(compiled.checks.every((check) => check.passed));
-  assert.equal(documentProfiles.length, 1);
+  assert.ok(documentProfiles.some((profile) => profile.id === "hc595"));
   assert.equal(profileForDocument(document).id, "hc595");
   assert.equal(
     compileDocument({

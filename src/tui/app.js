@@ -220,6 +220,75 @@ export class TerminalApp {
       ),
     );
   }
+  registerMenu() {
+    const s = this.state;
+    if (!s.model.registerInterface) {
+      s.setMessage(
+        "This model has no addressed register interface · 6 inspects internal values",
+      );
+      return;
+    }
+    const currentValue = (entry) => {
+      const [kind, id] = entry.value.split(".");
+      return s.snapshot[kind === "reg" ? "registers" : "signals"][id];
+    };
+    const width = s.model.signals.find(
+      (signal) => signal.id === s.model.registerInterface.writeData,
+    ).width;
+    this.menu(
+      "REGISTER ACCESS · next tick " + (s.tick + 1),
+      s.model.registerMap.map((entry) => ({
+        label:
+          formatPayload(
+            entry.address,
+            "hex",
+            s.model.signals.find(
+              (signal) => signal.id === s.model.registerInterface.address,
+            ).width,
+          ) +
+          " · " +
+          entry.name +
+          " · " +
+          entry.access +
+          " = " +
+          formatPayload(currentValue(entry), s.format, width),
+        value: entry,
+      })),
+      (entry) =>
+        this.menu(
+          entry.name + " · tick " + (s.tick + 1),
+          [
+            { label: "Read", value: "read" },
+            {
+              label:
+                entry.access === "ro"
+                  ? "Write (read-only; inspect model response)"
+                  : "Write",
+              value: "write",
+            },
+          ],
+          (operation) => {
+            if (operation === "read") s.accessRegister("read", entry.address);
+            else
+              this.prompt(
+                "Write " + entry.name + " · decimal / 0x / 0b / 0o",
+                formatPayload(currentValue(entry), s.format, width),
+                (text) => {
+                  const parsed = parsePayload(text);
+                  if (!parsed)
+                    throw new Error(
+                      "Use decimal, 0x, 0b, or 0o whole numbers.",
+                    );
+                  s.accessRegister("write", entry.address, parsed.value);
+                },
+                {
+                  help: "One addressed access at the next tick. Future scheduled accesses keep their operation, address, and data. Save a session (S) to keep experiments.",
+                },
+              );
+          },
+        ),
+    );
+  }
   async saveTrace(format, path) {
     const s = this.state,
       content =
@@ -673,6 +742,7 @@ export class TerminalApp {
         );
       else if (k === "p") this.parameterMenu();
       else if (k === "i") this.inputMenu();
+      else if (k === "u") this.registerMenu();
       else if (k === "d")
         this.prompt("Import PDF, model JSON, or session JSON", "", (path) =>
           this.task(() =>

@@ -516,6 +516,47 @@ test("automatic browser models preserve ID collisions and compile previously cac
   await expect(page.locator("#model-count")).toHaveText("8");
 });
 
+test("register-level PDF profile shares source checks, released pins, interrupt acknowledgment, and exported model metadata", async ({
+  page,
+}) => {
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/ti-pca9555.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await expect(page.locator("#model-title")).toHaveText(
+    "PCA9555 · register-level I/O expander",
+  );
+  for (const [tick, pending, driver] of [
+    [8, "1", "0"],
+    [10, "1", "0"],
+    [12, "0", "Z"],
+  ]) {
+    await page.locator("#seek").fill(String(tick));
+    await page.locator("#seek").dispatchEvent("input");
+    await expect(
+      page
+        .locator(".register-table tr")
+        .filter({ hasText: "interrupt_pending" }),
+    ).toContainText(pending);
+    await expect(
+      page.locator(".register-table tr").filter({ hasText: "int_driver" }),
+    ).toContainText(driver);
+  }
+  await page.locator("#tab-sources").click();
+  await expect(page.locator("#source-panel")).toContainText(
+    "interrupt erratum",
+  );
+  const spec = JSON.parse(
+    await downloaded(page, () => page.locator("[data-export-model]").click()),
+  );
+  expect(spec.registerMap).toHaveLength(8);
+  expect(spec.registerInterface.kind).toBe("toggle-word-v1");
+  expect(spec.checks).toHaveLength(15);
+  await page.reload();
+  await expect(page.locator("#model-title")).toHaveText(spec.name);
+});
+
 test("real binary function tables compile from PDF layout and display all independent channels", async ({
   page,
 }) => {
