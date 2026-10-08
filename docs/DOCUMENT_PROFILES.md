@@ -27,6 +27,18 @@ Interrupt comparison uses non-inverted physical scenario levels and independent 
 
 The model omits I²C bit serialization, persistent register pointers, paired multi-byte alternation, ACK/NACK race windows, physical delays/supply thresholds, and other slave devices. Page 16 documents an interrupt de-assertion erratum involving another slave's read acknowledgment while the register pointer is zero. That shared-bus behavior is explicitly outside this model, so it cannot validate the published workaround. There are fifteen executable acceptance cases, independent all-byte/two-bank direction checks, and a deterministic mixed-operation oracle. Both PDF extraction engines verify the quoted pages; terminal sessions and VCD preserve the same model.
 
+## TI TCA9534
+
+The pinned SCPS197D revision (October 2017; complete 42-page official download with current notices/package addendum) creates a single-port register-level model. PDF page 19 defines addresses 0–3: Input (read-only), Output, Polarity Inversion, and Configuration. Page 20 defines their behavior and writable defaults: Output `0xFF`, Polarity zero, and Configuration `0xFF`. Input values depend on applied pin levels; the model's initial `external0 = 255` is a chosen driven-high experiment.
+
+Use `npm start -- --document docs/references/ti-tca9534.pdf`, then `u` to select a register and Read or Write. The default experiment writes the latch and mixed direction, changes an external input, reads Output without acknowledging INT, reads Input to acknowledge, changes polarity, and resets. Each P0–P7 driver is individually observable as `0`, `1`, or `Z`. `int_driver` is low while an input mismatch is pending and released otherwise. Input-only polarity inversion affects returned data, while interrupts compare non-inverted pin levels. Output-configured pins follow their latches under the explicit uncontended assumption and cannot generate input interrupts.
+
+The abstraction accepts one individually addressed byte per request-token change after tick zero. `power_reset` denotes completed POR, not a hardware reset pin; the initial/reset interrupt baseline is an explicit scenario assumption. Real persistent command pointers, slave-address pins, I²C/SMBus serialization, repeated bytes, ACK-related interrupt-loss races, supply ramps, pulls, loading, contention, and physical delays are omitted. Unmapped addresses produce tool-level errors, not simulated silicon NACKs. Page 17 supplies the interrupt/POR behavior; pages 19–20 supply the register contract. Sixteen acceptance cases, all-byte direction/inversion checks, an independent mixed-operation oracle, PDF-only terminal/browser import, and session/VCD checks cover the declared scope.
+
+## Shared reviewed GPIO behavior
+
+`src/model/registers/gpio-expander.js` builds the digital register actions shared by PCA9555 and TCA9534. Each reviewed factory supplies complete explicit byte addresses, names, and writable reset values for one or two ports. Source evidence, device-specific limitations, stimulus, and acceptance cases remain in the individual profile. The core does not recognize PDFs or infer semantics from chip names; reuse requires reviewing the new device's register and interrupt behavior against its actual manual. Similar product names or address maps alone are insufficient.
+
 ## Add a profile
 
 1. Choose a device and bounded scenario, acquire its official reference PDF, and review its redistribution notices. Preserve its original bytes and record SHA-256, revision, publisher, URL, pages, and supported behavior in `docs/references/manifest.json`.

@@ -64,7 +64,7 @@ Press uppercase `E` on an entered behavior-table model to edit its rules and cit
 ## From a manual to a simulation
 
 1. Press `d` and enter the PDF path. ChipSim extracts searchable text locally, preserves page numbers, and fingerprints the PDF.
-2. Complete combinational tables (including explicitly defined `Z` outputs) or supported edge-triggered and level-sensitive retention tables can create models directly from their rows and pin lists; see [function-table compilation](docs/FUNCTION_TABLES.md). Reviewed profiles cover Nexperia 74HC595/74HCT595 Rev. 12 and TI PCA9555 SCPS131J. List supported automatic profiles with `npm start -- --list-profiles`. A manual with an installed matching model opens that model after source verification. Recognized vendor manuals also open their corresponding existing example.
+2. Complete combinational tables (including explicitly defined `Z` outputs) or supported edge-triggered and level-sensitive retention tables can create models directly from their rows and pin lists; see [function-table compilation](docs/FUNCTION_TABLES.md). Reviewed profiles cover Nexperia 74HC595/74HCT595 Rev. 12, TI PCA9555 SCPS131J, and TI TCA9534 SCPS197D. List supported automatic profiles with `npm start -- --list-profiles`. A manual with an installed matching model opens that model after source verification. Recognized vendor manuals also open their corresponding existing example.
 3. For a new manual, inspect/search Sources (`4`, `/`) and press `c`. Choose **counter/timer**, **FIFO**, **shift transfer**, or a custom **behavior table**. Cite a relevant source excerpt.
 4. Configure width, direction, depth, compare behavior, or custom state/input/output rows. Cite the PDF page and exact excerpt, explain its relevance, and declare additional assumptions. The generated model must pass its acceptance cases and quote checks before it is saved and opened.
 5. Run it in the same waveform, register, and log interface. Press `5` to review the selected rules and `M` to export editable model JSON.
@@ -78,6 +78,7 @@ Try the automatic document paths:
 ```sh
 npm start -- --document docs/references/nexperia-74hc595.pdf
 npm start -- --document docs/references/ti-pca9555.pdf
+npm start -- --document docs/references/ti-tca9534.pdf
 npm start -- --document docs/references/nexperia-74hc00.pdf
 npm start -- --document docs/references/nexperia-74hc86.pdf
 npm start -- --document docs/references/nexperia-74hc157.pdf
@@ -92,6 +93,8 @@ npm start -- --document docs/references/ti-sn74ahc273-q1.pdf
 Sequential tables expose retained outputs and clock-history registers. `p` configures the initial output bits, which are scenario values rather than guaranteed power-on state; `i` drives clock, control, or data inputs. The original table arrows and lowercase set-up symbols remain visible in Model view. Physical set-up/hold timing is omitted; see [function-table scope](docs/FUNCTION_TABLES.md).
 
 The 74HC595 model exposes DS, SHCP, STCP, MR, OE, Q7S, shift/storage registers, retained parallel data, and a drive-enable flag. The default stimulus shifts `0xB3`, latches it, toggles output enable, and demonstrates reset behavior. `parallel_pins` shows the stored byte when enabled and `Z` when released; `parallel_latch` always shows retained data. See [reviewed profiles](docs/DOCUMENT_PROFILES.md) for scope and extension instructions.
+
+The TCA9534 model provides the same terminal workflow for one eight-bit port: Input at address 0, Output at 1, Polarity at 2, and Configuration at 3. Its default experiment shows that reading the Output latch leaves an input interrupt pending, while reading Input acknowledges it. `6` shows addresses and changes; `u` inserts a read or write. Physical I²C/SMBus, command-pointer history, and ACK interrupt races are outside this reviewed model.
 
 The PCA9555 model exposes eight addressed GPIO registers, two external input bytes, sixteen individual output drivers, input inversion, and an open-drain interrupt driver. Press `u`, select a register, then Read or Write. Accesses execute at the next tick and seek to the result; `6` shows named register addresses and `3` shows the event and changes. `i` changes external inputs. Later scheduled register accesses retain their address, operation, and data. Save experiments with `S`. This is a byte-transaction model: physical I²C, paired multi-byte transfers, and the documented shared-bus interrupt erratum are outside scope.
 

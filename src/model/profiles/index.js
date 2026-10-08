@@ -1,6 +1,7 @@
 import manifest from "../../../docs/references/manifest.json" with { type: "json" };
 import { hc595 } from "./hc595.js";
 import { pca9555 } from "./pca9555.js";
+import { tca9534 } from "./tca9534.js";
 import { validateModel } from "../validate.js";
 import { runChecks } from "../engine.js";
 
@@ -18,6 +19,14 @@ export const documentProfiles = [
       source.chips.includes("pca9555"),
     ),
     build: pca9555,
+  },
+  {
+    id: "tca9534",
+    name: "TI TCA9534 · SCPS197D",
+    source: manifest.documents.find((source) =>
+      source.chips.includes("tca9534"),
+    ),
+    build: tca9534,
   },
 ];
 
