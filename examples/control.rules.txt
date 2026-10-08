@@ -1,0 +1,5 @@
+* 1X -> idle / 0
+idle 00 -> idle / =
+idle 01 -> armed / 1
+armed 00 -> armed / =
+armed 01 -> idle / 0

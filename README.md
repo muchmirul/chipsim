@@ -63,11 +63,13 @@ Press `7` for the input stimulus timeline. `i` schedules a pin/value at a chosen
 
 1. Press `d` and enter the PDF path. ChipSim extracts searchable text locally, preserves page numbers, and fingerprints the PDF.
 2. Complete combinational tables (including explicitly defined `Z` outputs) or supported edge-triggered and level-sensitive retention tables can create models directly from their rows and pin lists; see [function-table compilation](docs/FUNCTION_TABLES.md). Reviewed profiles cover Nexperia 74HC595/74HCT595 Rev. 12 and TI PCA9555 SCPS131J. List supported automatic profiles with `npm start -- --list-profiles`. A manual with an installed matching model opens that model after source verification. Recognized vendor manuals also open their corresponding existing example.
-3. For a new manual, inspect/search Sources (`4`, `/`) and press `c`. Choose **counter/timer**, **FIFO**, or **shift transfer**, then select a source excerpt.
-4. Configure width, direction, depth, or compare behavior. Cite the PDF page and exact excerpt, explain its relevance, and declare additional assumptions. The generated model must pass its acceptance cases and quote checks before it is saved and opened.
+3. For a new manual, inspect/search Sources (`4`, `/`) and press `c`. Choose **counter/timer**, **FIFO**, **shift transfer**, or a custom **behavior table**. Cite a relevant source excerpt.
+4. Configure width, direction, depth, compare behavior, or custom state/input/output rows. Cite the PDF page and exact excerpt, explain its relevance, and declare additional assumptions. The generated model must pass its acceptance cases and quote checks before it is saved and opened.
 5. Run it in the same waveform, register, and log interface. Press `5` to review the selected rules and `M` to export editable model JSON.
 
 The guided builder creates **selected peripheral scenarios**. Word/width suggestions are text matches, not automatic chip interpretation. Register addresses, detailed bus semantics, clock domains, analog behavior, and unmodeled chip features are not inferred from arbitrary PDFs. All chosen scenario rules remain explicit assumptions for review. **No LLM integration is present.**
+
+For custom logic/state machines, Behavior table accepts rows such as `idle 01 -> armed / 1` and explicit hold outputs (`=`), with input wildcards (`X`). Enter rows in the TUI or load `@path/to/rules.txt`. Missing combinations and conflicting overlaps reject creation; models retain their source quotations and entered rules. See [behavior-table authoring](docs/BEHAVIOR_TABLES.md) for real-source examples, clock history, and limits. This is a developer-authored path for unsupported manuals.
 
 Try the automatic document paths:
 

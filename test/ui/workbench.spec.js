@@ -2,6 +2,8 @@ import { documentProfiles } from "../../src/model/profiles/index.js";
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { extractPDFFile } from "../../src/documents/extract-node.js";
+import { buildBehaviorTable } from "../../src/model/behavior-table/build.js";
 async function ready(page, url = "/") {
   await page.goto(url);
   await expect(page.locator("#model-title")).toHaveText("RP2040 PIO");
@@ -123,6 +125,62 @@ test("known PDF opens its example, source text persists, and sourced model impor
   });
   await expect(page.locator("#notice")).toContainText("quote does not occur");
 });
+test("TUI-authored behavior-table models remain sourced, portable, and persistent in the optional browser", async ({
+  page,
+}) => {
+  const document = await extractPDFFile(
+      resolve("docs/references/nexperia-74hc00.pdf"),
+    ),
+    { spec } = buildBehaviorTable(document, {
+      name: "Entered NAND behavior",
+      inputs: "A B",
+      outputs: "Y",
+      states: "logic",
+      rules: await readFile("examples/nand.rules.txt", "utf8"),
+      page: 3,
+      quote: "Quad 2-input NAND gate",
+      claim:
+        "The entered rows describe one manually reviewed NAND function from the cited page.",
+    });
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/nexperia-74hc00.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await page.locator("#model-file").setInputFiles({
+    name: "entered.model.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(spec)),
+  });
+  await expect(page.locator("#model-title")).toHaveText(spec.name);
+  await expect(page.locator("#notice")).toContainText(
+    "Source evidence verified",
+  );
+  await page.locator("#tab-sources").click();
+  await expect(page.locator("#source-panel")).toContainText(
+    "not inferred from the PDF",
+  );
+  await expect(page.locator("#source-panel")).toContainText(
+    "Developer-entered row 3",
+  );
+  await page.locator("#seek").fill("3");
+  await page.locator("#seek").dispatchEvent("input");
+  await expect(
+    page.locator(".register-table tr").filter({ hasText: "pin_y" }),
+  ).toContainText("0x0");
+  await page.locator("#tab-trace").click();
+  await page.locator("#trace-format").selectOption("json");
+  const trace = JSON.parse(
+    await downloaded(page, () => page.locator("#export-trace").click()),
+  );
+  expect(trace.trace[3].state).toBe("state_logic");
+  expect(
+    trace.trace.slice(1, 5).map((snapshot) => snapshot.signals.pin_y),
+  ).toEqual([1, 1, 0, 1]);
+  await page.reload();
+  await expect(page.locator("#model-title")).toHaveText(spec.name);
+});
+
 test("unfamiliar PDF opens workspace without claiming a generated simulation", async ({
   page,
 }) => {
