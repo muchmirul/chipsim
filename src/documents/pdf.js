@@ -1,3 +1,4 @@
+import { positionedLines, hasFunctionTable } from "./layout.js";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/build/pdf.mjs";
 import workerSource from "pdfjs-dist/build/pdf.worker.min.mjs";
 
@@ -37,11 +38,22 @@ export async function extractPDF(
   });
   const pdf = await task.promise;
   document.pageCount = pdf.numPages;
+  try {
+    const metadata = await pdf.getMetadata();
+    if (
+      typeof metadata.info?.Subject === "string" &&
+      metadata.info.Subject.trim()
+    )
+      document.title = metadata.info.Subject.trim().slice(0, 300);
+  } catch {
+    /* Metadata is optional; text and bytes remain authoritative. */
+  }
   if (pdf.numPages > 20000) {
     await task.destroy();
     throw new Error("The document exceeds 20000 pages.");
   }
   try {
+    let tablePages = 0;
     for (let number = 1; number <= pdf.numPages; number++) {
       if (signal?.aborted)
         throw new DOMException("Document extraction canceled", "AbortError");
@@ -58,7 +70,23 @@ export async function extractPDF(
         previousY = y;
         if (item.hasEOL) text += "\n";
       }
-      document.pages.push({ number, text: text.trim() });
+      const extracted = { number, text: text.trim() };
+      if (hasFunctionTable(text)) {
+        tablePages++;
+        if (tablePages > 32) document.tableScanLimit = 32;
+        else
+          extracted.layoutLines = positionedLines(
+            content.items
+              .filter((item) => "str" in item)
+              .map((item) => ({
+                text: item.str,
+                x: item.transform[4],
+                y: -item.transform[5],
+                width: item.width,
+              })),
+          );
+      }
+      document.pages.push(extracted);
       page.cleanup();
       if (number === Math.min(5, pdf.numPages)) onFirstPages(document);
       onProgress({ completed: number, total: pdf.numPages });

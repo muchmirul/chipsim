@@ -1,3 +1,5 @@
+import { hasFunctionTable, popplerLines } from "./layout.js";
+import { recognizeDocument } from "./recognize.js";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
@@ -40,10 +42,12 @@ export async function extractPDFFile(input, { onProgress = () => {} } = {}) {
       "This PDF has no searchable text. OCR it before importing.",
     );
   const sha256 = createHash("sha256").update(bytes).digest("hex");
-  return {
+  const document = {
     id: sha256.slice(0, 24),
     filename: basename(path),
-    title: basename(path, ".pdf"),
+    title:
+      /^Subject:\s+(.+)$/m.exec(info)?.[1]?.trim().slice(0, 300) ||
+      basename(path, ".pdf"),
     sha256,
     size: bytes.length,
     pageCount,
@@ -54,4 +58,45 @@ export async function extractPDFFile(input, { onProgress = () => {} } = {}) {
     filePath: path,
     createdAt: new Date().toISOString(),
   };
+  const recognized = recognizeDocument(document);
+  if (
+    !recognized ||
+    !["pio", "pru", "flexio", "udb", "xmos", "etpu"].includes(
+      recognized.modelId,
+    )
+  ) {
+    const candidates = document.pages
+      .filter((page) => hasFunctionTable(page.text))
+      .slice(0, 32);
+    for (const page of candidates) {
+      onProgress(
+        "Reading function-table layout on PDF page " + page.number + "…",
+      );
+      try {
+        const { stdout: xml } = await run(
+          "pdftotext",
+          [
+            "-f",
+            String(page.number),
+            "-l",
+            String(page.number),
+            "-bbox-layout",
+            "-enc",
+            "UTF-8",
+            path,
+            "-",
+          ],
+          { encoding: "utf8", maxBuffer: 8 * 1024 * 1024 },
+        );
+        page.layoutLines = popplerLines(xml);
+      } catch (error) {
+        page.layoutError = "Table geometry unavailable: " + error.message;
+      }
+    }
+    if (
+      document.pages.filter((page) => hasFunctionTable(page.text)).length > 32
+    )
+      document.tableScanLimit = 32;
+  }
+  return document;
 }

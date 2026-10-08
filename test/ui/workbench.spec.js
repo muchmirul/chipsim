@@ -410,13 +410,11 @@ test("automatic browser models preserve ID collisions and compile previously cac
     unrelated = profile.build(profile.source);
   unrelated.name = "Unrelated authored model";
   unrelated.sources[0].sha256 = "f".repeat(64);
-  await page
-    .locator("#model-file")
-    .setInputFiles({
-      name: "unrelated.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(unrelated)),
-    });
+  await page.locator("#model-file").setInputFiles({
+    name: "unrelated.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(unrelated)),
+  });
   await expect(page.locator("#model-title")).toHaveText(unrelated.name);
   await page
     .locator("#document-file")
@@ -459,4 +457,35 @@ test("automatic browser models preserve ID collisions and compile previously cac
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toHaveText(generated.name);
   await expect(page.locator("#model-count")).toHaveText("8");
+});
+
+test("real binary function tables compile from PDF layout and display all independent channels", async ({
+  page,
+}) => {
+  await ready(page);
+  for (const part of ["00", "86"]) {
+    await page
+      .locator("#document-file")
+      .setInputFiles("docs/references/nexperia-74hc" + part + ".pdf");
+    await expect(page.locator("#import-progress")).toBeHidden();
+    await expect(page.locator("#model-title")).toContainText(
+      "74HC" + part + "; 74HCT" + part,
+    );
+    await page.locator("#tab-sources").click();
+    await expect(page.locator("#source-panel")).toContainText(
+      "Source function table",
+    );
+    await expect(page.locator("#source-panel")).toContainText("1A/1B/1Y");
+    const spec = JSON.parse(
+      await downloaded(page, () => page.locator("[data-export-model]").click()),
+    );
+    expect(spec.sourceTable.instances).toHaveLength(4);
+    expect(spec.signals).toHaveLength(12);
+    expect(spec.sourceTable.matrix).toEqual(
+      part === "00" ? [[1], [1], [1], [0]] : [[0], [1], [1], [0]],
+    );
+  }
+  await expect(page.locator("#model-count")).toHaveText("8");
+  await page.reload();
+  await expect(page.locator("#model-title")).toContainText("74HC86; 74HCT86");
 });

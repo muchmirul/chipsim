@@ -81,6 +81,12 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   send('18\r');wait('tick 18/')
   chip=json.loads((Path(workspace)/'models'/'hc595.json').read_text())
   assert chip['id']=='hc595' and len(chip['checks'])==8
+  send('d');wait('Import PDF')
+  send(str(ROOT/'docs/references/nexperia-74hc00.pdf')+'\r');wait('74HC00; 74HCT00')
+  send('6');wait('signal.pin_1a')
+  table_models=[json.loads(path.read_text()) for path in (Path(workspace)/'models').glob('*.json')]
+  table=next(model for model in table_models if 'sourceTable' in model)
+  assert len(table['sourceTable']['instances'])==4 and len(table['signals'])==12
   send('q');proc.wait(timeout=5)
   end=time.monotonic()+1
   while time.monotonic()<end and select.select([master],[],[],.05)[0]:
@@ -90,7 +96,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored=termios.tcgetattr(slave)
   assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
   assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-  print('PTY verified: stepping, format preservation, decimal input, register/log views, JSON export, resize, PDF-to-model creation, automatic reviewed-datasheet compilation, and terminal cleanup.')
+  print('PTY verified: stepping, format preservation, decimal input, register/log views, JSON export, resize, PDF-to-model creation, reviewed-datasheet and generic function-table compilation, and terminal cleanup.')
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)

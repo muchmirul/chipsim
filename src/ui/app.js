@@ -1,4 +1,4 @@
-import { compileDocument } from "../model/profiles/index.js";
+import { analyzeDocument } from "../model/from-document.js";
 import {
   builtinModels,
   registerModel,
@@ -17,7 +17,13 @@ import {
 import { saveRecord, records } from "../documents/store.js";
 import { exportCSV, exportJSON, exportVCD, download } from "../trace/export.js";
 import { createModelBuilder } from "./creator.js";
-import { escape, inspect, waveform, logRows } from "./render.js";
+import {
+  escape,
+  inspect,
+  waveform,
+  logRows,
+  tableReference,
+} from "./render.js";
 
 async function main() {
   const $ = (id) => document.getElementById(id);
@@ -216,7 +222,7 @@ async function main() {
                   })
                   .join("")}`
               : ""
-          }${m.kind === "document" ? `<button data-export-model="${escape(m.id)}">Export model JSON</button>` : ""}</article>`,
+          }${tableReference(m)}${m.kind === "document" ? `<button data-export-model="${escape(m.id)}">Export model JSON</button>` : ""}</article>`,
       )
       .join("");
   }
@@ -279,6 +285,15 @@ async function main() {
     $("document-title").textContent = d.filename;
     $("document-info").innerHTML =
       `${d.pages.length} pages · ${(d.size / 1048576).toFixed(1)} MiB · ${available.length ? "Existing models: " + available.map((m) => `<button data-document-model="${escape(m.id)}">${escape(m.name)} →</button>`).join(" ") : "No matching simulation yet. Export this source bundle to create a model with a developer or coding agent."}<br><code>SHA-256: ${d.sha256}</code>`;
+    if (d.analysis?.diagnostics.length)
+      $("document-info").innerHTML +=
+        "<p>" +
+        d.analysis.diagnostics
+          .map((issue) =>
+            escape("PDF page " + (issue.page || "?") + ": " + issue.reason),
+          )
+          .join("<br>") +
+        "</p>";
     $("document-search").value = "";
     documentResults();
     if (!$("document-dialog").open) $("document-dialog").showModal();
@@ -335,8 +350,10 @@ async function main() {
           },
         });
         const existing = documents.find((d) => d.sha256 === document.sha256);
-        if (existing) document = existing;
-        else documents.push(document);
+        if (existing) {
+          document = { ...existing, pages: document.pages };
+          documents[documents.indexOf(existing)] = document;
+        } else documents.push(document);
         const persisted = await saveRecord("documents", document);
         const sourceErrors = [];
         for (let i = 0; i < models.length; i++)
@@ -363,10 +380,22 @@ async function main() {
           )
         ) {
           try {
-            compiled = compileDocument(document, {
+            const analysis = analyzeDocument(document, {
               reservedIds: models.map((model) => model.id),
             });
-            if (compiled) await installModel(compiled.spec);
+            document.analysis = {
+              models: analysis.models.map((model) => ({
+                id: model.spec.id,
+                name: model.spec.name,
+                method: model.method,
+                checks: model.checks.length,
+              })),
+              diagnostics: analysis.diagnostics,
+            };
+            for (const result of analysis.models)
+              await installModel(result.spec);
+            compiled = analysis.models[0] || null;
+            await saveRecord("documents", document);
           } catch (error) {
             sourceErrors.push(error.message);
           }
@@ -382,7 +411,9 @@ async function main() {
               ". Opened " +
               linked.name +
               (compiled
-                ? "; created from a reviewed local datasheet profile. Inspect scope and assumptions before using the result."
+                ? "; created from " +
+                  compiled.method +
+                  ". Inspect scope and assumptions before using the result."
                 : "; the upload does not generate new chip behavior.") +
               (persisted
                 ? ""

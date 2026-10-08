@@ -22,7 +22,8 @@
     "dev:web": "node scripts/build.mjs --watch",
     "test:tui": "python3 scripts/test-tui-pty.py",
     "test:dwfv": "node scripts/verify-dwfv.mjs",
-    "verify:web": "node scripts/verify.mjs --web"
+    "verify:web": "node scripts/verify.mjs --web",
+    "document": "node scripts/document.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

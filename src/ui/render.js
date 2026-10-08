@@ -125,3 +125,33 @@ export function logRows(runs, tick, changesOnly, filter, format) {
     html: `<table class="log-table"><thead><tr><th>Tick</th>${runs.length > 1 ? "<th>Model</th>" : ""}<th>State</th><th>Event</th><th>Changes</th></tr></thead><tbody>${visible.map(({ model, snapshot: s }) => `<tr data-tick="${s.tick}" tabindex="0" class="${s.tick === tick ? "current" : ""}"><td>${s.tick}</td>${runs.length > 1 ? `<td>${escape(model.name)}</td>` : ""}<td>${escape(s.state)}</td><td>${escape(s.message || "Hold")} ${s.evidence.length ? `<span class="evidence-link">[${escape(s.evidence.join(", "))}]</span>` : ""}</td><td class="log-delta">${s.changes.map((c) => `${escape(c.id)}: ${escape(c.before === null ? "—" : valueText(c.before, format))} → ${escape(valueText(c.after, format))}`).join("<br>")}</td></tr>`).join("")}</tbody></table>`,
   };
 }
+
+export function tableReference(model) {
+  const table = model.sourceTable;
+  if (!table) return "";
+  return (
+    "<h3>Source function table · PDF page " +
+    table.page +
+    '</h3><table class="register-table"><thead><tr>' +
+    [...table.inputs, ...table.outputs]
+      .map((label) => "<th>" + escape(label) + "</th>")
+      .join("") +
+    "</tr></thead><tbody>" +
+    table.rows
+      .map(
+        (row) =>
+          "<tr>" +
+          [
+            ...row.inputs.map((value) => (value === null ? "X" : value)),
+            ...row.outputs,
+          ]
+            .map((value) => "<td>" + escape(value) + "</td>")
+            .join("") +
+          "</tr>",
+      )
+      .join("") +
+    "</tbody></table><p>Instances: " +
+    table.instances.map((instance) => escape(instance.join("/"))).join(" · ") +
+    "</p>"
+  );
+}

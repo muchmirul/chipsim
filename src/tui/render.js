@@ -187,8 +187,15 @@ function inspect(state, height) {
     active = new Set(state.snapshot.active),
     columns = state.columns >= 110 ? 3 : 2,
     cell = Math.floor(state.columns / columns),
-    lines = [];
-  for (let i = 0; i < nodes.length && lines.length < height - 3; i += columns) {
+    visibleRows = Math.max(1, Math.floor((height - 2) / 3)),
+    maxScroll = Math.max(0, Math.ceil(nodes.length / columns) - visibleRows);
+  state.blockScroll = Math.min(maxScroll, Math.max(0, state.blockScroll));
+  const first = state.blockScroll * columns,
+    end = Math.min(nodes.length, first + visibleRows * columns),
+    lines = [
+      row(`Blocks ${first + 1}–${end}/${nodes.length} · j/k scroll`, "dim"),
+    ];
+  for (let i = first; i < end; i += columns) {
     const group = nodes.slice(i, i + columns);
     lines.push(
       row(
@@ -415,6 +422,22 @@ function modelInfo(state, height) {
     "IMPLEMENTATION / STATES",
     ...m.recipe(state.config.parameters),
   ];
+  if (m.sourceTable) {
+    const table = m.sourceTable;
+    text.push(
+      "",
+      "SOURCE FUNCTION TABLE · PDF page " + table.page,
+      table.inputs.join(" ") + " → " + table.outputs.join(" "),
+      ...table.rows.map(
+        (row) =>
+          row.inputs.map((value) => (value === null ? "X" : value)).join(" ") +
+          " → " +
+          row.outputs.join(" "),
+      ),
+      "Instances: " +
+        table.instances.map((instance) => instance.join("/")).join(" · "),
+    );
+  }
   const lines = text.flatMap((t) => wrapped(t, state.columns));
   state.infoScroll = Math.min(
     Math.max(0, lines.length - height + 1),

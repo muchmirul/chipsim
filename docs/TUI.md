@@ -9,7 +9,7 @@ Choose a model with `m`, edit parameters with `p`, and press Space to run. Playb
 Views are:
 
 1. **Waveforms**: signal shapes, cursor, selected value, compact register summary, and current event. `j/k` selects a signal and scrolls the visible signal list.
-2. **Hardware blocks**: active resources, live node values, and connections. A resource marked ACTIVE participated at the selected tick.
+2. **Hardware blocks**: active resources, live node values, and connections. A resource marked ACTIVE participated at the selected tick. `j/k` scrolls the block grid when it exceeds the terminal height.
 3. **Log**: all trace events, with changes-only mode on by default. `/` filters by state/event/register text; uppercase `C` toggles changes-only. Select a row and Enter seeks to its tick.
 4. **Sources**: the imported PDF's text by original PDF page. `h/l` changes pages, `j/k` scrolls, `/` searches, `n/N` cycles matching pages. Enter chooses a cached PDF or imports the first bundled source when no document is loaded.
 5. **Model**: scope, assumptions, parameters, source fingerprints, evidence quotations, warnings, and implementation recipe. `j/k` scrolls.
@@ -19,7 +19,7 @@ Prompts accept Enter for their displayed default. Type a value to replace it; Ba
 
 ## Local source workflow
 
-`d` loads a PDF, model JSON, or shared session JSON. PDFs are copied into the workspace and extracted with Poppler without a network call. Search results use one-based PDF pages, including front matter. Matching installed models are selected only after validating quotes against the loaded document. An exact match to a reviewed document profile creates and saves its model automatically if no authored model is linked to that source. `--list-profiles` lists supported datasheet versions; see `DOCUMENT_PROFILES.md`.
+`d` loads a PDF, model JSON, or shared session JSON. PDFs are copied into the workspace and extracted with Poppler without a network call. Search results use one-based PDF pages, including front matter. Matching installed models are selected only after validating quotes against the loaded document. An exact match to a reviewed document profile creates and saves its model automatically if no authored model is linked to that source. `--list-profiles` lists reviewed datasheet versions; see `DOCUMENT_PROFILES.md`. Other PDFs can also create models from complete binary function tables; see `FUNCTION_TABLES.md`. Model view includes their source rows and instance mapping.
 
 `c` creates a counter, FIFO, or shift-transfer scenario from the current document. It offers matching source excerpts and any explicit bit-width wording found. Configure its fields, cite the page/excerpt, and describe the excerpt's relevance. The rules are explicit scenario assumptions, visible in Model view and exported JSON. The builder generates acceptance cases and runs them before installing the model.
 
@@ -49,6 +49,6 @@ Reference: https://github.com/psurply/dwfv. Reviewed revision: `fe89ba62d8ddcf95
 
 The reference informed `h/j/k/l`, edge navigation, cursor positioning, zoom, and search. ChipSim implements these around its simulation state and source workspace. Press uppercase `V` to export the current trace and launch an installed `dwfv`. Quit its viewer to return to ChipSim. For a custom executable use `--dwfv /path/to/dwfv` or `CHIPSIM_DWFV`.
 
-Upstream installation instructions include `cargo install dwfv` or cloning the repository and `cargo install --path .`. Rust is required for installing/building that optional viewer, not for ChipSim itself. Compatibility was checked against the reviewed checkout using traces from all six built-ins and 32-bit FIFO/shifter scenarios, including undefined register values. The reviewed 74HC595 profile is included in the interoperability check too.
+Upstream installation instructions include `cargo install dwfv` or cloning the repository and `cargo install --path .`. Rust is required for installing/building that optional viewer, not for ChipSim itself. Compatibility was checked against the reviewed checkout using traces from all six built-ins and 32-bit FIFO/shifter scenarios, including undefined register values. The reviewed 74HC595 profile and both compiled function-table models are included in the interoperability check too.
 
 Run `npm run test:dwfv -- /path/to/dwfv` to repeat parser checks with a chosen binary. `npm run test:tui` runs real POSIX terminal tests covering keyboard controls, export, resize, PDF-to-model creation, and terminal mode restoration. Node tests also verify rendering at 80×24 and 120×40. The app restores the cursor and previous terminal mode on normal quit, Ctrl-C, and handled termination.

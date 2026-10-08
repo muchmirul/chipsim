@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { analyzeDocument } from "../src/model/from-document.js";
 import {
   documentProfiles,
   compileDocument,
@@ -46,6 +47,18 @@ for (const profile of documentProfiles) {
   assert.equal(compiled.spec.id, profile.id);
   assert.ok(compiled.checks.every((check) => check.passed));
 }
+for (const source of manifest.documents.filter(
+  (source) => source.compiler === "function-table",
+)) {
+  const document = await extractPDFFile(new URL(source.path, root).pathname);
+  const analysis = analyzeDocument(document);
+  assert.ok(analysis.models.length);
+  assert.equal(analysis.diagnostics.length, 0);
+  for (const model of analysis.models)
+    assert.ok(
+      model.spec.sourceTable && model.checks.every((check) => check.passed),
+    );
+}
 for (const model of builtinModels) {
   assert.ok(covered.has(model.id));
   assert.ok(model.sources.length);
@@ -62,6 +75,7 @@ for (const file of [
   "docs/MODEL_FORMAT.md",
   "docs/TUI.md",
   "docs/DOCUMENT_PROFILES.md",
+  "docs/FUNCTION_TABLES.md",
 ])
   assert.ok((await read(file)).length > 100);
 const checkWeb = process.argv.includes("--web");

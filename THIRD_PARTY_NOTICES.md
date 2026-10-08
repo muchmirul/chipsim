@@ -4,6 +4,7 @@ The PDFs in `docs/references/` are complete copies obtained from the official pu
 
 | Documents                                               | Publisher / attribution                                                                                                       |
 | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| 74HC00 / 74HCT00 and 74HC86 / 74HCT86 data sheets       | Nexperia B.V.; unchanged references used for function-table compiler regression tests.                                        |
 | 74HC595 / 74HCT595 product data sheet                   | Nexperia B.V.; original copyright and legal notices remain in the unchanged PDF.                                              |
 | RP2040 Datasheet                                        | Raspberry Pi Ltd; includes additional Arm and Synopsys notices. The PDF identifies its documentation license as CC BY-ND 4.0. |
 | AM335x and AMIC110 technical reference manual, SPRUH73Q | Texas Instruments Incorporated.                                                                                               |
