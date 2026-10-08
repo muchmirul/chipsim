@@ -46,12 +46,15 @@ Counter models include reset/enable, up/down counting, periodic toggle or halt-a
 
 Use `M` to export a document model and `B` to export the current document's source bundle. Sources omit local file paths and PDF bytes from that bundle. A developer/agent can extend the model using `AGENTS.md` and `MODEL_FORMAT.md`, then reload it with `d`.
 
+Uppercase `E` revises an entered behavior table: edit fields, review outputs at the current tick without committing, save a compatible revision or new copy, export rows, and restore revision backups. Esc retains the draft in memory; Discard clears it. See `BEHAVIOR_TABLES.md` for compatibility, source checks, independent cases, and backup limits.
+
 ## Persistence and exports
 
 By default `.chipsim/` lives in the launch directory:
 
 ```text
 .chipsim/
+  revisions/<model-id>/   # earlier model + experiment sessions
   documents/<fingerprint>.pdf       Cached original PDF
   documents/<fingerprint>.json      Text pages and provenance
   models/<model-id>.json            Validated authored/generated model

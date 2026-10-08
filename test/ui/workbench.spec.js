@@ -174,9 +174,21 @@ test("TUI-authored behavior-table models remain sourced, portable, and persisten
     await downloaded(page, () => page.locator("#export-trace").click()),
   );
   expect(trace.trace[3].state).toBe("state_logic");
+  expect(trace.model.definition.authoring).toEqual(spec.authoring);
   expect(
     trace.trace.slice(1, 5).map((snapshot) => snapshot.signals.pin_y),
   ).toEqual([1, 1, 0, 1]);
+  const stale = structuredClone(spec);
+  stale.authoring.configuration.rules = "logic XX -> logic / 1";
+  await page.locator("#model-file").setInputFiles({
+    name: "stale.model.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(stale)),
+  });
+  await expect(page.locator("#notice")).toContainText(
+    "does not match generated",
+  );
+  await expect(page.locator("#model-title")).toHaveText(spec.name);
   await page.reload();
   await expect(page.locator("#model-title")).toHaveText(spec.name);
 });

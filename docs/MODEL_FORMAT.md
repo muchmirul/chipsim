@@ -305,6 +305,14 @@ Press `c` with a PDF loaded in the TUI to configure a counter, FIFO, shift-trans
 
 Developer-entered behavior tables compile to ordinary `states`, `signals`, and a `behavior_state` register. `initialize` sets the configurable named `initialState` parameter and `initialOutputs` word at tick zero; the first entered row executes at tick one and transitions to a `state_<name>` state. The state register is updated with the same transition. Original rows and state-code mappings are explicit assumptions; these models do not use `sourceTable` to claim automatic extraction. `BEHAVIOR_TABLES.md` specifies input wildcards, explicit output retention, complete coverage, and bounds. Source checks confirm quotation provenance; generated cases exhaust the entered rules without certifying their hardware interpretation.
 
+## Optional behavior-table authoring record
+
+Entered tables may include `authoring` with `kind: "behavior-table"`, `version: 1`, `sourceId: "manual"`, `evidenceId: "manual-excerpt"`, and `configuration`. Configuration contains arrays `inputs`, `outputs`, and `states`, normalized newline-separated `rules`, and additional `assumptions` text (at most 4000 characters). The record links to the model's single source/evidence entry; it is optional metadata within schema version 1, not executable code.
+
+Validation reparses bounded rules and regenerates behavior, matching summary, scope, parameters, signals, registers, topology, states, duration, demonstration inputs, assumptions, and the generated prefix of acceptance cases. Independent cases may follow that prefix and must pass normally. JSON object key order is irrelevant. Unknown record fields, malformed rules, and stale generated fields reject import. Name and source evidence remain separately validated model fields.
+
+Use uppercase `E` in the TUI to revise a valid draft. If editing generated JSON directly, remove the record before making changes beyond the builder's behavior; do not leave a misleading draft. General authored models and reviewed/table-compiled models continue to work without it. See `BEHAVIOR_TABLES.md` for exact legacy recovery and revision/session persistence.
+
 ## Limits and extensions
 
 Limits are 32 parameters, 32 signals, 128 registers, 32 diagram nodes, 128 edges, 64 states, 32 transitions per state, 64 actions per action list, 32 sources, 256 evidence entries, and 64 acceptance cases. Browser model files are capped at 2 MiB. These limits keep imported behavior bounded and inspectable.

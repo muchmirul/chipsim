@@ -394,6 +394,71 @@ export class TuiState {
           : ""),
     );
   }
+  previewRevision(spec) {
+    if (this.model.kind !== "document" || spec.id !== this.modelId)
+      throw new Error("A revision must keep the selected document model's ID.");
+    const previous = this.model,
+      model = registerModel(spec, this.documents);
+    const outputs = (model) =>
+      model.signals
+        .filter((signal) => signal.direction === "output")
+        .map((signal) => signal.id);
+    if (JSON.stringify(outputs(previous)) !== JSON.stringify(outputs(model)))
+      throw new Error(
+        "Output names/order changed. Save as a new model to choose its initial output bits.",
+      );
+    let configuration, trace;
+    try {
+      configuration = {
+        parameters: normalizeParameters(
+          model.parameters,
+          this.config.parameters,
+        ),
+        inputs: validateInputs(model.signals, this.config.inputs),
+        duration: this.config.duration,
+      };
+      trace = model.simulate(configuration.parameters, {
+        inputs: configuration.inputs,
+        ticks: configuration.duration,
+      });
+      const fault = trace.find((snapshot) => snapshot.phase === "fault");
+      if (fault)
+        throw new Error(
+          `Simulation fault at tick ${fault.tick}: ${fault.detail || fault.message}`,
+        );
+    } catch (error) {
+      throw new Error(
+        "Current experiment does not fit this revision: " +
+          error.message +
+          ". Revise the draft or save as a new model.",
+      );
+    }
+    return { model, configuration, trace };
+  }
+  async reviseModel(spec) {
+    const { model, configuration, trace } = this.previewRevision(spec),
+      previous = this.model;
+    const cursor = this.tick,
+      selected = this.signal.id,
+      backup = await this.workspace.backupSession(
+        structuredClone(this.session()),
+      );
+    await this.workspace.saveModel(spec);
+    this.models[this.models.indexOf(previous)] = model;
+    this.configurations.set(model.id, configuration);
+    this.trace = trace;
+    this.stimulus.clearHistory(model.id);
+    this.selected = Math.max(
+      0,
+      model.signals.findIndex((signal) => signal.id === selected),
+    );
+    this.playing = false;
+    this.seek(cursor);
+    this.setMessage(
+      "Saved revision · experiment kept · E → Revision backups restores earlier versions",
+    );
+    return backup;
+  }
   async loadFile(path, onProgress = () => {}) {
     path = resolve(path);
     if (/\.pdf$/i.test(path)) {
@@ -504,10 +569,13 @@ export class TuiState {
       display: this.format,
     };
   }
-  async loadSession(session) {
+  async loadSession(session, { backupCurrent = false } = {}) {
     if (session.version !== 1) throw new Error("Unsupported session version");
-    if (session.model) await this.installModel(session.model);
-    const model = this.models.find((m) => m.id === session.modelId);
+    if (session.model && session.model.id !== session.modelId)
+      throw new Error("Session model ID does not match its definition.");
+    const model = session.model
+      ? registerModel(session.model, this.documents)
+      : this.models.find((m) => m.id === session.modelId);
     if (!model) throw new Error("Session model is not installed.");
     const parameters = normalizeParameters(
         model.parameters,
@@ -520,13 +588,43 @@ export class TuiState {
       session.duration > 10000
     )
       throw new Error("Invalid duration in session.");
+    const trace = model.simulate(parameters, {
+      inputs,
+      ticks: session.duration,
+    });
+    if (backupCurrent) {
+      if (model.id !== this.modelId || this.model.kind !== "document")
+        throw new Error(
+          "Revision backup must belong to the selected document model.",
+        );
+      await this.workspace.backupSession(structuredClone(this.session()));
+    }
+    if (session.model) {
+      await this.workspace.saveModel(session.model);
+      const index = this.models.findIndex((item) => item.id === model.id);
+      if (index < 0) this.models.push(model);
+      else this.models[index] = model;
+    }
     this.configurations.set(model.id, {
       parameters,
       inputs,
       duration: session.duration,
     });
     this.stimulus.clearHistory(model.id);
-    this.selectModel(model.id);
+    this.modelId = model.id;
+    this.trace = trace;
+    this.selected = 0;
+    this.logIndex = 0;
+    this.blockScroll = 0;
+    this.offset = 0;
+    this.playing = false;
+    const document = this.documents.find((doc) =>
+      model.sources.some((source) => source.sha256 === doc.sha256),
+    );
+    if (document) {
+      this.documentId = document.id;
+      this.page = model.evidence?.[0]?.page || 1;
+    }
     this.format = ["hex", "decimal", "binary", "octal"].includes(
       session.display,
     )

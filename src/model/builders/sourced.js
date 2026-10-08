@@ -1,5 +1,6 @@
 import { validateModel } from "../validate.js";
 import { runChecks } from "../engine.js";
+import { scenarioAssumptions } from "./assumptions.js";
 
 export function modelId(name) {
   const slug = name
@@ -48,15 +49,7 @@ export function sourcedModel(document, options, behavior) {
         claim: options.claim.trim(),
       },
     ],
-    assumptions: [
-      "This scenario was configured by a developer from a local PDF. Source quotations verify textual provenance, not the correctness of every selected behavior.",
-      "One tick is a normalized model step, not a physical clock cycle.",
-      ...behavior.assumptions,
-      ...String(options.assumptions || "")
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(Boolean),
-    ],
+    assumptions: scenarioAssumptions(behavior.assumptions, options.assumptions),
   };
   validateModel(spec, [document]);
   const checks = runChecks(spec),

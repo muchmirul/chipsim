@@ -38,6 +38,39 @@ export class Workspace {
   async saveModel(spec) {
     await writeJSON(join(this.path, "models", spec.id + ".json"), spec);
   }
+  async backupSession(session) {
+    const path = join(
+      this.path,
+      "revisions",
+      session.modelId,
+      Date.now() + "-" + randomUUID() + ".session.json",
+    );
+    await writeJSON(path, session);
+    return path;
+  }
+  async revisions(id) {
+    const directory = join(this.path, "revisions", id);
+    let files;
+    try {
+      files = await readdir(directory);
+    } catch (error) {
+      if (error.code === "ENOENT") return [];
+      throw error;
+    }
+    return files
+      .filter((file) =>
+        /^\d{13}-[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}\.session\.json$/.test(
+          file,
+        ),
+      )
+      .sort()
+      .reverse()
+      .map((file) => ({
+        path: join(directory, file),
+        name: file,
+        timestamp: new Date(Number(file.split("-")[0])).toISOString(),
+      }));
+  }
   async saveDocument(document) {
     const directory = join(this.path, "documents");
     await mkdir(directory, { recursive: true });

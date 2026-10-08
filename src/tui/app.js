@@ -792,6 +792,7 @@ export class TerminalApp {
           ),
         );
       else if (k === "c") this.createScenario();
+      else if (k === "E") this.behaviorTableEditor.edit();
       else if (k === "x") this.exportMenu();
       else if (k === "V") this.openViewer();
       else if (k === "S")
