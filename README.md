@@ -81,6 +81,7 @@ npm start -- --document docs/references/nexperia-74hc377.pdf
 npm start -- --document docs/references/nexperia-74hc273.pdf
 npm start -- --document docs/references/ti-sn74lvc1g125.pdf
 npm start -- --document docs/references/renesas-hd74hc77.pdf
+npm start -- --document docs/references/ti-sn74ahc273-q1.pdf
 ```
 
 Sequential tables expose retained outputs and clock-history registers. `p` configures the initial output bits, which are scenario values rather than guaranteed power-on state; `i` drives clock, control, or data inputs. The original table arrows and lowercase set-up symbols remain visible in Model view. Physical set-up/hold timing is omitted; see [function-table scope](docs/FUNCTION_TABLES.md).
@@ -90,6 +91,8 @@ The 74HC595 model exposes DS, SHCP, STCP, MR, OE, Q7S, shift/storage registers, 
 The PCA9555 model exposes eight addressed GPIO registers, two external input bytes, sixteen individual output drivers, input inversion, and an open-drain interrupt driver. Press `u`, select a register, then Read or Write. Accesses execute at the next tick and seek to the result; `6` shows named register addresses and `3` shows the event and changes. `i` changes external inputs. Later scheduled register accesses retain their address, operation, and data. Save experiments with `S`. This is a byte-transaction model: physical I²C, paired multi-byte transfers, and the documented shared-bus interrupt erratum are outside scope.
 
 The HD74HC77 PDF creates one latch table instance automatically. Its output follows data while enabled and retains its prior bit while disabled; the default sweep demonstrates both. `p` sets the initial scenario bit and `i` changes data/enable. Package replication and grouped-enable wiring from its pin diagram remain outside this model. See [function-table scope](docs/FUNCTION_TABLES.md).
+
+The SN74AHC273-Q1 PDF creates one flip-flop table instance from its rows, wrapped symbol definitions, and typed clock-pin description. Its `L, H, ↓` clock cell means steady low, steady high, or a falling edge; `Q0` explicitly means retain the prior output. A rising edge captures data, and clear takes effect immediately. Model view keeps that source notation visible. The generic D/Q headings do not establish eight independent package channels; package replication and physical timing are omitted.
 
 `Z` means an output driver is released. Waveforms, registers, logs, and CSV/JSON/VCD preserve it; `f` can find the next `Z` on a tri-state output. Numeric formats do not turn it into zero, and binary edge jumps skip transitions involving `Z`. This does not resolve shared buses, external pull-ups, floating-node voltage, or contention. Inputs remain explicitly driven integer levels.
 
@@ -146,7 +149,7 @@ src/ui/                     Optional browser frontend
 models/, examples/          Packaged/importable model JSON
 scripts/                    TUI entry, model CLI, extraction, build, checks
 test/                      Engine, terminal, and browser tests
-docs/references/            Fifteen complete official PDFs and fingerprint manifest
+docs/references/            Eighteen complete official PDFs and fingerprint manifest
 AGENTS.md                   Developer and coding-agent instructions
 ```
 

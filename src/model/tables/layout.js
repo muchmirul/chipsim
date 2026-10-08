@@ -1,8 +1,9 @@
-import { numberedLegend, plainLegend } from "./legends.js";
+import { plainLegend } from "./legends.js";
+import { numberedNotes } from "./layout-notes.js";
 const normalized = (text) => text.replace(/\s+/g, " ").trim();
 const caption =
   /\b(?:Table\s+([\w.-]+)[.:]?\s*)?((?:function|truth)\s+table)\b/i;
-const tokens = (line) =>
+const rawTokens = (line) =>
   line.cells
     .flatMap((cell) => {
       const text = cell.text;
@@ -19,7 +20,28 @@ const tokens = (line) =>
       }));
     })
     .sort((a, b) => a.x - b.x);
-const lineText = (line) => line.cells.map((cell) => cell.text).join(" ");
+const tokens = (line) => {
+  const words = rawTokens(line),
+    result = [];
+  for (let index = 0; index < words.length; index++) {
+    const word = words[index],
+      next = words[index + 1];
+    // A tightly adjacent subscript is one symbol, never a blank-cell fill.
+    if (
+      word.text === "Q" &&
+      next?.text === "0" &&
+      Math.abs(next.x - word.x - word.width) <= 0.75
+    ) {
+      result.push({ ...word, text: "Q0", width: next.x + next.width - word.x });
+      index++;
+    } else result.push(word);
+  }
+  return result;
+};
+const lineText = (line) =>
+  tokens(line)
+    .map((cell) => cell.text)
+    .join(" ");
 const signalName = /^[a-zA-Z][a-zA-Z\d_]*$/;
 const boundary =
   /^(?:\d+(?:\.\d+)*\.?\s+[A-Za-z]|Table\s+\d+|Rev\.\d|Product data sheet|Product Folder Links:|Copyright\b|www\.)|All information|©/i;
@@ -168,25 +190,21 @@ function parseLayout(page, start, ordinal) {
         return fail("Continued or additional legend text requires review.");
       break;
     }
-    if (/^\(\d{1,2}\)\s+[HLXZ]\s*=/.test(text)) {
+    if (/^\(\d{1,2}\)\s+(?:[HLXZ↑↓]|Q0)\s*=/.test(text)) {
       if (!table.rawRows.length)
         return fail("A legend occurs before any table rows.");
-      // Only adjacent, complete numbered symbol-definition lines are accepted.
-      // Footnotes with timing qualifications or continued text require review.
-      let note = index;
-      for (; note < Math.min(lines.length, index + 8); note++) {
-        const definition = normalized(lineText(lines[note]));
-        const parsed = numberedLegend(definition);
-        if (!parsed) break;
-        if (!parsed.valid)
-          return fail(
-            "Numbered symbol footnotes must contain complete, unqualified definitions.",
-          );
-        notes.add(parsed.marker);
-        table.legend += " " + definition;
+      try {
+        const found = numberedNotes(
+          lines,
+          index,
+          (line) => normalized(lineText(line)),
+          boundary,
+        );
+        found.markers.forEach((marker) => notes.add(marker));
+        table.legend += " " + found.definitions.join(" ");
+      } catch (error) {
+        return fail(error.message);
       }
-      if (note < lines.length && !boundary.test(lineText(lines[note]).trim()))
-        return fail("Continued or additional footnote text requires review.");
       break;
     }
     // Pure binary rows may start with a digit. Test the section delimiter only
@@ -194,7 +212,7 @@ function parseLayout(page, start, ordinal) {
     if (
       (!row.length ||
         !row.every((word) =>
-          /^(?:[HLhlXZ01↑↓]|no|change)$/i.test(word.text),
+          /^(?:[HLhlXZ01↑↓],?|Q0|no|change)$/i.test(word.text),
         )) &&
       boundary.test(text)
     )
@@ -220,7 +238,11 @@ function parseLayout(page, start, ordinal) {
       cells.some(
         (values, index) =>
           values.length > 1 &&
-          !(index >= split && /^no change$/i.test(values.join(" "))),
+          !(index >= split && /^no change$/i.test(values.join(" "))) &&
+          !(
+            index < split &&
+            /^[HL01↑↓](?:\s*,\s*[HL01↑↓]){1,3}$/.test(values.join(" "))
+          ),
       )
     )
       return fail("Multiple values map to one column.");

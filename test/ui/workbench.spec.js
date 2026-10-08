@@ -594,6 +594,46 @@ test("level-sensitive PDF compiles from complete rows with stable identity, foll
   await expect(page.locator("#model-title")).toHaveText(spec.name);
 });
 
+test("wrapped sequential definitions and clock alternatives compile identically from browser PDF geometry", async ({
+  page,
+}) => {
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/ti-sn74ahc273-q1.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await expect(page.locator("#model-title")).toContainText("SN74AHC273-Q1");
+  for (const tick of [14, 15]) {
+    await page.locator("#seek").fill(String(tick));
+    await page.locator("#seek").dispatchEvent("input");
+    await expect(
+      page.locator(".register-table tr").filter({ hasText: "pin_q" }),
+    ).toContainText("0x1");
+  }
+  await page.locator("#tab-sources").click();
+  await expect(page.locator("#source-panel")).toContainText("L, H, ↓");
+  await expect(page.locator("#source-panel")).toContainText("Q0");
+  await expect(page.locator("#source-panel")).toContainText(
+    "package replication and wiring are omitted",
+  );
+  const spec = JSON.parse(
+    await downloaded(page, () => page.locator("[data-export-model]").click()),
+  );
+  expect(spec.id).toBe("state-table-832098c1b03b-p12-t71");
+  expect(spec.sourceTable.rows[1].inputs[1]).toEqual({ clock: 13 });
+  expect(spec.sourceTable.clock.pairs).toBe(true);
+  expect(spec.sourceTable.retention).toEqual({
+    symbol: "Q0",
+    output: "Q",
+    definition: "previous state",
+  });
+  expect(spec.sourceTable.instances).toHaveLength(1);
+  expect(spec.registers).toHaveLength(3);
+  expect(spec.checks).toHaveLength(32);
+  await page.reload();
+  await expect(page.locator("#model-title")).toHaveText(spec.name);
+});
+
 test("real binary function tables compile from PDF layout and display all independent channels", async ({
   page,
 }) => {

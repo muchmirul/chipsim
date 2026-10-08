@@ -1,6 +1,6 @@
 # Simulation references
 
-This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All seventeen PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
+This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All eighteen PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
 
 Document revisions below come from document text, rather than PDF modification timestamps. PDF links use one-based viewer page numbers, which may differ from printed page labels. Retrieved on **2026-10-07** unless a later date is listed below.
 
@@ -170,3 +170,13 @@ Exact sizes and SHA-256 checksums are recorded in [manifest.json](references/man
 - **Read:** PDF page 3 (printed page 1), Function Table and H/L/X definitions; the description and package diagram are on PDF pages 3–4.
 - **Supports:** One table-level latch with explicit level-sensitive updates and retention. Regression source for data-derived compilation; no part-number or fingerprint rule selects its behavior.
 - **Model scope:** Generic `Data`, `Enable G`, and `Q` columns describe one table instance. No package replication or grouped-enable pin wiring is inferred from the diagram. Initial state and instantaneous normalized evaluation are scenario choices; physical setup/hold, propagation delays, electrical behavior, and other device features are omitted. The reproduction notices remain unchanged; no general redistribution permission is asserted.
+
+## SN74AHC273-Q1 flip-flop function table
+
+- **Version:** SLVSJA7A, revised June 2026; retrieved 2026-10-08.
+- **Publisher:** Texas Instruments.
+- **File:** [ti-sn74ahc273-q1.pdf](references/ti-sn74ahc273-q1.pdf#page=12) (30 complete PDF pages, 1,769,129 bytes; original notices retained).
+- **Official source:** [SN74AHC273-Q1 datasheet](https://www.ti.com/lit/ds/symlink/sn74ahc273-q1.pdf).
+- **Read:** PDF page 12, Table 7-1 and complete wrapped input/output definitions; PDF page 3, typed CLK pin declaration and Signal Types legend.
+- **Supports:** Data-derived sequential compilation with asynchronous clear, rising-edge capture, explicit Q0 previous-state retention, and a clock cell listing steady low, steady high, or falling edge. No chip name or fingerprint selects the rules.
+- **Model scope:** One generic CLR/CLK/D/Q table instance. The unindexed headings do not establish a supported mapping to the octal package; replication and package wiring are omitted. Initial retained state and normalized timing are scenario choices. Physical setup/hold, metastability, electrical behavior, and other device features are not inferred. The final-page TI development-use notice remains unchanged; this local repository asserts no general redistribution permission.
