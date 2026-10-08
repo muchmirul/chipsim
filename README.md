@@ -25,24 +25,25 @@ The local workspace defaults to `.chipsim/` in the current directory. PDFs, extr
 
 ## Main controls
 
-| Key                | Action                                                                    |
-| ------------------ | ------------------------------------------------------------------------- |
-| `1`–`6`, Tab       | Waveforms, hardware blocks, log, source text, model details, registers    |
-| `h` / `l`, arrows  | Move one tick; move PDF page in Sources                                   |
-| `j` / `k`, arrows  | Select signal, log row, or register; scroll blocks/source/model text      |
-| Space, `r`         | Run/pause; reset                                                          |
-| `w`, `e`, `b`      | Next rising edge, next falling edge, previous rising edge                 |
-| `[`, `]`, `t`      | Previous/next model change; jump to a tick                                |
-| `+`, `-`, `=`, `z` | Zoom in/out, fit the trace, center cursor                                 |
-| `m`, `p`, `a`, `T` | Choose model, edit parameters, load stimulus, set document-model duration |
-| `i`                | Drive an input pin at the cursor                                          |
-| `u`                | Read/write an addressed register at the next tick                         |
-| `F`, `f`           | Cycle numeric display; find a selected signal value                       |
-| `/`, `n`, `N`      | Search/filter; repeat signal/source search                                |
-| `d`, `c`           | Import PDF/model/session; create a sourced peripheral scenario            |
-| `x`, `S`, `M`, `B` | Export trace, save session, export model JSON, export source bundle       |
-| `V`                | Open the current trace in installed `dwfv`                                |
-| `?`, Esc, `q`      | Help, close a prompt/menu, quit                                           |
+| Key                | Action                                                                   |
+| ------------------ | ------------------------------------------------------------------------ |
+| `1`–`7`, Tab       | Waveforms, blocks, log, sources, model, registers, input stimulus        |
+| `h` / `l`, arrows  | Move one tick; move PDF page in Sources                                  |
+| `j` / `k`, arrows  | Select signal, log row, or register; scroll blocks/source/model text     |
+| Space, `r`         | Run/pause; reset                                                         |
+| `w`, `e`, `b`      | Next rising edge, next falling edge, previous rising edge                |
+| `[`, `]`, `t`      | Previous/next model change; jump to a tick                               |
+| `+`, `-`, `=`, `z` | Zoom in/out, fit the trace, center cursor                                |
+| `m`, `p`, `a`, `T` | Choose model, parameters, stimulus actions/JSON, document-model duration |
+| `i`                | Drive an input pin at the cursor                                         |
+| `u`                | Read/write an addressed register at the next tick                        |
+| `U`, `R`           | Undo/redo an input or register experiment                                |
+| `F`, `f`           | Cycle numeric display; find a selected signal value                      |
+| `/`, `n`, `N`      | Search/filter; repeat signal/source search                               |
+| `d`, `c`           | Import PDF/model/session; create a sourced peripheral scenario           |
+| `x`, `S`, `M`, `B` | Export trace, save session, export model JSON, export source bundle      |
+| `V`                | Open the current trace in installed `dwfv`                               |
+| `?`, Esc, `q`      | Help, close a prompt/menu, quit                                          |
 
 The full register view includes before/after changes. The log supports filtering, changes-only mode (`C`), and seeking with Enter. Model details show scope, assumptions, references, and implementation recipes. Source text keeps one-based PDF page numbers and supports search.
 
@@ -55,6 +56,8 @@ Input events drive a signal at an absolute normalized tick and hold their value:
 ```
 
 Press `i` to select an input pin and set its value at the cursor. This replaces that pin's event at the current tick, keeps the cursor, and preserves later scheduled events. Values hold until the next event for that pin. Output pins cannot be driven. Use `a` to enter a single-line JSON array or load an events file. Empty stimulus uses the built-in ACK controls. Parameter editing includes resource constraints, ACK delay, and polling budget. Custom models use their declared inputs; FIFO and shifter scenarios include an initial demonstration stimulus.
+
+Press `7` for the input stimulus timeline. `i` schedules a pin/value at a chosen tick; Enter opens actions to edit, move, remove, or inspect a selected event. `a` clears events, restores demonstration events, or loads JSON. `U` and `R` undo/redo experiments, including addressed accesses. The trace recomputes before accepting changes; invalid values and simulation faults preserve the working experiment. `S` saves the result. See [timeline behavior](docs/TUI.md#input-stimulus-timeline).
 
 ## From a manual to a simulation
 

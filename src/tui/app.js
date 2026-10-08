@@ -13,6 +13,8 @@ import {
 } from "../model/templates.js";
 import { writeJSON } from "./workspace.js";
 import { screenText } from "./render.js";
+import { views } from "./views.js";
+import { StimulusEditor } from "./stimulus-editor.js";
 const unquote = (path) =>
   /^(['"]).*\1$/.test(path) ? path.slice(1, -1) : path;
 export class TerminalApp {
@@ -38,6 +40,7 @@ export class TerminalApp {
     this.keyHandler = (text, key) => this.key(text, key);
     this.resizeHandler = () => this.draw();
     this.timer = null;
+    this.stimulusEditor = new StimulusEditor(this);
   }
   draw() {
     if (this.closed || this.external) return;
@@ -608,7 +611,17 @@ export class TerminalApp {
   }
   search() {
     const s = this.state;
-    if (s.view === "registers")
+    if (s.view === "stimulus")
+      this.prompt(
+        "Filter event input names / ticks",
+        s.stimulusFilter,
+        (text) => {
+          s.stimulusFilter = text;
+          s.stimulusIndex = 0;
+        },
+        { allowEmpty: true },
+      );
+    else if (s.view === "registers")
       this.prompt(
         "Filter register / signal names",
         s.registerFilter,
@@ -652,7 +665,8 @@ export class TerminalApp {
         return;
       }
       if (key.name === "return") {
-        const value = p.value || p.defaultValue;
+        const value =
+          p.value || (p.cleared && p.allowEmpty ? "" : p.defaultValue);
         if (!value && !p.allowEmpty) {
           p.error = "A value is required.";
           this.draw();
@@ -675,8 +689,15 @@ export class TerminalApp {
       }
       if (key.name === "backspace")
         p.value = Array.from(p.value).slice(0, -1).join("");
-      else if (key.ctrl && key.name === "u") p.value = "";
-      else if (text && !key.ctrl && !key.meta && !/[\x00-\x1f\x7f]/.test(text))
+      else if (key.ctrl && key.name === "u") {
+        p.value = "";
+        p.cleared = true;
+      } else if (
+        text &&
+        !key.ctrl &&
+        !key.meta &&
+        !/[\x00-\x1f\x7f]/.test(text)
+      )
         p.value = (p.value + text).slice(0, 4096);
       this.draw();
       return;
@@ -741,7 +762,15 @@ export class TerminalApp {
           s.models.findIndex((m) => m.id === s.modelId),
         );
       else if (k === "p") this.parameterMenu();
-      else if (k === "i") this.inputMenu();
+      else if (k === "i") {
+        if (s.view === "stimulus") this.stimulusEditor.schedule();
+        else this.inputMenu();
+      } else if (k === "U" || k === "R") s.stimulus.undo(k === "R");
+      else if (
+        s.view === "stimulus" &&
+        ["delete", "backspace"].includes(key.name)
+      )
+        this.stimulusEditor.remove();
       else if (k === "u") this.registerMenu();
       else if (k === "d")
         this.prompt("Import PDF, model JSON, or session JSON", "", (path) =>
@@ -787,16 +816,19 @@ export class TerminalApp {
               s.setMessage("Source bundle exported.");
             }),
         );
-      } else if (k === "a")
-        this.prompt("Stimulus JSON array or JSON file path", "[]", (value) =>
-          this.task(async () => {
-            const text = value.trim().startsWith("[")
-              ? value
-              : await readFile(resolve(unquote(value)), "utf8");
-            s.setInputs(JSON.parse(text));
-          }),
-        );
-      else if (k === "t")
+      } else if (k === "a") {
+        const load = () =>
+          this.prompt("Stimulus JSON array or JSON file path", "[]", (value) =>
+            this.task(async () => {
+              const text = value.trim().startsWith("[")
+                ? value
+                : await readFile(resolve(unquote(value)), "utf8");
+              s.setInputs(JSON.parse(text));
+            }),
+          );
+        if (s.view === "stimulus") this.stimulusEditor.actions(load);
+        else load();
+      } else if (k === "t")
         this.prompt("Go to normalized tick", s.tick, (text) => {
           const parsed = parsePayload(text);
           if (!parsed || parsed.value >= s.trace.length)
@@ -837,27 +869,9 @@ export class TerminalApp {
       else if (k === "n" || k === "N") {
         if (s.view === "sources") s.nextSourceHit(k === "n" ? 1 : -1);
         else s.findSignal(undefined, k === "n" ? 1 : -1);
-      } else if (["1", "2", "3", "4", "5", "6"].includes(k))
-        s.setView(
-          ["wave", "inspect", "log", "sources", "model", "registers"][
-            Number(k) - 1
-          ],
-        );
+      } else if (/^[1-7]$/.test(k)) s.setView(views[Number(k) - 1]);
       else if (key.name === "tab")
-        s.setView(
-          ["wave", "inspect", "log", "sources", "model", "registers"][
-            ([
-              "wave",
-              "inspect",
-              "log",
-              "sources",
-              "model",
-              "registers",
-            ].indexOf(s.view) +
-              1) %
-              6
-          ],
-        );
+        s.setView(views[(views.indexOf(s.view) + 1) % views.length]);
       else if (k === " " || key.name === "space") {
         if (s.tick === s.trace.length - 1) s.seek(0);
         s.playing = !s.playing;
@@ -879,12 +893,18 @@ export class TerminalApp {
       else if (k === "C") s.changesOnly = !s.changesOnly;
       else if (key.name === "return") {
         if (s.view === "sources") this.sourcesMenu();
+        else if (s.view === "stimulus") this.stimulusEditor.event();
         else if (s.view === "log") {
           const entry = s.logs()[s.logIndex];
           if (entry) s.seek(entry.tick);
         }
       } else if (k === "j" || key.name === "down") {
-        if (s.view === "registers")
+        if (s.view === "stimulus")
+          s.stimulusIndex = Math.min(
+            s.stimulus.events().length - 1,
+            s.stimulusIndex + 1,
+          );
+        else if (s.view === "registers")
           s.registerIndex = Math.min(
             s.registers().length - 1,
             s.registerIndex + 1,
@@ -896,7 +916,9 @@ export class TerminalApp {
         else if (s.view === "sources") s.sourceScroll++;
         else s.moveSignal(1);
       } else if (k === "k" || key.name === "up") {
-        if (s.view === "registers")
+        if (s.view === "stimulus")
+          s.stimulusIndex = Math.max(0, s.stimulusIndex - 1);
+        else if (s.view === "registers")
           s.registerIndex = Math.max(0, s.registerIndex - 1);
         else if (s.view === "model")
           s.infoScroll = Math.max(0, s.infoScroll - 1);

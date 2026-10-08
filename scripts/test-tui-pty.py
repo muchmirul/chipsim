@@ -168,6 +168,34 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert latch['trace'][4]['signals']['pin_q']==1
   assert latch['trace'][10]['signals']['pin_data']==0 and latch['trace'][10]['signals']['pin_q']==1
   assert latch['model']['definition']['sourceTable']['compiler']=='retained-function-table-v1'
+  # Build and revise a pin experiment without typing input JSON.
+  send('7');wait('Tick / input pin')
+  send('a');wait('STIMULUS ACTIONS')
+  send('j\r');wait('Explicit stimulus cleared')
+  send('i');wait('SCHEDULE INPUT')
+  send('j\r');wait('Event tick')
+  send('0x0\r');wait('scheduled value')
+  send('0b1\r');wait('Scheduled pin_enableg=1 at tick 0')
+  send('i');wait('SCHEDULE INPUT')
+  send('k\r');wait('Event tick')
+  send('0o3\r');wait('scheduled value')
+  send('1\r');wait('Scheduled pin_data=1 at tick 3')
+  send('\r');wait('Move to another tick')
+  send('jj\r');wait('Move event to tick')
+  send('0x4\r');wait('Updated pin_data at tick 4')
+  send('\x1b[3~');wait('Removed pin_data at tick 4')
+  send('U');wait('Stimulus undone')
+  send('R');wait('Stimulus redone')
+  send('U');wait('Stimulus undone')
+  send('x');wait('EXPORT FULL TRACE')
+  send('j\r');wait('Output path')
+  experiment_trace=Path(workspace)/'experiment-trace.json'
+  send(str(experiment_trace)+'\r');wait('Saved '+str(experiment_trace))
+  experiment=json.loads(experiment_trace.read_text())
+  assert experiment['inputs']==[{'tick':0,'signal':'pin_enableg','value':1},{'tick':4,'signal':'pin_data','value':1}]
+  assert experiment['trace'][3]['signals']['pin_q']==0
+  assert experiment['trace'][4]['signals']['pin_q']==1
+  assert experiment['trace'][10]['signals']['pin_q']==1
   send('q');proc.wait(timeout=5)
   end=time.monotonic()+1
   while time.monotonic()<end and select.select([master],[],[],.05)[0]:
@@ -177,7 +205,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored=termios.tcgetattr(slave)
   assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
   assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-  print('PTY verified: stepping, formats, register/log views, exports, resize, sourced scenarios, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, retained state, released outputs, addressed access, direct pin editing, and terminal cleanup.')
+  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, retained state, released outputs, addressed access, direct pin editing, and terminal cleanup.')
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)

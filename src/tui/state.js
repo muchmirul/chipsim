@@ -11,6 +11,7 @@ import { modelsForDocument, searchDocument } from "../documents/recognize.js";
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Workspace } from "./workspace.js";
+import { Stimulus } from "./stimulus.js";
 export class TuiState {
   constructor({
     workspace = ".chipsim",
@@ -22,6 +23,7 @@ export class TuiState {
     this.documents = [];
     this.modelId = "pio";
     this.configurations = new Map();
+    this.stimulus = new Stimulus(this);
     this.trace = [];
     this.tick = 0;
     this.selected = 0;
@@ -40,6 +42,8 @@ export class TuiState {
     this.logIndex = 0;
     this.registerIndex = 0;
     this.registerFilter = "";
+    this.stimulusIndex = 0;
+    this.stimulusFilter = "";
     this.infoScroll = 0;
     this.blockScroll = 0;
     this.documentId = null;
@@ -75,6 +79,11 @@ export class TuiState {
         0,
         this.logs().findIndex((snapshot) => snapshot.tick >= this.tick),
       );
+    if (view === "stimulus") {
+      const events = this.stimulus.events();
+      const next = events.findIndex((event) => event.tick >= this.tick);
+      this.stimulusIndex = next < 0 ? Math.max(0, events.length - 1) : next;
+    }
   }
   get signal() {
     return this.model.signals[this.selected] || this.model.signals[0];
@@ -146,42 +155,17 @@ export class TuiState {
     });
     this.config.parameters = parameters;
     this.rebuild();
+    this.stimulus.clearHistory(this.modelId);
     this.setMessage("Updated " + id);
   }
   setInputs(inputs) {
-    const validated = validateInputs(this.model.signals, inputs);
-    this.config.inputs = validated;
-    this.rebuild();
-    this.setMessage("Stimulus applied · " + validated.length + " events");
+    this.stimulus.apply(inputs, { reset: true });
+    this.setMessage(
+      "Stimulus applied · " + this.config.inputs.length + " events",
+    );
   }
   driveInput(signalId, value, tick = this.tick) {
-    if (!Number.isInteger(tick) || tick < 0 || tick >= this.trace.length)
-      throw new Error("Choose a tick within the current trace.");
-    const inputs = validateInputs(this.model.signals, [
-      ...this.config.inputs.filter(
-        (event) => event.tick !== tick || event.signal !== signalId,
-      ),
-      { tick, signal: signalId, value },
-    ]);
-    // Commit only after simulation succeeds, so a failed experiment cannot
-    // replace the previous trace or its input configuration.
-    const trace = this.model.simulate(this.config.parameters, {
-      inputs,
-      ticks: this.config.duration,
-    });
-    const fault = trace.find((snapshot) => snapshot.phase === "fault");
-    if (fault)
-      throw new Error(
-        `Simulation fault at tick ${fault.tick}: ${fault.detail || fault.message}`,
-      );
-    const cursor = this.tick;
-    this.config.inputs = inputs;
-    this.trace = trace;
-    this.playing = false;
-    this.seek(cursor);
-    this.setMessage(
-      `Input ${signalId}=${value} at tick ${tick} · holds until its next scheduled event`,
-    );
+    this.stimulus.drive(signalId, value, tick);
   }
   setDuration(ticks) {
     if (this.model.kind === "builtin")
@@ -190,6 +174,7 @@ export class TuiState {
       throw new Error("Duration must be 1–10000 ticks.");
     this.config.duration = ticks;
     this.rebuild();
+    this.stimulus.clearHistory(this.modelId);
   }
   accessRegister(operation, address, value = 0) {
     const tick = this.tick + 1;
@@ -217,6 +202,7 @@ export class TuiState {
           tick +
           "; inspect reset and address rules.",
       );
+    this.stimulus.remember();
     this.config.inputs = inputs;
     this.config.duration = duration;
     this.trace = trace;
@@ -395,6 +381,7 @@ export class TuiState {
     if (index < 0) this.models.push(registered);
     else this.models[index] = registered;
     this.configurations.delete(registered.id);
+    this.stimulus.clearHistory(registered.id);
     this.selectModel(registered.id);
     this.setMessage(
       "Added " +
@@ -538,6 +525,7 @@ export class TuiState {
       inputs,
       duration: session.duration,
     });
+    this.stimulus.clearHistory(model.id);
     this.selectModel(model.id);
     this.format = ["hex", "decimal", "binary", "octal"].includes(
       session.display,
