@@ -1,8 +1,8 @@
 # Simulation references
 
-This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All eleven PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
+This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All twelve PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
 
-Document revisions below come from document text, rather than PDF modification timestamps. PDF links use one-based viewer page numbers, which may differ from printed page labels. Retrieved on **2026-10-07**.
+Document revisions below come from document text, rather than PDF modification timestamps. PDF links use one-based viewer page numbers, which may differ from printed page labels. Retrieved on **2026-10-07** unless a later date is listed below.
 
 ## RP2040 Datasheet
 
@@ -125,8 +125,9 @@ Document revisions below come from document text, rather than PDF modification t
 
 - **74HC00 / 74HCT00:** [complete PDF](references/nexperia-74hc00.pdf#page=3), Rev. 11, 29 April 2025, 14 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT00.pdf).
 - **74HC86 / 74HCT86:** [complete PDF](references/nexperia-74hc86.pdf#page=3), Rev. 7, 2 April 2024, 12 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT86.pdf).
+- **74HC157 / 74HCT157:** [complete PDF](references/nexperia-74hc157.pdf#page=3), Rev. 10, 28 May 2024, 15 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT157.pdf).
 
-Both are unchanged Nexperia references retrieved on **2026-10-08**. Pin descriptions and function tables are on PDF page 3. They verify content-based binary logic compilation and four independent indexed channels, not fingerprint-specific profiles. Electrical characteristics and timing remain outside the compiled model scope.
+All three are unchanged Nexperia references retrieved on **2026-10-08**. Pin descriptions and function tables are on PDF page 3. They verify content-based binary logic compilation and four indexed channels, including shared enable/select controls for the multiplexer, not fingerprint-specific profiles. Electrical characteristics and timing remain outside the compiled model scope.
 
 ## File integrity
 

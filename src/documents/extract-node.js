@@ -1,4 +1,4 @@
-import { hasFunctionTable, popplerLines } from "./layout.js";
+import { hasTableLayout, popplerLines } from "./layout.js";
 import { recognizeDocument } from "./recognize.js";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
@@ -66,7 +66,7 @@ export async function extractPDFFile(input, { onProgress = () => {} } = {}) {
     )
   ) {
     const candidates = document.pages
-      .filter((page) => hasFunctionTable(page.text))
+      .filter((page) => hasTableLayout(page.text))
       .slice(0, 32);
     for (const page of candidates) {
       onProgress(
@@ -93,9 +93,7 @@ export async function extractPDFFile(input, { onProgress = () => {} } = {}) {
         page.layoutError = "Table geometry unavailable: " + error.message;
       }
     }
-    if (
-      document.pages.filter((page) => hasFunctionTable(page.text)).length > 32
-    )
+    if (document.pages.filter((page) => hasTableLayout(page.text)).length > 32)
       document.tableScanLimit = 32;
   }
   return document;

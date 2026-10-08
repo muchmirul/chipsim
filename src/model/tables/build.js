@@ -1,3 +1,4 @@
+import { instancesFor } from "./pins.js";
 import { op, assign, signal, input } from "../builders/shared.js";
 import { validateModel } from "../validate.js";
 import { runChecks } from "../engine.js";
@@ -12,71 +13,19 @@ const fold = (operator, values, empty) =>
           fold(operator, values.slice(Math.ceil(values.length / 2)), empty),
         );
 const id = (label) => "pin_" + label.toLowerCase();
-function instancesFor(document, table) {
-  const labels = [...table.inputs, ...table.outputs];
-  if (!labels.every((label) => /^n[A-Za-z][\w]*$/.test(label)))
-    return { instances: [{ key: "one", labels }], indexed: false };
-  const pages = document.pages.filter((page) =>
-      /pin description/i.test(page.text),
-    ),
-    sets = [];
-  for (const label of labels) {
-    const suffix = label.slice(1),
-      found = [];
-    for (const page of pages) {
-      const range = new RegExp(
-        "\\b(\\d+)" + suffix + "\\s+to\\s+(\\d+)" + suffix + "\\b",
-        "g",
-      );
-      for (const match of page.text.matchAll(range)) {
-        const low = Number(match[1]),
-          high = Number(match[2]);
-        if (high < low || high - low > 7)
-          throw new Error("Indexed pin range exceeds supported bounds.");
-        found.push(
-          Array.from({ length: high - low + 1 }, (_, index) => low + index),
-        );
-      }
-      const list = new RegExp(
-        "\\b\\d+" + suffix + "(?:,\\s*\\d+" + suffix + ")+\\b",
-        "g",
-      );
-      for (const match of page.text.matchAll(list))
-        found.push(
-          match[0]
-            .split(",")
-            .map((pin) => Number(pin.trim().slice(0, -suffix.length))),
-        );
-    }
-    const unique = [...new Set(found.map((values) => JSON.stringify(values)))];
-    if (unique.length > 1)
-      throw new Error("Conflicting indexed pin sets require review.");
-    sets.push(unique[0] ? JSON.parse(unique[0]) : null);
-  }
-  if (sets.every((set) => set === null))
-    return { instances: [{ key: "generic", labels }], indexed: false };
-  if (
-    sets.some((set) => set === null) ||
-    sets.some((set) => JSON.stringify(set) !== JSON.stringify(sets[0]))
-  )
-    throw new Error(
-      "Not every indexed signal has the same documented instance set.",
-    );
-  return {
-    instances: sets[0].map((index) => ({
-      key: "channel_" + index,
-      labels: labels.map((label) => index + label.slice(1)),
-    })),
-    indexed: true,
-    pinPages: pages.map((page) => page.number),
-  };
-}
 export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
-  const { instances, indexed, pinPages } = instancesFor(document, table),
+  const {
+      instances,
+      indexed,
+      pinPages,
+      shared = [],
+    } = instancesFor(document, table),
     count = table.inputs.length;
-  if (instances.length * (count + table.outputs.length) > 32)
+  const allLabels = [
+    ...new Set(instances.flatMap((instance) => instance.labels)),
+  ];
+  if (allLabels.length > 32)
     throw new Error("Instantiated table exceeds the 32-signal model limit.");
-  const allLabels = instances.flatMap((instance) => instance.labels);
   if (new Set(allLabels.map(id)).size !== allLabels.length)
     throw new Error("Signal labels collide after normalization.");
   const actions = [],
@@ -87,11 +36,14 @@ export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
   instances.forEach((instance, instanceIndex) => {
     const inputNames = instance.labels.slice(0, count),
       outputNames = instance.labels.slice(count);
+    const existingLabels = new Set(signals.map((signal) => signal.label));
     signals.push(
-      ...inputNames.map((label) => ({
-        ...signal(id(label), 1, "input"),
-        label,
-      })),
+      ...inputNames
+        .filter((label) => !existingLabels.has(label))
+        .map((label) => ({
+          ...signal(id(label), 1, "input"),
+          label,
+        })),
       ...outputNames.map((label) => ({
         ...signal(id(label), 1, "output"),
         label,
@@ -133,7 +85,9 @@ export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
           "Table " +
           table.number.replace(/\.$/, "") +
           " · " +
-          (indexed ? "channel " + inputNames[0].match(/^\d+/)[0] : "logic"),
+          (indexed
+            ? "channel " + instance.key.slice("channel_".length)
+            : "logic"),
         note: "Derived from PDF page " + table.page,
       },
       {
@@ -184,11 +138,32 @@ export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
     const inputs = [],
       expect = {};
     instances.forEach((instance, index) => {
-      const value = (combination + index) % table.matrix.length;
-      table.inputs.forEach((_, bit) =>
-        inputs.push(
-          input(0, id(instance.labels[bit]), (value >> (count - 1 - bit)) & 1),
-        ),
+      const localBits = table.inputs
+        .map((label, bit) => ({ label, bit }))
+        .filter(({ label }) => !shared.includes(label));
+      let local = localBits.reduce(
+        (value, { bit }) =>
+          (value << 1) | ((combination >> (count - 1 - bit)) & 1),
+        0,
+      );
+      local = (local + index) % 2 ** localBits.length;
+      let value = combination;
+      localBits.forEach(({ bit }, offset) => {
+        const mask = 1 << (count - 1 - bit);
+        value =
+          (value & ~mask) |
+          ((local >> (localBits.length - 1 - offset)) & 1 ? mask : 0);
+      });
+      table.inputs.forEach(
+        (_, bit) =>
+          (index === 0 || !shared.includes(table.inputs[bit])) &&
+          inputs.push(
+            input(
+              0,
+              id(instance.labels[bit]),
+              (value >> (count - 1 - bit)) & 1,
+            ),
+          ),
       );
       table.outputs.forEach(
         (_, output) =>
@@ -225,7 +200,10 @@ export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
       table.page +
       ". " +
       (indexed
-        ? "Indexed instances are taken from the documented pin lists."
+        ? "Indexed instances are taken from the documented pin lists." +
+          (shared.length
+            ? " Shared input pins: " + shared.join(", ") + "."
+            : "")
         : "A single table instance is modeled; package replication is not inferred.") +
       " No analog voltages, supply behavior, propagation delays, hazards, setup/hold times, or other document features are modeled.",
     parameters: [],
@@ -264,16 +242,14 @@ export function buildFunctionTable(document, table, { reservedIds = [] } = {}) {
           "The positioned binary table supplies the output mapping stored in sourceTable; all input combinations are covered without conflicting overlaps.",
       },
       ...(indexed
-        ? [
-            {
-              id: "pin-instances",
-              sourceId: "manual",
-              page: pinPages[0],
-              quote: "Pin description",
-              claim:
-                "Consistent numbered signal lists establish the independent indexed instances.",
-            },
-          ]
+        ? pinPages.map((page, index) => ({
+            id: "pin-instances" + (index ? "-" + (index + 1) : ""),
+            sourceId: "manual",
+            page,
+            quote: "Pin description",
+            claim:
+              "Consistent numbered signal lists establish the indexed instances; any shared controls are declared single input pins.",
+          }))
         : []),
     ],
     assumptions: [

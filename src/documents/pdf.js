@@ -1,4 +1,4 @@
-import { positionedLines, hasFunctionTable } from "./layout.js";
+import { positionedLines, hasTableLayout } from "./layout.js";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/build/pdf.mjs";
 import workerSource from "pdfjs-dist/build/pdf.worker.min.mjs";
 
@@ -71,7 +71,7 @@ export async function extractPDF(
         if (item.hasEOL) text += "\n";
       }
       const extracted = { number, text: text.trim() };
-      if (hasFunctionTable(text)) {
+      if (hasTableLayout(text)) {
         tablePages++;
         if (tablePages > 32) document.tableScanLimit = 32;
         else

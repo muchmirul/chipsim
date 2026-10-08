@@ -5,11 +5,12 @@ ChipSim can derive combinational logic from a new PDF's published function table
 ```sh
 npm start -- --document docs/references/nexperia-74hc00.pdf
 npm start -- --document docs/references/nexperia-74hc86.pdf
+npm start -- --document docs/references/nexperia-74hc157.pdf
 npm run document -- path/to/manual.pdf --json
 npm run document -- path/to/manual.pdf --out generated.model.json
 ```
 
-The first two documents are regression references. Their NAND/XOR behavior is read from their rows; it is not selected by their filename, part number, or fingerprint. The imported models include all four indexed gates because consistent numbered pin lists establish those instances.
+These documents are regression references. Their NAND/XOR/multiplexer behavior is read from their rows; it is not selected by their filename, part number, or fingerprint. The imported models include all four indexed channels because consistent numbered pin lists establish those instances. The multiplexer shares its enable/select pins across all channels, while retaining separate data inputs and outputs.
 
 ## What happens on import
 
@@ -26,12 +27,16 @@ All compilable tables become separate library models; `m` selects among them in 
 
 Tables have up to six input columns, 24 output columns, and 32 source rows. Models have at most 32 instantiated signals. A six-input table generates 64 acceptance cases. Data is evaluated at tick zero and at later input steps with ideal instantaneous settling. The default sweep dwells for two normalized ticks and gives independent channels different patterns.
 
-Edge arrows, hold states, Z outputs, unspecified outputs, ambiguous headings, conflicting pin ranges, incomplete rows, and merged/blank cells require review. Missing values are not copied from preceding rows. An unsupported table leaves the PDF available for search and guided modeling; diagnostics explain the reason. Both interfaces scan geometry on at most 32 candidate pages per import and reports this bound when reached. Built-in architecture manuals retain their existing example workflow.
+Edge arrows, hold states, Z outputs, unspecified outputs, ambiguous headings, conflicting pin ranges, incomplete rows, and merged/blank cells require review. Missing values are not copied from preceding rows. An unsupported table leaves the PDF available for search and guided modeling; diagnostics explain the reason. Both interfaces scan geometry on at most 32 function-table/pin-description candidate pages per import and report this bound when reached. Built-in architecture manuals retain their existing example workflow.
+
+Tables may mix shared input controls with indexed data signals. A shared control must have a positioned pin description with `Symbol`, `Pin`, and `Description` columns that unambiguously declares one numbered input pin. Shared outputs, conflicting pin numbers, missing roles, and bidirectional pins require review. Common controls are defined and driven once, while each indexed channel evaluates its own data against those controls. Generated checks keep controls consistent across channels and rotate only private inputs.
+
+Press `i` in the TUI to drive an input pin at the current tick without writing JSON. Later scheduled input events are retained.
 
 Generic `n`-indexed signal names are expanded only from consistent documented numbered pin lists or ranges. Without those lists, one table instance is modeled and package replication remains outside scope. No electrical thresholds, delay, supply behavior, hazards, or other document features are inferred.
 
 ## Extending the compiler
 
-`src/documents/layout.js` normalizes positioned rows. `src/model/tables/read.js` owns table syntax, symbol interpretation, coverage, and overlap checks. `src/model/tables/build.js` converts a validated table to the existing model language; `src/model/from-document.js` coordinates profiles and tables for both interfaces. Keep parsing, model generation, and rendering separate.
+`src/documents/layout.js` normalizes positioned rows. `src/model/tables/read.js` owns table syntax, symbol interpretation, coverage, and overlap checks. `src/model/tables/pins.js` resolves indexed instances and validates shared pin declarations. `src/model/tables/build.js` converts a validated table to the existing model language; `src/model/from-document.js` coordinates profiles and tables for both interfaces. Keep parsing, model generation, and rendering separate.
 
 A new syntax must have real document examples and independent expected behavior. Include negative cases for ambiguous layouts and unsupported semantics. Do not silently infer merged cells, overwrite authored models, or claim whole-chip coverage from a small function table. Review the exported source snapshot and executable rules when adapting a generated model.

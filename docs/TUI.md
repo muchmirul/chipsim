@@ -15,7 +15,7 @@ Views are:
 5. **Model**: scope, assumptions, parameters, source fingerprints, evidence quotations, warnings, and implementation recipe. `j/k` scrolls.
 6. **Registers**: every signal/register and its change at this tick. `j/k` selects, `/` filters, and `h/l` moves the timeline.
 
-Prompts accept Enter for their displayed default. Type a value to replace it; Backspace deletes, Ctrl-U clears, and Esc cancels. Boolean and enum parameters have menus. Integer parameters support decimal, hexadecimal, binary, and octal. Long or multiline input stimulus should be loaded from a JSON file with `a`.
+Prompts accept Enter for their displayed default. Type a value to replace it; Backspace deletes, Ctrl-U clears, and Esc cancels. Boolean and enum parameters have menus. Integer parameters support decimal, hexadecimal, binary, and octal. `i` opens input-pin editing at the cursor. Select a pin, enter a decimal/hex/binary/octal value, and its outputs/logs/waveforms are recomputed while preserving the cursor. It replaces an existing event for that pin/tick and keeps other scheduled events. Values hold until the pin's next event. Invalid widths or simulation faults keep the previous trace and stimulus. `S` saves the edited stimulus with a session. Long or multiline input stimulus should be loaded from a JSON file with `a`.
 
 ## Local source workflow
 
@@ -49,6 +49,6 @@ Reference: https://github.com/psurply/dwfv. Reviewed revision: `fe89ba62d8ddcf95
 
 The reference informed `h/j/k/l`, edge navigation, cursor positioning, zoom, and search. ChipSim implements these around its simulation state and source workspace. Press uppercase `V` to export the current trace and launch an installed `dwfv`. Quit its viewer to return to ChipSim. For a custom executable use `--dwfv /path/to/dwfv` or `CHIPSIM_DWFV`.
 
-Upstream installation instructions include `cargo install dwfv` or cloning the repository and `cargo install --path .`. Rust is required for installing/building that optional viewer, not for ChipSim itself. Compatibility was checked against the reviewed checkout using traces from all six built-ins and 32-bit FIFO/shifter scenarios, including undefined register values. The reviewed 74HC595 profile and both compiled function-table models are included in the interoperability check too.
+Upstream installation instructions include `cargo install dwfv` or cloning the repository and `cargo install --path .`. Rust is required for installing/building that optional viewer, not for ChipSim itself. Compatibility was checked against the reviewed checkout using traces from all six built-ins and 32-bit FIFO/shifter scenarios, including undefined register values. The reviewed 74HC595 profile and all compiled function-table models are included in the interoperability check too.
 
 Run `npm run test:dwfv -- /path/to/dwfv` to repeat parser checks with a chosen binary. `npm run test:tui` runs real POSIX terminal tests covering keyboard controls, export, resize, PDF-to-model creation, and terminal mode restoration. Node tests also verify rendering at 80×24 and 120×40. The app restores the cursor and previous terminal mode on normal quit, Ctrl-C, and handled termination.

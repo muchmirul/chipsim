@@ -153,6 +153,35 @@ export class TuiState {
     this.rebuild();
     this.setMessage("Stimulus applied · " + validated.length + " events");
   }
+  driveInput(signalId, value, tick = this.tick) {
+    if (!Number.isInteger(tick) || tick < 0 || tick >= this.trace.length)
+      throw new Error("Choose a tick within the current trace.");
+    const inputs = validateInputs(this.model.signals, [
+      ...this.config.inputs.filter(
+        (event) => event.tick !== tick || event.signal !== signalId,
+      ),
+      { tick, signal: signalId, value },
+    ]);
+    // Commit only after simulation succeeds, so a failed experiment cannot
+    // replace the previous trace or its input configuration.
+    const trace = this.model.simulate(this.config.parameters, {
+      inputs,
+      ticks: this.config.duration,
+    });
+    const fault = trace.find((snapshot) => snapshot.phase === "fault");
+    if (fault)
+      throw new Error(
+        `Simulation fault at tick ${fault.tick}: ${fault.detail || fault.message}`,
+      );
+    const cursor = this.tick;
+    this.config.inputs = inputs;
+    this.trace = trace;
+    this.playing = false;
+    this.seek(cursor);
+    this.setMessage(
+      `Input ${signalId}=${value} at tick ${tick} · holds until its next scheduled event`,
+    );
+  }
   setDuration(ticks) {
     if (this.model.kind === "builtin")
       throw new Error("Built-in duration follows frame and ACK controls.");
