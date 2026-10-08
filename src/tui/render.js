@@ -1,58 +1,9 @@
-import { formatPayload } from "../core/values.js";
+import { clean, displayWidth, clip, pad, display } from "./text.js";
+export { clean, displayWidth, clip, display } from "./text.js";
+import { signalRows } from "./waveform.js";
+import { detailRows } from "./trace-detail.js";
 import { views } from "./views.js";
 import { modelsForDocument } from "../documents/recognize.js";
-export const clean = (text) =>
-  String(text ?? "").replace(/[\x00-\x1f\x7f-\x9f]/g, " ");
-const segments = new Intl.Segmenter(undefined, { granularity: "grapheme" });
-const graphemes = (text) =>
-  Array.from(segments.segment(clean(text)), (item) => item.segment);
-const cellWidth = (text) => {
-  const code = text.codePointAt(0);
-  if (/^[\p{Mark}\u200d\u200b]+$/u.test(text)) return 0;
-  if (
-    /\p{Extended_Pictographic}/u.test(text) ||
-    /[\u{1f1e6}-\u{1f1ff}]/u.test(text)
-  )
-    return 2;
-  return code >= 0x1100 &&
-    (code <= 0x115f ||
-      code === 0x2329 ||
-      code === 0x232a ||
-      (code >= 0x2e80 && code <= 0xa4cf) ||
-      (code >= 0xac00 && code <= 0xd7a3) ||
-      (code >= 0xf900 && code <= 0xfaff) ||
-      (code >= 0xfe10 && code <= 0xfe19) ||
-      (code >= 0xfe30 && code <= 0xfe6f) ||
-      (code >= 0xff01 && code <= 0xff60) ||
-      (code >= 0xffe0 && code <= 0xffe6) ||
-      (code >= 0x20000 && code <= 0x3fffd))
-    ? 2
-    : 1;
-};
-export const displayWidth = (text) =>
-  graphemes(text).reduce((width, part) => width + cellWidth(part), 0);
-export const clip = (text, width) => {
-  const parts = graphemes(text);
-  if (parts.reduce((sum, part) => sum + cellWidth(part), 0) <= width)
-    return parts.join("");
-  let result = "",
-    used = 0;
-  for (const part of parts) {
-    const size = cellWidth(part);
-    if (used + size > width - 1) break;
-    result += part;
-    used += size;
-  }
-  return width > 0 ? result + "…" : "";
-};
-const pad = (text, width) => {
-  const clipped = clip(text, width);
-  return clipped + " ".repeat(Math.max(0, width - displayWidth(clipped)));
-};
-export const display = (value, format, width = 8) =>
-  typeof value === "number" && value >= 0
-    ? formatPayload(value, format, width)
-    : String(value ?? "—");
 const row = (text, style = "") => ({ text, style });
 function section(title, width) {
   return row(
@@ -71,7 +22,7 @@ function waveform(state, height) {
       ),
     ),
     signals = state.model.signals.slice(first, first + maxSignals),
-    cursor = Math.round((state.tick - state.offset) * state.zoom);
+    cursor = Math.floor((state.tick - state.offset) * state.zoom);
   const ruler = Array(width).fill(" ");
   for (let col = 0; col < width; col += Math.max(8, Math.floor(width / 6))) {
     const text = String(Math.round(state.offset + col / state.zoom));
@@ -81,56 +32,22 @@ function waveform(state, height) {
   const lines = [row(" ".repeat(23) + ruler.join(""), "dim")];
   for (const signal of signals) {
     const id = signal.id,
-      top = [],
-      middle = [],
-      bottom = [];
-    let previous;
-    for (let col = 0; col < width; col++) {
-      const tick = Math.floor(state.offset + col / state.zoom),
-        value = state.trace[tick]?.signals[id];
-      if (value === undefined) {
-        top[col] = " ";
-        middle[col] = " ";
-        bottom[col] = " ";
-        continue;
-      }
-      const changed = previous !== undefined && previous !== value;
-      if (value === "Z") {
-        top[col] = " ";
-        middle[col] = !col || changed ? "Z" : "·";
-        bottom[col] = " ";
-      } else if (signal.width === 1) {
-        top[col] = value ? "─" : changed ? "┐" : " ";
-        bottom[col] = value ? (changed ? "┘" : " ") : "─";
-        if (changed && value) top[col] = "┌";
-        if (changed && !value) bottom[col] = "└";
-        middle[col] = changed ? "│" : " ";
-      } else {
-        top[col] = changed ? "┬" : "─";
-        bottom[col] = changed ? "┴" : "─";
-        if (changed) middle[col] = "│";
-        else middle[col] ??= " ";
-        if (!col || changed) {
-          const text = display(value, state.format, signal.width);
-          for (let n = 0; n < text.length && col + n < width; n++)
-            middle[col + n] = text[n];
-        }
-      }
-      previous = value;
-    }
-    for (const line of [top, middle, bottom])
-      if (cursor >= 0 && cursor < width) line[cursor] = "┃";
+      [top, middle, bottom] = signalRows(state.trace, signal, {
+        width,
+        offset: state.offset,
+        zoom: state.zoom,
+        cursor,
+        format: state.format,
+      });
     const chosen = state.model.signals[state.selected]?.id === id,
       style = chosen ? "selected" : "wave";
     lines.push(
       row(
-        pad((chosen ? "› " : "  ") + (signal.label || id), 22) +
-          " " +
-          top.join(""),
+        pad((chosen ? "› " : "  ") + (signal.label || id), 22) + " " + top,
         style,
       ),
-      row(" ".repeat(23) + middle.join(""), style),
-      row(" ".repeat(23) + bottom.join(""), style),
+      row(" ".repeat(23) + middle, style),
+      row(" ".repeat(23) + bottom, style),
     );
   }
   lines.push(
@@ -144,6 +61,12 @@ function waveform(state, height) {
           state.signal.width,
         ) +
         "   · j/k signal · h/l tick · w/e/b edges",
+      "dim",
+    ),
+  );
+  lines.push(
+    row(
+      "… zoom for label · ≋ multiple values/column · x unavailable · Enter details",
       "dim",
     ),
   );
@@ -286,7 +209,7 @@ function logs(state, height) {
   }
   lines.push(
     row(
-      `${entries.length} rows · ${state.changesOnly ? "changes only" : "all steps"} · filter ${state.logFilter || "(none)"} · j/k choose · Enter seek · C toggle changes`,
+      `j/k choose · Enter seek/details · C changes · ${entries.length} rows · filter ${state.logFilter || "(none)"}`,
       "dim",
     ),
   );
@@ -395,7 +318,7 @@ function registerTable(state, height) {
   }
   lines.push(
     row(
-      "j/k choose · h/l tick · / filter · F format · " +
+      "j/k choose · Enter details · h/l tick · / filter · F format · " +
         (state.model.registerInterface ? "u access · " : "") +
         items.length +
         " fields",
@@ -557,6 +480,10 @@ const help = [
   ],
   ["Zoom", "+/- zoom · = fit trace · z center cursor"],
   [
+    "Step details",
+    "Enter in wave/blocks/registers/log · j/k scroll · s source · Esc close",
+  ],
+  [
     "Simulation",
     "Space run/pause · r reset · p parameters · i drive input · a stimulus JSON/file · T duration",
   ],
@@ -652,6 +579,13 @@ export function render(state) {
       "dim",
     ),
   );
+  if (state.traceDetail)
+    lines.splice(3, rows - 6, ...detailRows(state, rows - 6));
+  if (state.traceDetail)
+    lines[rows - 1] = row(
+      "j/k scroll · [/] change · s source · Esc/Enter/q close · Ctrl-C quit",
+      "dim",
+    );
   if (state.menu) {
     const menu = state.menu,
       title = menu.title;

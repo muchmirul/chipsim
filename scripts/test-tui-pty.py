@@ -407,6 +407,29 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert gpio['trace'][4]['signals']['selected_driver']==1
   assert gpio['trace'][10]['signals']['selected_driver']==0
   assert gpio['trace'][12]['signals']['selected_driver']=='Z'
+  send('t');wait('Go to normalized tick')
+  send('10\r');wait('tick 10/24')
+  for _ in range(4):
+   if 'format hex' in frame():break
+   current=re.search(r'format (hex|decimal|binary|octal)',frame()).group(1)
+   formats=['hex','decimal','binary','octal']
+   expected=formats[(formats.index(current)+1)%4]
+   send('F');wait('format '+expected)
+  assert 'format hex' in frame(),frame()
+  fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',24,80,0,0))
+  proc.send_signal(__import__('signal').SIGWINCH)
+  send('\r');wait('STEP 10')
+  assert 'Write 0x000C' in frame() and 'Write data: 0x00000003' in frame()
+  send('F');wait('Write data: 3')
+  send('$');wait('PDF page 271')
+  send('s');wait('STEP SOURCE EVIDENCE')
+  send('\r');wait('PDF page 271/1394')
+  send('1');wait('Selected GPIO driver')
+  send('\r');wait('STEP 10')
+  send(']');wait('STEP 11')
+  send('\x1b');wait('tick 11/24',absent='STEP 11')
+  fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',40,120,0,0))
+  proc.send_signal(__import__('signal').SIGWINCH)
   send('d');wait('Import PDF')
   send(str(ROOT/'docs/references/ti-tca9534.pdf')+'\r');wait('Loaded TCA9534')
   send('c');wait('CREATE')

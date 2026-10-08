@@ -18,6 +18,7 @@ import { StimulusEditor } from "./stimulus-editor.js";
 import { BehaviorTableEditor } from "./behavior-table-editor.js";
 import { RegisterBankEditor } from "./register-bank-editor.js";
 import { SourceSimulations } from "./source-simulations.js";
+import { TraceDetail } from "./trace-detail.js";
 const unquote = (path) =>
   /^(['"]).*\1$/.test(path) ? path.slice(1, -1) : path;
 export class TerminalApp {
@@ -47,6 +48,7 @@ export class TerminalApp {
     this.behaviorTableEditor = new BehaviorTableEditor(this);
     this.registerBankEditor = new RegisterBankEditor(this);
     this.sourceSimulations = new SourceSimulations(this);
+    this.traceDetail = new TraceDetail(this);
   }
   draw() {
     if (this.closed || this.external) return;
@@ -71,6 +73,7 @@ export class TerminalApp {
         !this.state.busy &&
         !this.state.prompt &&
         !this.state.menu &&
+        !this.state.traceDetail &&
         !this.external
       ) {
         this.state.seek(this.state.tick + 1);
@@ -771,6 +774,11 @@ export class TerminalApp {
       this.draw();
       return;
     }
+    if (s.traceDetail) {
+      this.traceDetail.key(text, key);
+      this.draw();
+      return;
+    }
     if (s.busy) {
       if (text === "q") this.close();
       return;
@@ -934,8 +942,9 @@ export class TerminalApp {
         else if (s.view === "stimulus") this.stimulusEditor.event();
         else if (s.view === "log") {
           const entry = s.logs()[s.logIndex];
-          if (entry) s.seek(entry.tick);
-        }
+          if (entry) this.traceDetail.open(entry);
+        } else if (["wave", "inspect", "registers"].includes(s.view))
+          this.traceDetail.open();
       } else if (k === "j" || key.name === "down") {
         if (s.view === "stimulus")
           s.stimulusIndex = Math.min(

@@ -26,6 +26,7 @@ export class TuiState {
     this.configurations = new Map();
     this.stimulus = new Stimulus(this);
     this.trace = [];
+    this.traceDetail = null;
     this.tick = 0;
     this.selected = 0;
     this.view = "wave";
@@ -122,6 +123,7 @@ export class TuiState {
     if (errors.length) this.setMessage("Workspace: " + errors.join("; "), true);
   }
   rebuild() {
+    this.traceDetail = null;
     const c = this.config;
     const trace = this.model.simulate(c.parameters, {
       inputs: c.inputs,
