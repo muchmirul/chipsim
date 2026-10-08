@@ -11,4 +11,5 @@ playwright-report/
 test-results/
 
 .chipsim/
+.chipsim-agent/
 *.tgz

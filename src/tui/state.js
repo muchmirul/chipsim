@@ -55,6 +55,11 @@ export class TuiState {
     this.sourceHits = [];
     this.sourceHitIndex = 0;
     this.nameSearch = "";
+    this.activity = null;
+    this.activityIndex = 0;
+    this.activityFollow = true;
+    this.activityFilter = "";
+    this.activityDetailScroll = 0;
   }
   get model() {
     return this.models.find((m) => m.id === this.modelId);
@@ -618,12 +623,34 @@ export class TuiState {
       display: this.format,
     };
   }
-  async loadSession(session, { backupCurrent = false } = {}) {
+  async loadSession(
+    session,
+    {
+      backupCurrent = false,
+      persist = true,
+      preserveInspection = false,
+      rejectFault = false,
+      documents = this.documents,
+    } = {},
+  ) {
+    const inspection = preserveInspection
+      ? {
+          tick: this.tick,
+          signalId: this.signal?.id,
+          format: this.format,
+          zoom: this.zoom,
+          offset: this.offset,
+          logIndex: this.logIndex,
+          blockScroll: this.blockScroll,
+          page: this.page,
+          documentId: this.documentId,
+        }
+      : null;
     if (session.version !== 1) throw new Error("Unsupported session version");
     if (session.model && session.model.id !== session.modelId)
       throw new Error("Session model ID does not match its definition.");
     const model = session.model
-      ? registerModel(session.model, this.documents)
+      ? registerModel(session.model, documents)
       : this.models.find((m) => m.id === session.modelId);
     if (!model) throw new Error("Session model is not installed.");
     const parameters = normalizeParameters(
@@ -641,6 +668,8 @@ export class TuiState {
       inputs,
       ticks: session.duration,
     });
+    if (rejectFault && trace.some((snapshot) => snapshot.phase === "fault"))
+      throw new Error("New run contains a simulation fault");
     if (backupCurrent) {
       if (model.id !== this.modelId || this.model.kind !== "document")
         throw new Error(
@@ -649,7 +678,7 @@ export class TuiState {
       await this.workspace.backupSession(structuredClone(this.session()));
     }
     if (session.model) {
-      await this.workspace.saveModel(session.model);
+      if (persist) await this.workspace.saveModel(session.model);
       const index = this.models.findIndex((item) => item.id === model.id);
       if (index < 0) this.models.push(model);
       else this.models[index] = model;
@@ -659,6 +688,7 @@ export class TuiState {
       inputs,
       duration: session.duration,
     });
+    this.documents = documents;
     this.stimulus.clearHistory(model.id);
     this.modelId = model.id;
     this.trace = trace;
@@ -680,6 +710,21 @@ export class TuiState {
       ? session.display
       : "hex";
     this.seek(Number.isInteger(session.tick) ? session.tick : 0);
+    if (inspection) {
+      this.selected = Math.max(
+        0,
+        model.signals.findIndex((signal) => signal.id === inspection.signalId),
+      );
+      this.format = inspection.format;
+      this.zoom = inspection.zoom;
+      this.offset = Math.min(inspection.offset, trace.length - 1);
+      this.logIndex = inspection.logIndex;
+      this.blockScroll = inspection.blockScroll;
+      if (inspection.documentId === this.documentId)
+        this.page = inspection.page;
+      this.traceDetail = null;
+      this.seek(inspection.tick);
+    }
     this.setMessage("Session restored.");
   }
 }

@@ -40,6 +40,24 @@ A model provides a common interface: ID, name, summary, scope, fidelity, paramet
 
 ## Terminal interface
 
+`src/agent/activity.js` publishes bounded, atomic per-command activity records and
+a latest-successful-run pointer inside prepared projects. `commands.js` records
+source retrieval and forwards staged progress from `model.js`, preserving one
+JSON stdout result and existing outcomes if journaling fails. `agent note` adds
+explicit milestones; `agent activity` exposes recent events to headless callers.
+
+`src/tui/agent-monitor.js` polls these records and model files, discovers legacy
+completed runs, verifies published artifacts and the source before loading a
+session without persistence. Failed or partial candidates leave the current
+experiment intact. `activity-panel.js` renders the eighth view with safe complete
+detail wrapping, filtering, browse/follow controls and a summary in other views.
+Run loading defers while editing/overlays/dwfv are active, can be paused with `W`,
+and preserves inspection through `TuiState.loadSession` options. Monitoring must
+not execute model code, start a provider, write to the agent's model files or
+install partially authored definitions. The Node monitor tests and real
+`scripts/test-agent-monitor-pty.py` exercise concurrently running agent commands;
+the latter is included in `npm run test:tui`.
+
 `src/tui/state.js` owns model selection, configuration, trace navigation, source search, and sessions. `src/tui/app.js` owns keyboard input, prompts, playback, and external-viewer handoff. `src/tui/render.js` composes terminal frames. `text.js` owns safe cell-width formatting and complete-text wrapping; `waveform.js` draws bounded complete-value labels and marks columns containing multiple trace values. `trace-detail.js` builds the read-only step/transaction/evidence inspector without changing simulation rules. `src/tui/workspace.js` stores copied PDFs, extracted text, and model JSON under `.chipsim/`; it uses atomic JSON replacement. Keep simulation behavior out of these modules.
 
 `src/tui/source-simulations.js` owns the source-specific chooser and explicit find/create workflow. Read-only choices derive from installed models, not cached analysis IDs. Finding forces a fresh local extraction/hash check before previewing compiler results; creating one reserves a new ID and uses the normal source/check gate. Preserve active experiments on preview/cancel and existing models on creation. Menu items can provide a `detail` string, with bounded `h/l` scrolling for scope. Related built-in examples must remain distinguishable from document models.

@@ -19,6 +19,7 @@ import { BehaviorTableEditor } from "./behavior-table-editor.js";
 import { RegisterBankEditor } from "./register-bank-editor.js";
 import { SourceSimulations } from "./source-simulations.js";
 import { TraceDetail } from "./trace-detail.js";
+import { activityEvents } from "./activity-panel.js";
 const unquote = (path) =>
   /^(['"]).*\1$/.test(path) ? path.slice(1, -1) : path;
 export class TerminalApp {
@@ -94,6 +95,7 @@ export class TerminalApp {
     if (this.closed) return;
     this.closed = true;
     clearInterval(this.timer);
+    this.monitor?.close();
     this.input.off("keypress", this.keyHandler);
     this.output.off("resize", this.resizeHandler);
     this.input.setRawMode(this.previousRaw);
@@ -638,7 +640,19 @@ export class TerminalApp {
   }
   search() {
     const s = this.state;
-    if (s.view === "stimulus")
+    if (s.view === "activity")
+      this.prompt(
+        "Filter agent activity",
+        s.activityFilter,
+        (text) => {
+          s.activityFilter = text;
+          s.activityIndex = 0;
+          s.activityFollow = true;
+          s.activityDetailScroll = 0;
+        },
+        { allowEmpty: true },
+      );
+    else if (s.view === "stimulus")
       this.prompt(
         "Filter event input names / ticks",
         s.stimulusFilter,
@@ -790,7 +804,16 @@ export class TerminalApp {
         return;
       }
       if (k === "?") s.help = true;
-      else if (k === "m")
+      else if (k === "W") {
+        if (!this.monitor)
+          throw new Error(
+            "Open ChipSim with --watch PROJECT to monitor an agent project.",
+          );
+        this.monitor.toggle();
+      } else if (k === "G" && s.view === "activity") {
+        s.activityFollow = true;
+        s.activityDetailScroll = 0;
+      } else if (k === "m")
         this.menu(
           "MODELS",
           s.models.map((model) => ({
@@ -915,7 +938,7 @@ export class TerminalApp {
       else if (k === "n" || k === "N") {
         if (s.view === "sources") s.nextSourceHit(k === "n" ? 1 : -1);
         else s.findSignal(undefined, k === "n" ? 1 : -1);
-      } else if (/^[1-7]$/.test(k)) s.setView(views[Number(k) - 1]);
+      } else if (/^[1-8]$/.test(k)) s.setView(views[Number(k) - 1]);
       else if (key.name === "tab")
         s.setView(views[(views.indexOf(s.view) + 1) % views.length]);
       else if (k === " " || key.name === "space") {
@@ -946,7 +969,14 @@ export class TerminalApp {
         } else if (["wave", "inspect", "registers"].includes(s.view))
           this.traceDetail.open();
       } else if (k === "j" || key.name === "down") {
-        if (s.view === "stimulus")
+        if (s.view === "activity") {
+          s.activityFollow = false;
+          s.activityIndex = Math.min(
+            activityEvents(s).length - 1,
+            s.activityIndex + 1,
+          );
+          s.activityDetailScroll = 0;
+        } else if (s.view === "stimulus")
           s.stimulusIndex = Math.min(
             s.stimulus.events().length - 1,
             s.stimulusIndex + 1,
@@ -963,7 +993,11 @@ export class TerminalApp {
         else if (s.view === "sources") s.sourceScroll++;
         else s.moveSignal(1);
       } else if (k === "k" || key.name === "up") {
-        if (s.view === "stimulus")
+        if (s.view === "activity") {
+          s.activityFollow = false;
+          s.activityIndex = Math.max(0, s.activityIndex - 1);
+          s.activityDetailScroll = 0;
+        } else if (s.view === "stimulus")
           s.stimulusIndex = Math.max(0, s.stimulusIndex - 1);
         else if (s.view === "registers")
           s.registerIndex = Math.max(0, s.registerIndex - 1);
@@ -977,13 +1011,16 @@ export class TerminalApp {
         else s.moveSignal(-1);
       } else if (k === "h" || key.name === "left") {
         s.playing = false;
-        if (s.view === "sources" && s.document) {
+        if (s.view === "activity")
+          s.activityDetailScroll = Math.max(0, s.activityDetailScroll - 1);
+        else if (s.view === "sources" && s.document) {
           s.page = Math.max(1, s.page - 1);
           s.sourceScroll = 0;
         } else s.seek(s.tick - 1);
       } else if (k === "l" || key.name === "right") {
         s.playing = false;
-        if (s.view === "sources" && s.document) {
+        if (s.view === "activity") s.activityDetailScroll++;
+        else if (s.view === "sources" && s.document) {
           s.page = Math.min(s.document.pages.length, s.page + 1);
           s.sourceScroll = 0;
         } else s.seek(s.tick + 1);

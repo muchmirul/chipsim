@@ -485,3 +485,5 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)
+
+subprocess.run([__import__('sys').executable, str(ROOT/'scripts/test-agent-monitor-pty.py')], cwd=ROOT, check=True)

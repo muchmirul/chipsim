@@ -6,6 +6,16 @@ The TUI is ChipSim's primary interface. `npm start` runs it directly, with no ge
 
 Choose a model with `m`, edit parameters with `p`, and press Space to run. Playback stops at a terminal outcome or trace end. `h/l` and arrows move through the trace. `w/e/b` find rising/falling/previous rising edges of the selected signal. `[ ]` find changes across the whole model. Numeric presentation cycles with uppercase `F` and preserves the cursor.
 
+For an external coding agent, launch `chipsim --watch /path/to/prepared-project`.
+Activity (`8`) shows local command progress, source lookups, notes, model edits,
+checks and run results. Completed successful runs load automatically while
+preserving the view, signal selection, cursor, base and zoom. `W` pauses run
+loading while activity remains live; pause before local experiment edits.
+Prompts, overlays and dwfv defer reload until they close. `j/k` browses activity,
+`G` follows newest, `/` filters, and `h/l` scrolls full event details. Other views
+show an activity summary. See [the agent workflow](AGENT_WORKFLOW.md#live-monitoring)
+for publication, validation, event retention and failure behavior.
+
 Views are:
 
 1. **Waveforms**: signal shapes, cursor, selected value, compact register summary, and current event. `j/k` selects a signal and scrolls the visible signal list.
@@ -15,6 +25,7 @@ Views are:
 5. **Model**: scope, assumptions, parameters, source fingerprints, evidence quotations, warnings, and implementation recipe. `j/k` scrolls.
 6. **Registers**: every signal/register and its change at this tick. `j/k` selects, `/` filters, and `h/l` moves the timeline.
 7. **Input stimulus**: explicit scheduled pin events, values, hold intervals, and events outside the current trace. `j/k` selects a row; Enter opens edit/move/remove/seek actions. `i` schedules an event at a chosen tick. `/` filters pin names or tick numbers; `F` changes numeric presentation.
+8. **Agent activity**: source reads, notes, model edits, validation and run progress from the project selected with `--watch`. Event details retain complete messages and paths; `W` pauses automatic run loading without stopping activity updates.
 
 Prompts accept Enter for their displayed default. Type a value to replace it; Backspace deletes, Ctrl-U clears, and Esc cancels. Boolean and enum parameters have menus. Integer parameters support decimal, hexadecimal, binary, and octal. Released output drivers display `Z` in every numeric format. Waveforms show labeled middle/dotted segments; `f` accepts `Z` for tri-state output search. Rising/falling edge jumps require numeric levels; any-change navigation includes releases and re-enables. `i` opens input-pin editing at the cursor. Select a pin, enter a decimal/hex/binary/octal value, and its outputs/logs/waveforms are recomputed while preserving the cursor. It replaces an existing event for that pin/tick and keeps other scheduled events. Values hold until the pin's next event. Invalid widths or simulation faults keep the previous trace and stimulus. `S` saves the edited stimulus with a session. Long or multiline input stimulus should be loaded from a JSON file with `a`.
 

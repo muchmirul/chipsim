@@ -26,6 +26,37 @@ chipsim --document ./chip-work/manual.pdf --model ./chip-work/runs/first/session
 
 Agent commands return JSON and exit codes without a TTY. Runs produce JSON/CSV/VCD traces and a TUI session. Source checks re-extract the actual pinned PDF. Codex and Pi can call the CLI through their command tools; prime-agent can call it through Python `subprocess`. See [agent workflow and compatibility checks](docs/AGENT_WORKFLOW.md) for the protocol, packaging, limits, and tested invocation routes. Use `chipsim agent help` for command discovery. Install from the [GitHub repository](https://github.com/muchmirul/chipsim); the package has not been published to the npm registry.
 
+## Watch an agent work
+
+Keep this open in a second terminal while your agent uses the prepared project:
+
+```sh
+chipsim --watch ./chip-work
+# Existing ESP32-C6 project on this machine:
+chipsim --watch /home/dev/chipsim-projects/esp32-c6
+```
+
+Press `8` for activity: source searches/pages, check/run progress and failures,
+agent notes, and changes to JSON files under `models/`. A successful completed
+run automatically opens in the same TUI. Your view, cursor, selected signal,
+numeric format, and zoom stay in place; shorter traces clamp the cursor.
+Press `1` for waveforms or `6` for registers. Other views retain an activity
+summary. `W` pauses/resumes run loading while activity continues; pause before
+editing an experiment locally. `j/k` browses activity, `G` follows new events,
+`/` filters, and `h/l` scrolls full selected-event details.
+
+The agent can explain work performed outside ChipSim commands:
+
+```sh
+chipsim agent note ./chip-work "Reviewing GPIO output-enable behavior"
+chipsim agent activity ./chip-work --limit 20
+```
+
+Monitoring uses local files and does not launch an agent. It observes ChipSim
+commands and model edits, rather than all editor/shell actions. Failed,
+incomplete, or invalid runs keep the current simulation. See
+[monitoring details](docs/AGENT_WORKFLOW.md#live-monitoring).
+
 ## Start the TUI
 
 Use Node.js 22.13 or newer:
@@ -49,27 +80,28 @@ The local workspace defaults to `.chipsim/` in the current directory. PDFs, extr
 
 ## Main controls
 
-| Key                | Action                                                                   |
-| ------------------ | ------------------------------------------------------------------------ |
-| `1`–`7`, Tab       | Waveforms, blocks, log, sources, model, registers, input stimulus        |
-| `h` / `l`, arrows  | Move one tick; move PDF page in Sources                                  |
-| `j` / `k`, arrows  | Select signal, log row, or register; scroll blocks/source/model text     |
-| Space, `r`         | Run/pause; reset                                                         |
-| `w`, `e`, `b`      | Next rising edge, next falling edge, previous rising edge                |
-| `[`, `]`, `t`      | Previous/next model change; jump to a tick                               |
-| `+`, `-`, `=`, `z` | Zoom in/out, fit the trace, center cursor                                |
-| `m`, `p`, `a`, `T` | Choose model, parameters, stimulus actions/JSON, document-model duration |
-| `i`                | Drive an input pin at the cursor                                         |
-| `u`                | Read/write an addressed register at the next tick                        |
-| `U`, `R`           | Undo/redo an input or register experiment                                |
-| Enter              | Inspect full step details; in Log, seek the selected event               |
-| `F`, `f`           | Cycle numeric display; find a selected signal value                      |
-| `/`, `n`, `N`      | Search/filter; repeat signal/source search                               |
-| `d`, `c`           | Import PDF/model/session; create a sourced peripheral scenario           |
-| `o`                | Choose or find simulations for the current reference PDF                 |
-| `x`, `S`, `M`, `B` | Export trace, save session, export model JSON, export source bundle      |
-| `V`                | Open the current trace in installed `dwfv`                               |
-| `?`, Esc, `q`      | Help, close a prompt/menu, quit                                          |
+| Key                | Action                                                                            |
+| ------------------ | --------------------------------------------------------------------------------- |
+| `1`–`8`, Tab       | Waveforms, blocks, log, sources, model, registers, input stimulus, agent activity |
+| `W`, `G`           | Pause/resume watched runs; follow newest activity                                 |
+| `h` / `l`, arrows  | Move one tick; move PDF page in Sources                                           |
+| `j` / `k`, arrows  | Select signal, log row, or register; scroll blocks/source/model text              |
+| Space, `r`         | Run/pause; reset                                                                  |
+| `w`, `e`, `b`      | Next rising edge, next falling edge, previous rising edge                         |
+| `[`, `]`, `t`      | Previous/next model change; jump to a tick                                        |
+| `+`, `-`, `=`, `z` | Zoom in/out, fit the trace, center cursor                                         |
+| `m`, `p`, `a`, `T` | Choose model, parameters, stimulus actions/JSON, document-model duration          |
+| `i`                | Drive an input pin at the cursor                                                  |
+| `u`                | Read/write an addressed register at the next tick                                 |
+| `U`, `R`           | Undo/redo an input or register experiment                                         |
+| Enter              | Inspect full step details; in Log, seek the selected event                        |
+| `F`, `f`           | Cycle numeric display; find a selected signal value                               |
+| `/`, `n`, `N`      | Search/filter; repeat signal/source search                                        |
+| `d`, `c`           | Import PDF/model/session; create a sourced peripheral scenario                    |
+| `o`                | Choose or find simulations for the current reference PDF                          |
+| `x`, `S`, `M`, `B` | Export trace, save session, export model JSON, export source bundle               |
+| `V`                | Open the current trace in installed `dwfv`                                        |
+| `?`, Esc, `q`      | Help, close a prompt/menu, quit                                                   |
 
 The full register view includes before/after changes. The log supports filtering, changes-only mode (`C`), and seeking with Enter. Model details show scope, assumptions, references, and implementation recipes. Source text keeps one-based PDF page numbers and supports search.
 

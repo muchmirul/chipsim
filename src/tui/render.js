@@ -4,6 +4,7 @@ import { signalRows } from "./waveform.js";
 import { detailRows } from "./trace-detail.js";
 import { views } from "./views.js";
 import { modelsForDocument } from "../documents/recognize.js";
+import { activityRows } from "./activity-panel.js";
 const row = (text, style = "") => ({ text, style });
 function section(title, width) {
   return row(
@@ -468,7 +469,7 @@ function modelInfo(state, height) {
 const help = [
   [
     "Navigation",
-    "1 wave · 2 blocks · 3 log · 4 sources · 5 model · 6 regs · 7 inputs",
+    "1 wave · 2 blocks · 3 log · 4 sources · 5 model · 6 regs · 7 inputs · 8 agent",
   ],
   [
     "Waveforms",
@@ -506,6 +507,10 @@ const help = [
     "x export trace · S save session · M save model · B export source bundle",
   ],
   ["DWFV", "V open this trace in installed dwfv (optional)"],
+  [
+    "Agent monitor",
+    "--watch PROJECT · 8 activity · W pause reload · G follow newest",
+  ],
   ["General", "? help · Esc close overlay · q/Ctrl-C quit"],
 ];
 export function render(state) {
@@ -529,7 +534,17 @@ export function render(state) {
   const tabs = views
     .map(
       (name, index) =>
-        (name === state.view ? "[" + name.toUpperCase() + "]" : name) +
+        (name === state.view
+          ? "[" + name.toUpperCase() + "]"
+          : columns < 110
+            ? {
+                inspect: "blocks",
+                sources: "src",
+                registers: "regs",
+                stimulus: "inputs",
+                activity: "agent",
+              }[name] || name
+            : name) +
         " " +
         (index + 1),
     )
@@ -545,7 +560,8 @@ export function render(state) {
       "selected",
     ),
   ];
-  const available = rows - 7;
+  const monitoring = state.activity && state.view !== "activity";
+  const available = rows - (monitoring ? 8 : 7);
   if (state.view === "wave") {
     const wh = Math.max(6, Math.floor(available * 0.6));
     lines.push(
@@ -568,14 +584,39 @@ export function render(state) {
   else if (state.view === "model") lines.push(...modelInfo(state, available));
   else if (state.view === "stimulus")
     lines.push(...stimulusTable(state, available));
+  else if (state.view === "activity")
+    lines.push(...activityRows(state, available));
   else lines.push(...sources(state, available));
-  while (lines.length < rows - 3) lines.push(row(""));
-  lines = lines.slice(0, rows - 3);
+  while (lines.length < rows - (monitoring ? 4 : 3)) lines.push(row(""));
+  lines = lines.slice(0, rows - (monitoring ? 4 : 3));
+  if (monitoring)
+    lines.push(
+      row(
+        "AGENT · " +
+          (state.activity.events.at(-1)
+            ? state.activity.events.at(-1).command +
+              " " +
+              state.activity.events.at(-1).status +
+              " · "
+            : "") +
+          (state.activity.events.at(-1)?.message || "Waiting for activity") +
+          " · 8 details",
+        "dim",
+      ),
+    );
   lines.push(
-    section(state.busy ? "WORKING" : "COMMANDS", columns),
+    section(
+      state.busy
+        ? "WORKING"
+        : state.activity
+          ? `COMMANDS · WATCH ${state.activity.enabled ? "LIVE" : "PAUSED"}`
+          : "COMMANDS",
+      columns,
+    ),
     row(state.message, state.error ? "error" : "status"),
     row(
-      "q quit · ? help · m models · p params · i pins · d import · c create · x export",
+      "q quit · ? help · 1–8 views · m models · d import · x export" +
+        (state.activity ? " · W watch" : " · c create"),
       "dim",
     ),
   );

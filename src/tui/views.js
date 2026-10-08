@@ -6,4 +6,5 @@ export const views = [
   "model",
   "registers",
   "stimulus",
+  "activity",
 ];

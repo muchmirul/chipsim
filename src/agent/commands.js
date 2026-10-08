@@ -1,19 +1,24 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { randomUUID } from "node:crypto";
 import {
   packageRoot,
   prepareProject,
   searchProject,
   readPage,
+  loadProject,
 } from "./project.js";
 import { checkModel, runModel } from "./model.js";
-import { AgentError, integer } from "./io.js";
+import { AgentError, integer, readBounded } from "./io.js";
+import { recordActivity, readActivity, digest } from "./activity.js";
 import metadata from "../../package.json" with { type: "json" };
 
 const commands = {
   help: { positionals: [], options: {} },
   doctor: { positionals: [], options: {} },
+  note: { positionals: ["project", "message"], options: {} },
+  activity: { positionals: ["project"], options: { limit: "optional" } },
   prepare: { positionals: ["manual.pdf"], options: { out: "required" } },
   search: {
     positionals: ["project", "query"],
@@ -123,9 +128,48 @@ export async function agentCommand(args) {
     version: 1,
     command: args[0] || "help",
   };
+  let context;
+  let sequence = 0;
+  const requestId = randomUUID();
+  const activityWarnings = [];
+  const emit = async (status, message, details = {}) => {
+    if (!context) return;
+    try {
+      await recordActivity(context.project, {
+        requestId,
+        sequence: sequence++,
+        command: context.command,
+        status,
+        message: message.slice(0, 2000),
+        details,
+      });
+    } catch (error) {
+      if (!activityWarnings.length)
+        activityWarnings.push(
+          "Activity could not be recorded: " + error.message,
+        );
+    }
+  };
   try {
     const { command, positional, options } = parse(args);
     envelope.command = command;
+    if (["prepare", "search", "page", "check", "run"].includes(command)) {
+      context = {
+        command,
+        project:
+          command === "prepare"
+            ? options.out
+            : options.project || positional[0],
+      };
+      if (command !== "prepare")
+        await emit("started", `${command} started`, {
+          ...(command === "search" ? { query: positional[1] } : {}),
+          ...(command === "page" ? { page: positional[1] } : {}),
+          ...(["check", "run"].includes(command)
+            ? { modelFile: resolve(positional[0]) }
+            : {}),
+        });
+    }
     let result;
     if (command === "help")
       result = {
@@ -153,13 +197,44 @@ export async function agentCommand(args) {
         ],
       };
     else if (command === "doctor") result = await doctor();
-    else if (command === "prepare")
+    else if (command === "note") {
+      if (!positional[1].trim() || positional[1].length > 2000)
+        throw new AgentError(
+          "ARGUMENT",
+          "Activity note must contain 1–2000 characters",
+          [],
+          2,
+        );
+      result = {
+        event: await recordActivity(positional[0], {
+          command: "note",
+          status: "note",
+          message: positional[1],
+          requestId,
+          sequence: 0,
+        }),
+      };
+    } else if (command === "activity") {
+      await loadProject(positional[0]);
+      const limit = integer(options.limit ?? 50, "limit", 1, 200);
+      const events = await readActivity(positional[0]);
+      result = {
+        project: resolve(positional[0]),
+        total: events.length,
+        events: events.slice(-limit),
+      };
+    } else if (command === "prepare")
       result = await prepareProject(positional[0], options.out);
     else if (command === "check")
-      result = (await checkModel(positional[0], options.project)).report;
+      result = (
+        await checkModel(positional[0], options.project, {
+          progress: (message) => emit("progress", message),
+        })
+      ).report;
     else if (command === "run")
       result = await runModel(positional[0], options.project, options.out, {
         ...options,
+        progress: (message) => emit("progress", message),
         ticks:
           options.ticks === undefined
             ? undefined
@@ -184,11 +259,73 @@ export async function agentCommand(args) {
               paging,
             );
     }
+    if (context) {
+      const details = {};
+      let message = `${command} completed`;
+      if (command === "prepare")
+        message = `Project prepared · ${result.source.pages} PDF pages · ${result.models.length} models`;
+      if (command === "search") {
+        details.pages = result.matches.map((match) => match.page);
+        message = `Search "${result.query}" · ${result.total} matches · returned PDF pages ${details.pages.join(", ") || "none"}`;
+      }
+      if (command === "page")
+        message = `Read PDF page ${result.page} · characters ${result.offset}–${result.offset + result.text.length}`;
+      if (["check", "run"].includes(command)) {
+        details.modelFile = resolve(positional[0]);
+        details.modelId = result.model?.id;
+        details.passed =
+          result.checks?.filter((check) => check.passed).length || 0;
+        details.total = result.checks?.length || 0;
+        details.failedChecks = (result.checks || [])
+          .filter((check) => !check.passed)
+          .slice(0, 10)
+          .map((check) => ({
+            name: check.name,
+            error: String(check.error || "failed").slice(0, 200),
+          }));
+        message = `${command} ${result.model?.id || "model"} · ${details.passed}/${details.total} checks passed`;
+      }
+      if (result.artifacts) {
+        details.resultFile = join(resolve(options.out), "result.json");
+        details.sessionFile = result.artifacts["session.json"];
+        try {
+          details.resultSha256 = digest(
+            await readBounded(details.resultFile, 3 * 1048576),
+          );
+          details.sessionSha256 = digest(
+            await readBounded(details.sessionFile, 3 * 1048576),
+          );
+        } catch (error) {
+          activityWarnings.push(
+            "Run could not be published for watching: " + error.message,
+          );
+          delete details.resultFile;
+          delete details.sessionFile;
+        }
+        message += ` · ${result.snapshots} snapshots · ${result.ok ? "run ready" : "simulation fault"}`;
+      }
+      if (result.ok === false) details.diagnostics = result.diagnostics;
+      await emit(
+        result.ok === false ? "failed" : "succeeded",
+        message,
+        details,
+      );
+    }
     return {
-      result: { ...envelope, ok: true, ...result },
+      result: {
+        ...envelope,
+        ok: true,
+        ...result,
+        ...(activityWarnings.length ? { activityWarnings } : {}),
+      },
       exitCode: result.ok === false ? 1 : 0,
     };
   } catch (error) {
+    if (context?.command !== "prepare")
+      await emit(
+        "failed",
+        `${context?.command || "command"} failed: ${error.message}`,
+      );
     return {
       result: {
         ...envelope,
@@ -203,6 +340,7 @@ export async function agentCommand(args) {
             details: error.errors || error.details || [],
           },
         ],
+        ...(activityWarnings.length ? { activityWarnings } : {}),
       },
       exitCode: error.exitCode || 1,
     };

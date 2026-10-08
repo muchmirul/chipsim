@@ -12,7 +12,12 @@ import { exportCSV, exportJSON, exportVCD } from "../trace/export.js";
 import { loadProject } from "./project.js";
 import { AgentError, readJSON, createDirectory, writeJSON } from "./io.js";
 
-export async function checkModel(file, project) {
+export async function checkModel(
+  file,
+  project,
+  { progress = async () => {} } = {},
+) {
+  await progress("Reading model and validating schema");
   const spec = await readJSON(file);
   // Catch schema errors before expensive PDF extraction; missing attachments
   // are subsequently an error here, even though interactive import allows them.
@@ -22,6 +27,9 @@ export async function checkModel(file, project) {
       "MODEL",
       `Model ID ${spec.id} is reserved for a built-in example`,
     );
+  await progress(
+    "Verifying PDF fingerprint and extracting original source pages",
+  );
   const { document } = await loadProject(project, { fresh: true });
   const missing = spec.sources.filter(
     (source) => source.sha256 !== document.sha256,
@@ -33,6 +41,9 @@ export async function checkModel(file, project) {
       missing.map((source) => ({ id: source.id, sha256: source.sha256 })),
     );
   validateModel(spec, [document]);
+  await progress(
+    `Source quotations verified · executing ${spec.checks.length} acceptance cases`,
+  );
   const checks = runChecks(spec);
   const report = {
     ok: checks.every((check) => check.passed),
@@ -60,7 +71,7 @@ export async function checkModel(file, project) {
 }
 
 export async function runModel(file, project, output, options = {}) {
-  const { spec, report } = await checkModel(file, project);
+  const { spec, report } = await checkModel(file, project, options);
   if (!report.ok) return report;
   const supplied = options.params ? await readJSON(options.params) : {};
   if (!supplied || typeof supplied !== "object" || Array.isArray(supplied))
@@ -71,10 +82,14 @@ export async function runModel(file, project, output, options = {}) {
     options.inputs ? await readJSON(options.inputs) : spec.exampleInputs || [],
   );
   const duration = options.ticks ?? spec.duration ?? 100;
+  await options.progress?.(
+    `Simulating ${spec.id} · ${duration} normalized ticks`,
+  );
   const trace = simulateModel(spec, parameters, { ticks: duration, inputs });
   const final = trace.at(-1),
     fault = final.phase === "fault";
   const model = { ...spec, spec };
+  await options.progress?.("Writing trace artifacts and TUI session");
   return createDirectory(output, async (root) => {
     await writeFile(
       join(root, "trace.json"),
