@@ -1,6 +1,6 @@
 # Simulation references
 
-This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All twelve PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
+This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All fourteen PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
 
 Document revisions below come from document text, rather than PDF modification timestamps. PDF links use one-based viewer page numbers, which may differ from printed page labels. Retrieved on **2026-10-07** unless a later date is listed below.
 
@@ -121,13 +121,18 @@ Document revisions below come from document text, rather than PDF modification t
 
 **Model scope:** Ideal digital steps with configurable initial scenario values. Retained parallel data and output drive enable are separate signals. Physical delays, voltage thresholds, and electrical high impedance are omitted. Retrieved on **2026-10-08**.
 
-## Binary function-table regression references
+## Function-table regression references
 
 - **74HC00 / 74HCT00:** [complete PDF](references/nexperia-74hc00.pdf#page=3), Rev. 11, 29 April 2025, 14 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT00.pdf).
 - **74HC86 / 74HCT86:** [complete PDF](references/nexperia-74hc86.pdf#page=3), Rev. 7, 2 April 2024, 12 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT86.pdf).
 - **74HC157 / 74HCT157:** [complete PDF](references/nexperia-74hc157.pdf#page=3), Rev. 10, 28 May 2024, 15 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT157.pdf).
 
 All three are unchanged Nexperia references retrieved on **2026-10-08**. Pin descriptions and function tables are on PDF page 3. They verify content-based binary logic compilation and four indexed channels, including shared enable/select controls for the multiplexer, not fingerprint-specific profiles. Electrical characteristics and timing remain outside the compiled model scope.
+
+- **74HC377 / 74HCT377:** [complete PDF](references/nexperia-74hc377.pdf#page=3), Rev. 6, 5 August 2024, 15 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT377.pdf). Function table and pin descriptions are on PDF page 3.
+- **74HC273 / 74HCT273:** [complete PDF](references/nexperia-74hc273.pdf#page=4), Rev. 8, 5 August 2024, 17 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT273.pdf). Function table is on PDF page 4; pin descriptions are on PDF page 3.
+
+These two unchanged Nexperia references, retrieved on **2026-10-08**, test data-derived sequential compilation with eight output bits, shared controls, retained state, and asynchronous reset where specified. Configured initial output bits are scenario values; physical timing, setup/hold violations, metastability, and electrical behavior remain outside scope.
 
 ## File integrity
 

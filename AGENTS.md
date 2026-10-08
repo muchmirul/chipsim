@@ -5,7 +5,7 @@ ChipSim is a local hardware behavior workbench. Keep the six supplied architectu
 ## Read first
 
 - `README.md`: user workflow, setup, and current limits.
-- `docs/FUNCTION_TABLES.md`: local data-derived binary logic compilation and limits.
+- `docs/FUNCTION_TABLES.md`: local data-derived combinational/sequential logic compilation and limits.
 - `docs/DOCUMENT_PROFILES.md`: reviewed automatic datasheet compilation and extension requirements.
 - `docs/TUI.md`: primary terminal interface, keys, source workflow, and dwfv interoperability.
 - `docs/MODEL_FORMAT.md`: the declarative model contract and execution order.
@@ -63,7 +63,7 @@ If a manual does not specify enough behavior, report the gap and offer an explic
 - `src/models/builtins/` holds the six original mechanisms; shared protocol behavior is in `src/core/`.
 - `src/tui/` owns terminal state, controller, rendering, and workspace persistence. Keep ANSI/control characters from imported text out of rendered terminal output; restore raw mode and the cursor on exit or external-viewer handoff.
 - `src/model/profiles/` holds reviewed datasheet compilers. Require an exact pinned PDF fingerprint, real-page quote validation, independently justified behavior checks, and explicit limitations. A chip name or matching excerpt alone is insufficient to auto-compile an unreviewed revision. Never overwrite an authored model already linked to the source.
-- `src/model/tables/` derives combinational logic from positioned function tables. Require explicit column roles, defined symbols, exhaustive binary coverage, agreeing overlaps, and independent regression oracles. Shared controls must be single declared input pins; keep one signal/event per shared pin and preserve independent indexed data paths. Reject missing/merged cells and sequential/tri-state semantics; never fill them by guesswork. `src/model/from-document.js` applies the shared interpretation policy.
+- `src/model/tables/` derives combinational and supported edge-triggered logic from positioned function tables. Require explicit column roles, defined symbols, exhaustive binary coverage, agreeing overlaps, and independent regression oracles. Shared controls must be single declared input pins; keep one signal/event per shared pin and preserve independent indexed data paths. Sequential compilation requires explicitly defined clock arrows, a matching edge-triggered clock-pin description, exhaustive previous-clock/input/retained-state checks, and an explicit initial-state scenario. Tick zero must not invent an edge; asynchronous table rows can act immediately. Reject undefined active edges, conflicting rows, missing/merged cells, and unsupported state/tri-state semantics; never fill them by guesswork. `src/model/from-document.js` applies the shared interpretation policy.
 - `src/model/templates.js` and `src/model/builders/` provide guided, sourced peripheral scenarios. Their generated rules are explicit assumptions, not inferred vendor behavior.
 - `src/model/validate.js` is the authoritative model validator. `src/model/engine.js` interprets bounded expressions and state transitions. Imported models are data: never execute embedded JavaScript, `eval`, or dynamic functions.
 - Input events drive **input** signals only, before a model step, and hold values until changed. Actions can write declared registers and output signals only.
@@ -76,4 +76,4 @@ If a manual does not specify enough behavior, report the gap and offer an explic
 
 ## Finishing changes
 
-Run the checks appropriate to what changed. Keep `README.md` and model documentation aligned with actual behavior. Report what works, what was tested, and material remaining limits. Describe automatic simulation only for the actually compiled scope: a reviewed profile, a validated binary function table, or an authored model linked to that PDF. Never describe arbitrary unfamiliar PDF import as automatic chip simulation unless the implementation actually models that chip behavior and has been verified.
+Run the checks appropriate to what changed. Keep `README.md` and model documentation aligned with actual behavior. Report what works, what was tested, and material remaining limits. Describe automatic simulation only for the actually compiled scope: a reviewed profile, a validated supported function table, or an authored model linked to that PDF. Never describe arbitrary unfamiliar PDF import as automatic chip simulation unless the implementation actually models that chip behavior and has been verified.

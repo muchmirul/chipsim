@@ -525,3 +525,70 @@ test("multiplexer PDF shares enable/select across four independent data channels
   await page.reload();
   await expect(page.locator("#model-title")).toContainText("74HC157; 74HCT157");
 });
+
+test("sequential PDFs retain state, capture clock edges, preserve source symbols, and reload offline", async ({
+  page,
+}) => {
+  await ready(page);
+  for (const part of ["377", "273"]) {
+    await page
+      .locator("#document-file")
+      .setInputFiles(`docs/references/nexperia-74hc${part}.pdf`);
+    await expect(page.locator("#import-progress")).toBeHidden();
+    await expect(page.locator("#model-title")).toContainText(
+      `74HC${part}; 74HCT${part}`,
+    );
+    await page.locator("#tab-sources").click();
+    await expect(page.locator("#source-panel")).toContainText("↑");
+    if (part === "377")
+      await expect(page.locator("#source-panel")).toContainText("no change");
+    const spec = JSON.parse(
+      await downloaded(page, () => page.locator("[data-export-model]").click()),
+    );
+    expect(spec.sourceTable.compiler).toBe("sequential-function-table-v1");
+    expect(spec.sourceTable.instances).toHaveLength(8);
+    expect(spec.signals).toHaveLength(18);
+    expect(spec.checks).toHaveLength(32);
+    await page.locator("#parameter-initialOutputs").fill("0xB3");
+    await page.locator("#parameter-initialOutputs").press("Tab");
+    await page.locator("#tab-trace").click();
+    await page.locator("#trace-format").selectOption("json");
+    const exported = JSON.parse(
+      await downloaded(page, () => page.locator("#export-trace").click()),
+    );
+    let held = 0xb3,
+      previousClock = exported.trace[0].signals.pin_cp;
+    for (const [tick, snapshot] of exported.trace.entries()) {
+      const signals = snapshot.signals;
+      if (part === "273" && signals.pin_mr === 0) held = 0;
+      else if (
+        tick &&
+        previousClock === 0 &&
+        signals.pin_cp === 1 &&
+        (part === "273" || signals.pin_e === 0)
+      )
+        held = Array.from(
+          { length: 8 },
+          (_, bit) => signals[`pin_d${bit}`] << bit,
+        ).reduce((a, b) => a | b, 0);
+      const actual = Array.from(
+        { length: 8 },
+        (_, bit) => signals[`pin_q${bit}`] << bit,
+      ).reduce((a, b) => a | b, 0);
+      expect(actual).toBe(held);
+      previousClock = signals.pin_cp;
+    }
+  }
+  const session = await downloaded(page, () =>
+    page.locator("#session-menu").click(),
+  );
+  await page.reload();
+  await expect(page.locator("#model-title")).toContainText("74HC273; 74HCT273");
+  await expect(page.locator("#parameter-initialOutputs")).toHaveValue("0");
+  await page.locator("#session-file").setInputFiles({
+    name: "sequential-session.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(session),
+  });
+  await expect(page.locator("#parameter-initialOutputs")).toHaveValue("179");
+});

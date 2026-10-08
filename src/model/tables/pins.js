@@ -1,7 +1,16 @@
-const indexed = (label) => /^n[A-Za-z][\w]*$/.test(label);
+function pattern(label) {
+  const prefix = /^n([A-Za-z]\w*)$/.exec(label),
+    suffix = /^([A-Za-z]\w*?)n$/.exec(label);
+  if (prefix)
+    return { atom: "(\\d+)" + prefix[1], at: (index) => index + prefix[1] };
+  if (suffix)
+    return { atom: suffix[1] + "(\\d+)", at: (index) => suffix[1] + index };
+  return null;
+}
+const indexed = (label) => !!pattern(label);
 // A single explicitly declared input pin can be shared between indexed
 // channels. Read its column role, rather than inferring it from its name.
-function inputDeclarations(page, label) {
+export function inputDeclarations(page, label) {
   const lines = page.layoutLines || [],
     declarations = [];
   for (let index = 0; index < lines.length; index++) {
@@ -31,6 +40,7 @@ function inputDeclarations(page, label) {
         declarations.push({
           page: page.number,
           pin: group[1].join(" "),
+          description: group[2].join(" "),
           valid:
             /^\d+$/.test(group[1].join(" ")) &&
             /\binputs?\b/i.test(group[2].join(" ")) &&
@@ -52,11 +62,11 @@ export function instancesFor(document, table) {
     sets = [],
     pinPages = new Set();
   for (const label of indexedLabels) {
-    const suffix = label.slice(1),
+    const shape = pattern(label),
       found = [];
     for (const page of pages) {
       const range = new RegExp(
-        "\\b(\\d+)" + suffix + "\\s+to\\s+(\\d+)" + suffix + "\\b",
+        "\\b" + shape.atom + "\\s+to\\s+" + shape.atom + "\\b",
         "g",
       );
       for (const match of page.text.matchAll(range)) {
@@ -70,7 +80,7 @@ export function instancesFor(document, table) {
         );
       }
       const list = new RegExp(
-        "\\b\\d+" + suffix + "(?:,\\s*\\d+" + suffix + ")+\\b",
+        "\\b" + shape.atom + "(?:,\\s*" + shape.atom + ")+\\b",
         "g",
       );
       for (const match of page.text.matchAll(list)) {
@@ -78,7 +88,9 @@ export function instancesFor(document, table) {
         found.push(
           match[0]
             .split(",")
-            .map((pin) => Number(pin.trim().slice(0, -suffix.length))),
+            .map((pin) =>
+              Number(new RegExp("^" + shape.atom + "$").exec(pin.trim())[1]),
+            ),
         );
       }
     }
@@ -120,7 +132,7 @@ export function instancesFor(document, table) {
     instances: sets[0].map((index) => ({
       key: "channel_" + index,
       labels: labels.map((label) =>
-        indexed(label) ? index + label.slice(1) : label,
+        indexed(label) ? pattern(label).at(index) : label,
       ),
     })),
     indexed: true,

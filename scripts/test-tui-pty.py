@@ -101,6 +101,23 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert mux['trace'][0]['signals']['pin_e']==1
   assert all(mux['trace'][0]['signals'][f'pin_{channel}y']==0 for channel in range(1,5))
   assert len(mux['trace'][0]['signals'])==14
+  send('d');wait('Import PDF')
+  send(str(ROOT/'docs/references/nexperia-74hc377.pdf')+'\r');wait('74HC377; 74HCT377')
+  send('p');wait('PARAMETERS')
+  send('\r');wait('Initial retained output bits')
+  send('0xB3\r');wait('Updated initialOutputs')
+  send('x');wait('EXPORT FULL TRACE')
+  send('j\r');wait('Output path')
+  state_trace=Path(workspace)/'sequential-trace.json'
+  send(str(state_trace)+'\r');wait('Saved '+str(state_trace))
+  retained=json.loads(state_trace.read_text())
+  word=lambda snapshot:sum(snapshot['signals'][f'pin_q{bit}']<<bit for bit in range(8))
+  assert word(retained['trace'][0])==0xb3 and len(retained['trace'][0]['signals'])==18
+  assert word(retained['trace'][2])==0xaa
+  assert retained['trace'][2]['registers']['rise_pin_cp']==1
+  send('d');wait('Import PDF')
+  send(str(ROOT/'docs/references/nexperia-74hc273.pdf')+'\r');wait('74HC273; 74HCT273')
+  send('6');wait('signal.pin_mr')
   send('q');proc.wait(timeout=5)
   end=time.monotonic()+1
   while time.monotonic()<end and select.select([master],[],[],.05)[0]:
@@ -110,7 +127,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored=termios.tcgetattr(slave)
   assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
   assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-  print('PTY verified: stepping, formats, register/log views, JSON export, resize, sourced scenarios, reviewed profiles, generic function tables, shared-pin compilation and direct input editing, and terminal cleanup.')
+  print('PTY verified: stepping, formats, register/log views, exports, resize, sourced scenarios, reviewed profiles, combinational/sequential tables, shared inputs, retained state, direct pin editing, and terminal cleanup.')
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)

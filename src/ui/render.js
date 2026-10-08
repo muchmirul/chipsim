@@ -137,7 +137,7 @@ export function tableReference(model) {
       .map((label) => "<th>" + escape(label) + "</th>")
       .join("") +
     "</tr></thead><tbody>" +
-    table.rows
+    (table.symbolRows || table.rows)
       .map(
         (row) =>
           "<tr>" +
