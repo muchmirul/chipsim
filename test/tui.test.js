@@ -57,6 +57,7 @@ test("all TUI views fit normal and compact terminal frames", async (t) => {
         "log",
         "sources",
         "model",
+        "stimulus",
       ]) {
         s.columns = columns;
         s.rows = rows;

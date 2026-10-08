@@ -1,4 +1,5 @@
 import { formatPayload } from "../core/values.js";
+import { views } from "./views.js";
 export const clean = (text) =>
   String(text ?? "").replace(/[\x00-\x1f\x7f-\x9f]/g, " ");
 const segments = new Intl.Segmenter(undefined, { granularity: "grapheme" });
@@ -398,6 +399,74 @@ function registerTable(state, height) {
   );
   return lines;
 }
+function stimulusTable(state, height) {
+  const events = state.stimulus.events();
+  state.stimulusIndex = Math.max(
+    0,
+    Math.min(events.length - 1, state.stimulusIndex),
+  );
+  const first = Math.max(0, state.stimulusIndex - Math.floor((height - 3) / 2)),
+    pinWidth = state.columns >= 110 ? 32 : 22,
+    valueWidth = Math.min(36, state.columns - pinWidth - 20);
+  const lines = [
+    row(
+      pad("Tick / input pin", pinWidth) +
+        pad("Value", valueWidth) +
+        "Holds / status",
+      "dim",
+    ),
+  ];
+  if (!events.length)
+    lines.push(
+      row(
+        state.stimulusFilter
+          ? "No events match this filter · / changes filter"
+          : state.model.kind === "builtin"
+            ? "No explicit events · ACK uses model parameters"
+            : "No explicit events · input pins start at their initial values",
+      ),
+    );
+  for (
+    let index = first;
+    index < Math.min(events.length, first + height - 3);
+    index++
+  ) {
+    const event = events[index];
+    lines.push(
+      row(
+        pad(
+          (index === state.stimulusIndex ? "› " : "  ") +
+            String(event.tick).padStart(5) +
+            "  " +
+            event.label,
+          pinWidth,
+        ) +
+          pad(display(event.value, state.format, event.width), valueWidth) +
+          (event.superseded
+            ? "superseded at same tick"
+            : !event.reached
+              ? "outside current trace"
+              : event.until === undefined
+                ? "to trace end"
+                : "until tick " + event.until),
+        index === state.stimulusIndex ? "selected" : "",
+      ),
+    );
+  }
+  lines.push(
+    row(
+      `${events.length}/${state.config.inputs.length} events · filter ${state.stimulusFilter || "(none)"} · U undo / R redo`,
+      "dim",
+    ),
+  );
+  lines.push(
+    row(
+      "j/k choose · Enter actions · i schedule · Del remove · a clear/load · / filter",
+      "dim",
+    ),
+  );
+  return lines;
+}
 function modelInfo(state, height) {
   const m = state.model;
   const text = [
@@ -468,7 +537,7 @@ function modelInfo(state, height) {
 const help = [
   [
     "Navigation",
-    "1 wave · 2 blocks · 3 log · 4 sources · 5 model · 6 registers · Tab next view",
+    "1 wave · 2 blocks · 3 log · 4 sources · 5 model · 6 regs · 7 inputs",
   ],
   [
     "Waveforms",
@@ -484,6 +553,10 @@ const help = [
     "Space run/pause · r reset · p parameters · i drive input · a stimulus JSON/file · T duration",
   ],
   ["Data", "F cycle hex/decimal/binary/octal · f find selected signal value"],
+  [
+    "Stimulus",
+    "7 timeline · Enter edit/move/seek · i schedule · Del remove · U undo · R redo",
+  ],
   [
     "Registers",
     "u addressed read/write at next tick · 6 inspect latches and values",
@@ -518,7 +591,7 @@ export function render(state) {
       ),
     );
   if (!s) return "Loading ChipSim…";
-  const tabs = ["wave", "inspect", "log", "sources", "model", "registers"]
+  const tabs = views
     .map(
       (name, index) =>
         (name === state.view ? "[" + name.toUpperCase() + "]" : name) +
@@ -558,6 +631,8 @@ export function render(state) {
   else if (state.view === "registers")
     lines.push(...registerTable(state, available));
   else if (state.view === "model") lines.push(...modelInfo(state, available));
+  else if (state.view === "stimulus")
+    lines.push(...stimulusTable(state, available));
   else lines.push(...sources(state, available));
   while (lines.length < rows - 3) lines.push(row(""));
   lines = lines.slice(0, rows - 3);
