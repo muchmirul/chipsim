@@ -2,6 +2,7 @@ import { validateTableMetadata } from "./table-metadata.js";
 import { validateRegisterInterface } from "./register-interface.js";
 import { validateInputs } from "./stimulus.js";
 import { HIGH_IMPEDANCE } from "../core/logic.js";
+import { validateBehaviorAuthoring } from "./behavior-table/authoring.js";
 const identifier = /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/;
 const forbidden = new Set(["__proto__", "prototype", "constructor"]);
 export const operators = new Set([
@@ -384,6 +385,11 @@ export function validateModel(model, documents = []) {
   }
   validateTableMetadata(model, { fail, number, signals: definitions.signals });
   validateRegisterInterface(model, { fail, number, definitions });
+  try {
+    validateBehaviorAuthoring(model);
+  } catch (error) {
+    fail("authoring", error.message);
+  }
   if (model.exampleInputs !== undefined)
     try {
       validateInputs(signals, model.exampleInputs);

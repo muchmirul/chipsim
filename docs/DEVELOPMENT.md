@@ -24,9 +24,13 @@ A model provides a common interface: ID, name, summary, scope, fidelity, paramet
 
 `src/core/logic.js` defines released-driver state Z, guarded truth evaluation, and VCD bit encoding. Only explicitly declared tri-state output signals can store Z; input stimulus and internal registers remain numeric. The interpreter must reject Z in numeric/boolean operations and conditions rather than relying on JavaScript coercion. Combinational table compilation supports explicitly defined Z outputs; sequential Z tables are still outside automatic scope. `src/ui/values.js` shares escaped browser values and `src/ui/logic-wave.js` draws release segments without numeric waveform coordinates for Z.
 
+`behavior-table/behavior.js` is the pure table-to-model generator. `authoring.js` stores a portable bounded draft and compares its regenerated behavior against imported JSON, independent of object key order. `builders/assumptions.js` shares scenario/provenance wording. Optional authoring records never execute code; mismatches reject import. Legacy recovery requires exact regeneration, not a model name match. Extra independent cases remain part of revisions.
+
 ## Terminal interface
 
 `src/tui/state.js` owns model selection, configuration, trace navigation, source search, and sessions. `src/tui/app.js` owns keyboard input, prompts, playback, and external-viewer handoff. `src/tui/render.js` draws terminal frames and strips control characters from untrusted content. `src/tui/workspace.js` stores copied PDFs, extracted text, and model JSON under `.chipsim/`; it uses atomic JSON replacement. Keep simulation behavior out of these modules.
+
+Behavior-table revisions use `TuiState.previewRevision` to validate/check/simulate without mutation. Saves preserve compatible experiments, back up the prior session, atomically write the model, then commit state. Session loading likewise preflights parameters, inputs, and duration before installation; valid faulting traces remain loadable for inspection. Restore backs up the current session first. Failed writes leave the working model intact, although an already-written backup can remain. Edit drafts and file prompts stay in `behavior-table-editor.js`; no source inference occurs there.
 
 Input-pin experiments use `TuiState.driveInput`: replace one pin/tick event, validate widths/direction, simulate before committing, and retain the cursor. A fault rejects the experiment without replacing the previous trace/stimulus. Shared-pin compilation resolves pin declarations in `src/model/tables/pins.js`; common controls are emitted once and remain consistent across every indexed channel.
 

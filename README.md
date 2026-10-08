@@ -59,6 +59,8 @@ Press `i` to select an input pin and set its value at the cursor. This replaces 
 
 Press `7` for the input stimulus timeline. `i` schedules a pin/value at a chosen tick; Enter opens actions to edit, move, remove, or inspect a selected event. `a` clears events, restores demonstration events, or loads JSON. `U` and `R` undo/redo experiments, including addressed accesses. The trace recomputes before accepting changes; invalid values and simulation faults preserve the working experiment. `S` saves the result. See [timeline behavior](docs/TUI.md#input-stimulus-timeline).
 
+Press uppercase `E` on an entered behavior-table model to edit its rules and citations, review current-tick changes, save a compatible revision, or create a separate model. Revision backups preserve the earlier model and experiment for restoration.
+
 ## From a manual to a simulation
 
 1. Press `d` and enter the PDF path. ChipSim extracts searchable text locally, preserves page numbers, and fingerprints the PDF.

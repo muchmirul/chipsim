@@ -247,6 +247,42 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   authored=json.loads(authored_trace.read_text())
   assert [s['signals']['pin_y'] for s in authored['trace'][1:5]]==[1,1,0,1]
   assert authored['trace'][3]['state']=='state_logic'
+  # Revise, review without committing, then restore the whole prior experiment.
+  original_model=json.loads((Path(workspace)/'models'/'reviewed-nand.json').read_text())
+  send('E');wait('EDIT BEHAVIOR TABLE')
+  send('\r');wait('Rows · state BITS')
+  send('logic 0X -> logic / 1; logic X0 -> logic / 1; logic 11 -> logic / 1\r');wait('› Rows')
+  send('jjjjjj\r');wait('─ What this excerpt supports')
+  send('NAND source retained; forced-high output is a developer test override.\r');wait('› What this excerpt supports')
+  send('j\r');wait('─ Additional assumption')
+  send('Forced-high test scenario; not vendor NAND behavior.\r');wait('› Additional assumption')
+  send('jj\r');wait('DRAFT REVIEW')
+  wait('Y: 0 → 1')
+  assert json.loads((Path(workspace)/'models'/'reviewed-nand.json').read_text())==original_model
+  # Inspect the affected menu at both supported terminal sizes.
+  fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',40,120,0,0))
+  proc.send_signal(__import__('signal').SIGWINCH)
+  wait('Y: 0 → 1')
+  send('\r');wait('› Review draft')
+  send('j\r');wait('Saved revision')
+  wait('tick 3/')
+  revised=json.loads((Path(workspace)/'models'/'reviewed-nand.json').read_text())
+  assert revised['authoring']['configuration']['rules'].endswith('logic 11 -> logic / 1')
+  history=Path(workspace)/'revisions'/'reviewed-nand'
+  assert len(list(history.glob('*.session.json')))==1
+  send('E');wait('EDIT BEHAVIOR TABLE')
+  send('jjjjjjjjjjjjj\r');wait('REVISION BACKUPS')
+  send('\r');wait('Revision restored')
+  wait('tick 3/')
+  assert json.loads((Path(workspace)/'models'/'reviewed-nand.json').read_text())==original_model
+  assert len(list(history.glob('*.session.json')))==2
+  send('x');wait('EXPORT FULL TRACE')
+  send('j\r');wait('Output path')
+  restored_trace=Path(workspace)/'restored-trace.json'
+  send(str(restored_trace)+'\r');wait('Saved '+str(restored_trace))
+  restored_experiment=json.loads(restored_trace.read_text())
+  assert restored_experiment['trace'][3]['signals']['pin_y']==0
+  assert restored_experiment['model']['definition']['authoring']==original_model['authoring']
   send('q');proc.wait(timeout=5)
   end=time.monotonic()+1
   while time.monotonic()<end and select.select([master],[],[],.05)[0]:
@@ -256,7 +292,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored=termios.tcgetattr(slave)
   assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
   assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, custom behavior-table authoring and retry, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, Q0 retention and steady/transition clock lists, released outputs, addressed access, direct pin editing, and terminal cleanup.')
+  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, custom behavior-table authoring/retry/revision/review/restore, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, Q0 retention and steady/transition clock lists, released outputs, addressed access, direct pin editing, and terminal cleanup.')
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)

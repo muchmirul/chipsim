@@ -531,7 +531,10 @@ function modelInfo(state, height) {
     ...lines
       .slice(state.infoScroll, state.infoScroll + height - 1)
       .map((t) => row(t)),
-    row("j/k scroll · M export document model · 4 source text", "dim"),
+    row(
+      "j/k scroll · E edit entered table · M export model · 4 source text",
+      "dim",
+    ),
   ];
 }
 const help = [
@@ -563,7 +566,7 @@ const help = [
   ],
   [
     "Library",
-    "m select model · d import PDF, model, or session · c create sourced scenario",
+    "m select model · d import PDF/model/session · c create · E edit entered table",
   ],
   ["Search", "/ search signal names, log, or source pages · n/N repeat"],
   [

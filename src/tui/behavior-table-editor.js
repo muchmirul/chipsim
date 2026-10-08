@@ -1,4 +1,4 @@
-import { open } from "node:fs/promises";
+import { open, readFile, writeFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import { resolve } from "node:path";
 import { parsePayload } from "../core/values.js";
@@ -8,6 +8,7 @@ import {
 } from "../model/behavior-table/read.js";
 import { buildBehaviorTable } from "../model/behavior-table/build.js";
 import { modelId } from "../model/builders/sourced.js";
+import { behaviorDraft } from "../model/behavior-table/authoring.js";
 
 export async function behaviorRows(value) {
   if (!value.trim().startsWith("@")) return value;
@@ -45,13 +46,10 @@ export class BehaviorTableEditor {
   constructor(app) {
     this.app = app;
   }
-  create(document) {
-    const app = this.app,
-      state = app.state,
-      options = {};
-    state.view = "sources";
+  questions(document, options, editing = false) {
+    const state = this.app.state;
     const normalized = (text) => String(text).replace(/\s+/g, " ").trim();
-    const questions = [
+    return [
       {
         key: "name",
         label: "Behavior table · simulation name",
@@ -89,7 +87,7 @@ export class BehaviorTableEditor {
         help: "Separate rows with ;. Input X = wildcard; output = retains its bit; state * matches every state. No implicit priority or missing-row hold.",
         parse: async (text) => {
           const rules = await behaviorRows(text);
-          readBehaviorTable({ ...options, rules });
+          if (!editing) readBehaviorTable({ ...options, rules });
           return rules;
         },
       },
@@ -138,17 +136,58 @@ export class BehaviorTableEditor {
         label: "Additional assumption/omission · optional",
         value: "",
         allowEmpty: true,
+        parse: (text) => {
+          if (text.length > 4000)
+            throw new Error(
+              "Additional assumptions must be at most 4000 characters.",
+            );
+          return text;
+        },
       },
     ];
+  }
+  ask(question, options, value, next) {
+    const app = this.app,
+      state = app.state;
+    let pending;
+    app.prompt(
+      question.label,
+      value,
+      (text) =>
+        app.task(async () => {
+          try {
+            options[question.key] = question.parse
+              ? await question.parse(text)
+              : text;
+          } catch (error) {
+            state.prompt = pending;
+            pending.error = error.message;
+            throw error;
+          }
+          return next();
+        }),
+      {
+        allowEmpty: question.allowEmpty,
+        help:
+          question.help ||
+          "Developer-authored rows are not inferred from the PDF. Check the cited source and declare omissions; entered-rule checks do not prove hardware fidelity.",
+      },
+    );
+    pending = state.prompt;
+  }
+  create(document) {
+    const app = this.app,
+      state = app.state,
+      options = {},
+      questions = this.questions(document, options);
+    state.view = "sources";
     const next = (index) => {
       if (index >= questions.length)
         return app.task(async () => {
-          const base = modelId(options.name);
-          let id = base,
-            suffix = 2;
-          while (state.models.some((model) => model.id === id))
-            id = base + "-" + suffix++;
-          const { spec } = buildBehaviorTable(document, { ...options, id });
+          const { spec } = buildBehaviorTable(document, {
+            ...options,
+            id: this.newId(options.name),
+          });
           await state.installModel(spec);
           state.setView("wave");
         });
@@ -157,32 +196,237 @@ export class BehaviorTableEditor {
           typeof question.value === "function"
             ? question.value()
             : question.value;
-      let pending;
-      app.prompt(
-        question.label,
-        value,
-        (text) =>
-          app.task(async () => {
-            try {
-              options[question.key] = question.parse
-                ? await question.parse(text)
-                : text;
-            } catch (error) {
-              state.prompt = pending;
-              pending.error = error.message;
-              throw error;
-            }
-            return next(index + 1);
-          }),
-        {
-          allowEmpty: question.allowEmpty,
-          help:
-            question.help ||
-            "Developer-authored rows are not inferred from the PDF. Check the cited source and declare omissions; entered-rule checks do not prove hardware fidelity.",
-        },
-      );
-      pending = state.prompt;
+      this.ask(question, options, value, () => next(index + 1));
     };
     next(0);
+  }
+  newId(name) {
+    const base = modelId(name);
+    let id = base,
+      suffix = 2;
+    while (this.app.state.models.some((model) => model.id === id)) {
+      const tail = "-" + suffix++;
+      id = base.slice(0, 64 - tail.length) + tail;
+    }
+    return id;
+  }
+  edit() {
+    const state = this.app.state,
+      model = state.model;
+    if (!model.spec)
+      throw new Error(
+        "Select an entered behavior-table model first; c creates one from a PDF.",
+      );
+    if (!this.draft || this.draft.base !== model.spec) {
+      const recovered = behaviorDraft(model.spec);
+      if (!recovered)
+        throw new Error(
+          "This model has no reproducible behavior-table draft. Use M for JSON authoring or c to create a table.",
+        );
+      this.draft = { ...recovered, base: model.spec };
+    }
+    const document = state.documents.find(
+      (document) => document.sha256 === this.draft.sourceHash,
+    );
+    if (!document)
+      throw new Error(
+        "Attach the original source PDF with d before revising this table.",
+      );
+    state.documentId = document.id;
+    this.draft.document = document;
+    this.menu();
+  }
+  menu(selected = 0) {
+    const app = this.app,
+      state = app.state,
+      draft = this.draft;
+    const order = [
+        "rules",
+        "inputs",
+        "outputs",
+        "states",
+        "page",
+        "quote",
+        "claim",
+        "assumptions",
+        "name",
+      ],
+      questions = this.questions(draft.document, draft.options, true).sort(
+        (a, b) => order.indexOf(a.key) - order.indexOf(b.key),
+      );
+    app.menu(
+      "EDIT BEHAVIOR TABLE · unsaved draft",
+      [
+        ...questions.map((question) => ({
+          label:
+            question.key === "rules"
+              ? "Rows · edit or load @file"
+              : question.label,
+          value: question,
+        })),
+        {
+          label: "Review draft · checks and current-tick differences",
+          value: "review",
+        },
+        { label: "Save revision · keep compatible experiment", value: "save" },
+        {
+          label: "Save as new model · start separate experiment",
+          value: "copy",
+        },
+        { label: "Export draft rows to a text file", value: "export" },
+        {
+          label: "Revision backups · restore earlier experiment",
+          value: "backups",
+        },
+        { label: "Discard unsaved draft", value: "discard" },
+      ],
+      (choice) => {
+        if (typeof choice === "object") {
+          if (["page", "quote", "claim"].includes(choice.key)) {
+            state.setView("sources");
+            state.page = draft.options.page;
+            state.sourceScroll = 0;
+          }
+          const value = Array.isArray(draft.options[choice.key])
+            ? draft.options[choice.key].join(" ")
+            : draft.options[choice.key];
+          return this.ask(choice, draft.options, value, () =>
+            this.menu(questions.indexOf(choice)),
+          );
+        }
+        if (choice === "discard") {
+          this.draft = null;
+          state.setMessage("Behavior draft discarded · working model kept");
+        } else if (choice === "export")
+          app.prompt(
+            "Export draft rows path",
+            state.modelId + ".rules.txt",
+            (path) =>
+              app.task(async () => {
+                await writeFile(
+                  resolve(/^(['"]).*\1$/.test(path) ? path.slice(1, -1) : path),
+                  draft.options.rules + "\n",
+                  "utf8",
+                );
+                this.menu(12);
+                state.setMessage(
+                  "Draft rows exported · edit the file and load it with @path",
+                );
+              }),
+          );
+        else if (choice === "review") return this.review();
+        else if (choice === "backups") return this.backups();
+        else return this.save(choice === "copy");
+      },
+      selected,
+    );
+  }
+  async save(copy = false) {
+    const app = this.app,
+      state = app.state,
+      draft = this.draft;
+    return app.task(async () => {
+      try {
+        if (state.model.spec !== draft.base)
+          throw new Error(
+            "The selected model changed. Reopen E to begin a new draft.",
+          );
+        const { spec } = buildBehaviorTable(draft.document, {
+          ...draft.options,
+          id: copy ? this.newId(draft.options.name) : draft.base.id,
+          // Existing independent checks remain part of a revision, never silently discarded.
+          additionalChecks: copy ? [] : draft.options.additionalChecks,
+        });
+        if (copy) await state.installModel(spec);
+        else await state.reviseModel(spec);
+        this.draft = null;
+        state.setView("wave");
+      } catch (error) {
+        this.menu(copy ? 11 : 10);
+        throw error;
+      }
+    });
+  }
+  review() {
+    const app = this.app,
+      state = app.state,
+      draft = this.draft;
+    return app.task(async () => {
+      try {
+        const { spec, checks } = buildBehaviorTable(
+          draft.document,
+          draft.options,
+        );
+        const lines = [
+          checks.length +
+            " checks passed · source quote verified · entered rules remain developer assumptions",
+        ];
+        try {
+          const preview = state.previewRevision(spec),
+            before = state.snapshot,
+            after = preview.trace[state.tick];
+          lines.push(
+            "Current tick " +
+              state.tick +
+              ": state " +
+              before.state +
+              " → " +
+              after.state,
+          );
+          for (const signal of spec.signals.filter(
+            (signal) => signal.direction === "output",
+          ))
+            lines.push(
+              signal.label +
+                ": " +
+                before.signals[signal.id] +
+                " → " +
+                after.signals[signal.id],
+            );
+        } catch (error) {
+          lines.push("Current experiment: " + error.message);
+        }
+        lines.push(...spec.authoring.configuration.rules.split("\n"));
+        app.menu(
+          "DRAFT REVIEW · working model kept",
+          lines.map((label) => ({ label, value: null })),
+          () => this.menu(9),
+        );
+      } catch (error) {
+        this.menu(9);
+        throw error;
+      }
+    });
+  }
+  backups() {
+    const app = this.app,
+      state = app.state;
+    return app.task(async () => {
+      const entries = await state.workspace.revisions(state.modelId);
+      if (!entries.length) {
+        this.menu(13);
+        state.setMessage("No revision backups for this model yet.");
+        return;
+      }
+      app.menu(
+        "REVISION BACKUPS · restore whole experiment",
+        entries.map((entry) => ({
+          label: entry.timestamp + " · " + entry.name,
+          value: entry.path,
+        })),
+        (path) =>
+          app.task(async () => {
+            const text = await readFile(path, "utf8");
+            if (text.length > 3 * 1048576)
+              throw new Error("Revision session exceeds 3 MiB.");
+            await state.loadSession(JSON.parse(text), { backupCurrent: true });
+            this.draft = null;
+            state.setView("wave");
+            state.setMessage(
+              "Revision restored · prior current experiment backed up · E opens history",
+            );
+          }),
+      );
+    });
   }
 }
