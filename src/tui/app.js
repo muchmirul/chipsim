@@ -238,6 +238,7 @@ export class TerminalApp {
       return;
     }
     const currentValue = (entry) => {
+      if (entry.access === "wo") return 0;
       const [kind, id] = entry.value.split(".");
       return s.snapshot[kind === "reg" ? "registers" : "signals"][id];
     };
@@ -259,15 +260,18 @@ export class TerminalApp {
           entry.name +
           " · " +
           entry.access +
-          " = " +
-          formatPayload(currentValue(entry), s.format, width),
+          (entry.access === "wo"
+            ? " · write action"
+            : " = " + formatPayload(currentValue(entry), s.format, width)),
         value: entry,
       })),
       (entry) =>
         this.menu(
           entry.name + " · tick " + (s.tick + 1),
           [
-            { label: "Read", value: "read" },
+            ...(entry.access === "wo"
+              ? []
+              : [{ label: "Read", value: "read" }]),
             {
               label:
                 entry.access === "ro"

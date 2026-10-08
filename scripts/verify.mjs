@@ -75,6 +75,8 @@ for (const file of [
   "docs/MODEL_FORMAT.md",
   "docs/TUI.md",
   "docs/DOCUMENT_PROFILES.md",
+  "docs/ESP32_C6_PCNT.md",
+  "docs/ESP32_C6_GPIO.md",
   "docs/FUNCTION_TABLES.md",
   "docs/BEHAVIOR_TABLES.md",
   "docs/REGISTER_BANKS.md",

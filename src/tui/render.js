@@ -484,7 +484,7 @@ function modelInfo(state, height) {
           "REGISTER MAP",
           ...m.registerMap.map(
             (entry) =>
-              `0x${entry.address.toString(16)} ${entry.name} · ${entry.access} · ${entry.value} · evidence: ${entry.evidence.join(", ")}`,
+              `0x${entry.address.toString(16)} ${entry.name} · ${entry.access} · ${entry.value || "write action"} · evidence: ${entry.evidence.join(", ")}`,
           ),
         ]
       : []),

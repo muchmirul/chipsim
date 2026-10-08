@@ -1248,7 +1248,7 @@ test("cached-manual refresh rejects changed or missing PDF bytes without replaci
   }
 });
 
-test("the supplied ESP32-C6 manual opens the same reviewed PCNT model in PDF.js and supports numeric parameter experiments", async ({
+test("the supplied ESP32-C6 manual compiles both reviewed peripherals in PDF.js and supports numeric experiments", async ({
   page,
 }) => {
   test.setTimeout(120000);
@@ -1297,4 +1297,50 @@ test("the supplied ESP32-C6 manual opens the same reviewed PCNT model in PDF.js 
   expect(trace.trace[11].signals.count_down).toBe(0);
   await page.reload();
   await expect(page.locator("#model-title")).toHaveText(spec.name);
+  await expect(page.locator("#model-count")).toHaveText("8");
+  await page.locator('[data-model="esp32c6-gpio"]').click();
+  await expect(page.locator("#model-title")).toHaveText(
+    "ESP32-C6 · GPIO output registers",
+  );
+  await page.locator("#tab-sources").click();
+  const gpio = JSON.parse(
+    await downloaded(page, () => page.locator("[data-export-model]").click()),
+  );
+  expect(gpio).toEqual(terminal.models[1].spec);
+  expect(
+    gpio.registerMap
+      .filter((entry) => entry.access === "wo")
+      .every((entry) => entry.value === undefined),
+  ).toBe(true);
+  await page.locator("#tab-inspect").click();
+  for (const [tick, driver] of [
+    [0, "Z"],
+    [4, "1"],
+    [10, "0"],
+    [12, "Z"],
+  ]) {
+    await page.locator("#seek").fill(String(tick));
+    await page.locator("#seek").dispatchEvent("input");
+    await expect(
+      page.locator(".register-table tr").filter({ hasText: "selected_driver" }),
+    ).toContainText(driver);
+  }
+  await page.locator("#parameter-watch_gpio").fill("0x8");
+  await page.locator("#parameter-watch_gpio").press("Tab");
+  await page.locator("#trace-format").selectOption("json");
+  const gpioTrace = JSON.parse(
+    await downloaded(page, () => page.locator("#export-trace").click()),
+  );
+  expect(gpioTrace.parameters.watch_gpio).toBe(8);
+  expect(gpioTrace.trace[8].signals.selected_driver).toBe(1);
+  expect(gpioTrace.trace[14].signals.read_data).toBe(432);
+  expect(gpioTrace.trace[16].signals.read_data).toBe(270);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/espressif-esp32-c6-trm.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden({ timeout: 90000 });
+  await expect(page.locator("#model-title")).toHaveText(gpio.name);
+  await expect(page.locator("#parameter-watch_gpio")).toHaveValue("8");
+  await page.reload();
+  await expect(page.locator("#model-title")).toHaveText(gpio.name);
 });

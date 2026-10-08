@@ -558,7 +558,11 @@ export class TuiState {
         }
       }
       const matches = modelsForDocument(document, this.models);
-      const selected = matches.find((m) => m.kind === "document") || matches[0];
+      const selected =
+        matches.find((m) => m.id === compiled?.spec.id) ||
+        matches.find((m) => m.kind === "document" && m.id === this.modelId) ||
+        matches.find((m) => m.kind === "document") ||
+        matches[0];
       if (selected) {
         this.selectModel(selected.id);
         if (compiled)

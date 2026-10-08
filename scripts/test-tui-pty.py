@@ -378,16 +378,35 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert c6['trace'][1]['registers']['pulse_count']==65535
   assert c6['trace'][9]['signals']['low_limit_hit']==1
   assert c6['trace'][13]['registers']['pulse_count']==2
-  send('4');wait('1 simulation(s) available')
+  send('4');wait('2 simulation(s) available')
   send('o');wait('SIMULATIONS')
   assert 'SCOPE / ACTION' in frame()
   send('\r');wait('Opened ESP32-C6')
   assert 'tick 13/34' in frame()
   send('o');wait('SIMULATIONS')
-  send('j\r');wait('CREATE SIMULATION',timeout=30)
+  send('jj\r');wait('CREATE SIMULATION',timeout=30)
   assert 'Existing models are preserved' in frame() or 'h/l scroll' in frame()
   send('\x1b');wait('tick 13/34',absent='CREATE SIMULATION')
   assert len(list((Path(workspace)/'models').glob('esp32c6-pcnt*.json')))==1
+  send('o');wait('SIMULATIONS')
+  send('j\r');wait('Opened ESP32-C6 · GPIO')
+  send('u');wait('REGISTER ACCESS')
+  send('j\r');wait('GPIO_OUT_W1TS_REG · tick 1')
+  assert 'Read' not in frame()
+  send('\r');wait('Write GPIO_OUT_W1TS_REG')
+  send('0x40000001\r');wait('tick 1/24')
+  send('6');wait('0x04 GPIO_OUT_REG')
+  send('x');wait('EXPORT FULL TRACE')
+  send('j\r');wait('Output path')
+  gpio_trace=Path(workspace)/'esp32c6-gpio-trace.json'
+  send(str(gpio_trace)+'\r');wait('Saved '+str(gpio_trace))
+  gpio=json.loads(gpio_trace.read_text())
+  assert gpio['model']['id']=='esp32c6-gpio'
+  assert gpio['trace'][1]['registers']['gpio_out']==0x40000001
+  assert gpio['trace'][2]['registers']['gpio_out']==179
+  assert gpio['trace'][4]['signals']['selected_driver']==1
+  assert gpio['trace'][10]['signals']['selected_driver']==0
+  assert gpio['trace'][12]['signals']['selected_driver']=='Z'
   send('d');wait('Import PDF')
   send(str(ROOT/'docs/references/ti-tca9534.pdf')+'\r');wait('Loaded TCA9534')
   send('c');wait('CREATE')

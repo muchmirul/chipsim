@@ -18,21 +18,24 @@ const path = new URL(
 const documentPromise = extractPDFFile(path);
 const event = (tick, signal, value) => ({ tick, signal, value });
 const modelPromise = documentPromise.then(
-  (document) => compileDocument(document).spec,
+  (document) => compileDocument(document, { profileId: "esp32c6-pcnt" }).spec,
 );
 
-test("the supplied ESP32-C6 manual opens only its reviewed PCNT scope with real page evidence", async () => {
+test("the supplied ESP32-C6 manual includes reviewed PCNT scope with real page evidence", async () => {
   const document = await documentPromise,
     result = analyzeDocument(document);
   assert.equal(document.pageCount, 1394);
-  assert.equal(result.models.length, 1);
+  assert.equal(result.models.length, 2);
   assert.equal(result.models[0].spec.id, "esp32c6-pcnt");
   assert.equal(result.models[0].checks.length, 16);
   assert.ok(result.models[0].checks.every((check) => check.passed));
   assert.equal(compileDocument({ ...document, sha256: "0".repeat(64) }), null);
   const changed = structuredClone(document);
   changed.pages.find((page) => page.number === 1015).text = "Unrelated page";
-  assert.throws(() => compileDocument(changed), /quote does not occur/);
+  assert.throws(
+    () => compileDocument(changed, { profileId: "esp32c6-pcnt" }),
+    /quote does not occur/,
+  );
   assert.match(result.models[0].spec.scope, /channel 1 disabled/);
   assert.match(result.models[0].spec.scope, /MMIO, interrupts/);
 });
@@ -162,7 +165,7 @@ test("real-manual terminal import, trace exports, saved experiments and authored
   await state.initialize();
   await state.loadFile(path);
   assert.equal(state.modelId, "esp32c6-pcnt");
-  assert.equal(state.models.filter((m) => m.kind === "document").length, 1);
+  assert.equal(state.models.filter((m) => m.kind === "document").length, 2);
   assert.equal(state.trace[9].signals.high_limit_hit, 1);
   assert.equal(state.trace[11].registers.pulse_count, 65535);
   assert.equal(state.trace[19].signals.low_limit_hit, 1);

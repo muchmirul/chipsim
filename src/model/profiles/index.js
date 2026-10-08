@@ -3,6 +3,7 @@ import { hc595 } from "./hc595.js";
 import { pca9555 } from "./pca9555.js";
 import { tca9534 } from "./tca9534.js";
 import { esp32c6Pcnt } from "./esp32c6-pcnt.js";
+import { esp32c6Gpio } from "./esp32c6-gpio.js";
 import { validateModel } from "../validate.js";
 import { runChecks } from "../engine.js";
 
@@ -36,6 +37,14 @@ export const documentProfiles = [
       source.chips.includes("esp32c6-pcnt"),
     ),
     build: esp32c6Pcnt,
+  },
+  {
+    id: "esp32c6-gpio",
+    name: "Espressif ESP32-C6 GPIO output registers · TRM v1.2",
+    source: manifest.documents.find((source) =>
+      source.chips.includes("esp32c6-gpio"),
+    ),
+    build: esp32c6Gpio,
   },
 ];
 
