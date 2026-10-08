@@ -34,3 +34,5 @@ Build and test tools (esbuild, Prettier, and Playwright) are development depende
 ## Renesas development reference
 
 The unchanged HD74HC77 reference (REJ03D0552-0200, Rev. 2.00, October 2005; official copy with 2010 front matter) is retained in this local development repository with all original notices. Its notice pages require prior written consent for reproduction/duplication; inclusion does not assert general redistribution permission or grant a repository-wide license to this PDF.
+
+The unchanged HD74HC138 reference (REJ03D0570-0300, Rev. 3.00, March 2009; official copy with 2010 front matter) is likewise retained locally for development and table-parser regression tests. All original copyright and reproduction/duplication notices remain; inclusion does not assert general redistribution permission.

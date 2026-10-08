@@ -310,6 +310,24 @@
       "relevant_sections": "Pin Functions on PDF page 3; 7.4 Device Functional Modes, Table 7-1 and local symbol footnotes on PDF page 12",
       "supports": "One generic table-level flip-flop: rising-edge capture, asynchronous clear, grouped inactive-clock alternatives, and explicitly defined Q0 retention. Rows determine behavior; no fingerprint-specific rule.",
       "model_assumptions": "One table instance, without inferring the eight numbered package channels. Initial Q is a scenario value. Ideal normalized digital steps omit setup/hold violations, metastability, propagation delays and electrical behavior. Original usage notices remain; this local development repository asserts no general redistribution permission."
+    },
+    {
+      "chips": [],
+      "compiler": "function-table",
+      "kind": "binary",
+      "path": "docs/references/renesas-hd74hc138.pdf",
+      "title": "HD74HC138 Datasheet",
+      "publisher": "Renesas Electronics",
+      "revision": "REJ03D0570-0300, Rev. 3.00, 25 March 2009; includes 2010 cover/notices",
+      "source_url": "https://www.renesas.com/en/document/dst/hd74hc138-datasheet",
+      "retrieved_on": "2026-10-08",
+      "bytes": 137417,
+      "pages": 10,
+      "sha256": "5b22efa22040d93ae25a1b7b13348ead658bda8764a6d32e078fc02608c366dc",
+      "pdf_start_page": 4,
+      "relevant_sections": "Function Table and H/L/X definitions on PDF page 4 (printed page 2); description on PDF page 3",
+      "supports": "One six-input/eight-output binary decoder function: enable gating and one active-low selected output. Hierarchical centered group headers and tightly adjacent subscripted signal labels are read from table geometry; no fingerprint-specific rules.",
+      "model_assumptions": "Ideal digital table evaluation includes every binary control/select combination. No pin-number mapping, electrical levels, propagation delays, hazards, loading or physical package wiring is inferred. Complete original notices remain; no general redistribution permission is asserted for this local development reference."
     }
   ]
 }

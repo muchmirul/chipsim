@@ -6,6 +6,7 @@ ChipSim can derive combinational and supported edge-triggered logic from a new P
 npm start -- --document docs/references/nexperia-74hc00.pdf
 npm start -- --document docs/references/nexperia-74hc86.pdf
 npm start -- --document docs/references/nexperia-74hc157.pdf
+npm start -- --document docs/references/renesas-hd74hc138.pdf
 npm start -- --document docs/references/nexperia-74hc377.pdf
 npm start -- --document docs/references/nexperia-74hc273.pdf
 npm start -- --document docs/references/ti-sn74lvc1g125.pdf
@@ -38,6 +39,14 @@ Tables may mix shared input controls with indexed data signals. A shared control
 Press `i` in the TUI to drive an input pin at the current tick without writing JSON. Later scheduled input events are retained.
 
 Generic prefix/suffix `n`-indexed signal names (such as `nA` or `Dn`) are expanded only from consistent documented numbered pin lists or ranges. Without those lists, one table instance is modeled and package replication remains outside scope. No electrical thresholds, delay, supply behavior, hazards, or other document features are inferred.
+
+## Centered and hierarchical column groups
+
+Group headings may be centered over their columns instead of aligned to the first column. ChipSim enumerates contiguous, nonempty column partitions and requires exactly one partition whose group centers match the signal spans within two PDF points. Supported explicit roles are Inputs/Outputs, qualified Enable Inputs/Select Inputs/Outputs, and Inputs above Enable/Select with Outputs on the adjacent row (at most 16 points apart). Hierarchical enable/select spans must match uniquely inside the parent input span. Unknown group qualifiers, missing name rows, or ambiguous/misaligned partitions require review. Existing left-aligned and inline heading forms remain supported.
+
+A tightly adjacent numeric suffix (at most 0.75 points from the preceding header text) can join a signal name, such as G + 2A or Y + 0. Separate data cells never use this joining rule. Distant suffixes, duplicate names, and absent names are rejected. The exact next section heading `Pin Arrangement` can end complete local symbol definitions; extra legend prose is still rejected.
+
+The HD74HC138 reference on PDF page 4 demonstrates hierarchical groups and subscripts. Importing it creates a 14-signal table-level model with six binary inputs and eight outputs, with 64 exhaustive acceptance cases. Drive G1 high while G2A/G2B are low to enable; C/B/A selects Y0–Y7, with A the least significant select bit. The selected output is low and the others high; disabling sets all eight high. This logic is read from the rows, not from a device-specific rule. Physical pins, analog behavior, delays and unmodeled features remain outside scope. Both extraction engines, independent input sequences, source mutations, negative layouts and the real TUI are verified against the complete original PDF.
 
 ## High-impedance combinational outputs
 
@@ -85,6 +94,6 @@ npm start -- --document docs/references/renesas-hd74hc77.pdf
 
 ## Extending the compiler
 
-`src/documents/layout.js` normalizes positioned rows. `src/model/tables/layout.js` reads positioned headers/cells; `layout-notes.js` joins bounded footnote wraps; `legends.js` validates complete definitions. `read.js` dispatches symbol interpretation; `sequential-read.js` validates sequential clock/state coverage; `clock-patterns.js` defines clock pairs and pin-edge matching. `pins.js` resolves indexed instances and validates shared pin declarations; `typed-pins.js` reads typed pin roles. `build.js` and `sequential-build.js` convert validated tables to the existing model language; `sequential-scenarios.js` produces input sweeps and acceptance cases; `src/model/from-document.js` coordinates profiles and tables for both interfaces. Keep parsing, model generation, and rendering separate.
+`src/documents/layout.js` normalizes positioned rows. `src/model/tables/layout.js` reads positioned headers/cells; `centered-headers.js` resolves unique centered/hierarchical partitions and adjacent header subscripts; `layout-notes.js` joins bounded footnote wraps; `legends.js` validates complete definitions. `read.js` dispatches symbol interpretation; `sequential-read.js` validates sequential clock/state coverage; `clock-patterns.js` defines clock pairs and pin-edge matching. `pins.js` resolves indexed instances and validates shared pin declarations; `typed-pins.js` reads typed pin roles. `build.js` and `sequential-build.js` convert validated tables to the existing model language; `sequential-scenarios.js` produces input sweeps and acceptance cases; `src/model/from-document.js` coordinates profiles and tables for both interfaces. Keep parsing, model generation, and rendering separate.
 
 A new syntax must have real document examples and independent expected behavior. Include negative cases for ambiguous layouts and unsupported semantics. Do not silently infer merged cells, overwrite authored models, or claim whole-chip coverage from a small function table. Review the exported source snapshot and executable rules when adapting a generated model.

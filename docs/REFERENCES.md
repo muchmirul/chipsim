@@ -1,6 +1,6 @@
 # Simulation references
 
-This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All eighteen PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
+This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All nineteen PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
 
 Document revisions below come from document text, rather than PDF modification timestamps. PDF links use one-based viewer page numbers, which may differ from printed page labels. Retrieved on **2026-10-07** unless a later date is listed below.
 
@@ -180,3 +180,13 @@ Exact sizes and SHA-256 checksums are recorded in [manifest.json](references/man
 - **Read:** PDF page 12, Table 7-1 and complete wrapped input/output definitions; PDF page 3, typed CLK pin declaration and Signal Types legend.
 - **Supports:** Data-derived sequential compilation with asynchronous clear, rising-edge capture, explicit Q0 previous-state retention, and a clock cell listing steady low, steady high, or falling edge. No chip name or fingerprint selects the rules.
 - **Model scope:** One generic CLR/CLK/D/Q table instance. The unindexed headings do not establish a supported mapping to the octal package; replication and package wiring are omitted. Initial retained state and normalized timing are scenario choices. Physical setup/hold, metastability, electrical behavior, and other device features are not inferred. The final-page TI development-use notice remains unchanged; this local repository asserts no general redistribution permission.
+
+## HD74HC138 decoder function table
+
+- **Version:** REJ03D0570-0300, Rev. 3.00, 25 March 2009; official copy includes 2010 cover/notices. Retrieved 2026-10-08.
+- **Publisher:** Renesas Electronics.
+- **File:** [renesas-hd74hc138.pdf](references/renesas-hd74hc138.pdf#page=4) (10 complete PDF pages, unchanged).
+- **Official source:** [HD74HC138 datasheet](https://www.renesas.com/en/document/dst/hd74hc138-datasheet).
+- **Read:** PDF page 4 (printed page 2), complete Function Table, centered Inputs/Enable/Select/Outputs groups, and H/L/X definitions; PDF page 3, device description.
+- **Supports:** One six-input/eight-output binary decoder function, including all enable/select combinations. The table supplies the logic; no device name or fingerprint chooses it. Exactly one output is low when enabled; all outputs are high when disabled.
+- **Model scope:** Only the function table, evaluated at normalized steps. Tight numeric suffixes normalize typography to G2A/G2B and Y0–Y7. No pin-number mapping, supply/loading, electrical timing, hazards, delays, or additional features are inferred. Original notices are retained; no general redistribution permission is asserted.

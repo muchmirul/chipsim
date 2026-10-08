@@ -196,6 +196,25 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert experiment['trace'][3]['signals']['pin_q']==0
   assert experiment['trace'][4]['signals']['pin_q']==1
   assert experiment['trace'][10]['signals']['pin_q']==1
+  # A multi-level centered decoder table imports without authoring JSON.
+  send('d');wait('Import PDF')
+  send(str(ROOT/'docs/references/renesas-hd74hc138.pdf')+'\r');wait('HD74HC138')
+  send('6');wait('signal.pin_y0')
+  send('i');wait('DRIVE INPUT')
+  send('\r');wait('1-bit input at tick 0')
+  send('1\r');wait('Input pin_g1=1')
+  send('i');wait('DRIVE INPUT')
+  send('jjjjj\r');wait('1-bit input at tick 0')
+  send('0b1\r');wait('Input pin_a=1')
+  send('x');wait('EXPORT FULL TRACE')
+  send('j\r');wait('Output path')
+  decoder_trace=Path(workspace)/'decoder-trace.json'
+  send(str(decoder_trace)+'\r');wait('Saved '+str(decoder_trace))
+  decoder=json.loads(decoder_trace.read_text())
+  assert decoder['model']['definition']['sourceTable']['page']==4
+  assert decoder['trace'][0]['signals']['pin_y0']==1
+  assert decoder['trace'][0]['signals']['pin_y1']==0
+  assert len(decoder['trace'][0]['signals'])==14
   # A clock held high must not capture a new data value.
   send('d');wait('Import PDF')
   send(str(ROOT/'docs/references/ti-sn74ahc273-q1.pdf')+'\r');wait('SN74AHC273-Q1')
@@ -298,7 +317,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   restored=termios.tcgetattr(slave)
   assert restored[3]&(termios.ICANON|termios.ECHO)==original[3]&(termios.ICANON|termios.ECHO)
   assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, custom behavior-table authoring/retry/revision/full-trace-review/restore, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, Q0 retention and steady/transition clock lists, released outputs, addressed access, direct pin editing, and terminal cleanup.')
+  print('PTY verified: stepping, formats, register/log/stimulus views, scheduled event edits, undo/redo, exports, resize, sourced scenarios, custom behavior-table authoring/retry/revision/full-trace-review/restore, reviewed profiles, combinational/edge/level/tri-state tables, shared inputs, hierarchical decoder headers, Q0 retention and steady/transition clock lists, released outputs, addressed access, direct pin editing, and terminal cleanup.')
  finally:
   if proc.poll() is None:proc.terminate();proc.wait(timeout=5)
   os.close(master);os.close(slave)
