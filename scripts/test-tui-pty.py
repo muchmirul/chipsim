@@ -153,6 +153,31 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert registers['trace'][8]['signals']['int_driver']==0
   assert registers['trace'][12]['signals']['int_driver']=='Z'
   send('d');wait('Import PDF')
+  send(str(ROOT/'docs/references/ti-tca9534.pdf')+'\r');wait('TCA9534')
+  send('u');wait('REGISTER ACCESS')
+  send('j\r');wait('Output port')
+  send('j\r');wait('Write Output port')
+  send('0o245\r');wait('write address 1 at tick 1')
+  send('u');wait('REGISTER ACCESS')
+  send('jjj\r');wait('Configuration')
+  send('j\r');wait('Write Configuration')
+  send('0b0\r');wait('write address 3 at tick 2')
+  send('u');wait('REGISTER ACCESS')
+  send('j\r');wait('Output port')
+  send('\r');wait('read address 1 at tick 3')
+  send('x');wait('EXPORT FULL TRACE')
+  send('j\r');wait('Output path')
+  gpio_trace=Path(workspace)/'tca9534-trace.json'
+  send(str(gpio_trace)+'\r');wait('Saved '+str(gpio_trace))
+  gpio=json.loads(gpio_trace.read_text())
+  assert gpio['trace'][1]['registers']['output0']==165
+  assert gpio['trace'][2]['registers']['configuration0']==0
+  assert gpio['trace'][2]['signals']['p01_driver']==0
+  assert gpio['trace'][3]['signals']['read_data']==165
+  assert gpio['trace'][8]['signals']['int_driver']==0
+  assert gpio['trace'][10]['signals']['int_driver']==0
+  assert gpio['trace'][12]['signals']['int_driver']=='Z'
+  send('d');wait('Import PDF')
   send(str(ROOT/'docs/references/renesas-hd74hc77.pdf')+'\r');wait('HD74HC77 Datasheet')
   send('t');wait('Go to normalized tick')
   send('4\r');wait('tick 4/')

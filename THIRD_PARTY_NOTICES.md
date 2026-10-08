@@ -21,6 +21,8 @@ The unchanged TI PCA9555 data sheet (SCPS131J, March 2021; retrieved October 202
 
 The unchanged TI SN74AHC273-Q1 data sheet (SLVSJA7A, June 2026) is retained as a local development reference for its modeled table. All original notices, including the final-page restriction to development of applications using TI products, remain intact. No general redistribution permission is asserted.
 
+The unchanged TI TCA9534 data sheet (SCPS197D, revised October 2017; complete official copy retrieved October 2026) is retained as a local development reference for the modeled TI device. Its final-page notice restricts resource use to development of applications using the described TI products. All original notices remain; no general redistribution permission is asserted.
+
 ## Bundled software
 
 The browser app and portable HTML bundle Mozilla PDF.js (`pdfjs-dist`), including its PDF worker, under Apache License 2.0. The complete license is retained in [docs/licenses/pdfjs-LICENSE.txt](docs/licenses/pdfjs-LICENSE.txt). PDF.js copyright and license comments remain in the generated bundle.

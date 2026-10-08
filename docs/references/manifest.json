@@ -328,6 +328,22 @@
       "relevant_sections": "Function Table and H/L/X definitions on PDF page 4 (printed page 2); description on PDF page 3",
       "supports": "One six-input/eight-output binary decoder function: enable gating and one active-low selected output. Hierarchical centered group headers and tightly adjacent subscripted signal labels are read from table geometry; no fingerprint-specific rules.",
       "model_assumptions": "Ideal digital table evaluation includes every binary control/select combination. No pin-number mapping, electrical levels, propagation delays, hazards, loading or physical package wiring is inferred. Complete original notices remain; no general redistribution permission is asserted for this local development reference."
+    },
+    {
+      "chips": ["tca9534"],
+      "path": "docs/references/ti-tca9534.pdf",
+      "title": "TCA9534 Low Voltage 8-Bit I2C and SMBUS Low-Power I/O Expander with Interrupt Output and Configuration Registers",
+      "publisher": "Texas Instruments",
+      "revision": "SCPS197D, revised October 2017; complete official download with 2026 notices/package addendum",
+      "source_url": "https://www.ti.com/lit/ds/symlink/tca9534.pdf",
+      "retrieved_on": "2026-10-08",
+      "bytes": 1475976,
+      "pages": 42,
+      "sha256": "aab050b47942f0c4a0551926b62bc85a5663f74682d4205f4980cca4871a9be1",
+      "pdf_start_page": 19,
+      "relevant_sections": "8.3.1\u20138.4.1 on PDF page 17; 8.6.2/Table 3 on page 19; 8.6.3/Tables 4\u20137 on page 20; bus transaction limits on pages 21\u201323",
+      "supports": "Single eight-bit GPIO port with four addressed registers, documented defaults/access, input-only polarity inversion, released output drivers, and input mismatch interrupt acknowledgment. Reviewed exact-fingerprint transaction-level profile.",
+      "model_assumptions": "Completed individually addressed bytes on normalized request-token changes; no physical I2C/SMBus, slave-address pins, command-pointer persistence, repeated bus bytes, ACK interrupt races, delays, supply ramps, pulls/loading or contention. External high starting levels and interrupt reset baseline are explicit scenarios; power_reset abstracts completed POR. Original development-use notices remain; no general redistribution permission is asserted."
     }
   ]
 }

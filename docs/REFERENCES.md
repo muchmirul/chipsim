@@ -1,6 +1,6 @@
 # Simulation references
 
-This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All nineteen PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
+This directory documents the official sources for the six architecture examples and reviewed datasheet profiles. All twenty PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
 
 Document revisions below come from document text, rather than PDF modification timestamps. PDF links use one-based viewer page numbers, which may differ from printed page labels. Retrieved on **2026-10-07** unless a later date is listed below.
 
@@ -190,3 +190,13 @@ Exact sizes and SHA-256 checksums are recorded in [manifest.json](references/man
 - **Read:** PDF page 4 (printed page 2), complete Function Table, centered Inputs/Enable/Select/Outputs groups, and H/L/X definitions; PDF page 3, device description.
 - **Supports:** One six-input/eight-output binary decoder function, including all enable/select combinations. The table supplies the logic; no device name or fingerprint chooses it. Exactly one output is low when enabled; all outputs are high when disabled.
 - **Model scope:** Only the function table, evaluated at normalized steps. Tight numeric suffixes normalize typography to G2A/G2B and Y0–Y7. No pin-number mapping, supply/loading, electrical timing, hazards, delays, or additional features are inferred. Original notices are retained; no general redistribution permission is asserted.
+
+## TCA9534 I/O expander
+
+- **Publisher:** Texas Instruments.
+- **Document:** SCPS197D, revised October 2017; complete original official download with current notices/package addendum, retrieved 2026-10-08.
+- **Local PDF:** [ti-tca9534.pdf](references/ti-tca9534.pdf#page=19), 42 pages; exact byte count and SHA-256 are in the manifest.
+- **Official source:** https://www.ti.com/lit/ds/symlink/tca9534.pdf
+- **Sections:** PDF page 17 for INT and POR; page 19/Table 3 for addresses and defaults; page 20/Tables 4–7 for access, latch readback, input-only polarity inversion, and direction; pages 21–23 document physical bus transactions outside the model.
+- **Supports:** An exact-fingerprint reviewed one-port GPIO model with four addressed registers, individual released/driven outputs, external input levels, and input mismatch acknowledgment. Sixteen acceptance cases and independent byte/transaction oracles validate the modeled digital scope.
+- **Model scope:** Individually addressed completed bytes and normalized steps; no persistent command pointer, slave-address pins, physical I²C/SMBus, repeated bytes, ACK interrupt-loss races, supply ramp, delays, pulls, loading, or contention. Initial high external levels and reset interrupt baseline are explicit experiment assumptions. `power_reset` denotes completed POR; `Z` denotes a released driver. Original notices remain; this local development reference asserts no general redistribution permission.

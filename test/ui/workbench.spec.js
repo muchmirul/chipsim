@@ -891,3 +891,50 @@ test("sequential PDFs retain state, capture clock edges, preserve source symbols
   });
   await expect(page.locator("#parameter-initialOutputs")).toHaveValue("179");
 });
+
+test("single-port GPIO original PDF compiles in PDF.js, preserves latch/interrupt semantics and persists", async ({
+  page,
+}) => {
+  await ready(page);
+  await page
+    .locator("#document-file")
+    .setInputFiles("docs/references/ti-tca9534.pdf");
+  await expect(page.locator("#import-progress")).toBeHidden();
+  await expect(page.locator("#model-title")).toHaveText(
+    "TCA9534 · register-level I/O expander",
+  );
+  for (const [tick, read, driver] of [
+    [6, "0xB3", "Z"],
+    [8, "0xB3", "0"],
+    [10, "0xB3", "0"],
+    [12, "0xBE", "Z"],
+    [16, "0xB1", "Z"],
+  ]) {
+    await page.locator("#seek").fill(String(tick));
+    await page.locator("#seek").dispatchEvent("input");
+    await expect(
+      page.locator(".register-table tr").filter({ hasText: "read_data" }),
+    ).toContainText(read);
+    await expect(
+      page.locator(".register-table tr").filter({ hasText: "int_driver" }),
+    ).toContainText(driver);
+  }
+  await page.locator("#seek").fill("20");
+  await page.locator("#seek").dispatchEvent("input");
+  await expect(
+    page.locator(".register-table tr").filter({ hasText: "p00_driver" }),
+  ).toContainText("Z");
+  await page.locator("#tab-sources").click();
+  await expect(page.locator("#source-panel")).toContainText("command pointer");
+  const spec = JSON.parse(
+    await downloaded(page, () => page.locator("[data-export-model]").click()),
+  );
+  expect(spec.registerMap.map(({ address }) => address)).toEqual([0, 1, 2, 3]);
+  expect(spec.checks).toHaveLength(16);
+  const terminal = analyzeDocument(
+    await extractPDFFile("docs/references/ti-tca9534.pdf"),
+  );
+  expect(spec).toEqual(terminal.models[0].spec);
+  await page.reload();
+  await expect(page.locator("#model-title")).toHaveText(spec.name);
+});

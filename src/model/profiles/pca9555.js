@@ -7,145 +7,32 @@ import {
   input,
 } from "../builders/shared.js";
 
+import { gpioRegisterCore } from "../registers/gpio-expander.js";
+
 // TI SCPS131J, pages 14–16 and 19–21. Each request-token change abstracts
 // one already addressed byte transaction; these are not physical I2C pins.
 export function pca9555(source) {
   const eq = (a, b) => op("eq", a, b);
-  const select = (condition, yes, no) => op("select", condition, yes, no);
   const reset = "signal.power_reset";
-  const accepted = and(
-    op("not", reset),
-    op("ne", "signal.request", "reg.previous_request"),
-  );
-  const read = and("signal.valid", op("not", "signal.write"));
-  const writable = [
-    "output0",
-    "output1",
-    "polarity0",
-    "polarity1",
-    "configuration0",
-    "configuration1",
-  ];
-  const defaults = [255, 255, 0, 0, 255, 255];
-  const pins = [0, 1].flatMap((port) => {
-    const config = "reg.configuration" + port;
-    return [
-      assign(
-        "reg.pins" + port,
-        op(
-          "bitOr",
-          op("bitAnd", "signal.external" + port, config),
-          op("bitAnd", "reg.output" + port, op("bitXor", config, 255)),
-        ),
-      ),
-      assign(
-        "signal.input" + port,
-        op(
-          "bitXor",
-          "reg.pins" + port,
-          op("bitAnd", "reg.polarity" + port, config),
-        ),
-      ),
-      ...Array.from({ length: 8 }, (_, bit) =>
-        assign(
-          `signal.p${port}${bit}_driver`,
-          select(
-            op("bitAnd", config, 2 ** bit),
-            "Z",
-            op("bitAnd", op("shiftRight", "reg.output" + port, bit), 1),
-          ),
-        ),
-      ),
-    ];
+  const { writable, defaults, pins, irq, map, step, read } = gpioRegisterCore({
+    addresses: {
+      input: [0, 1],
+      output: [2, 3],
+      polarity: [4, 5],
+      configuration: [6, 7],
+    },
+    names: {
+      input: ["Input port 0", "Input port 1"],
+      output: ["Output port 0", "Output port 1"],
+      polarity: ["Polarity inversion 0", "Polarity inversion 1"],
+      configuration: ["Configuration 0", "Configuration 1"],
+    },
+    defaults: {
+      output: [255, 255],
+      polarity: [0, 0],
+      configuration: [255, 255],
+    },
   });
-  const irq = [
-    assign(
-      "signal.interrupt_pending",
-      op(
-        "or",
-        ...[0, 1].map((port) =>
-          op(
-            "ne",
-            op(
-              "bitAnd",
-              op("bitXor", "reg.pins" + port, "reg.sampled" + port),
-              "reg.configuration" + port,
-            ),
-            0,
-          ),
-        ),
-      ),
-    ),
-    assign("signal.int_driver", select("signal.interrupt_pending", 0, "Z")),
-  ];
-  const map = [
-    ["Input port 0", "signal.input0", "ro", "input"],
-    ["Input port 1", "signal.input1", "ro", "input"],
-    ["Output port 0", "reg.output0", "rw", "output"],
-    ["Output port 1", "reg.output1", "rw", "output"],
-    ["Polarity inversion 0", "reg.polarity0", "rw", "polarity"],
-    ["Polarity inversion 1", "reg.polarity1", "rw", "polarity"],
-    ["Configuration 0", "reg.configuration0", "rw", "configuration"],
-    ["Configuration 1", "reg.configuration1", "rw", "configuration"],
-  ].map(([name, value, access, evidence], address) => ({
-    name,
-    value,
-    access,
-    address,
-    evidence: ["addresses", evidence],
-  }));
-  const readValue = map.reduceRight(
-    (rest, item) =>
-      select(eq("signal.address", item.address), item.value, rest),
-    0,
-  );
-  const step = [
-    assign("signal.valid", accepted),
-    assign("signal.error", and("signal.valid", op("gt", "signal.address", 7))),
-    ...writable.map((id, index) =>
-      assign(
-        "reg." + id,
-        select(
-          reset,
-          defaults[index],
-          select(
-            and(
-              "signal.valid",
-              "signal.write",
-              eq("signal.address", index + 2),
-            ),
-            "signal.write_data",
-            "reg." + id,
-          ),
-        ),
-      ),
-    ),
-    ...pins,
-    assign(
-      "signal.read_data",
-      select(
-        reset,
-        0,
-        select(
-          and(read, op("not", "signal.error")),
-          readValue,
-          "signal.read_data",
-        ),
-      ),
-    ),
-    ...[0, 1].map((port) =>
-      assign(
-        "reg.sampled" + port,
-        select(
-          op("or", reset, and(read, eq("signal.address", port))),
-          "reg.pins" + port,
-          "reg.sampled" + port,
-        ),
-      ),
-    ),
-    ...irq,
-    assign("reg.previous_request", "signal.request"),
-  ];
   const transition = (when, message, evidence) => ({
     to: "operating",
     when,
