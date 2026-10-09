@@ -1,0 +1,22 @@
+# Explicit initial scenario; ideal clock/reset, no physical setup/hold timing.
+model state-table-1720843d320c-p4-t3
+param initialOutputs 0
+guide 74hc273-nexperia-74hc273 4 "Octal D-type flip-flop with reset; positive-edge trigger"
+drive pin_mr 1
+drive pin_d0 1
+expect signal.pin_q0 == 0
+drive pin_cp 1
+expect signal.pin_q0 == 1
+drive pin_d0 0
+expect signal.pin_q0 == 1
+drive pin_cp 0
+expect signal.pin_q0 == 1
+drive pin_cp 1
+expect signal.pin_q0 == 0
+drive pin_cp 0
+drive pin_d0 1
+drive pin_cp 1
+expect signal.pin_q0 == 1
+drive pin_mr 0
+expect signal.pin_q0 == 0
+halt

@@ -10,6 +10,8 @@ import {
   loadProject,
 } from "./project.js";
 import { checkModel, runModel } from "./model.js";
+import { loadAgentProgram, runAgentProgram } from "./program.js";
+import { programmingContext } from "./context.js";
 import { AgentError, integer, readBounded } from "./io.js";
 import { recordActivity, readActivity, digest } from "./activity.js";
 import metadata from "../../package.json" with { type: "json" };
@@ -17,8 +19,26 @@ import metadata from "../../package.json" with { type: "json" };
 const commands = {
   help: { positionals: [], options: {} },
   doctor: { positionals: [], options: {} },
+  context: {
+    positionals: ["chip-or-project"],
+    options: { project: "optional", model: "optional" },
+  },
   note: { positionals: ["project", "message"], options: {} },
   activity: { positionals: ["project"], options: { limit: "optional" } },
+  "program-check": {
+    positionals: ["program.chip"],
+    options: { model: "required", project: "optional" },
+  },
+  "program-run": {
+    positionals: ["program.chip"],
+    options: {
+      model: "required",
+      project: "optional",
+      out: "required",
+      ticks: "optional",
+      steps: "optional",
+    },
+  },
   prepare: { positionals: ["manual.pdf"], options: { out: "required" } },
   search: {
     positionals: ["project", "query"],
@@ -153,7 +173,18 @@ export async function agentCommand(args) {
   try {
     const { command, positional, options } = parse(args);
     envelope.command = command;
-    if (["prepare", "search", "page", "check", "run"].includes(command)) {
+    if (
+      [
+        "prepare",
+        "search",
+        "page",
+        "check",
+        "run",
+        "program-check",
+        "program-run",
+      ].includes(command) &&
+      (!command.startsWith("program-") || options.project)
+    ) {
       context = {
         command,
         project:
@@ -177,10 +208,12 @@ export async function agentCommand(args) {
         toolVersion: metadata.version,
         commands,
         documentation: Object.fromEntries(
-          ["AGENT_WORKFLOW.md", "MODEL_FORMAT.md"].map((name) => [
-            name,
-            join(packageRoot, "docs", name),
-          ]),
+          [
+            "AGENT_WORKFLOW.md",
+            "MODEL_FORMAT.md",
+            "PROGRAMMING.md",
+            "EXISTING_SIMULATORS.md",
+          ].map((name) => [name, join(packageRoot, "docs", name)]),
         ),
         protocol: {
           stdout: "One JSON result; no ANSI, prompts, or progress text",
@@ -192,11 +225,44 @@ export async function agentCommand(args) {
         },
         notes: [
           "No embedded model provider; author models with your existing coding agent.",
+          "Before programming: chipsim agent context CHIP_ID or PROJECT. Select a model, review capabilities and guides, then choose supported experiment or a separate native backend.",
           "PDF pages are one-based, including front matter. Each project contains one manual.",
           "prepare and run require new output directories; existing files are never replaced.",
         ],
       };
     else if (command === "doctor") result = await doctor();
+    else if (command === "context") {
+      const programming = await programmingContext(positional[0], options);
+      if (programming.project)
+        context = { command, project: programming.project };
+      result = { programmingContext: programming };
+    } else if (command === "program-check") {
+      const { debug } = await loadAgentProgram(positional[0], options);
+      result = {
+        ...debug.report(),
+        instructions: debug.program.instructions.length,
+        sourcesVerified: true,
+        programmingContextCommand: [
+          "chipsim",
+          "agent",
+          "context",
+          options.project || options.model,
+          ...(options.project ? ["--model", options.model] : []),
+        ],
+      };
+    } else if (command === "program-run")
+      result = await runAgentProgram(positional[0], options.out, {
+        ...options,
+        progress: (message) => emit("progress", message),
+        ticks:
+          options.ticks === undefined
+            ? undefined
+            : integer(options.ticks, "ticks", 1, 10000),
+        steps:
+          options.steps === undefined
+            ? undefined
+            : integer(options.steps, "steps", 1, 10000),
+      });
     else if (command === "note") {
       if (!positional[1].trim() || positional[1].length > 2000)
         throw new AgentError(
@@ -262,6 +328,8 @@ export async function agentCommand(args) {
     if (context) {
       const details = {};
       let message = `${command} completed`;
+      if (command === "context")
+        message = `Programming context · ${result.programmingContext.models.length} models · ${result.programmingContext.chips.map((chip) => chip.name).join(", ") || "unidentified manual"}`;
       if (command === "prepare")
         message = `Project prepared · ${result.source.pages} PDF pages · ${result.models.length} models`;
       if (command === "search") {
@@ -313,9 +381,9 @@ export async function agentCommand(args) {
     }
     return {
       result: {
-        ...envelope,
         ok: true,
         ...result,
+        ...envelope,
         ...(activityWarnings.length ? { activityWarnings } : {}),
       },
       exitCode: result.ok === false ? 1 : 0,

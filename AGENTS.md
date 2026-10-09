@@ -6,6 +6,7 @@ ChipSim is a local hardware behavior workbench. Keep the six supplied architectu
 
 - `README.md`: user workflow, setup, and current limits.
 - `docs/AGENT_WORKFLOW.md`: installable headless commands, source verification, and coding-agent compatibility.
+- `docs/PROGRAMMING.md`: experiment source, line debugging, guide citations and native-backend limits. Before programming a chip, run `chipsim agent context CHIP_ID` or `chipsim agent context PROJECT --model MODEL_ID`; use the actual declared inputs/registers and applicable guides. Prepared projects include `PROGRAMMING_CONTEXT.md` and `programming-context.json`. Do not silently replace a native firmware request with an experiment script.
 - `docs/FUNCTION_TABLES.md`: local data-derived combinational/sequential logic compilation and limits.
 - `docs/REGISTER_BANKS.md`: explicit sourced register maps, masks, bus/event ordering, and limits.
 - `docs/BEHAVIOR_TABLES.md`: developer-entered custom logic/state machines, step semantics, provenance, and limits.

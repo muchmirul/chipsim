@@ -12,7 +12,7 @@ import { screenText, render, displayWidth } from "../src/tui/render.js";
 import { exportJSON, exportCSV, exportVCD } from "../src/trace/export.js";
 
 const path = new URL(
-  "../docs/references/espressif-esp32-c6-trm.pdf",
+  "../docs/references/esp32-c6/espressif-esp32-c6-trm.pdf",
   import.meta.url,
 ).pathname;
 const documentPromise = extractPDFFile(path);

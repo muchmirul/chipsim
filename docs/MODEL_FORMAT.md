@@ -222,7 +222,7 @@ Node `registers`/`signals` are references used to display live values. Nodes aut
 }
 ```
 
-Use the PDF's SHA-256 from its source bundle, not a URL or text-file hash. `page` is a **one-based PDF page**, not the page label printed inside the manual. Quotes must contain 8–1000 characters. Whitespace is normalized when checking a quote against that attached source page. Optional `url` can link to the official document; local bundled sources use `docs/references/<filename>.pdf`.
+Use the PDF's SHA-256 from its source bundle, not a URL or text-file hash. `page` is a **one-based PDF page**, not the page label printed inside the manual. Quotes must contain 8–1000 characters. Whitespace is normalized when checking a quote against that attached source page. Optional `url` can link to the official document; local bundled sources use `docs/references/<chip>/<filename>.pdf`.
 
 Missing source PDFs generate an unverified-evidence warning. When a matching PDF is attached, any incorrect page/quote rejects the model. A subsequently imported source also revalidates relevant models. A source bundle supplied to the CLI is trusted local input; verification does not fetch URLs or prove that someone else's exported text was authentic.
 

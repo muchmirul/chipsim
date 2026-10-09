@@ -1,0 +1,26 @@
+# Static PCNT channel-0 experiment: count, reverse, pause and clear; no ESP-IDF function execution.
+model esp32c6-pcnt
+guide esp32-c6-esp-idf-programming-guide 1205 "Create a new PCNT unit, and return the handle."
+param positive_mode 1
+param negative_mode 0
+param control_low_mode 0
+param control_high_mode 1
+drive pulse 1
+expect reg.pulse_count == 1
+drive pulse 0
+drive control 1
+drive pulse 1
+expect reg.pulse_count == 0
+drive pulse 0
+drive pause 1
+drive pulse 1
+expect reg.pulse_count == 0
+drive pause 0
+drive control 0
+drive pulse 0
+drive pulse 1
+expect reg.pulse_count == 1
+drive clear 1
+wait 2
+expect reg.pulse_count == 0
+halt

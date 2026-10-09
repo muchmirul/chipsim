@@ -36,6 +36,35 @@ headers; use `--silent` when parsing stdout as JSON.
 
 ## Prepare, author, inspect
 
+Before writing a program, ask ChipSim for the actual chip/model capabilities:
+
+```sh
+chipsim agent context esp32-c6
+chipsim agent context pio
+chipsim agent context ./chip-work --model esp32c6-gpio
+```
+
+`context` accepts a catalog chip ID, a built-in/profile model ID, or an existing
+prepared project directory. `--project PATH` can bind an explicit chip ID to a
+project; mismatched PDF fingerprints are rejected. `--model` selects a model ID
+or model file in the project. For project targets, the command freshly checks
+the pinned PDF, current model schema/quotations and executable acceptance cases.
+Models with invalid sources or failing cases are excluded with diagnostics.
+It does not trust a stale context snapshot. `program-check` still verifies the
+chosen program and model again before execution.
+
+Its `programmingContext` gives the chip's native programming target, the formats
+ChipSim actually accepts, model scope and assumptions, exact input/output and
+parameter declarations, register access modes, guide document IDs/PDF paths,
+missing documents, debugging controls and check/run argument arrays. Unknown
+manuals remain unidentified; a filename cannot establish an ISA. Multiple
+peripherals require an explicit scope choice, not an assumed full-chip model.
+
+Current executable source is the `.chip` experiment language. Context explicitly
+reports native C/C++, assembly, ELF/BIN and other firmware backends as unavailable.
+An agent must identify that gap when native code is requested, rather than
+silently substituting an experiment. See [PROGRAMMING.md](PROGRAMMING.md).
+
 ```sh
 chipsim agent prepare /path/to/manual.pdf --out ./chip-work
 chipsim agent search ./chip-work "GPIO_OUT_REG" --limit 5
@@ -47,6 +76,8 @@ Preparation creates this folder, without replacing any existing directory:
 ```text
 chip-work/
   AGENTS.md                 Instructions for an external coding agent
+  PROGRAMMING_CONTEXT.md    Chip-specific programming decisions and workflow
+  programming-context.json Current-at-prepare capabilities and source pointers
   chipsim.project.json      PDF/cache fingerprints and format version
   manual.pdf                Unchanged source bytes
   sources.json              Extracted text and selected table geometry
@@ -55,9 +86,10 @@ chip-work/
   docs/                     Model contract and this workflow
   examples/                 Syntax example with its original source/assumptions
   models/                   Valid compiled models, if supported; author here
+  programs/                 Source experiments written by a person or agent
 ```
 
-Read `analysis.json` before creating a model. An exact reviewed profile or a
+Read the programming context and `analysis.json` before creating a model. An exact reviewed profile or a
 supported complete function table can yield a model immediately. For example,
 the bundled ESP32-C6 TRM v1.2 yields `esp32c6-pcnt` and `esp32c6-gpio`. Unknown
 manuals still produce searchable projects, but may contain no executable models.

@@ -1,0 +1,17 @@
+# One generic latch from the table; package replication/wiring is not inferred.
+model level-table-d12f71d4ad64-p3-tu1
+param initialOutputs 0
+guide hd74hc77-renesas-hd74hc77 3 "the Q output will follow the data input as long as the enable remains high"
+drive pin_data 1
+expect signal.pin_q == 0
+drive pin_enableg 1
+expect signal.pin_q == 1
+drive pin_data 0
+expect signal.pin_q == 0
+drive pin_data 1
+drive pin_enableg 0
+drive pin_data 0
+expect signal.pin_q == 1
+drive pin_enableg 1
+expect signal.pin_q == 0
+halt

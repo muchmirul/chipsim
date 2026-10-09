@@ -13,7 +13,7 @@ import { extractPDFFile } from "../src/documents/extract-node.js";
 import { simulateModel } from "../src/model/engine.js";
 import { TuiState } from "../src/tui/state.js";
 const manualPath = new URL(
-  "../docs/references/nexperia-74hc595.pdf",
+  "../docs/references/74hc595/nexperia-74hc595.pdf",
   import.meta.url,
 ).pathname;
 const documentPromise = extractPDFFile(manualPath);

@@ -15,11 +15,11 @@ import { registerInventory } from "../src/ui/register-tables.js";
 import { TuiState } from "../src/tui/state.js";
 import { TerminalApp } from "../src/tui/app.js";
 import { render, displayWidth } from "../src/tui/render.js";
-const path = new URL("../docs/references/ti-tca9534.pdf", import.meta.url)
+const path = new URL("../docs/references/tca9534/ti-tca9534.pdf", import.meta.url)
   .pathname;
 const tcaPromise = extractPDFFile(path);
 const pcaPromise = extractPDFFile(
-  new URL("../docs/references/ti-pca9555.pdf", import.meta.url).pathname,
+  new URL("../docs/references/pca9555/ti-pca9555.pdf", import.meta.url).pathname,
 );
 const isolated = async () => {
   const d = await tcaPromise;

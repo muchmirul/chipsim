@@ -87,7 +87,7 @@ test("agent prepare handles the supplied ESP32-C6 manual and bounded, paginated 
     project = join(path, "c6 project");
   const prepared = await agentCommand([
     "prepare",
-    join(root, "docs/references/espressif-esp32-c6-trm.pdf"),
+    join(root, "docs/references/esp32-c6/espressif-esp32-c6-trm.pdf"),
     "--out",
     project,
   ]);
@@ -136,7 +136,7 @@ test("agent prepare handles the supplied ESP32-C6 manual and bounded, paginated 
   assert.equal(checked.result.checks.length, 16);
   const again = await agentCommand([
     "prepare",
-    join(root, "docs/references/espressif-esp32-c6-trm.pdf"),
+    join(root, "docs/references/esp32-c6/espressif-esp32-c6-trm.pdf"),
     "--out",
     project,
   ]);

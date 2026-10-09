@@ -76,19 +76,19 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert created['evidence'][0]['page']==1
   assert len(created['checks'])==4
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/nexperia-74hc595.pdf')+'\r');wait('reviewed datasheet profile')
+  send(str(ROOT/'docs/references/74hc595/nexperia-74hc595.pdf')+'\r');wait('reviewed datasheet profile')
   send('t');wait('Go to normalized tick')
   send('18\r');wait('tick 18/')
   chip=json.loads((Path(workspace)/'models'/'hc595.json').read_text())
   assert chip['id']=='hc595' and len(chip['checks'])==8
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/nexperia-74hc00.pdf')+'\r');wait('74HC00; 74HCT00')
+  send(str(ROOT/'docs/references/74hc00/nexperia-74hc00.pdf')+'\r');wait('74HC00; 74HCT00')
   send('6');wait('signal.pin_1a')
   table_models=[json.loads(path.read_text()) for path in (Path(workspace)/'models').glob('*.json')]
   table=next(model for model in table_models if 'sourceTable' in model)
   assert len(table['sourceTable']['instances'])==4 and len(table['signals'])==12
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/nexperia-74hc157.pdf')+'\r');wait('74HC157; 74HCT157')
+  send(str(ROOT/'docs/references/74hc157/nexperia-74hc157.pdf')+'\r');wait('74HC157; 74HCT157')
   send('6');wait('signal.pin_e')
   send('i');wait('DRIVE INPUT')
   send('\r');wait('1-bit input at tick 0')
@@ -102,7 +102,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert all(mux['trace'][0]['signals'][f'pin_{channel}y']==0 for channel in range(1,5))
   assert len(mux['trace'][0]['signals'])==14
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/nexperia-74hc377.pdf')+'\r');wait('74HC377; 74HCT377')
+  send(str(ROOT/'docs/references/74hc377/nexperia-74hc377.pdf')+'\r');wait('74HC377; 74HCT377')
   send('p');wait('PARAMETERS')
   send('\r');wait('Initial retained output bits')
   send('0xB3\r');wait('Updated initialOutputs')
@@ -116,10 +116,10 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert word(retained['trace'][2])==0xaa
   assert retained['trace'][2]['registers']['rise_pin_cp']==1
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/nexperia-74hc273.pdf')+'\r');wait('74HC273; 74HCT273')
+  send(str(ROOT/'docs/references/74hc273/nexperia-74hc273.pdf')+'\r');wait('74HC273; 74HCT273')
   send('6');wait('signal.pin_mr')
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/ti-sn74lvc1g125.pdf')+'\r');wait('SN74LVC1G125')
+  send(str(ROOT/'docs/references/sn74lvc1g125/ti-sn74lvc1g125.pdf')+'\r');wait('SN74LVC1G125')
   send('t');wait('Go to normalized tick')
   send('4\r');wait('tick 4/')
   send('6');wait('signal.pin_y')
@@ -134,7 +134,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   send('\r');wait('1-bit input at tick 4')
   send('0b0\r');wait('Input pin_oe=0')
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/ti-pca9555.pdf')+'\r');wait('PCA9555')
+  send(str(ROOT/'docs/references/pca9555/ti-pca9555.pdf')+'\r');wait('PCA9555')
   send('u');wait('REGISTER ACCESS')
   send('jj\r');wait('Output port 0')
   send('j\r');wait('Write Output port 0')
@@ -153,7 +153,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert registers['trace'][8]['signals']['int_driver']==0
   assert registers['trace'][12]['signals']['int_driver']=='Z'
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/ti-tca9534.pdf')+'\r');wait('TCA9534')
+  send(str(ROOT/'docs/references/tca9534/ti-tca9534.pdf')+'\r');wait('TCA9534')
   send('u');wait('REGISTER ACCESS')
   send('j\r');wait('Output port')
   send('j\r');wait('Write Output port')
@@ -178,7 +178,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert gpio['trace'][10]['signals']['int_driver']==0
   assert gpio['trace'][12]['signals']['int_driver']=='Z'
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/renesas-hd74hc77.pdf')+'\r');wait('HD74HC77 Datasheet')
+  send(str(ROOT/'docs/references/hd74hc77/renesas-hd74hc77.pdf')+'\r');wait('HD74HC77 Datasheet')
   send('t');wait('Go to normalized tick')
   send('4\r');wait('tick 4/')
   send('6');wait('signal.pin_data')
@@ -223,7 +223,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert experiment['trace'][10]['signals']['pin_q']==1
   # A multi-level centered decoder table imports without authoring JSON.
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/renesas-hd74hc138.pdf')+'\r');wait('HD74HC138')
+  send(str(ROOT/'docs/references/hd74hc138/renesas-hd74hc138.pdf')+'\r');wait('HD74HC138')
   send('6');wait('signal.pin_y0')
   send('i');wait('DRIVE INPUT')
   send('\r');wait('1-bit input at tick 0')
@@ -242,7 +242,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert len(decoder['trace'][0]['signals'])==14
   # A clock held high must not capture a new data value.
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/ti-sn74ahc273-q1.pdf')+'\r');wait('SN74AHC273-Q1')
+  send(str(ROOT/'docs/references/sn74ahc273-q1/ti-sn74ahc273-q1.pdf')+'\r');wait('SN74AHC273-Q1')
   send('6');wait('signal.pin_clr')
   send('t');wait('Go to normalized tick')
   send('15\r');wait('tick 15/')
@@ -261,7 +261,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert clock['model']['definition']['sourceTable']['retention']['symbol']=='Q0'
   # Author custom rows from a real source, including correction of an incomplete file.
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/nexperia-74hc00.pdf')+'\r');wait('74HC00; 74HCT00')
+  send(str(ROOT/'docs/references/74hc00/nexperia-74hc00.pdf')+'\r');wait('74HC00; 74HCT00')
   send('c');wait('CREATE')
   send('jjj\r');wait('Behavior table · simulation name')
   send('Reviewed NAND\r');wait('Input pin names')
@@ -334,7 +334,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert restored_experiment['trace'][3]['signals']['pin_y']==0
   assert restored_experiment['model']['definition']['authoring']==original_model['authoring']
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/rp2040-datasheet.pdf')+'\r');wait('Loaded RP2040 PIO')
+  send(str(ROOT/'docs/references/rp2040/rp2040-datasheet.pdf')+'\r');wait('Loaded RP2040 PIO')
   send('c');wait('CREATE')
   send('jjjj\r');wait('Register bank · simulation name')
   send('Scratch storage experiment\r');wait('Register word width')
@@ -362,7 +362,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   assert len(scratch['model']['definition']['registerMap'])==8
   assert scratch['model']['definition']['evidence'][0]['page']==549
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/espressif-esp32-c6-trm.pdf')+'\r');wait('ESP32-C6 · PCNT channel 0',timeout=30)
+  send(str(ROOT/'docs/references/esp32-c6/espressif-esp32-c6-trm.pdf')+'\r');wait('ESP32-C6 · PCNT channel 0',timeout=30)
   send('p');wait('PARAMETERS')
   send('\r');wait('Rising edge')
   send('0x2\r');wait('Updated positive_mode')
@@ -431,7 +431,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',40,120,0,0))
   proc.send_signal(__import__('signal').SIGWINCH)
   send('d');wait('Import PDF')
-  send(str(ROOT/'docs/references/ti-tca9534.pdf')+'\r');wait('Loaded TCA9534')
+  send(str(ROOT/'docs/references/tca9534/ti-tca9534.pdf')+'\r');wait('Loaded TCA9534')
   send('c');wait('CREATE')
   send('jjjj\r');wait('REGISTER TABLE')
   send('j\r');wait('Register bank · simulation name')
@@ -487,3 +487,4 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
   os.close(master);os.close(slave)
 
 subprocess.run([__import__('sys').executable, str(ROOT/'scripts/test-agent-monitor-pty.py')], cwd=ROOT, check=True)
+subprocess.run([__import__('sys').executable, str(ROOT/'scripts/test-program-pty.py')], cwd=ROOT, check=True)

@@ -46,7 +46,7 @@ Write-trigger aliases have no displayed readback value and offer only Write in t
 `S` saves an experiment; `M` exports its model; `x` exports CSV/JSON/VCD; `V` opens the VCD in an installed dwfv. For a noninteractive model export, select the peripheral explicitly:
 
 ```sh
-npm run document -- docs/references/espressif-esp32-c6-trm.pdf --model esp32c6-gpio --out gpio.model.json
+npm run document -- docs/references/esp32-c6/espressif-esp32-c6-trm.pdf --model esp32c6-gpio --out gpio.model.json
 npm run model -- simulate gpio.model.json --ticks 24 --format vcd --out gpio.vcd
 ```
 

@@ -1,0 +1,21 @@
+# Logical select/enable decoding; no address latch or analog timing inferred.
+model table-5b22efa22040-p4-tu1
+guide hd74hc138-renesas-hd74hc138 3 "The HD74HC138 has 3 binary select inputs (A, B and C)."
+expect signal.pin_y0 == 1
+drive pin_g1 1
+expect signal.pin_y0 == 0
+expect signal.pin_y1 == 1
+drive pin_a 1
+expect signal.pin_y0 == 1
+expect signal.pin_y1 == 0
+drive pin_c 1
+expect signal.pin_y1 == 1
+expect signal.pin_y5 == 0
+drive pin_g2a 1
+expect signal.pin_y5 == 1
+drive pin_b 1
+expect signal.pin_y7 == 1
+drive pin_g2a 0
+expect signal.pin_y7 == 0
+expect signal.pin_y5 == 1
+halt

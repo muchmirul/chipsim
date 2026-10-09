@@ -121,7 +121,7 @@ export class AgentMonitor {
     const candidates = events
       .filter(
         (event) =>
-          event.command === "run" &&
+          ["run", "program-run"].includes(event.command) &&
           event.status === "succeeded" &&
           event.details?.resultFile &&
           event.details?.sessionFile,

@@ -1,0 +1,38 @@
+# Eight MSB-first input bits shifted, latched, driven and released; ideal clocks, explicit initial state.
+model hc595
+guide 74hc595-nexperia-74hc595 1 "Data is shifted on the LOW-to-HIGH transitions of the SHCP input."
+param initial_shift 0
+param initial_storage 0
+drive oe_n 0
+drive ds 1
+drive shcp 1
+drive shcp 0
+drive ds 0
+drive shcp 1
+drive shcp 0
+drive ds 1
+drive shcp 1
+drive shcp 0
+drive ds 1
+drive shcp 1
+drive shcp 0
+drive ds 0
+drive shcp 1
+drive shcp 0
+drive ds 0
+drive shcp 1
+drive shcp 0
+drive ds 1
+drive shcp 1
+drive shcp 0
+drive ds 1
+drive shcp 1
+drive shcp 0
+expect reg.shift == 0xB3
+drive stcp 1
+expect reg.storage == 179
+expect signal.parallel_pins == 0b10110011
+drive oe_n 1
+expect signal.parallel_pins == Z
+expect reg.storage == 179
+halt

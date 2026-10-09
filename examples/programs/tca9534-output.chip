@@ -1,0 +1,12 @@
+# Completed-byte latch/direction/read experiment; physical I2C and electrical contention are omitted.
+model tca9534
+guide tca9534-ti-tca9534 20 "Bit values in this register have no effect on pins defined as inputs."
+write "Output port" 0xA5
+expect signal.p00_driver == Z
+write "Configuration" 0
+expect signal.p00_driver == 1
+expect signal.p01_driver == 0
+expect signal.p07_driver == 1
+read "Output port" into latch
+expect $latch == 165
+halt

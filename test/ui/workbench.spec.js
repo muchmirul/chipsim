@@ -144,7 +144,7 @@ test("known PDF opens its example, source text persists, and sourced model impor
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/nxp-flexio-an12174.pdf");
+    .setInputFiles("docs/references/s32k144/nxp-flexio-an12174.pdf");
   await expect(page.locator("#document-count")).toHaveText("1");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toHaveText("NXP FlexIO");
@@ -189,7 +189,7 @@ test("TUI-authored behavior-table models remain sourced, portable, and persisten
   page,
 }) => {
   const document = await extractPDFFile(
-      resolve("docs/references/nexperia-74hc00.pdf"),
+      resolve("docs/references/74hc00/nexperia-74hc00.pdf"),
     ),
     { spec } = buildBehaviorTable(document, {
       name: "Entered NAND behavior",
@@ -205,7 +205,7 @@ test("TUI-authored behavior-table models remain sourced, portable, and persisten
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/nexperia-74hc00.pdf");
+    .setInputFiles("docs/references/74hc00/nexperia-74hc00.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await page.locator("#model-file").setInputFiles({
     name: "entered.model.json",
@@ -312,7 +312,7 @@ test("portable file runs offline and imports a PDF without network requests", as
   await ready(page, "file://" + resolve("chipsim.html"));
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/xmos-clocked-io-an03001.pdf");
+    .setInputFiles("docs/references/xcore-xs3/xmos-clocked-io-an03001.pdf");
   await expect(page.locator("#document-count")).toHaveText("1");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toHaveText("XMOS xCORE");
@@ -392,7 +392,7 @@ test("an attached manual rejects a previously unverified mismatching model safel
   await expect(page.locator("#model-count")).toHaveText("7");
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/nxp-flexio-an12174.pdf");
+    .setInputFiles("docs/references/s32k144/nxp-flexio-an12174.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-count")).toHaveText("6");
   await expect(page.locator("#notice")).toContainText(
@@ -512,7 +512,7 @@ test("binary-input tri-state PDF compiles locally and preserves released outputs
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/ti-sn74lvc1g125.pdf");
+    .setInputFiles("docs/references/sn74lvc1g125/ti-sn74lvc1g125.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toContainText("Function Table");
   await expect(page.locator("#model-title")).toContainText("SN74LVC1G125");
@@ -561,7 +561,7 @@ test("reviewed real datasheet automatically creates a sourced chip model", async
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/nexperia-74hc595.pdf");
+    .setInputFiles("docs/references/74hc595/nexperia-74hc595.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toHaveText("74HC595 / 74HCT595");
   await expect(page.locator("#model-count")).toHaveText("7");
@@ -605,7 +605,7 @@ test("automatic browser models preserve ID collisions and compile previously cac
   await expect(page.locator("#model-title")).toHaveText(unrelated.name);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/nexperia-74hc595.pdf");
+    .setInputFiles("docs/references/74hc595/nexperia-74hc595.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toHaveText("74HC595 / 74HCT595");
   await expect(page.locator("#model-count")).toHaveText("8");
@@ -640,7 +640,7 @@ test("automatic browser models preserve ID collisions and compile previously cac
   await expect(page.locator("#model-count")).toHaveText("7");
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/nexperia-74hc595.pdf");
+    .setInputFiles("docs/references/74hc595/nexperia-74hc595.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toHaveText(generated.name);
   await expect(page.locator("#model-count")).toHaveText("8");
@@ -652,7 +652,7 @@ test("register-level PDF profile shares source checks, released pins, interrupt 
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/ti-pca9555.pdf");
+    .setInputFiles("docs/references/pca9555/ti-pca9555.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toHaveText(
     "PCA9555 · register-level I/O expander",
@@ -693,7 +693,7 @@ test("level-sensitive PDF compiles from complete rows with stable identity, foll
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/renesas-hd74hc77.pdf");
+    .setInputFiles("docs/references/hd74hc77/renesas-hd74hc77.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toHaveText(
     "HD74HC77 Datasheet · Function Table",
@@ -730,7 +730,7 @@ test("wrapped sequential definitions and clock alternatives compile identically 
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/ti-sn74ahc273-q1.pdf");
+    .setInputFiles("docs/references/sn74ahc273-q1/ti-sn74ahc273-q1.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toContainText("SN74AHC273-Q1");
   for (const tick of [14, 15]) {
@@ -771,7 +771,7 @@ test("real binary function tables compile from PDF layout and display all indepe
   for (const part of ["00", "86"]) {
     await page
       .locator("#document-file")
-      .setInputFiles("docs/references/nexperia-74hc" + part + ".pdf");
+      .setInputFiles("docs/references/74hc" + part + "/nexperia-74hc" + part + ".pdf");
     await expect(page.locator("#import-progress")).toBeHidden();
     await expect(page.locator("#model-title")).toContainText(
       "74HC" + part + "; 74HCT" + part,
@@ -801,7 +801,7 @@ test("hierarchical centered decoder headers compile in PDF.js with enable gating
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/renesas-hd74hc138.pdf");
+    .setInputFiles("docs/references/hd74hc138/renesas-hd74hc138.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toContainText("HD74HC138");
   await page.locator("#tab-sources").click();
@@ -821,7 +821,7 @@ test("hierarchical centered decoder headers compile in PDF.js with enable gating
   );
   expect(exported.checks).toHaveLength(64);
   const terminal = analyzeDocument(
-    await extractPDFFile(resolve("docs/references/renesas-hd74hc138.pdf")),
+    await extractPDFFile(resolve("docs/references/hd74hc138/renesas-hd74hc138.pdf")),
   ).models[0].spec;
   expect(exported.sourceTable).toEqual(terminal.sourceTable);
   await page.locator("#advanced-controls").click();
@@ -854,7 +854,7 @@ test("multiplexer PDF shares enable/select across four independent data channels
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/nexperia-74hc157.pdf");
+    .setInputFiles("docs/references/74hc157/nexperia-74hc157.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toContainText("74HC157; 74HCT157");
   await page.locator("#tab-sources").click();
@@ -891,7 +891,7 @@ test("sequential PDFs retain state, capture clock edges, preserve source symbols
   for (const part of ["377", "273"]) {
     await page
       .locator("#document-file")
-      .setInputFiles(`docs/references/nexperia-74hc${part}.pdf`);
+      .setInputFiles(`docs/references/74hc${part}/nexperia-74hc${part}.pdf`);
     await expect(page.locator("#import-progress")).toBeHidden();
     await expect(page.locator("#model-title")).toContainText(
       `74HC${part}; 74HCT${part}`,
@@ -957,7 +957,7 @@ test("single-port GPIO original PDF compiles in PDF.js, preserves latch/interrup
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/ti-tca9534.pdf");
+    .setInputFiles("docs/references/tca9534/ti-tca9534.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toHaveText(
     "TCA9534 · register-level I/O expander",
@@ -991,7 +991,7 @@ test("single-port GPIO original PDF compiles in PDF.js, preserves latch/interrup
   expect(spec.registerMap.map(({ address }) => address)).toEqual([0, 1, 2, 3]);
   expect(spec.checks).toHaveLength(16);
   const terminal = analyzeDocument(
-    await extractPDFFile("docs/references/ti-tca9534.pdf"),
+    await extractPDFFile("docs/references/tca9534/ti-tca9534.pdf"),
   );
   expect(spec).toEqual(terminal.models[0].spec);
   await page.reload();
@@ -1002,7 +1002,7 @@ test("TUI-authored register banks verify a real manual and preserve 32-bit stora
   page,
 }) => {
   const document = await extractPDFFile(
-    resolve("docs/references/rp2040-datasheet.pdf"),
+    resolve("docs/references/rp2040/rp2040-datasheet.pdf"),
   );
   const { spec } = buildRegisterBank(document, {
     name: "Entered scratch register storage",
@@ -1022,7 +1022,7 @@ test("TUI-authored register banks verify a real manual and preserve 32-bit stora
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/rp2040-datasheet.pdf");
+    .setInputFiles("docs/references/rp2040/rp2040-datasheet.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await page.locator("#model-file").setInputFiles({
     name: "scratch.model.json",
@@ -1077,12 +1077,12 @@ test("register-table inventories match original PDF geometry in both engines and
   await ready(page);
   for (const filename of ["ti-tca9534.pdf", "ti-pca9555.pdf"]) {
     const document = await extractPDFFile(
-      resolve("docs/references/" + filename),
+      resolve("docs/references/" + filename.slice(3,-4) + "/" + filename),
     );
     const inventory = readRegisterTables(document);
     await page
       .locator("#document-file")
-      .setInputFiles("docs/references/" + filename);
+      .setInputFiles("docs/references/" + filename.slice(3,-4) + "/" + filename);
     await expect(page.locator("#import-progress")).toBeHidden();
     await page.locator(".document-item").filter({ hasText: filename }).click();
     await expect(page.locator("#document-info")).toContainText(
@@ -1126,7 +1126,7 @@ test("opening an old cached manual refreshes local source tables and preserves i
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/ti-tca9534.pdf");
+    .setInputFiles("docs/references/tca9534/ti-tca9534.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await ageBrowserCache(page, { editModel: true });
   await page.reload();
@@ -1189,7 +1189,7 @@ test("opening an old cached manual refreshes local source tables and preserves i
   await page.reload();
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/ti-tca9534.pdf");
+    .setInputFiles("docs/references/tca9534/ti-tca9534.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   await expect(page.locator("#model-title")).toHaveText(
     "My authored GPIO experiment",
@@ -1208,7 +1208,7 @@ test("cached-manual refresh rejects changed or missing PDF bytes without replaci
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/ti-tca9534.pdf");
+    .setInputFiles("docs/references/tca9534/ti-tca9534.pdf");
   await expect(page.locator("#import-progress")).toBeHidden();
   for (const [badBytes, reason] of [
     [
@@ -1255,7 +1255,7 @@ test("the supplied ESP32-C6 manual compiles both reviewed peripherals in PDF.js 
   await ready(page);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/espressif-esp32-c6-trm.pdf");
+    .setInputFiles("docs/references/esp32-c6/espressif-esp32-c6-trm.pdf");
   await expect(page.locator("#import-progress")).toBeHidden({ timeout: 90000 });
   await expect(page.locator("#model-title")).toHaveText(
     "ESP32-C6 · PCNT channel 0",
@@ -1283,7 +1283,7 @@ test("the supplied ESP32-C6 manual compiles both reviewed peripherals in PDF.js 
     await downloaded(page, () => page.locator("[data-export-model]").click()),
   );
   const terminal = analyzeDocument(
-    await extractPDFFile("docs/references/espressif-esp32-c6-trm.pdf"),
+    await extractPDFFile("docs/references/esp32-c6/espressif-esp32-c6-trm.pdf"),
   );
   expect(spec).toEqual(terminal.models[0].spec);
   await page.locator("#parameter-control_high_mode").fill("0x2");
@@ -1337,7 +1337,7 @@ test("the supplied ESP32-C6 manual compiles both reviewed peripherals in PDF.js 
   expect(gpioTrace.trace[16].signals.read_data).toBe(270);
   await page
     .locator("#document-file")
-    .setInputFiles("docs/references/espressif-esp32-c6-trm.pdf");
+    .setInputFiles("docs/references/esp32-c6/espressif-esp32-c6-trm.pdf");
   await expect(page.locator("#import-progress")).toBeHidden({ timeout: 90000 });
   await expect(page.locator("#model-title")).toHaveText(gpio.name);
   await expect(page.locator("#parameter-watch_gpio")).toHaveValue("8");

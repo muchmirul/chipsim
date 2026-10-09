@@ -1,0 +1,12 @@
+# Completed-byte latch/direction/read experiment; physical I2C and electrical contention are omitted.
+model pca9555
+guide pca9555-ti-pca9555 21 "Data is exchanged between the master and the PCA9555 through write and read commands."
+write "Output port 0" 0xA5
+expect signal.p00_driver == Z
+write "Configuration 0" 0
+expect signal.p00_driver == 1
+expect signal.p01_driver == 0
+expect signal.p07_driver == 1
+read "Output port 0" into latch
+expect $latch == 165
+halt

@@ -22,7 +22,7 @@ All input events at a tick apply before one row executes. **Tick zero initialize
 ## A single NAND function from a real source
 
 ```sh
-npm start -- --document docs/references/nexperia-74hc00.pdf
+npm start -- --document docs/references/74hc00/nexperia-74hc00.pdf
 ```
 
 Press `c`, choose Behavior table, give it a name, and use inputs `A B`, output `Y`, and state `logic`. Enter `@examples/nand.rules.txt`, which contains:
@@ -33,7 +33,7 @@ logic X0 -> logic / 1
 logic 11 -> logic / 0
 ```
 
-Cite [PDF page 3](references/nexperia-74hc00.pdf#page=3) and the exact excerpt `Quad 2-input NAND gate`; explain that the page's function table supports the manually entered rows. Declare that this is one gate evaluated at normalized steps, with package replication and electrical propagation omitted. The two wildcard rows agree when both inputs are zero. The four input combinations become acceptance cases.
+Cite [PDF page 3](references/74hc00/nexperia-74hc00.pdf#page=3) and the exact excerpt `Quad 2-input NAND gate`; explain that the page's function table supports the manually entered rows. Declare that this is one gate evaluated at normalized steps, with package replication and electrical propagation omitted. The two wildcard rows agree when both inputs are zero. The four input combinations become acceptance cases.
 
 The default Gray-code sweep drives `00`, `01`, `11`, `10` at ticks 1–4, giving Y values `1`, `1`, `0`, `1`. This entered model applies its rows after initialization; the automatically compiled NAND model separately uses instantaneous table evaluation including tick zero. Select the model appropriate to your intended experiment and its stated scope.
 
@@ -63,7 +63,7 @@ high 0X -> low / =
 high 1X -> high / =
 ```
 
-These rows capture D only when the modeled prior clock is low and current CLK is high. Held levels and falling clocks retain Q. The [TI SN74AHC273-Q1 table on PDF page 12](references/ti-sn74ahc273-q1.pdf#page=12) supports this selected normal-operation behavior with CLR held high; asynchronous clear, package replication, and physical timing are omitted from these entered rows. Choose initial `low`/`high` to match your separately driven tick-zero CLK. Initial history is a scenario choice, never initialized implicitly from a pin name. For the automatically compiled CLR/CLK/D/Q table with clear, import the original PDF directly; see `FUNCTION_TABLES.md`.
+These rows capture D only when the modeled prior clock is low and current CLK is high. Held levels and falling clocks retain Q. The [TI SN74AHC273-Q1 table on PDF page 12](references/sn74ahc273-q1/ti-sn74ahc273-q1.pdf#page=12) supports this selected normal-operation behavior with CLR held high; asynchronous clear, package replication, and physical timing are omitted from these entered rows. Choose initial `low`/`high` to match your separately driven tick-zero CLK. Initial history is a scenario choice, never initialized implicitly from a pin name. For the automatically compiled CLR/CLK/D/Q table with clear, import the original PDF directly; see `FUNCTION_TABLES.md`.
 
 ## Revising a model in the TUI
 

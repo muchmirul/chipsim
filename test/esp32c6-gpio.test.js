@@ -17,7 +17,7 @@ import { TerminalApp } from "../src/tui/app.js";
 import { screenText, render, displayWidth } from "../src/tui/render.js";
 import { exportJSON, exportCSV, exportVCD } from "../src/trace/export.js";
 const root = new URL("../", import.meta.url).pathname;
-const path = join(root, "docs/references/espressif-esp32-c6-trm.pdf");
+const path = join(root, "docs/references/esp32-c6/espressif-esp32-c6-trm.pdf");
 const documentPromise = extractPDFFile(path);
 const modelPromise = documentPromise.then(
   (document) => compileDocument(document, { profileId: "esp32c6-gpio" }).spec,

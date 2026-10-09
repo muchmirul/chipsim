@@ -23,13 +23,26 @@ try {
   for (const path of [
     "src/agent/commands.js",
     "src/agent/activity.js",
+    "src/agent/context.js",
+    "src/agent/program.js",
+    "src/program/engine.js",
+    "src/program/guides.js",
+    "src/tui/program-panel.js",
     "src/tui/agent-monitor.js",
     "src/tui/activity-panel.js",
     "docs/AGENT_WORKFLOW.md",
     "docs/AGENT_PROJECT.md",
     "docs/MODEL_FORMAT.md",
+    "docs/PROGRAMMING.md",
+    "docs/EXISTING_SIMULATORS.md",
+    "docs/references/catalog.json",
+    "examples/esp32c6-gpio.chip",
+    "examples/programs/catalog.json",
+    "examples/programs/pio-transfer.chip",
+    "examples/programs/tca9534-output.chip",
+    "examples/programs/hc00-nand.chip",
     "AGENTS.md",
-    "docs/references/espressif-esp32-c6-trm.pdf",
+    "docs/references/esp32-c6/espressif-esp32-c6-trm.pdf",
   ])
     assert.ok(
       pack.files.some((file) => file.path === path),
@@ -76,15 +89,79 @@ try {
   );
   assert.equal((await cli(["doctor"])).pdfTools.length, 2);
   const installed = join(prefix, "lib/node_modules/chipsim");
+  const chipContext = (await cli(["context", "esp32-c6"])).programmingContext;
+  assert.equal(chipContext.decision.nativeExecution.available, false);
+  assert.ok(chipContext.models.some((model) => model.id === "esp32c6-gpio"));
+  for (const document of chipContext.documents) {
+    assert.ok(document.path.startsWith(installed + "/"));
+    assert.equal(
+      (await readFile(document.path)).subarray(0, 5).toString(),
+      "%PDF-",
+    );
+  }
+  const pioContext = (await cli(["context", "pio"])).programmingContext;
+  const pioExample = pioContext.examples.find(
+    (example) => example.modelId === "pio",
+  );
+  assert.ok(pioExample.path.startsWith(installed + "/"));
+  await cli(["program-check", pioExample.path, "--model", "pio"]);
+  const programmed = await cli([
+    "program-run",
+    pioExample.path,
+    "--model",
+    "pio",
+    "--out",
+    join(cwd, "programmed pio"),
+  ]);
+  const debug = JSON.parse(
+    await readFile(programmed.artifacts["debug.json"], "utf8"),
+  );
+  assert.equal(debug.status, "halted");
+  const programmedTrace = JSON.parse(
+    await readFile(programmed.artifacts["trace.json"], "utf8"),
+  );
+  assert.equal(programmedTrace.trace.at(-1).registers.decoded, 179);
   const project = join(cwd, "agent work");
   const prepared = await cli([
     "prepare",
-    join(installed, "docs/references/nexperia-74hc00.pdf"),
+    join(installed, "docs/references/74hc00/nexperia-74hc00.pdf"),
     "--out",
     project,
   ]);
   assert.ok(prepared.models.length);
+  const projectContext = (await cli(["context", project])).programmingContext;
+  assert.equal(projectContext.chips[0].id, "74hc00");
+  assert.ok(projectContext.models.length);
+  assert.match(
+    await readFile(join(project, "AGENTS.md"), "utf8"),
+    /PROGRAMMING_CONTEXT/,
+  );
+  assert.equal(
+    JSON.parse(
+      await readFile(join(project, "programming-context.json"), "utf8"),
+    ).format,
+    "chipsim-programming-context",
+  );
   const model = join(project, prepared.models[0].file);
+  const logicExample = projectContext.examples[0];
+  assert.equal(logicExample.id, "hc00-nand");
+  const logicProgram = await cli([
+    "program-run",
+    logicExample.path,
+    "--model",
+    model,
+    "--project",
+    project,
+    "--out",
+    join(cwd, "programmed nand"),
+  ]);
+  const logicTrace = JSON.parse(
+    await readFile(logicProgram.artifacts["trace.json"], "utf8"),
+  );
+  assert.deepEqual(
+    logicTrace.trace.map(({ signals }) => signals.pin_1y),
+    [1, 1, 0, 1, 1],
+  );
   await cli(["search", project, "function"]);
   await cli(["page", project, "1"]);
   await cli([

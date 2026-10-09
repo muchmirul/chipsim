@@ -4,7 +4,7 @@ A profile makes the PDF-only workflow executable without an LLM. It is a reviewe
 
 ```sh
 npm start -- --list-profiles
-npm start -- --document docs/references/nexperia-74hc595.pdf
+npm start -- --document docs/references/74hc595/nexperia-74hc595.pdf
 ```
 
 Importing a supported PDF with `d` does the same thing. The importer hashes the actual bytes, extracts pages locally, selects an exact matching profile, validates its citations, runs its acceptance cases, saves its JSON definition, and opens the resulting simulation. No model JSON import or builder interaction is required. A source-linked authored model already in the workspace takes precedence, preserving developer edits. An unrelated model with the same ID is retained; the automatic model receives a unique catalog ID.
@@ -35,7 +35,7 @@ The model omits I²C bit serialization, persistent register pointers, paired mul
 
 The pinned SCPS197D revision (October 2017; complete 42-page official download with current notices/package addendum) creates a single-port register-level model. PDF page 19 defines addresses 0–3: Input (read-only), Output, Polarity Inversion, and Configuration. Page 20 defines their behavior and writable defaults: Output `0xFF`, Polarity zero, and Configuration `0xFF`. Input values depend on applied pin levels; the model's initial `external0 = 255` is a chosen driven-high experiment.
 
-Use `npm start -- --document docs/references/ti-tca9534.pdf`, then `u` to select a register and Read or Write. The default experiment writes the latch and mixed direction, changes an external input, reads Output without acknowledging INT, reads Input to acknowledge, changes polarity, and resets. Each P0–P7 driver is individually observable as `0`, `1`, or `Z`. `int_driver` is low while an input mismatch is pending and released otherwise. Input-only polarity inversion affects returned data, while interrupts compare non-inverted pin levels. Output-configured pins follow their latches under the explicit uncontended assumption and cannot generate input interrupts.
+Use `npm start -- --document docs/references/tca9534/ti-tca9534.pdf`, then `u` to select a register and Read or Write. The default experiment writes the latch and mixed direction, changes an external input, reads Output without acknowledging INT, reads Input to acknowledge, changes polarity, and resets. Each P0–P7 driver is individually observable as `0`, `1`, or `Z`. `int_driver` is low while an input mismatch is pending and released otherwise. Input-only polarity inversion affects returned data, while interrupts compare non-inverted pin levels. Output-configured pins follow their latches under the explicit uncontended assumption and cannot generate input interrupts.
 
 The abstraction accepts one individually addressed byte per request-token change after tick zero. `power_reset` denotes completed POR, not a hardware reset pin; the initial/reset interrupt baseline is an explicit scenario assumption. Real persistent command pointers, slave-address pins, I²C/SMBus serialization, repeated bytes, ACK-related interrupt-loss races, supply ramps, pulls, loading, contention, and physical delays are omitted. Unmapped addresses produce tool-level errors, not simulated silicon NACKs. Page 17 supplies the interrupt/POR behavior; pages 19–20 supply the register contract. Sixteen acceptance cases, all-byte direction/inversion checks, an independent mixed-operation oracle, PDF-only terminal/browser import, and session/VCD checks cover the declared scope.
 

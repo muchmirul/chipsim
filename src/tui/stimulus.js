@@ -34,6 +34,7 @@ export class Stimulus {
       record = true,
     } = {},
   ) {
+    this.state.requireManualExperiment?.();
     if (!Number.isInteger(duration) || duration < 1 || duration > 10000)
       throw new Error("Duration must be 1–10000 ticks.");
     inputs = validateInputs(this.state.model.signals, inputs);

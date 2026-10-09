@@ -16,7 +16,7 @@ import { waveform } from "../src/ui/render.js";
 import { formatPayload } from "../src/core/values.js";
 import { EventEmitter } from "node:events";
 import { TerminalApp } from "../src/tui/app.js";
-const path = new URL("../docs/references/ti-sn74lvc1g125.pdf", import.meta.url)
+const path = new URL("../docs/references/sn74lvc1g125/ti-sn74lvc1g125.pdf", import.meta.url)
   .pathname;
 const document = extractPDFFile(path);
 const compiled = document.then((doc) => analyzeDocument(doc).models[0].spec);

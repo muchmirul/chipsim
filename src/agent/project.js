@@ -5,6 +5,12 @@ import { tmpdir } from "node:os";
 import { extractPDFFile } from "../documents/extract-node.js";
 import { sourceBundle } from "../documents/recognize.js";
 import { analyzeDocument } from "../model/from-document.js";
+import { builtinModels } from "../models/index.js";
+import {
+  chipsForSource,
+  buildProgrammingContext,
+  programmingContextMarkdown,
+} from "./context.js";
 import {
   AgentError,
   createDirectory,
@@ -55,7 +61,12 @@ export async function prepareProject(pdf, output) {
       diagnostics: analysis.diagnostics,
     });
     await mkdir(join(root, "docs"));
-    for (const file of ["MODEL_FORMAT.md", "AGENT_WORKFLOW.md"])
+    for (const file of [
+      "MODEL_FORMAT.md",
+      "AGENT_WORKFLOW.md",
+      "PROGRAMMING.md",
+      "EXISTING_SIMULATORS.md",
+    ])
       await copyFile(join(packageRoot, "docs", file), join(root, "docs", file));
     await mkdir(join(root, "examples"));
     await copyFile(
@@ -66,6 +77,41 @@ export async function prepareProject(pdf, output) {
       join(packageRoot, "docs/AGENT_PROJECT.md"),
       join(root, "AGENTS.md"),
     );
+    await mkdir(join(root, "programs"));
+    const chips = chipsForSource(document.sha256);
+    const programming = buildProgrammingContext({
+      chips,
+      project: root,
+      localExamples: true,
+      source: {
+        sha256: document.sha256,
+        pages: document.pageCount,
+        path: join(root, "manual.pdf"),
+      },
+      models: [
+        ...analysis.models.map((compiled) => ({
+          model: compiled.spec,
+          file: join(root, "models", compiled.spec.id + ".model.json"),
+          verification:
+            "Schema, original source quotes and acceptance cases passed during preparation.",
+        })),
+        ...builtinModels
+          .filter((m) => chips.some((chip) => chip.models.includes(m.id)))
+          .map((model) => ({
+            model,
+            verification:
+              "Related built-in teaching scenario; not a compiled native program.",
+          })),
+      ],
+    });
+    await writeJSON(join(root, "programming-context.json"), programming);
+    await writeFile(
+      join(root, "PROGRAMMING_CONTEXT.md"),
+      programmingContextMarkdown(programming),
+      { flag: "wx" },
+    );
+    for (const example of programming.examples)
+      await copyFile(example.source, example.path);
     const manifest = {
       format: "chipsim-agent-project",
       version: 1,
@@ -86,8 +132,13 @@ export async function prepareProject(pdf, output) {
       diagnostics: analysis.diagnostics.length,
       analysis: join(root, "analysis.json"),
       instructions: join(root, "AGENTS.md"),
+      programmingContext: {
+        json: join(root, "programming-context.json"),
+        instructions: join(root, "PROGRAMMING_CONTEXT.md"),
+        refresh: ["chipsim", "agent", "context", root],
+      },
       next: models.length
-        ? "Review a model's scope, then use check and run."
+        ? "Read PROGRAMMING_CONTEXT.md, select a model and programming format, then use model/program check and run."
         : "Read relevant pages and author a bounded model; no executable behavior was inferred.",
     };
   });

@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "programs": [
+    {
+      "id": "pio-transfer",
+      "chip": "rp2040",
+      "modelId": "pio",
+      "path": "examples/programs/pio-transfer.chip",
+      "purpose": "Configured 8-bit LSB-first teaching transfer with assertions; not native firmware."
+    },
+    {
+      "id": "pru-transfer",
+      "chip": "am335x",
+      "modelId": "pru",
+      "path": "examples/programs/pru-transfer.chip",
+      "purpose": "Configured 8-bit LSB-first teaching transfer with assertions; not native firmware."
+    },
+    {
+      "id": "flexio-transfer",
+      "chip": "s32k144",
+      "modelId": "flexio",
+      "path": "examples/programs/flexio-transfer.chip",
+      "purpose": "Configured 8-bit LSB-first teaching transfer with assertions; not native firmware."
+    },
+    {
+      "id": "udb-transfer",
+      "chip": "psoc5lp",
+      "modelId": "udb",
+      "path": "examples/programs/udb-transfer.chip",
+      "purpose": "Configured 8-bit LSB-first teaching transfer with assertions; not native firmware."
+    },
+    {
+      "id": "xmos-transfer",
+      "chip": "xcore-xs3",
+      "modelId": "xmos",
+      "path": "examples/programs/xmos-transfer.chip",
+      "purpose": "Configured 8-bit LSB-first teaching transfer with assertions; not native firmware."
+    },
+    {
+      "id": "etpu-transfer",
+      "chip": "etpu",
+      "modelId": "etpu",
+      "path": "examples/programs/etpu-transfer.chip",
+      "purpose": "Configured 8-bit LSB-first teaching transfer with assertions; not native firmware."
+    },
+    {
+      "id": "tca9534-output",
+      "chip": "tca9534",
+      "modelId": "tca9534",
+      "path": "examples/programs/tca9534-output.chip",
+      "purpose": "Completed-byte latch/direction/read experiment; physical I2C and electrical contention are omitted."
+    },
+    {
+      "id": "pca9555-output",
+      "chip": "pca9555",
+      "modelId": "pca9555",
+      "path": "examples/programs/pca9555-output.chip",
+      "purpose": "Completed-byte latch/direction/read experiment; physical I2C and electrical contention are omitted."
+    },
+    {
+      "id": "esp32c6-pcnt",
+      "chip": "esp32-c6",
+      "modelId": "esp32c6-pcnt",
+      "path": "examples/programs/esp32c6-pcnt.chip",
+      "purpose": "Static PCNT channel-0 experiment: count, reverse, pause and clear; no ESP-IDF function execution."
+    },
+    {
+      "id": "hc595-shift",
+      "chip": "74hc595",
+      "modelId": "hc595",
+      "path": "examples/programs/hc595-shift.chip",
+      "purpose": "Eight MSB-first input bits shifted, latched, driven and released; ideal clocks, explicit initial state."
+    },
+    {
+      "id": "hc00-nand",
+      "chip": "74hc00",
+      "modelId": "table-dd401970bc05-p3-t3",
+      "path": "examples/programs/hc00-nand.chip",
+      "purpose": "Four NAND input combinations and an unaffected second gate.",
+      "modelOrigin": "function-table"
+    },
+    {
+      "id": "hc86-xor",
+      "chip": "74hc86",
+      "modelId": "table-efb3cf17b91f-p3-t3",
+      "path": "examples/programs/hc86-xor.chip",
+      "purpose": "Four XOR input combinations and an unaffected second gate.",
+      "modelOrigin": "function-table"
+    },
+    {
+      "id": "hc157-select",
+      "chip": "74hc157",
+      "modelId": "table-74a09a3b77c0-p3-t3",
+      "path": "examples/programs/hc157-select.chip",
+      "purpose": "Shared select/enable with independent mux data paths.",
+      "modelOrigin": "function-table"
+    },
+    {
+      "id": "hc377-enable",
+      "chip": "74hc377",
+      "modelId": "state-table-988e8f2ab612-p3-t3",
+      "path": "examples/programs/hc377-enable.chip",
+      "purpose": "Rising-edge capture, disabled capture and retention; explicit initial outputs.",
+      "modelOrigin": "function-table"
+    },
+    {
+      "id": "hc273-reset",
+      "chip": "74hc273",
+      "modelId": "state-table-1720843d320c-p4-t3",
+      "path": "examples/programs/hc273-reset.chip",
+      "purpose": "Rising-edge capture, falling-edge retention and asynchronous reset.",
+      "modelOrigin": "function-table"
+    },
+    {
+      "id": "lvc1g125-release",
+      "chip": "sn74lvc1g125",
+      "modelId": "table-1098d46e4565-p11-t71",
+      "path": "examples/programs/lvc1g125-release.chip",
+      "purpose": "Enabled data, released driver, disabled data changes and re-enable.",
+      "modelOrigin": "function-table"
+    },
+    {
+      "id": "hc77-retain",
+      "chip": "hd74hc77",
+      "modelId": "level-table-d12f71d4ad64-p3-tu1",
+      "path": "examples/programs/hc77-retain.chip",
+      "purpose": "One generic latch: transparent follow, disabled retention and re-enable.",
+      "modelOrigin": "function-table"
+    },
+    {
+      "id": "ahc273-clear",
+      "chip": "sn74ahc273-q1",
+      "modelId": "state-table-832098c1b03b-p12-t71",
+      "path": "examples/programs/ahc273-clear.chip",
+      "purpose": "One generic flip-flop: capture, retention and asynchronous clear.",
+      "modelOrigin": "function-table"
+    },
+    {
+      "id": "hc138-decode",
+      "chip": "hd74hc138",
+      "modelId": "table-5b22efa22040-p4-tu1",
+      "path": "examples/programs/hc138-decode.chip",
+      "purpose": "Active-low decoder outputs, select changes and disable/re-enable.",
+      "modelOrigin": "function-table"
+    }
+  ]
+}

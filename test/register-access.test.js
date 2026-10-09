@@ -18,7 +18,7 @@ import { render, displayWidth, screenText } from "../src/tui/render.js";
 import { exportVCD } from "../src/trace/export.js";
 import { op, assign } from "../src/model/builders/shared.js";
 
-const path = new URL("../docs/references/ti-pca9555.pdf", import.meta.url)
+const path = new URL("../docs/references/pca9555/ti-pca9555.pdf", import.meta.url)
   .pathname;
 const docPromise = extractPDFFile(path);
 const specPromise = docPromise.then(

@@ -1,0 +1,21 @@
+# Explicit initial scenario; ideal edges omit physical setup/hold constraints.
+model state-table-988e8f2ab612-p3-t3
+param initialOutputs 0
+guide 74hc377-nexperia-74hc377 3 "clock input (LOW-to-HIGH, edge triggered)"
+guide 74hc377-nexperia-74hc377 3 "data enable input (active LOW)"
+drive pin_d0 1
+expect signal.pin_q0 == 0
+drive pin_cp 1
+expect signal.pin_q0 == 1
+drive pin_d0 0
+expect signal.pin_q0 == 1
+drive pin_e 1
+drive pin_cp 0
+drive pin_cp 1
+expect signal.pin_q0 == 1
+drive pin_e 0
+expect signal.pin_q0 == 1
+drive pin_cp 0
+drive pin_cp 1
+expect signal.pin_q0 == 0
+halt

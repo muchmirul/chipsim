@@ -92,7 +92,7 @@ test("developer-entered FSM covers prior outputs, reports exact rows, and uses i
 
 test("an original NAND datasheet backs manually entered rows without treating them as automatically extracted rules", async () => {
   const document = await extractPDFFile(
-    new URL("../docs/references/nexperia-74hc00.pdf", import.meta.url).pathname,
+    new URL("../docs/references/74hc00/nexperia-74hc00.pdf", import.meta.url).pathname,
   );
   const { spec, checks } = buildBehaviorTable(document, {
     name: "Reviewed single NAND table",
@@ -131,7 +131,7 @@ test("an original NAND datasheet backs manually entered rows without treating th
 
 test("explicit clock-history states model rising capture and retain through held/falling clocks, independently of pin names", async () => {
   const document = await extractPDFFile(
-      new URL("../docs/references/ti-sn74ahc273-q1.pdf", import.meta.url)
+      new URL("../docs/references/sn74ahc273-q1/ti-sn74ahc273-q1.pdf", import.meta.url)
         .pathname,
     ),
     rules = await readFile(

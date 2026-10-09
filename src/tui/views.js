@@ -7,4 +7,5 @@ export const views = [
   "registers",
   "stimulus",
   "activity",
+  "program",
 ];

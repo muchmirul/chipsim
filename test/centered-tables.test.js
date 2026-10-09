@@ -11,7 +11,7 @@ import { TuiState } from "../src/tui/state.js";
 import { render, screenText, displayWidth } from "../src/tui/render.js";
 
 const path = new URL(
-  "../docs/references/renesas-hd74hc138.pdf",
+  "../docs/references/hd74hc138/renesas-hd74hc138.pdf",
   import.meta.url,
 ).pathname;
 const document = extractPDFFile(path);

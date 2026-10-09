@@ -1,0 +1,13 @@
+# GPIO0 logical driver experiment, not RISC-V/ESP-IDF firmware.
+model esp32c6-gpio
+param watch_gpio 0
+guide esp32-c6-esp-idf-programming-guide 983 "Output level. 0: low ; 1: high"
+write GPIO_ENABLE_W1TS_REG 0b1
+write GPIO_OUT_W1TS_REG 1
+expect signal.selected_driver == 1
+wait 3
+write GPIO_OUT_W1TC_REG 0x1
+expect signal.selected_driver == 0
+read GPIO_OUT_REG into latch
+expect $latch == 0
+halt

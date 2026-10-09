@@ -17,6 +17,15 @@ chipsim agent prepare /path/to/manual.pdf --out ./chip-work
 
 Start your coding agent in `chip-work` and ask it to read `AGENTS.md`, review any supported models, and model the peripheral you need. The prepared project contains the original PDF, searchable numbered pages, model instructions, and any models that ChipSim can already compile. Unknown manuals may need the agent to author a model explicitly.
 
+Agent projects also include `PROGRAMMING_CONTEXT.md` and `programming-context.json`. These tell the agent which programming approach fits the chip, what the current models actually support, which guide PDFs to read, and how to check, run and debug an experiment. Get current context for a chip or refresh it after changing a model:
+
+```sh
+chipsim agent context esp32-c6
+chipsim agent context ./chip-work --model esp32c6-gpio
+```
+
+The second command also works with projects prepared by older versions. Context identifies recognized manuals by their PDF fingerprint; an unfamiliar manual does not imply a CPU architecture or supported toolchain. Current programs are `.chip` behavioral experiments. Native C/C++, assembly, ELF and BIN execution require a future backend; the agent is instructed to report that gap when native firmware is requested. See [programming and line debugging](docs/PROGRAMMING.md).
+
 ```sh
 chipsim agent search ./chip-work "register name"
 chipsim agent check ./chip-work/models/your.model.json --project ./chip-work
@@ -80,28 +89,29 @@ The local workspace defaults to `.chipsim/` in the current directory. PDFs, extr
 
 ## Main controls
 
-| Key                | Action                                                                            |
-| ------------------ | --------------------------------------------------------------------------------- |
-| `1`–`8`, Tab       | Waveforms, blocks, log, sources, model, registers, input stimulus, agent activity |
-| `W`, `G`           | Pause/resume watched runs; follow newest activity                                 |
-| `h` / `l`, arrows  | Move one tick; move PDF page in Sources                                           |
-| `j` / `k`, arrows  | Select signal, log row, or register; scroll blocks/source/model text              |
-| Space, `r`         | Run/pause; reset                                                                  |
-| `w`, `e`, `b`      | Next rising edge, next falling edge, previous rising edge                         |
-| `[`, `]`, `t`      | Previous/next model change; jump to a tick                                        |
-| `+`, `-`, `=`, `z` | Zoom in/out, fit the trace, center cursor                                         |
-| `m`, `p`, `a`, `T` | Choose model, parameters, stimulus actions/JSON, document-model duration          |
-| `i`                | Drive an input pin at the cursor                                                  |
-| `u`                | Read/write an addressed register at the next tick                                 |
-| `U`, `R`           | Undo/redo an input or register experiment                                         |
-| Enter              | Inspect full step details; in Log, seek the selected event                        |
-| `F`, `f`           | Cycle numeric display; find a selected signal value                               |
-| `/`, `n`, `N`      | Search/filter; repeat signal/source search                                        |
-| `d`, `c`           | Import PDF/model/session; create a sourced peripheral scenario                    |
-| `o`                | Choose or find simulations for the current reference PDF                          |
-| `x`, `S`, `M`, `B` | Export trace, save session, export model JSON, export source bundle               |
-| `V`                | Open the current trace in installed `dwfv`                                        |
-| `?`, Esc, `q`      | Help, close a prompt/menu, quit                                                   |
+| Key                                | Action                                                                                     |
+| ---------------------------------- | ------------------------------------------------------------------------------------------ |
+| `1`–`9`, Tab                       | Waveforms, blocks, log, sources, model, registers, input stimulus, agent activity, program |
+| `P`; `N`, `C`, `J`, `K` in Program | Load a `.chip` file; step, continue, replay backward, toggle breakpoint                    |
+| `W`, `G`                           | Pause/resume watched runs; follow newest activity                                          |
+| `h` / `l`, arrows                  | Move one tick; move PDF page in Sources                                                    |
+| `j` / `k`, arrows                  | Select signal, log row, or register; scroll blocks/source/model text                       |
+| Space, `r`                         | Run/pause; reset                                                                           |
+| `w`, `e`, `b`                      | Next rising edge, next falling edge, previous rising edge                                  |
+| `[`, `]`, `t`                      | Previous/next model change; jump to a tick                                                 |
+| `+`, `-`, `=`, `z`                 | Zoom in/out, fit the trace, center cursor                                                  |
+| `m`, `p`, `a`, `T`                 | Choose model, parameters, stimulus actions/JSON, document-model duration                   |
+| `i`                                | Drive an input pin at the cursor                                                           |
+| `u`                                | Read/write an addressed register at the next tick                                          |
+| `U`, `R`                           | Undo/redo an input or register experiment                                                  |
+| Enter                              | Inspect full step details; in Log, seek the selected event                                 |
+| `F`, `f`                           | Cycle numeric display; find a selected signal value                                        |
+| `/`, `n`, `N`                      | Search/filter; repeat signal/source search                                                 |
+| `d`, `c`                           | Import PDF/model/session; create a sourced peripheral scenario                             |
+| `o`                                | Choose or find simulations for the current reference PDF                                   |
+| `x`, `S`, `M`, `B`                 | Export trace, save session, export model JSON, export source bundle                        |
+| `V`                                | Open the current trace in installed `dwfv`                                                 |
+| `?`, Esc, `q`                      | Help, close a prompt/menu, quit                                                            |
 
 The full register view includes before/after changes. The log supports filtering, changes-only mode (`C`), and seeking with Enter. Model details show scope, assumptions, references, and implementation recipes. Source text keeps one-based PDF page numbers and supports search.
 
@@ -140,19 +150,19 @@ In Sources (`4`), press `o` to see simulations associated with that PDF and thei
 Try the automatic document paths:
 
 ```sh
-npm start -- --document docs/references/nexperia-74hc595.pdf
-npm start -- --document docs/references/ti-pca9555.pdf
-npm start -- --document docs/references/ti-tca9534.pdf
-npm start -- --document docs/references/espressif-esp32-c6-trm.pdf
-npm start -- --document docs/references/nexperia-74hc00.pdf
-npm start -- --document docs/references/nexperia-74hc86.pdf
-npm start -- --document docs/references/nexperia-74hc157.pdf
-npm start -- --document docs/references/renesas-hd74hc138.pdf
-npm start -- --document docs/references/nexperia-74hc377.pdf
-npm start -- --document docs/references/nexperia-74hc273.pdf
-npm start -- --document docs/references/ti-sn74lvc1g125.pdf
-npm start -- --document docs/references/renesas-hd74hc77.pdf
-npm start -- --document docs/references/ti-sn74ahc273-q1.pdf
+npm start -- --document docs/references/74hc595/nexperia-74hc595.pdf
+npm start -- --document docs/references/pca9555/ti-pca9555.pdf
+npm start -- --document docs/references/tca9534/ti-tca9534.pdf
+npm start -- --document docs/references/esp32-c6/espressif-esp32-c6-trm.pdf
+npm start -- --document docs/references/74hc00/nexperia-74hc00.pdf
+npm start -- --document docs/references/74hc86/nexperia-74hc86.pdf
+npm start -- --document docs/references/74hc157/nexperia-74hc157.pdf
+npm start -- --document docs/references/hd74hc138/renesas-hd74hc138.pdf
+npm start -- --document docs/references/74hc377/nexperia-74hc377.pdf
+npm start -- --document docs/references/74hc273/nexperia-74hc273.pdf
+npm start -- --document docs/references/sn74lvc1g125/ti-sn74lvc1g125.pdf
+npm start -- --document docs/references/hd74hc77/renesas-hd74hc77.pdf
+npm start -- --document docs/references/sn74ahc273-q1/ti-sn74ahc273-q1.pdf
 ```
 
 Sequential tables expose retained outputs and clock-history registers. `p` configures the initial output bits, which are scenario values rather than guaranteed power-on state; `i` drives clock, control, or data inputs. The original table arrows and lowercase set-up symbols remain visible in Model view. Physical set-up/hold timing is omitted; see [function-table scope](docs/FUNCTION_TABLES.md).
@@ -218,6 +228,7 @@ The optional browser frontend remains available with `npm run build` followed by
 
 ```text
 src/agent/                  Headless project, source retrieval, validation and run tools
+src/program/                Experiment parser, guide verification and source debugger
 src/tui/                    Terminal state, controls, rendering, disk workspace
 src/core/                   Numeric formats and shared transfer protocol
 src/models/                 Six architecture modules and model catalog
@@ -228,7 +239,7 @@ src/ui/                     Optional browser frontend
 models/, examples/          Packaged/importable model JSON
 scripts/                    TUI entry, model CLI, extraction, build, checks
 test/                      Engine, terminal, and browser tests
-docs/references/            Twenty-one complete vendor PDFs and fingerprint manifest
+docs/references/            34 complete vendor PDFs in 19 chip/family folders; catalog and hashes
 AGENTS.md                   Developer and coding-agent instructions
 ```
 

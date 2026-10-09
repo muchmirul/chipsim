@@ -1,0 +1,19 @@
+# Configured 8-bit LSB-first teaching transfer with assertions; not native firmware.
+model flexio
+guide s32k144-nxp-flexio-an12174 4 "Shifters, timers, pins, and triggers can be flexibly combined to operate"
+# Configure the existing teaching transfer; this does not replace native code.
+param payload 0xB3
+param bits 8
+param half 2
+param ack present
+param stress false
+param budget 8
+expect reg.decoded == 0
+wait 16
+expect reg.samples == 4
+wait 16
+expect reg.samples == 8
+expect reg.decoded == 179
+wait 8
+expect signal.ack == 1
+halt

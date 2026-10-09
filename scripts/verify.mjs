@@ -15,6 +15,23 @@ const root = new URL("../", import.meta.url),
 const manifest = JSON.parse(await read("docs/references/manifest.json")),
   covered = new Set(),
   paths = new Set();
+const catalog = JSON.parse(await read("docs/references/catalog.json"));
+const documentIds = new Set(manifest.documents.map((doc) => doc.id));
+assert.equal(documentIds.size, manifest.documents.length);
+const referencedIds = new Set();
+assert.equal(
+  new Set(catalog.chips.map((chip) => chip.id)).size,
+  catalog.chips.length,
+);
+for (const chip of catalog.chips) {
+  assert.ok((await read(`docs/references/${chip.id}/README.md`)).length > 100);
+  for (const ids of Object.values(chip.documents))
+    for (const id of ids) {
+      assert.ok(documentIds.has(id), `Unknown catalog document ${id}`);
+      referencedIds.add(id);
+    }
+}
+assert.deepEqual(referencedIds, documentIds);
 let bytes = 0;
 for (const source of manifest.documents) {
   assert.ok(!paths.has(source.path));
@@ -24,6 +41,10 @@ for (const source of manifest.documents) {
   assert.ok(data.subarray(-2048).includes(Buffer.from("%%EOF")));
   assert.equal(data.length, source.bytes);
   assert.equal(createHash("sha256").update(data).digest("hex"), source.sha256);
+  const info = execFileSync("pdfinfo", [new URL(source.path, root).pathname], {
+    encoding: "utf8",
+  });
+  assert.equal(Number(info.match(/^Pages:\s+(\d+)/m)?.[1]), source.pages);
   assert.ok(
     source.pdf_start_page >= 1 && source.pdf_start_page <= source.pages,
   );
@@ -82,6 +103,8 @@ for (const file of [
   "docs/FUNCTION_TABLES.md",
   "docs/BEHAVIOR_TABLES.md",
   "docs/REGISTER_BANKS.md",
+  "docs/PROGRAMMING.md",
+  "docs/EXISTING_SIMULATORS.md",
 ])
   assert.ok((await read(file)).length > 100);
 const checkWeb = process.argv.includes("--web");

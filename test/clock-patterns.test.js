@@ -15,7 +15,7 @@ import { TuiState } from "../src/tui/state.js";
 import { render, screenText, displayWidth } from "../src/tui/render.js";
 import { exportJSON, exportVCD } from "../src/trace/export.js";
 
-const path = new URL("../docs/references/ti-sn74ahc273-q1.pdf", import.meta.url)
+const path = new URL("../docs/references/sn74ahc273-q1/ti-sn74ahc273-q1.pdf", import.meta.url)
   .pathname;
 const documentPromise = extractPDFFile(path);
 const specPromise = documentPromise.then(
