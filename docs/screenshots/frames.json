@@ -1,0 +1,3213 @@
+{
+  "format": "chipsim-readme-terminal-captures",
+  "version": 1,
+  "description": "Unedited rows from src/tui/render.js, using real validated models and isolated temporary workspaces. PNG rendering only assigns fonts and terminal colors.",
+  "frames": [
+    {
+      "id": "waveforms",
+      "columns": 110,
+      "height": 36,
+      "model": "pio",
+      "tick": 18,
+      "recipe": "chipsim --model pio; seek tick 18; = fit trace",
+      "rows": [
+        {
+          "text": "CHIPSIM  RP2040 PIO   · behavioral · normalized ticks                                                         ",
+          "style": "title"
+        },
+        {
+          "text": "[WAVE] 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 18/59  state send  format hex  zoom 1.36  paused                                                         ",
+          "style": "selected"
+        },
+        {
+          "text": "                       0             10            21            31            41            52            62 ",
+          "style": "dim"
+        },
+        {
+          "text": "› DATA                 ──────────╎┐         ╎┌─┃───────╎┐   ╎┌───────────────────────────────────────────     ",
+          "style": "selected"
+        },
+        {
+          "text": "                                 ≋│         ≋│ ┃       ≋│   ≋│                                                ",
+          "style": "selected"
+        },
+        {
+          "text": "                                 ╎└─────────╎┘ ┃       ╎└───╎┘                                                ",
+          "style": "selected"
+        },
+        {
+          "text": "  CLK                    ╎┌─╎┐ ╎┌╎┐ ╎┌─╎┐╎┌─╎┐ ┃┌─╎┐╎┌─╎┐ ╎┌╎┐ ╎┌─╎┐                                          ",
+          "style": "wave"
+        },
+        {
+          "text": "                         ≋│ ≋│ ≋│≋│ ≋│ ≋│≋│ ≋│ ≋│ ≋│≋│ ≋│ ≋│≋│ ≋│ ≋│                                          ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ──╎┘ ╎└─╎┘╎└─╎┘ ╎└╎┘ ╎└─┃┘ ╎└╎┘ ╎└─╎┘╎└─╎┘ ╎└─────────────────────────────────────     ",
+          "style": "wave"
+        },
+        {
+          "text": "  ACK                                          ┃                      ╎┌─────────────────────────────────     ",
+          "style": "wave"
+        },
+        {
+          "text": "                                               ┃                      ≋│                                      ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ────────────────────────┃──────────────────────╎┘                                      ",
+          "style": "wave"
+        },
+        {
+          "text": "Selected: data = 0x1   · j/k signal · h/l tick · w/e/b edges                                                  ",
+          "style": "dim"
+        },
+        {
+          "text": "… zoom for label · ≋ multiple values/column · x unavailable · Enter details                                   ",
+          "style": "dim"
+        },
+        {
+          "text": "─ REGISTERS · * changed ──────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "  data=0x1                          * clock=0x1                           ack=0x0                             ",
+          "style": ""
+        },
+        {
+          "text": "* samples=0x00000005                * decoded=0x00000013                  bitIndex=0x00000004                 ",
+          "style": ""
+        },
+        {
+          "text": "* line=0x00000003                     drift=0x00000000                    osr=0x00000005                      ",
+          "style": ""
+        },
+        {
+          "text": "  x=0x00000003                        y=0x00000008                      * delay=0x00000000                    ",
+          "style": ""
+        },
+        {
+          "text": "  tx=0x00000000                       start=0x00000000                                                        ",
+          "style": ""
+        },
+        {
+          "text": "SET / side-set raises CLK.                                                                                    ",
+          "style": "event"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Ready · ? help                                                                                                ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "parameters",
+      "columns": 110,
+      "height": 36,
+      "model": "pio",
+      "tick": 18,
+      "recipe": "Same PIO experiment; p opens parameters",
+      "rows": [
+        {
+          "text": "CHIPSIM  RP2040 PIO   · behavioral · normalized ticks                                                         ",
+          "style": "title"
+        },
+        {
+          "text": "[WAVE] 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 18/59  state send  format hex  zoom 1.36  paused                                                         ",
+          "style": "selected"
+        },
+        {
+          "text": "─ PARAMETERS · RP2040 PIO ────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "› Payload = 179                                                                                               ",
+          "style": "selected"
+        },
+        {
+          "text": "  Frame bits = 8                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "  Clock half-period = 2                                                                                       ",
+          "style": ""
+        },
+        {
+          "text": "  ACK = present                                                                                               ",
+          "style": ""
+        },
+        {
+          "text": "  (advanced) Resource constraint = false                                                                      ",
+          "style": ""
+        },
+        {
+          "text": "  (advanced) ACK budget = 8                                                                                   ",
+          "style": ""
+        },
+        {
+          "text": "  (advanced) ACK arrival delay = 3                                                                            ",
+          "style": ""
+        },
+        {
+          "text": "j/k or arrows · Enter select · Esc cancel                                                                     ",
+          "style": "dim"
+        },
+        {
+          "text": "                       ────────────────────────┃──────────────────────╎┘                                      ",
+          "style": "wave"
+        },
+        {
+          "text": "Selected: data = 0x1   · j/k signal · h/l tick · w/e/b edges                                                  ",
+          "style": "dim"
+        },
+        {
+          "text": "… zoom for label · ≋ multiple values/column · x unavailable · Enter details                                   ",
+          "style": "dim"
+        },
+        {
+          "text": "─ REGISTERS · * changed ──────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "  data=0x1                          * clock=0x1                           ack=0x0                             ",
+          "style": ""
+        },
+        {
+          "text": "* samples=0x00000005                * decoded=0x00000013                  bitIndex=0x00000004                 ",
+          "style": ""
+        },
+        {
+          "text": "* line=0x00000003                     drift=0x00000000                    osr=0x00000005                      ",
+          "style": ""
+        },
+        {
+          "text": "  x=0x00000003                        y=0x00000008                      * delay=0x00000000                    ",
+          "style": ""
+        },
+        {
+          "text": "  tx=0x00000000                       start=0x00000000                                                        ",
+          "style": ""
+        },
+        {
+          "text": "SET / side-set raises CLK.                                                                                    ",
+          "style": "event"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Ready · ? help                                                                                                ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "blocks",
+      "columns": 110,
+      "height": 36,
+      "model": "pio",
+      "tick": 2,
+      "recipe": "PIO tick 2; 2 opens hardware blocks",
+      "rows": [
+        {
+          "text": "CHIPSIM  RP2040 PIO   · behavioral · normalized ticks                                                         ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  [INSPECT] 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 2/59  state send  format hex  zoom 1.36  paused                                                          ",
+          "style": "selected"
+        },
+        {
+          "text": "Blocks 1–8/8 · j/k scroll                                                                                     ",
+          "style": "dim"
+        },
+        {
+          "text": "┌ Host / DMA                        ┌ Instruction memory                ┌ TX FIFO                             ",
+          "style": "wave"
+        },
+        {
+          "text": "│ host / DMA                        │ short program                     │ 0/4 TX words                        ",
+          "style": ""
+        },
+        {
+          "text": "└─────────────────────────────────  └─────────────────────────────────  └─────────────────────────────────    ",
+          "style": "dim"
+        },
+        {
+          "text": "┌ ACTIVE PC + control logic         ┌ Scratch X / Y                     ┌ ACTIVE Clock divider                ",
+          "style": "wave"
+        },
+        {
+          "text": "│ recipe line 4                     │ X=7; Y=8                          │ H=2 (abstract)                      ",
+          "style": ""
+        },
+        {
+          "text": "└─────────────────────────────────  └─────────────────────────────────  └─────────────────────────────────    ",
+          "style": "dim"
+        },
+        {
+          "text": "┌ OSR / shift logic                 ┌ ACTIVE Pin mapping / GPIO                                               ",
+          "style": "wave"
+        },
+        {
+          "text": "│ 0x00000059                        │ D=1 C=1 A=0                                                             ",
+          "style": ""
+        },
+        {
+          "text": "└─────────────────────────────────  └─────────────────────────────────                                        ",
+          "style": "dim"
+        },
+        {
+          "text": "Connections: host → imem · host → fifo · imem → pc · fifo → osr · xy → pc · divider → pc · pc → osr · osr → p…",
+          "style": "dim"
+        },
+        {
+          "text": "─ REGISTERS ──────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "  data=0x1                          * clock=0x1                           ack=0x0                             ",
+          "style": ""
+        },
+        {
+          "text": "* samples=0x00000001                * decoded=0x00000001                  bitIndex=0x00000000                 ",
+          "style": ""
+        },
+        {
+          "text": "* line=0x00000003                     drift=0x00000000                    osr=0x00000059                      ",
+          "style": ""
+        },
+        {
+          "text": "  x=0x00000007                        y=0x00000008                      * delay=0x00000000                    ",
+          "style": ""
+        },
+        {
+          "text": "  tx=0x00000000                       start=0x00000000                                                        ",
+          "style": ""
+        },
+        {
+          "text": "SET / side-set raises CLK.                                                                                    ",
+          "style": "event"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Ready · ? help                                                                                                ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "events",
+      "columns": 110,
+      "height": 36,
+      "model": "pio",
+      "tick": 2,
+      "recipe": "PIO tick 2; 3 opens event log, changes-only default",
+      "rows": [
+        {
+          "text": "CHIPSIM  RP2040 PIO   · behavioral · normalized ticks                                                         ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  inspect 2  [LOG] 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 2/59  state send  format hex  zoom 1.36  paused                                                          ",
+          "style": "selected"
+        },
+        {
+          "text": "Tick    State           Event / register changes                                                              ",
+          "style": "dim"
+        },
+        {
+          "text": "     0  send            PULL loads OSR; OUT presents bit 0. | data: —→0x01 · clock: —→0x00 · ack: —→0x00 · sa…",
+          "style": ""
+        },
+        {
+          "text": "     1  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "›    2  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x00→0x01 · decoded: 0x00→0x…",
+          "style": "selected"
+        },
+        {
+          "text": "     3  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "     4  send            Loop branch, OUT and low CLK phase. | clock: 0x01→0x00 · bitIndex: 0x00→0x01 · line: …",
+          "style": ""
+        },
+        {
+          "text": "     5  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "     6  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x01→0x02 · decoded: 0x01→0x…",
+          "style": ""
+        },
+        {
+          "text": "     7  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "     8  send            Loop branch, OUT and low CLK phase. | data: 0x01→0x00 · clock: 0x01→0x00 · bitIndex: …",
+          "style": ""
+        },
+        {
+          "text": "     9  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    10  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x02→0x03 · line: 0x02→0x03 …",
+          "style": ""
+        },
+        {
+          "text": "    11  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    12  send            Loop branch, OUT and low CLK phase. | clock: 0x01→0x00 · bitIndex: 0x02→0x03 · line: …",
+          "style": ""
+        },
+        {
+          "text": "    13  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    14  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x03→0x04 · line: 0x02→0x03 …",
+          "style": ""
+        },
+        {
+          "text": "    15  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    16  send            Loop branch, OUT and low CLK phase. | data: 0x00→0x01 · clock: 0x01→0x00 · bitIndex: …",
+          "style": ""
+        },
+        {
+          "text": "    17  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    18  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x04→0x05 · decoded: 0x03→0x…",
+          "style": ""
+        },
+        {
+          "text": "    19  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    20  send            Loop branch, OUT and low CLK phase. | clock: 0x01→0x00 · bitIndex: 0x04→0x05 · line: …",
+          "style": ""
+        },
+        {
+          "text": "    21  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    22  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x05→0x06 · decoded: 0x13→0x…",
+          "style": ""
+        },
+        {
+          "text": "    23  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    24  send            Loop branch, OUT and low CLK phase. | data: 0x01→0x00 · clock: 0x01→0x00 · bitIndex: …",
+          "style": ""
+        },
+        {
+          "text": "    25  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    26  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x06→0x07 · line: 0x02→0x03 …",
+          "style": ""
+        },
+        {
+          "text": "j/k choose · Enter seek/details · C changes · 36 rows · filter (none)                                         ",
+          "style": "dim"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Ready · ? help                                                                                                ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "sources",
+      "columns": 110,
+      "height": 36,
+      "model": "esp32c6-gpio",
+      "tick": 0,
+      "recipe": "Import bundled ESP32-C6 TRM; select GPIO; 4 then / GPIO_OUT_REG; navigate to PDF page 251; j scroll to Simple GPIO Output",
+      "rows": [
+        {
+          "text": "CHIPSIM  ESP32-C6 · GPIO output registers   · behavioral · normalized ticks                                   ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  inspect 2  log 3  [SOURCES] 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 0/24  state initialize  format hex  zoom 1.00  paused                                                    ",
+          "style": "selected"
+        },
+        {
+          "text": "espressif-esp32-c6-trm.pdf · PDF page 251/1394 · SHA e08d5b61ebcfa2a7                                         ",
+          "style": "selected"
+        },
+        {
+          "text": "2 simulation(s) available · o choose/find · c create                                                          ",
+          "style": "selected"
+        },
+        {
+          "text": "j/k scroll · h/l page · / search · n/N matches · Enter choose PDF                                             ",
+          "style": "dim"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "7.5.3 Simple GPIO Output                                                                                      ",
+          "style": ""
+        },
+        {
+          "text": "GPIO matrix can also be used for simple GPIO output. For this case, one GPIO pin can be configured to directly",
+          "style": ""
+        },
+        {
+          "text": "output the desired value, without routing any peripheral output to this pin. This can be done as below:       ",
+          "style": ""
+        },
+        {
+          "text": "• Set GPIO matrix GPIO_FUNCn_OUT_SEL with a special peripheral index 128 (0x80);                              ",
+          "style": ""
+        },
+        {
+          "text": "• Set the corresponding bit in GPIO_OUT_REG register to the desired GPIO output value.                        ",
+          "style": ""
+        },
+        {
+          "text": "Note:                                                                                                         ",
+          "style": ""
+        },
+        {
+          "text": "• GPIO_OUT_REG[0] ~ GPIO_OUT_REG[30] correspond to GPIO0 ~ GPIO30 respectively. GPIO_OUT_REG[31] is           ",
+          "style": ""
+        },
+        {
+          "text": "invalid.                                                                                                      ",
+          "style": ""
+        },
+        {
+          "text": "• Recommended operation: use GPIO_OUT_W1TS/GPIO_OUT_W1TC to set or clear the register GPIO_OUT_REG.           ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "7.5.4                                                                                                         ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "Sigma Delta Modulated Output (SDM)                                                                            ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "7.5.4.1 Functional Description                                                                                ",
+          "style": ""
+        },
+        {
+          "text": "Four out of the 93 peripheral output signals (index: 83 ~ 86 in Table 7.11-1 support 1-bit second-order sigma ",
+          "style": ""
+        },
+        {
+          "text": "delta modulation. By default the output is enabled for these four channels. This Sigma Delta modulator can    ",
+          "style": ""
+        },
+        {
+          "text": "also output PDM (pulse density modulation) signal with configurable duty cycle. The transfer function         ",
+          "style": ""
+        },
+        {
+          "text": "is:                                                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "Espressif Systems                                                                                             ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "251                                                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "o simulations and scope for this PDF · B export sources                                                       ",
+          "style": "dim"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "6 matching pages · n/N next/previous                                                                          ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "source-models",
+      "columns": 110,
+      "height": 36,
+      "model": "esp32c6-gpio",
+      "tick": 0,
+      "recipe": "Same manual; o opens associated simulations",
+      "rows": [
+        {
+          "text": "CHIPSIM  ESP32-C6 · GPIO output registers   · behavioral · normalized ticks                                   ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  inspect 2  log 3  [SOURCES] 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 0/24  state initialize  format hex  zoom 1.00  paused                                                    ",
+          "style": "selected"
+        },
+        {
+          "text": "─ SIMULATIONS · espressif-esp32-c6-trm.pdf ───────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "› ESP32-C6 · PCNT channel 0 · document model                                                                  ",
+          "style": "selected"
+        },
+        {
+          "text": "  ESP32-C6 · GPIO output registers · document model                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  Find supported simulations in saved PDF                                                                     ",
+          "style": ""
+        },
+        {
+          "text": "  Create a sourced scenario                                                                                   ",
+          "style": ""
+        },
+        {
+          "text": "  Read/search this manual                                                                                     ",
+          "style": ""
+        },
+        {
+          "text": "─ SCOPE / ACTION · h/l scroll ────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Installed simulation. One ESP32-C6 PCNT unit, channel 0, with channel 1 disabled and filtering disabled.      ",
+          "style": "dim"
+        },
+        {
+          "text": "Static pre-run configuration; normalized sampled edges. This is not an ESP32-C6 CPU/full-chip simulator. MMIO,",
+          "style": "dim"
+        },
+        {
+          "text": "interrupts/watchpoint latches, threshold comparators, GPIO routing, APB synchronization, glitch filtering,    ",
+          "style": "dim"
+        },
+        {
+          "text": "dynamic limit updates and other units/peripherals are omitted.                                                ",
+          "style": "dim"
+        },
+        {
+          "text": "j/k or arrows · Enter select · Esc cancel                                                                     ",
+          "style": "dim"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "6 matching pages · n/N next/previous                                                                          ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "registers",
+      "columns": 110,
+      "height": 36,
+      "model": "esp32c6-gpio",
+      "tick": 2,
+      "recipe": "GPIO0: u writes ENABLE_W1TS (0x24)=1, OUT_W1TS (0x08)=1; 6 opens all current values",
+      "rows": [
+        {
+          "text": "CHIPSIM  ESP32-C6 · GPIO output registers   · behavioral · normalized ticks                                   ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  inspect 2  log 3  sources 4  model 5  [REGISTERS] 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 2/24  state operating  format hex  zoom 1.00  paused                                                     ",
+          "style": "selected"
+        },
+        {
+          "text": "Register / signal        Current                             Change at this tick                              ",
+          "style": "dim"
+        },
+        {
+          "text": "› signal.selected_driver 0x1                                 0x0 → 0x1                                        ",
+          "style": "selected"
+        },
+        {
+          "text": "  signal.output_latch    0x00000001                          0x00000000 → 0x00000001                          ",
+          "style": ""
+        },
+        {
+          "text": "  signal.enable_mask     0x00000001                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  signal.reset           0x0                                                                                  ",
+          "style": ""
+        },
+        {
+          "text": "  signal.address         0x0008                              0x0024 → 0x0008                                  ",
+          "style": ""
+        },
+        {
+          "text": "  signal.write_data      0x00000001                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  signal.write           0x1                                                                                  ",
+          "style": ""
+        },
+        {
+          "text": "  signal.request         0x0                                 0x1 → 0x0                                        ",
+          "style": ""
+        },
+        {
+          "text": "  signal.read_data       0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  signal.valid           0x1                                                                                  ",
+          "style": ""
+        },
+        {
+          "text": "  signal.error           0x0                                                                                  ",
+          "style": ""
+        },
+        {
+          "text": "  0x04 GPIO_OUT_REG      0x00000001                          0x00000000 → 0x00000001                          ",
+          "style": ""
+        },
+        {
+          "text": "  0x20 GPIO_ENABLE_REG   0x00000001                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  reg.previous_request   0x0                                 0x1 → 0x0                                        ",
+          "style": ""
+        },
+        {
+          "text": "j/k choose · Enter details · h/l tick · / filter · F format · u access · 14 fields                            ",
+          "style": "dim"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "write address 8 at tick 2 · inspect latch/driver changes                                                      ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "step-details",
+      "columns": 110,
+      "height": 36,
+      "model": "esp32c6-gpio",
+      "tick": 2,
+      "recipe": "At accepted GPIO_OUT_W1TS write; Enter opens complete step details",
+      "rows": [
+        {
+          "text": "CHIPSIM  ESP32-C6 · GPIO output registers   · behavioral · normalized ticks                                   ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  inspect 2  log 3  sources 4  model 5  [REGISTERS] 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 2/24  state operating  format hex  zoom 1.00  paused                                                     ",
+          "style": "selected"
+        },
+        {
+          "text": "─ STEP 2 · ESP32-C6 · GPIO output registers                                                                   ",
+          "style": "selected"
+        },
+        {
+          "text": "State: operating · phase: running                                                                             "
+        },
+        {
+          "text": "                                                                                                              "
+        },
+        {
+          "text": "REGISTER TRANSACTION · accepted                                                                               "
+        },
+        {
+          "text": "Write 0x0008 · GPIO_OUT_W1TS_REG                                                                              "
+        },
+        {
+          "text": "Write data: 0x00000001                                                                                        "
+        },
+        {
+          "text": "Adapter status: valid=0x1 · error=0x0                                                                         "
+        },
+        {
+          "text": "                                                                                                              "
+        },
+        {
+          "text": "EVENT                                                                                                         "
+        },
+        {
+          "text": "GPIO_OUT_W1TS_REG: written ones act on corresponding latch bits; zeros preserve them.                         "
+        },
+        {
+          "text": "                                                                                                              "
+        },
+        {
+          "text": "CHANGES · before → after                                                                                      "
+        },
+        {
+          "text": "signal.selected_driver: 0x0 → 0x1                                                                             "
+        },
+        {
+          "text": "signal.output_latch: 0x00000000 → 0x00000001                                                                  "
+        },
+        {
+          "text": "signal.address: 0x0024 → 0x0008                                                                               "
+        },
+        {
+          "text": "signal.request: 0x1 → 0x0                                                                                     "
+        },
+        {
+          "text": "reg.gpio_out · GPIO_OUT_REG: 0x00000000 → 0x00000001                                                          "
+        },
+        {
+          "text": "reg.previous_request: 0x1 → 0x0                                                                               "
+        },
+        {
+          "text": "                                                                                                              "
+        },
+        {
+          "text": "SCHEDULED INPUTS · applied before the model step                                                              "
+        },
+        {
+          "text": "#5 address = 0x0008                                                                                           "
+        },
+        {
+          "text": "#6 write_data = 0x00000001                                                                                    "
+        },
+        {
+          "text": "#7 write = 0x1                                                                                                "
+        },
+        {
+          "text": "#8 request = 0x0                                                                                              "
+        },
+        {
+          "text": "                                                                                                              "
+        },
+        {
+          "text": "SOURCE EVIDENCE · step citations                                                                              "
+        },
+        {
+          "text": "ESP32-C6 Technical Reference Manual · PDF page 271                                                            "
+        },
+        {
+          "text": "OUT_W1TS offset 8 sets written-one bits and preserves written-zero bits.                                      "
+        },
+        {
+          "text": "“1: The corresponding bit in GPIO_OUT_REG will be set to 1”                                                   "
+        },
+        {
+          "text": "1–28/29 · j/k scroll · [/] change · F format · s source · Esc close                                           ",
+          "style": "dim"
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "write address 8 at tick 2 · inspect latch/driver changes                                                      ",
+          "style": "status"
+        },
+        {
+          "text": "j/k scroll · [/] change · s source · Esc/Enter/q close · Ctrl-C quit                                          ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "stimulus",
+      "columns": 110,
+      "height": 36,
+      "model": "esp32c6-gpio",
+      "tick": 2,
+      "recipe": "Same addressed accesses; 7 and / request display request-token events",
+      "rows": [
+        {
+          "text": "CHIPSIM  ESP32-C6 · GPIO output registers   · behavioral · normalized ticks                                   ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  inspect 2  log 3  sources 4  model 5  registers 6  [STIMULUS] 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 2/24  state operating  format hex  zoom 1.00  paused                                                     ",
+          "style": "selected"
+        },
+        {
+          "text": "Tick / input pin                Value                               Holds / status                            ",
+          "style": "dim"
+        },
+        {
+          "text": "      1  REQUEST                0x1                                 until tick 2                              ",
+          "style": ""
+        },
+        {
+          "text": "›     2  REQUEST                0x0                                 to trace end                              ",
+          "style": "selected"
+        },
+        {
+          "text": "2/8 events · filter request · U undo / R redo                                                                 ",
+          "style": "dim"
+        },
+        {
+          "text": "j/k choose · Enter actions · i schedule · Del remove · a clear/load · / filter                                ",
+          "style": "dim"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "write address 8 at tick 2 · inspect latch/driver changes                                                      ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "program",
+      "columns": 110,
+      "height": 36,
+      "model": "esp32c6-gpio",
+      "tick": 5,
+      "recipe": "P examples/esp32c6-gpio.chip; breakpoint line 9 using K; C continues to tick 5",
+      "rows": [
+        {
+          "text": "CHIPSIM  ESP32-C6 · GPIO output registers   · behavioral · normalized ticks                                   ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  [PROGRAM] 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 5/5  state operating  format hex  zoom 16.00  paused                                                     ",
+          "style": "selected"
+        },
+        {
+          "text": "EXPERIMENT SOURCE · breakpoint · next line 9 · 4 steps                                                        ",
+          "style": "selected"
+        },
+        {
+          "text": "      4  guide esp32-c6-esp-idf-programming-guide 983 \"Output level. 0: low ; 1: high\"                        ",
+          "style": ""
+        },
+        {
+          "text": "      5  write GPIO_ENABLE_W1TS_REG 0b1                                                                       ",
+          "style": ""
+        },
+        {
+          "text": "      6  write GPIO_OUT_W1TS_REG 1                                                                            ",
+          "style": ""
+        },
+        {
+          "text": "      7  expect signal.selected_driver == 1                                                                   ",
+          "style": ""
+        },
+        {
+          "text": "      8  wait 3                                                                                               ",
+          "style": ""
+        },
+        {
+          "text": "→●    9  write GPIO_OUT_W1TC_REG 0x1                                                                          ",
+          "style": "selected"
+        },
+        {
+          "text": "     10  expect signal.selected_driver == 0                                                                   ",
+          "style": ""
+        },
+        {
+          "text": "     11  read GPIO_OUT_REG into latch                                                                         ",
+          "style": ""
+        },
+        {
+          "text": "     12  expect $latch == 0                                                                                   ",
+          "style": ""
+        },
+        {
+          "text": "     13  halt                                                                                                 ",
+          "style": ""
+        },
+        {
+          "text": "     14                                                                                                       ",
+          "style": ""
+        },
+        {
+          "text": "LOCALS · none                                                                                                 ",
+          "style": "dim"
+        },
+        {
+          "text": "N step · C continue · K breakpoint · J back · r reset · G guides · Q detach                                   ",
+          "style": "dim"
+        },
+        {
+          "text": "GUIDES · 1 verified · esp32-c6-esp-idf-programming-guide page 983                                             ",
+          "style": "dim"
+        },
+        {
+          "text": "                       0             1             2             3             4             4             5  ",
+          "style": "dim"
+        },
+        {
+          "text": "› Selected GPIO driver                 ┐               ┌───────────────────────────────────────────────┃───── ",
+          "style": "selected"
+        },
+        {
+          "text": "                       Z···············│               │                                               ┃      ",
+          "style": "selected"
+        },
+        {
+          "text": "                                       └───────────────┘                                               ┃      ",
+          "style": "selected"
+        },
+        {
+          "text": "  GPIO_OUT retained b… ────────────────────────────────┬───────────────────────────────────────────────┃───── ",
+          "style": "wave"
+        },
+        {
+          "text": "                       0x00000000                      │0x00000001                                     ┃      ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ────────────────────────────────┴───────────────────────────────────────────────┃───── ",
+          "style": "wave"
+        },
+        {
+          "text": "  GPIO_ENABLE mask     ────────────────┬───────────────────────────────────────────────────────────────┃───── ",
+          "style": "wave"
+        },
+        {
+          "text": "                       0x00000000      │0x00000001                                                     ┃      ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ────────────────┴───────────────────────────────────────────────────────────────┃───── ",
+          "style": "wave"
+        },
+        {
+          "text": "Selected: selected_driver = 0x1   · 1 choose signal · h/l tick                                                ",
+          "style": "dim"
+        },
+        {
+          "text": "… zoom for label · ≋ multiple values/column · x unavailable · Enter details                                   ",
+          "style": "dim"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Program ready · N step · C continue · K breakpoint · J back                                                   ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "guides",
+      "columns": 110,
+      "height": 36,
+      "model": "esp32c6-gpio",
+      "tick": 5,
+      "recipe": "Program view; G shows original-PDF verified ESP-IDF guide page 983",
+      "rows": [
+        {
+          "text": "CHIPSIM  ESP32-C6 · GPIO output registers   · behavioral · normalized ticks                                   ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  [PROGRAM] 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 5/5  state operating  format hex  zoom 16.00  paused                                                     ",
+          "style": "selected"
+        },
+        {
+          "text": "─ VERIFIED PROGRAMMING GUIDES ────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "› ESP-IDF Programming Guide 5.2 ESP32-C6 · PDF page 983                                                       ",
+          "style": "selected"
+        },
+        {
+          "text": "─ SCOPE / ACTION · h/l scroll ────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Output level. 0: low ; 1: high                                                                                ",
+          "style": "dim"
+        },
+        {
+          "text": "/home/dev/chipsim/docs/references/esp32-c6/esp-idf-programming-guide.pdf                                      ",
+          "style": "dim"
+        },
+        {
+          "text": "SHA-256 6807a7b0de28ddc7456821da0d98ea78a0d74deba0647c51a5d0be8b8a36c0ce                                      ",
+          "style": "dim"
+        },
+        {
+          "text": "j/k or arrows · Enter select · Esc cancel                                                                     ",
+          "style": "dim"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Program ready · N step · C continue · K breakpoint · J back                                                   ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "exports",
+      "columns": 110,
+      "height": 36,
+      "model": "esp32c6-gpio",
+      "tick": 0,
+      "recipe": "x opens CSV/JSON/VCD trace export choices",
+      "rows": [
+        {
+          "text": "CHIPSIM  ESP32-C6 · GPIO output registers   · behavioral · normalized ticks                                   ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  [PROGRAM] 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 0/5  state initialize  format hex  zoom 16.00  paused                                                    ",
+          "style": "selected"
+        },
+        {
+          "text": "─ EXPORT FULL TRACE ──────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "› CSV                                                                                                         ",
+          "style": "selected"
+        },
+        {
+          "text": "  JSON · provenance + parameters + stimulus                                                                   ",
+          "style": ""
+        },
+        {
+          "text": "  VCD · normalized tick waveform                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "j/k or arrows · Enter select · Esc cancel                                                                     ",
+          "style": "dim"
+        },
+        {
+          "text": "                       ZZ··············│               │                                                      ",
+          "style": "selected"
+        },
+        {
+          "text": "                       ┃               └───────────────┘                                                      ",
+          "style": "selected"
+        },
+        {
+          "text": "  GPIO_OUT retained b… ┃───────────────────────────────┬───────────────────────────────────────────────────── ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ┃0x00000000                     │0x00000001                                            ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ┃───────────────────────────────┴───────────────────────────────────────────────────── ",
+          "style": "wave"
+        },
+        {
+          "text": "  GPIO_ENABLE mask     ┃───────────────┬───────────────────────────────────────────────────────────────────── ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ┃0x00000000     │0x00000001                                                            ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ┃───────────────┴───────────────────────────────────────────────────────────────────── ",
+          "style": "wave"
+        },
+        {
+          "text": "Selected: selected_driver = Z   · 1 choose signal · h/l tick                                                  ",
+          "style": "dim"
+        },
+        {
+          "text": "… zoom for label · ≋ multiple values/column · x unavailable · Enter details                                   ",
+          "style": "dim"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Program detached · recorded input experiment retained.                                                        ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "function-table",
+      "columns": 110,
+      "height": 36,
+      "model": "table-dd401970bc05-p3-t3",
+      "tick": 0,
+      "recipe": "Import bundled 74HC00; 5 and j scroll to original source function table",
+      "rows": [
+        {
+          "text": "CHIPSIM  74HC00; 74HCT00 · Table 3. Function table   · behavioral · normalized ticks                          ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  inspect 2  log 3  sources 4  [MODEL] 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 0/8  state logic  format hex  zoom 1.00  paused                                                          ",
+          "style": "selected"
+        },
+        {
+          "text": "ASSUMPTIONS                                                                                                   ",
+          "style": ""
+        },
+        {
+          "text": "• H/L represent ideal digital 1/0 as defined in the table. X is a wildcard only when explicitly defined as a  ",
+          "style": ""
+        },
+        {
+          "text": "don't-care input. No output values are filled for missing cells.                                              ",
+          "style": ""
+        },
+        {
+          "text": "• Outputs settle immediately at each normalized tick, including tick zero. All input events at one tick are   ",
+          "style": ""
+        },
+        {
+          "text": "simultaneous.                                                                                                 ",
+          "style": ""
+        },
+        {
+          "text": "• The default stimulus sweeps input combinations, with a two-tick dwell and rotated patterns for independent  ",
+          "style": ""
+        },
+        {
+          "text": "instances. This is demonstration stimulus, not an internal chip clock.                                        ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "PARAMETERS                                                                                                    ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "SOURCES                                                                                                       ",
+          "style": ""
+        },
+        {
+          "text": "74HC00; 74HCT00 · SHA dd401970bc0520c2496dd2a8fb8d9c94f29585c61d5f49dab606257d6c92b22f                        ",
+          "style": ""
+        },
+        {
+          "text": "PDF page 3: The positioned table supplies the output mapping stored in sourceTable; all binary input          ",
+          "style": ""
+        },
+        {
+          "text": "combinations are covered without conflicting overlaps.                                                        ",
+          "style": ""
+        },
+        {
+          "text": "“Table 3. Function table”                                                                                     ",
+          "style": ""
+        },
+        {
+          "text": "PDF page 3: Consistent numbered signal lists establish the indexed instances; any shared controls are declared",
+          "style": ""
+        },
+        {
+          "text": "single input pins.                                                                                            ",
+          "style": ""
+        },
+        {
+          "text": "“Pin description”                                                                                             ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "IMPLEMENTATION / STATES                                                                                       ",
+          "style": ""
+        },
+        {
+          "text": "logic: Evaluate the published table for each input combination                                                ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "SOURCE FUNCTION TABLE · PDF page 3                                                                            ",
+          "style": ""
+        },
+        {
+          "text": "nA nB → nY                                                                                                    ",
+          "style": ""
+        },
+        {
+          "text": "0 X → 1                                                                                                       ",
+          "style": ""
+        },
+        {
+          "text": "X 0 → 1                                                                                                       ",
+          "style": ""
+        },
+        {
+          "text": "1 1 → 0                                                                                                       ",
+          "style": ""
+        },
+        {
+          "text": "Instances: 1A/1B/1Y · 2A/2B/2Y · 3A/3B/3Y · 4A/4B/4Y                                                          ",
+          "style": ""
+        },
+        {
+          "text": "j/k scroll · E edit entered table · M export model · 4 source text                                            ",
+          "style": "dim"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Created 74HC00; 74HCT00 · Table 3. Function table from function table · 4 checks passed · 5 scope/assumptions ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "behavior-review",
+      "columns": 110,
+      "height": 36,
+      "model": "reviewed-single-nand",
+      "tick": 3,
+      "recipe": "Entered NAND rules; E draft deliberately forces Y=1; review full-trace differences without installing",
+      "rows": [
+        {
+          "text": "CHIPSIM  Reviewed single NAND   · behavioral · normalized ticks                                               ",
+          "style": "title"
+        },
+        {
+          "text": "[WAVE] 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 3/8  state state_logic  format hex  zoom 1.00  paused                                                    ",
+          "style": "selected"
+        },
+        {
+          "text": "─ TRACE DIFFERENCES · working model kept ─────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "  1 changed ticks / 9 · first 3 · Enter returns                                                               ",
+          "style": ""
+        },
+        {
+          "text": "› Tick 3 · 1 change(s) · signal.pin_y: 0x0 → 0x1                                                              ",
+          "style": "selected"
+        },
+        {
+          "text": "  Export full comparison JSON                                                                                 ",
+          "style": ""
+        },
+        {
+          "text": "j/k or arrows · Enter select · Esc cancel                                                                     ",
+          "style": "dim"
+        },
+        {
+          "text": "                         │┃│                                                                                  ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ──┘┃└────                                                                              ",
+          "style": "wave"
+        },
+        {
+          "text": "  Y                     ┌─┃┌────                                                                              ",
+          "style": "wave"
+        },
+        {
+          "text": "                        │ ┃│                                                                                  ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ─┘ ┃┘                                                                                  ",
+          "style": "wave"
+        },
+        {
+          "text": "Selected: pin_a = 0x1   · j/k signal · h/l tick · w/e/b edges                                                 ",
+          "style": "dim"
+        },
+        {
+          "text": "… zoom for label · ≋ multiple values/column · x unavailable · Enter details                                   ",
+          "style": "dim"
+        },
+        {
+          "text": "─ REGISTERS · * changed ──────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "* pin_a=0x1                           pin_b=0x1                         * pin_y=0x0                           ",
+          "style": ""
+        },
+        {
+          "text": "  behavior_state=0x0                                                                                          ",
+          "style": ""
+        },
+        {
+          "text": "Entered row 3: logic 11 -> logic / 0                                                                          ",
+          "style": "event"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Added Reviewed single NAND · 4 checks passed                                                                  ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "builders",
+      "columns": 110,
+      "height": 36,
+      "model": "pio",
+      "tick": 0,
+      "recipe": "Import RP2040 manual; c opens guided builders",
+      "rows": [
+        {
+          "text": "CHIPSIM  RP2040 PIO   · behavioral · normalized ticks                                                         ",
+          "style": "title"
+        },
+        {
+          "text": "[WAVE] 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 0/59  state send  format hex  zoom 1.00  paused                                                          ",
+          "style": "selected"
+        },
+        {
+          "text": "─ CREATE · choose model builder ──────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "› Counter / timer · Enable, reset, count direction, compare, and output toggle.                               ",
+          "style": "selected"
+        },
+        {
+          "text": "  FIFO · Stored words, read/write pointers, occupancy, overflow, and underflow.                               ",
+          "style": ""
+        },
+        {
+          "text": "  Shift transfer · Serial bits, clock phases, start/reset, and receiver decoding.                             ",
+          "style": ""
+        },
+        {
+          "text": "  Behavior table · enter custom logic / state transitions                                                     ",
+          "style": ""
+        },
+        {
+          "text": "  Register bank · enter addresses, masks and access rules                                                     ",
+          "style": ""
+        },
+        {
+          "text": "j/k or arrows · Enter select · Esc cancel                                                                     ",
+          "style": "dim"
+        },
+        {
+          "text": "  ACK                  ┃                                  ┌────────────────────────                           ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ┃                                  │                                                   ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ┃──────────────────────────────────┘                                                   ",
+          "style": "wave"
+        },
+        {
+          "text": "Selected: data = 0x1   · j/k signal · h/l tick · w/e/b edges                                                  ",
+          "style": "dim"
+        },
+        {
+          "text": "… zoom for label · ≋ multiple values/column · x unavailable · Enter details                                   ",
+          "style": "dim"
+        },
+        {
+          "text": "─ REGISTERS · * changed ──────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "* data=0x1                          * clock=0x0                         * ack=0x0                             ",
+          "style": ""
+        },
+        {
+          "text": "* samples=0x00000000                * decoded=0x00000000                * bitIndex=0x00000000                 ",
+          "style": ""
+        },
+        {
+          "text": "* line=0x00000002                   * drift=0x00000000                  * osr=0x00000059                      ",
+          "style": ""
+        },
+        {
+          "text": "* x=0x00000007                      * y=0x00000008                      * delay=0x00000000                    ",
+          "style": ""
+        },
+        {
+          "text": "* tx=0x00000000                     * start=0x00000000                                                        ",
+          "style": ""
+        },
+        {
+          "text": "PULL loads OSR; OUT presents bit 0.                                                                           ",
+          "style": "event"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Loaded RP2040 PIO                                                                                             ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "counter",
+      "columns": 110,
+      "height": 36,
+      "model": "selected-counter-experiment",
+      "tick": 8,
+      "recipe": "c builder with real RP2040 excerpt; explicit selected 8-bit scenario defaults, not inferred silicon behavior",
+      "rows": [
+        {
+          "text": "CHIPSIM  Selected counter experiment   · behavioral · normalized ticks                                        ",
+          "style": "title"
+        },
+        {
+          "text": "[WAVE] 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 8/20  state counting  format hex  zoom 4.00  paused                                                      ",
+          "style": "selected"
+        },
+        {
+          "text": "                       0             4             7             11            14            18            21 ",
+          "style": "dim"
+        },
+        {
+          "text": "› ENABLE               ────────────────────────────────┃───────────────────────────────────────────────────   ",
+          "style": "selected"
+        },
+        {
+          "text": "                                                       ┃                                                      ",
+          "style": "selected"
+        },
+        {
+          "text": "                                                       ┃                                                      ",
+          "style": "selected"
+        },
+        {
+          "text": "  RESET                                                ┃                                                      ",
+          "style": "wave"
+        },
+        {
+          "text": "                                                       ┃                                                      ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ────────────────────────────────┃───────────────────────────────────────────────────   ",
+          "style": "wave"
+        },
+        {
+          "text": "  OUT                                                  ┃───────────────────────────────┐                      ",
+          "style": "wave"
+        },
+        {
+          "text": "                                                       ┃                               │                      ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ────────────────────────────────┃                               └───────────────────   ",
+          "style": "wave"
+        },
+        {
+          "text": "Selected: enable = 0x1   · j/k signal · h/l tick · w/e/b edges                                                ",
+          "style": "dim"
+        },
+        {
+          "text": "… zoom for label · ≋ multiple values/column · x unavailable · Enter details                                   ",
+          "style": "dim"
+        },
+        {
+          "text": "─ REGISTERS · * changed ──────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "  enable=0x1                          reset=0x0                         * out=0x1                             ",
+          "style": ""
+        },
+        {
+          "text": "* count=0x00                                                                                                  ",
+          "style": ""
+        },
+        {
+          "text": "Period elapsed; output toggles and counter reloads                                                            ",
+          "style": "event"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Added Selected counter experiment · 4 checks passed                                                           ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "fifo",
+      "columns": 110,
+      "height": 36,
+      "model": "selected-fifo-experiment",
+      "tick": 4,
+      "recipe": "c builder with real RP2040 excerpt; explicit selected 8-bit scenario defaults, not inferred silicon behavior",
+      "rows": [
+        {
+          "text": "CHIPSIM  Selected fifo experiment   · behavioral · normalized ticks                                           ",
+          "style": "title"
+        },
+        {
+          "text": "[WAVE] 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 4/16  state fifo  format hex  zoom 5.00  paused                                                          ",
+          "style": "selected"
+        },
+        {
+          "text": "                       0             3             6             8             11            14            17 ",
+          "style": "dim"
+        },
+        {
+          "text": "› WRITE                     ┌──────────────┃─────────┐                                                        ",
+          "style": "selected"
+        },
+        {
+          "text": "                            │              ┃         │                                                        ",
+          "style": "selected"
+        },
+        {
+          "text": "                       ─────┘              ┃         └──────────────────────────────────────────────────────  ",
+          "style": "selected"
+        },
+        {
+          "text": "  READ                                     ┃         ┌────────────────────────┐                               ",
+          "style": "wave"
+        },
+        {
+          "text": "                                           ┃         │                        │                               ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ────────────────────┃─────────┘                        └─────────────────────────────  ",
+          "style": "wave"
+        },
+        {
+          "text": "  RESET                                    ┃                                                                  ",
+          "style": "wave"
+        },
+        {
+          "text": "                                           ┃                                                                  ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ────────────────────┃────────────────────────────────────────────────────────────────  ",
+          "style": "wave"
+        },
+        {
+          "text": "  WORD_IN              ─────┬────┬────┬────┃────┬───────────────────────────────────────────────────────────  ",
+          "style": "wave"
+        },
+        {
+          "text": "                       0x00 │0x1 │0x2 │0x3 ┃0x4 │0x05                                                         ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ─────┴────┴────┴────┃────┴───────────────────────────────────────────────────────────  ",
+          "style": "wave"
+        },
+        {
+          "text": "Selected: write = 0x1   · j/k signal · h/l tick · w/e/b edges                                                 ",
+          "style": "dim"
+        },
+        {
+          "text": "… zoom for label · ≋ multiple values/column · x unavailable · Enter details                                   ",
+          "style": "dim"
+        },
+        {
+          "text": "─ REGISTERS · * changed ──────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "  write=0x1                           read=0x0                            reset=0x0                           ",
+          "style": ""
+        },
+        {
+          "text": "* word_in=0x04                        word_out=0x00                       overflow=0x0                        ",
+          "style": ""
+        },
+        {
+          "text": "  underflow=0x0                     * level=0x4                           read_ptr=0x0                        ",
+          "style": ""
+        },
+        {
+          "text": "* write_ptr=0x0                       word0=0x01                          word1=0x02                          ",
+          "style": ""
+        },
+        {
+          "text": "  word2=0x03                        * word3=0x04                                                              ",
+          "style": ""
+        },
+        {
+          "text": "Accept write; empty simultaneous read raises underflow                                                        ",
+          "style": "event"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Added Selected fifo experiment · 6 checks passed                                                              ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "shifter",
+      "columns": 110,
+      "height": 36,
+      "model": "selected-shifter-experiment",
+      "tick": 18,
+      "recipe": "c builder with real RP2040 excerpt; explicit selected 8-bit scenario defaults, not inferred silicon behavior",
+      "rows": [
+        {
+          "text": "CHIPSIM  Selected shifter experiment   · behavioral · normalized ticks                                        ",
+          "style": "title"
+        },
+        {
+          "text": "[WAVE] 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 18/39  state low  format hex  zoom 2.05  paused                                                          ",
+          "style": "selected"
+        },
+        {
+          "text": "                       0             7             14            20            27            34            41 ",
+          "style": "dim"
+        },
+        {
+          "text": "› START                  ╎┌────────────────────────────────┃──────────────────────────────────────────────    ",
+          "style": "selected"
+        },
+        {
+          "text": "                         ≋│                                ┃                                                  ",
+          "style": "selected"
+        },
+        {
+          "text": "                       ──╎┘                                ┃                                                  ",
+          "style": "selected"
+        },
+        {
+          "text": "  RESET                                                    ┃                                                  ",
+          "style": "wave"
+        },
+        {
+          "text": "                                                           ┃                                                  ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ────────────────────────────────────┃──────────────────────────────────────────────    ",
+          "style": "wave"
+        },
+        {
+          "text": "  DATA                   ╎┌──────────────╎┐              ╎┌┃──────────────╎┐      ╎┌──────────────────────    ",
+          "style": "wave"
+        },
+        {
+          "text": "                         ≋│              ≋│              ≋│┃              ≋│      ≋│                          ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ──╎┘              ╎└──────────────╎┘┃              ╎└──────╎┘                          ",
+          "style": "wave"
+        },
+        {
+          "text": "  CLOCK                      ╎┌──╎┐  ╎┌──╎┐  ╎┌──╎┐  ╎┌──╎┐┃ ╎┌───╎┐  ╎┌──╎┐  ╎┌──╎┐  ╎┌──╎┐                  ",
+          "style": "wave"
+        },
+        {
+          "text": "                             ≋│  ≋│  ≋│  ≋│  ≋│  ≋│  ≋│  ≋│┃ ≋│   ≋│  ≋│  ≋│  ≋│  ≋│  ≋│  ≋│                  ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ──────╎┘  ╎└──╎┘  ╎└──╎┘  ╎└──╎┘  ╎└┃─╎┘   ╎└──╎┘  ╎└──╎┘  ╎└──╎┘  ╎└──────────────    ",
+          "style": "wave"
+        },
+        {
+          "text": "Selected: start = 0x1   · j/k signal · h/l tick · w/e/b edges                                                 ",
+          "style": "dim"
+        },
+        {
+          "text": "… zoom for label · ≋ multiple values/column · x unavailable · Enter details                                   ",
+          "style": "dim"
+        },
+        {
+          "text": "─ REGISTERS · * changed ──────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "  start=0x1                           reset=0x0                           data=0x1                            ",
+          "style": ""
+        },
+        {
+          "text": "  clock=0x0                           done=0x0                            shift=0x0B                          ",
+          "style": ""
+        },
+        {
+          "text": "  sampled=0x03                        samples=0x4                                                             ",
+          "style": ""
+        },
+        {
+          "text": "Hold state                                                                                                    ",
+          "style": "event"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Added Selected shifter experiment · 4 checks passed                                                           ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "register-bank",
+      "columns": 110,
+      "height": 36,
+      "model": "scratch-storage-experiment",
+      "tick": 2,
+      "recipe": "c Register bank with examples/rp2040-watchdog-scratch.registers.txt; u write/read SCRATCH0=0xDEADBEEF; 6",
+      "rows": [
+        {
+          "text": "CHIPSIM  Scratch storage experiment   · behavioral · normalized ticks                                         ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  inspect 2  log 3  sources 4  model 5  [REGISTERS] 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 2/28  state operating  format hex  zoom 2.05  paused                                                     ",
+          "style": "selected"
+        },
+        {
+          "text": "Register / signal        Current                             Change at this tick                              ",
+          "style": "dim"
+        },
+        {
+          "text": "› signal.address         0x0C                                                                                 ",
+          "style": "selected"
+        },
+        {
+          "text": "  signal.write_data      0x00000000                          0xDEADBEEF → 0x00000000                          ",
+          "style": ""
+        },
+        {
+          "text": "  signal.write           0x0                                 0x1 → 0x0                                        ",
+          "style": ""
+        },
+        {
+          "text": "  signal.request         0x0                                 0x1 → 0x0                                        ",
+          "style": ""
+        },
+        {
+          "text": "  signal.reset           0x0                                                                                  ",
+          "style": ""
+        },
+        {
+          "text": "  signal.read_data       0xDEADBEEF                          0x00000000 → 0xDEADBEEF                          ",
+          "style": ""
+        },
+        {
+          "text": "  signal.valid           0x1                                                                                  ",
+          "style": ""
+        },
+        {
+          "text": "  signal.error           0x0                                                                                  ",
+          "style": ""
+        },
+        {
+          "text": "  signal.set_SCRATCH0    0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  signal.set_SCRATCH1    0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  signal.set_SCRATCH2    0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  signal.set_SCRATCH3    0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  signal.set_SCRATCH4    0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  signal.set_SCRATCH5    0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  signal.set_SCRATCH6    0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  signal.set_SCRATCH7    0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  0x0c SCRATCH0          0xDEADBEEF                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  0x10 SCRATCH1          0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  0x14 SCRATCH2          0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  0x18 SCRATCH3          0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  0x1c SCRATCH4          0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  0x20 SCRATCH5          0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  0x24 SCRATCH6          0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  0x28 SCRATCH7          0x00000000                                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  reg.previous_request   0x0                                 0x1 → 0x0                                        ",
+          "style": ""
+        },
+        {
+          "text": "j/k choose · Enter details · h/l tick · / filter · F format · u access · 25 fields                            ",
+          "style": "dim"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "read address 12 at tick 2 · read_data=3735928559                                                              ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "register-draft",
+      "columns": 110,
+      "height": 36,
+      "model": "tca9534",
+      "tick": 0,
+      "recipe": "TCA9534 manual; c Register bank offers actual extracted structural inventories, with masks requiring review",
+      "rows": [
+        {
+          "text": "CHIPSIM  TCA9534 · register-level I/O expander   · behavioral · normalized ticks                              ",
+          "style": "title"
+        },
+        {
+          "text": "[WAVE] 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 0/24  state initialize  format hex  zoom 1.00  paused                                                    ",
+          "style": "selected"
+        },
+        {
+          "text": "─ REGISTER TABLE · choose a draft to review ──────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "› Enter rows manually                                                                                         ",
+          "style": "selected"
+        },
+        {
+          "text": "  PDF 19 · Table 3. Command Byte Table · 4 words · masks need review                                          ",
+          "style": ""
+        },
+        {
+          "text": "  Export row draft · PDF 19 · Table 3. Command Byte Table                                                     ",
+          "style": ""
+        },
+        {
+          "text": "j/k or arrows · Enter select · Esc cancel                                                                     ",
+          "style": "dim"
+        },
+        {
+          "text": "                       ┃…  │…  │0xBE │0xB1 │…                                                                 ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ┃───┴───┴─────┴─────┴────                                                              ",
+          "style": "wave"
+        },
+        {
+          "text": "  P0 output driver     ┃                                                                                      ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ZZ·······················                                                              ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ┃                                                                                      ",
+          "style": "wave"
+        },
+        {
+          "text": "  P1 output driver     ┃                                                                                      ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ZZ·······················                                                              ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ┃                                                                                      ",
+          "style": "wave"
+        },
+        {
+          "text": "Selected: external0 = 0xFF   · j/k signal · h/l tick · w/e/b edges                                            ",
+          "style": "dim"
+        },
+        {
+          "text": "… zoom for label · ≋ multiple values/column · x unavailable · Enter details                                   ",
+          "style": "dim"
+        },
+        {
+          "text": "─ REGISTERS · * changed ──────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "* external0=0xFF                    * input0=0xFF                       * p00_driver=Z                        ",
+          "style": ""
+        },
+        {
+          "text": "* p01_driver=Z                      * p02_driver=Z                      * p03_driver=Z                        ",
+          "style": ""
+        },
+        {
+          "text": "* p04_driver=Z                      * p05_driver=Z                      * p06_driver=Z                        ",
+          "style": ""
+        },
+        {
+          "text": "* p07_driver=Z                      * power_reset=0x0                   * address=0x00                        ",
+          "style": ""
+        },
+        {
+          "text": "* write_data=0x00                   * write=0x0                         * request=0x0                         ",
+          "style": ""
+        },
+        {
+          "text": "* read_data=0x00                    * valid=0x0                         * error=0x0                           ",
+          "style": ""
+        },
+        {
+          "text": "* interrupt_pending=0x0             * int_driver=Z                      * output0=0xFF                        ",
+          "style": ""
+        },
+        {
+          "text": "* polarity0=0x00                    * configuration0=0xFF               * pins0=0xFF                          ",
+          "style": ""
+        },
+        {
+          "text": "* sampled0=0xFF                     * previous_request=0x0                                                    ",
+          "style": ""
+        },
+        {
+          "text": "Initial state                                                                                                 ",
+          "style": "event"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Created TCA9534 · register-level I/O expander from reviewed datasheet profile · 16 checks passed · 5 scope/as…",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · c create                                       ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "agent-activity",
+      "columns": 110,
+      "height": 36,
+      "model": "esp32c6-gpio",
+      "tick": 0,
+      "recipe": "chipsim --watch prepared-project; real prepare/context/search/program-check/program-run journal; 8 and / program",
+      "rows": [
+        {
+          "text": "CHIPSIM  ESP32-C6 · GPIO output registers   · behavioral · normalized ticks                                   ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  [ACTIVITY] 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 0/7  state initialize  format hex  zoom 1.00  paused                                                     ",
+          "style": "selected"
+        },
+        {
+          "text": "Agent activity · WATCH LIVE · following                                                                       ",
+          "style": "selected"
+        },
+        {
+          "text": "/tmp/chipsim-readme-8dkm7m/esp32-c6                                                                           ",
+          "style": "dim"
+        },
+        {
+          "text": "Loaded esp32c6-gpio · 7 ticks                                                                                 ",
+          "style": "dim"
+        },
+        {
+          "text": "  04:55:02Z context succeeded Programming context · 1 models · ESP32-C6                                       ",
+          "style": ""
+        },
+        {
+          "text": "  04:55:02Z progra… started   program-check started                                                           ",
+          "style": ""
+        },
+        {
+          "text": "  04:55:11Z progra… succeeded program-check completed                                                         ",
+          "style": ""
+        },
+        {
+          "text": "  04:55:11Z progra… started   program-run started                                                             ",
+          "style": ""
+        },
+        {
+          "text": "  04:55:11Z progra… progress  Reading model and validating schema                                             ",
+          "style": ""
+        },
+        {
+          "text": "  04:55:11Z progra… progress  Verifying PDF fingerprint and extracting original source pages                  ",
+          "style": ""
+        },
+        {
+          "text": "  04:55:16Z progra… progress  Source quotations verified · executing 16 acceptance cases                      ",
+          "style": ""
+        },
+        {
+          "text": "  04:55:20Z progra… progress  Verifying programming-guide fingerprints and quoted PDF pages                   ",
+          "style": ""
+        },
+        {
+          "text": "  04:55:20Z progra… progress  Executing source program and recording line-to-signal mapping                   ",
+          "style": ""
+        },
+        {
+          "text": "› 04:55:20Z progra… succeeded program-run completed · 8 snapshots · run ready                                 ",
+          "style": "selected"
+        },
+        {
+          "text": "Selected event · h/l scroll full details                                                                      ",
+          "style": "dim"
+        },
+        {
+          "text": "program-run completed · 8 snapshots · run ready                                                               ",
+          "style": ""
+        },
+        {
+          "text": "{\"resultFile\":\"/tmp/chipsim-readme-8dkm7m/esp32-c6/runs/gpio-pulse/result.json\",\"sessionFile\":\"/tmp/chipsim-re",
+          "style": ""
+        },
+        {
+          "text": "adme-8dkm7m/esp32-c6/runs/gpio-pulse/session.json\",\"resultSha256\":\"beae6102aea350f5d7a96435ccb3bca284333e9938f",
+          "style": ""
+        },
+        {
+          "text": "b7a5f93d6b256247fe2ec\",\"sessionSha256\":\"056d11c27e7873d3c7bb0c90f8b18ef4338f66269dfcf993654de0bb095d9c08\"}    ",
+          "style": ""
+        },
+        {
+          "text": "j/k events · G follow newest · / filter · W pause/resume run reload                                           ",
+          "style": "dim"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS · WATCH LIVE ──────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Watch: Loaded esp32c6-gpio · 7 ticks                                                                          ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · d import · x export · W watch                                        ",
+          "style": "dim"
+        }
+      ]
+    }
+  ]
+}
