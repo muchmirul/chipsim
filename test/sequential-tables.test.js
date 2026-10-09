@@ -15,7 +15,7 @@ import { TuiState } from "../src/tui/state.js";
 import { TerminalApp } from "../src/tui/app.js";
 import { render, screenText, displayWidth } from "../src/tui/render.js";
 const path = (part) =>
-  new URL(`../docs/references/nexperia-74hc${part}.pdf`, import.meta.url)
+  new URL(`../docs/references/74hc${part}/nexperia-74hc${part}.pdf`, import.meta.url)
     .pathname;
 const documents = Promise.all(
   ["377", "273"].map((part) => extractPDFFile(path(part))),

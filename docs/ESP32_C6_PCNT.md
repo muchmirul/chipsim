@@ -3,7 +3,7 @@
 Import the supplied ESP32-C6 Technical Reference Manual v1.2 (20 March 2026) to open **ESP32-C6 · PCNT channel 0**. Its exact fingerprint is pinned in `references/manifest.json`. The complete, unchanged 1,394-page manual is included with its original notices.
 
 ```sh
-npm start -- --document docs/references/espressif-esp32-c6-trm.pdf
+npm start -- --document docs/references/esp32-c6/espressif-esp32-c6-trm.pdf
 ```
 
 The original user-supplied copy works too:

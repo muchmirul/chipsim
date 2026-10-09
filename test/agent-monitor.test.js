@@ -34,7 +34,7 @@ async function fixture(t) {
   const project = join(path, "agent project");
   const prepared = await agentCommand([
     "prepare",
-    join(root, "docs/references/nexperia-74hc00.pdf"),
+    join(root, "docs/references/74hc00/nexperia-74hc00.pdf"),
     "--out",
     project,
   ]);
@@ -447,7 +447,7 @@ test("logging failure does not turn a successful command into a failure, and fai
   const before = await readActivity(project);
   const repeated = await agentCommand([
     "prepare",
-    join(root, "docs/references/nexperia-74hc00.pdf"),
+    join(root, "docs/references/74hc00/nexperia-74hc00.pdf"),
     "--out",
     project,
   ]);

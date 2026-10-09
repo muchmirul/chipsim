@@ -5,6 +5,7 @@ import { detailRows } from "./trace-detail.js";
 import { views } from "./views.js";
 import { modelsForDocument } from "../documents/recognize.js";
 import { activityRows } from "./activity-panel.js";
+import { programRows } from "./program-panel.js";
 const row = (text, style = "") => ({ text, style });
 function section(title, width) {
   return row(
@@ -61,7 +62,9 @@ function waveform(state, height) {
           state.format,
           state.signal.width,
         ) +
-        "   · j/k signal · h/l tick · w/e/b edges",
+        (state.view === "program"
+          ? "   · 1 choose signal · h/l tick"
+          : "   · j/k signal · h/l tick · w/e/b edges"),
       "dim",
     ),
   );
@@ -469,7 +472,7 @@ function modelInfo(state, height) {
 const help = [
   [
     "Navigation",
-    "1 wave · 2 blocks · 3 log · 4 sources · 5 model · 6 regs · 7 inputs · 8 agent",
+    "1 wave · 2 blocks · 3 log · 4 sources · 5 model · 6 regs · 7 inputs · 8 agent · 9 program",
   ],
   [
     "Waveforms",
@@ -508,6 +511,10 @@ const help = [
   ],
   ["DWFV", "V open this trace in installed dwfv (optional)"],
   [
+    "Programming",
+    "P load .chip · 9 code/signals · N step · C continue · K break · J back",
+  ],
+  [
     "Agent monitor",
     "--watch PROJECT · 8 activity · W pause reload · G follow newest",
   ],
@@ -543,12 +550,13 @@ export function render(state) {
                 registers: "regs",
                 stimulus: "inputs",
                 activity: "agent",
+                program: "prog",
               }[name] || name
             : name) +
-        " " +
+        (columns < 110 ? "" : " ") +
         (index + 1),
     )
-    .join("  ");
+    .join(columns < 110 ? " " : "  ");
   let lines = [
     row(
       "CHIPSIM  " + state.model.name + "   · behavioral · normalized ticks",
@@ -586,7 +594,13 @@ export function render(state) {
     lines.push(...stimulusTable(state, available));
   else if (state.view === "activity")
     lines.push(...activityRows(state, available));
-  else lines.push(...sources(state, available));
+  else if (state.view === "program") {
+    const sourceHeight = Math.max(7, Math.floor(available * 0.55));
+    lines.push(
+      ...programRows(state, sourceHeight),
+      ...waveform(state, Math.max(4, available - sourceHeight)),
+    );
+  } else lines.push(...sources(state, available));
   while (lines.length < rows - (monitoring ? 4 : 3)) lines.push(row(""));
   lines = lines.slice(0, rows - (monitoring ? 4 : 3));
   if (monitoring)
@@ -615,7 +629,7 @@ export function render(state) {
     ),
     row(state.message, state.error ? "error" : "status"),
     row(
-      "q quit · ? help · 1–8 views · m models · d import · x export" +
+      "q quit · ? help · 1–9 views · m models · d import · x export" +
         (state.activity ? " · W watch" : " · c create"),
       "dim",
     ),

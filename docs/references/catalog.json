@@ -1,0 +1,310 @@
+{
+  "schema_version": 1,
+  "description": "Document roles and real execution scope for every chip/family currently referenced by ChipSim. Empty roles and missing downloads are explicit.",
+  "chips": [
+    {
+      "id": "rp2040",
+      "title": "RP2040 / PIO",
+      "models": ["pio"],
+      "kind": "programmable",
+      "nativeProgramming": "PIO assembly; Arm Thumb firmware requires a separate CPU backend.",
+      "scope": "One original semantic PIO transfer example; no custom native instruction loader yet.",
+      "documents": {
+        "datasheet": ["rp2040-rp2040-datasheet"],
+        "referenceManual": ["rp2040-rp2040-datasheet"],
+        "programmingGuide": ["rp2040-pico-c-sdk"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "am335x",
+      "title": "AM335x / PRU",
+      "models": ["pru"],
+      "kind": "programmable",
+      "nativeProgramming": "PRU assembly; Arm firmware is a different execution target.",
+      "scope": "Direct R30/R31 semantic transfer example; not a full PRU ISA or AM335x emulator.",
+      "documents": {
+        "datasheet": ["am335x-datasheet"],
+        "referenceManual": ["am335x-ti-am335x-trm-spruh73q"],
+        "programmingGuide": ["am335x-pru-programming-guide"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "s32k144",
+      "title": "S32K144 / FlexIO",
+      "models": ["flexio"],
+      "kind": "programmable",
+      "nativeProgramming": "C/C++ host firmware configures FlexIO registers; FlexIO itself has no CPU instruction stream.",
+      "scope": "Shifter/timer teaching scenario; arbitrary FlexIO register configurations are not yet executable.",
+      "documents": {
+        "datasheet": ["s32k144-datasheet"],
+        "referenceManual": ["s32k144-reference-manual"],
+        "programmingGuide": ["s32k144-nxp-flexio-an12174"],
+        "applicationNotes": ["s32k144-nxp-flexio-an12174"]
+      },
+      "missing": []
+    },
+    {
+      "id": "psoc5lp",
+      "title": "PSoC 5LP / UDB",
+      "models": ["udb"],
+      "kind": "programmable",
+      "nativeProgramming": "PSoC Creator hardware/datapath configuration plus Cortex-M3 firmware.",
+      "scope": "Composed UDB teaching network; no fitter, routing compiler or Cortex-M3 firmware execution.",
+      "documents": {
+        "datasheet": ["psoc5lp-datasheet"],
+        "referenceManual": ["psoc5lp-infineon-psoc5lp-architecture-trm"],
+        "programmingGuide": ["psoc5lp-creator-programming-guide"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "xcore-xs3",
+      "title": "XMOS xCORE / XS3",
+      "models": ["xmos"],
+      "kind": "programmable",
+      "nativeProgramming": "xC/C/C++ compiled for the XS3 ISA; xsim is the vendor simulator.",
+      "scope": "One timed-port teaching scenario; no XE executable loading or native ISA backend.",
+      "documents": {
+        "datasheet": ["xcore-xs3-datasheet"],
+        "referenceManual": ["xcore-xs3-xmos-xs3-architecture"],
+        "programmingGuide": [
+          "xcore-xs3-xtc-programming-guide",
+          "xcore-xs3-xmos-clocked-io-an03001"
+        ],
+        "applicationNotes": ["xcore-xs3-xmos-clocked-io-an03001"]
+      },
+      "missing": []
+    },
+    {
+      "id": "etpu",
+      "title": "eTPU (MPC5554 as a device reference)",
+      "models": ["etpu"],
+      "kind": "programmable",
+      "nativeProgramming": "eTPU C compiled to microengine code; host Power Architecture firmware is a separate target.",
+      "scope": "Match/capture channel teaching example; no eTPU microcode execution.",
+      "documents": {
+        "datasheet": ["etpu-mpc5554-datasheet"],
+        "referenceManual": [],
+        "programmingGuide": [
+          "etpu-nxp-etpu-channel-hardware-an2933",
+          "etpu-nxp-etpu-essentials-an2353",
+          "etpu-programming-guide"
+        ],
+        "applicationNotes": [
+          "etpu-nxp-etpu-channel-hardware-an2933",
+          "etpu-nxp-etpu-essentials-an2353",
+          "etpu-programming-guide"
+        ]
+      },
+      "missing": [
+        {
+          "role": "referenceManual",
+          "title": "Enhanced Time Processing Unit Reference Manual (ETPURM)",
+          "status": "skipped-by-user",
+          "source_url": "https://www.nxp.com/products/eTPUArchive#documentation",
+          "reason": "Skipped at the user's request. NXP lists ETPURM Rev. 1 as Account Required; the full manual is not bundled. Public application notes remain the references for the existing teaching model."
+        }
+      ]
+    },
+    {
+      "id": "74hc595",
+      "title": "74HC595 / 74HCT595",
+      "models": ["hc595"],
+      "kind": "fixed-function",
+      "nativeProgramming": "No CPU or firmware. Supply data, shift/storage clocks, reset and output enable.",
+      "scope": "Reviewed shift/storage-register profile; no analog/timing model.",
+      "documents": {
+        "datasheet": ["74hc595-nexperia-74hc595"],
+        "referenceManual": ["74hc595-nexperia-74hc595"],
+        "programmingGuide": ["74hc595-nexperia-74hc595"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "74hc00",
+      "title": "74HC00",
+      "models": [],
+      "kind": "fixed-function",
+      "nativeProgramming": "No CPU or native program. A host experiment drives the documented input pins.",
+      "scope": "Data-derived supported function-table model; consult the generated model for instance mapping and limitations.",
+      "documents": {
+        "datasheet": ["74hc00-nexperia-74hc00"],
+        "referenceManual": ["74hc00-nexperia-74hc00"],
+        "programmingGuide": ["74hc00-nexperia-74hc00"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "74hc86",
+      "title": "74HC86",
+      "models": [],
+      "kind": "fixed-function",
+      "nativeProgramming": "No CPU or native program. A host experiment drives the documented input pins.",
+      "scope": "Data-derived supported function-table model; consult the generated model for instance mapping and limitations.",
+      "documents": {
+        "datasheet": ["74hc86-nexperia-74hc86"],
+        "referenceManual": ["74hc86-nexperia-74hc86"],
+        "programmingGuide": ["74hc86-nexperia-74hc86"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "74hc157",
+      "title": "74HC157",
+      "models": [],
+      "kind": "fixed-function",
+      "nativeProgramming": "No CPU or native program. A host experiment drives the documented input pins.",
+      "scope": "Data-derived supported function-table model; consult the generated model for instance mapping and limitations.",
+      "documents": {
+        "datasheet": ["74hc157-nexperia-74hc157"],
+        "referenceManual": ["74hc157-nexperia-74hc157"],
+        "programmingGuide": ["74hc157-nexperia-74hc157"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "74hc377",
+      "title": "74HC377",
+      "models": [],
+      "kind": "fixed-function",
+      "nativeProgramming": "No CPU or native program. A host experiment drives the documented input pins.",
+      "scope": "Data-derived supported function-table model; consult the generated model for instance mapping and limitations.",
+      "documents": {
+        "datasheet": ["74hc377-nexperia-74hc377"],
+        "referenceManual": ["74hc377-nexperia-74hc377"],
+        "programmingGuide": ["74hc377-nexperia-74hc377"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "74hc273",
+      "title": "74HC273",
+      "models": [],
+      "kind": "fixed-function",
+      "nativeProgramming": "No CPU or native program. A host experiment drives the documented input pins.",
+      "scope": "Data-derived supported function-table model; consult the generated model for instance mapping and limitations.",
+      "documents": {
+        "datasheet": ["74hc273-nexperia-74hc273"],
+        "referenceManual": ["74hc273-nexperia-74hc273"],
+        "programmingGuide": ["74hc273-nexperia-74hc273"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "sn74lvc1g125",
+      "title": "SN74LVC1G125",
+      "models": [],
+      "kind": "fixed-function",
+      "nativeProgramming": "No CPU or native program. A host experiment drives the documented input pins.",
+      "scope": "Data-derived supported function-table model; consult the generated model for instance mapping and limitations.",
+      "documents": {
+        "datasheet": ["sn74lvc1g125-ti-sn74lvc1g125"],
+        "referenceManual": ["sn74lvc1g125-ti-sn74lvc1g125"],
+        "programmingGuide": ["sn74lvc1g125-ti-sn74lvc1g125"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "pca9555",
+      "title": "PCA9555",
+      "models": ["pca9555"],
+      "kind": "register-peripheral",
+      "nativeProgramming": "No CPU. Program its register interface using host transactions.",
+      "scope": "Two-bank completed-byte GPIO/interrupt model; no physical I2C serialization.",
+      "documents": {
+        "datasheet": ["pca9555-ti-pca9555"],
+        "referenceManual": ["pca9555-ti-pca9555"],
+        "programmingGuide": ["pca9555-ti-pca9555"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "hd74hc77",
+      "title": "HD74HC77",
+      "models": [],
+      "kind": "fixed-function",
+      "nativeProgramming": "No CPU or native program. A host experiment drives the documented input pins.",
+      "scope": "Data-derived supported function-table model; consult the generated model for instance mapping and limitations.",
+      "documents": {
+        "datasheet": ["hd74hc77-renesas-hd74hc77"],
+        "referenceManual": ["hd74hc77-renesas-hd74hc77"],
+        "programmingGuide": ["hd74hc77-renesas-hd74hc77"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "sn74ahc273-q1",
+      "title": "SN74AHC273-Q1",
+      "models": [],
+      "kind": "fixed-function",
+      "nativeProgramming": "No CPU or native program. A host experiment drives the documented input pins.",
+      "scope": "Data-derived supported function-table model; consult the generated model for instance mapping and limitations.",
+      "documents": {
+        "datasheet": ["sn74ahc273-q1-ti-sn74ahc273-q1"],
+        "referenceManual": ["sn74ahc273-q1-ti-sn74ahc273-q1"],
+        "programmingGuide": ["sn74ahc273-q1-ti-sn74ahc273-q1"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "hd74hc138",
+      "title": "HD74HC138",
+      "models": [],
+      "kind": "fixed-function",
+      "nativeProgramming": "No CPU or native program. A host experiment drives the documented input pins.",
+      "scope": "Data-derived supported function-table model; consult the generated model for instance mapping and limitations.",
+      "documents": {
+        "datasheet": ["hd74hc138-renesas-hd74hc138"],
+        "referenceManual": ["hd74hc138-renesas-hd74hc138"],
+        "programmingGuide": ["hd74hc138-renesas-hd74hc138"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "tca9534",
+      "title": "TCA9534",
+      "models": ["tca9534"],
+      "kind": "register-peripheral",
+      "nativeProgramming": "No CPU. Program its register interface using host transactions.",
+      "scope": "One-bank completed-byte GPIO/interrupt model; no physical I2C serialization.",
+      "documents": {
+        "datasheet": ["tca9534-ti-tca9534"],
+        "referenceManual": ["tca9534-ti-tca9534"],
+        "programmingGuide": ["tca9534-ti-tca9534"],
+        "applicationNotes": []
+      },
+      "missing": []
+    },
+    {
+      "id": "esp32-c6",
+      "title": "ESP32-C6",
+      "models": ["esp32c6-gpio", "esp32c6-pcnt"],
+      "kind": "programmable",
+      "nativeProgramming": "RISC-V C/C++ or assembly requires a CPU backend; ChipSim experiments use modeled registers and pins.",
+      "scope": "GPIO output/enable word transactions and one static PCNT channel. No firmware, IO MUX, wireless stack or full SoC.",
+      "documents": {
+        "datasheet": ["esp32-c6-datasheet"],
+        "referenceManual": ["esp32-c6-espressif-esp32-c6-trm"],
+        "programmingGuide": ["esp32-c6-esp-idf-programming-guide"],
+        "applicationNotes": []
+      },
+      "missing": []
+    }
+  ]
+}

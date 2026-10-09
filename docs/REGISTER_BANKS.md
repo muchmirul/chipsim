@@ -57,7 +57,7 @@ The default demonstration injects set bits for non-`rw` words, writes an alterna
 ## RP2040 scratch storage from a real manual
 
 ```sh
-npm start -- --document docs/references/rp2040-datasheet.pdf
+npm start -- --document docs/references/rp2040/rp2040-datasheet.pdf
 ```
 
 The manual initially opens the PIO example. Press `c`, choose Register bank, give the experiment a name, choose width **32**, and enter `@examples/rp2040-watchdog-scratch.registers.txt`. Its eight rows explicitly select relative offsets `0x0C` through `0x28` in four-byte steps, `rw`, zero reset words, and full 32-bit masks.

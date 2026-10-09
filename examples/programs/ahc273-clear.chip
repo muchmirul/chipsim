@@ -1,0 +1,22 @@
+# One generic flip-flop; no package replication or setup/hold timing inferred.
+model state-table-832098c1b03b-p12-t71
+param initialOutputs 0
+guide sn74ahc273-q1-ti-sn74ahc273-q1 12 "Q0 = previous state"
+drive pin_clr 1
+drive pin_d 1
+expect signal.pin_q == 0
+drive pin_clk 1
+expect signal.pin_q == 1
+drive pin_d 0
+expect signal.pin_q == 1
+drive pin_clk 0
+expect signal.pin_q == 1
+drive pin_clk 1
+expect signal.pin_q == 0
+drive pin_clk 0
+drive pin_d 1
+drive pin_clk 1
+expect signal.pin_q == 1
+drive pin_clr 0
+expect signal.pin_q == 0
+halt

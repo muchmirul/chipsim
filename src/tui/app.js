@@ -804,7 +804,49 @@ export class TerminalApp {
         return;
       }
       if (k === "?") s.help = true;
-      else if (k === "W") {
+      else if (k === "P")
+        this.prompt(
+          "Load source program (.chip)",
+          s.programPath || "",
+          (path) => this.task(() => s.loadProgramFile(unquote(path))),
+        );
+      else if (
+        s.view === "program" &&
+        ["N", "C", "J", "K", "G", "Q"].includes(k)
+      ) {
+        const debug = s.programDebugger;
+        if (!debug) throw new Error("Load a source program with P first.");
+        if (k === "G")
+          this.menu(
+            "VERIFIED PROGRAMMING GUIDES",
+            debug.guides.map((g) => ({
+              label: g.title + " · PDF page " + g.page,
+              detail: g.quote + "\n" + g.path + "\nSHA-256 " + g.sha256,
+              value: g,
+            })),
+            () => {},
+          );
+        else if (k === "Q") {
+          s.programDebugger = null;
+          s.rebuild();
+          s.setMessage(
+            "Program detached · recorded input experiment retained.",
+          );
+        } else if (k === "K") {
+          debug.toggleBreakpoint(s.programLine);
+          s.setMessage("Breakpoint toggled on line " + s.programLine);
+        } else {
+          if (k === "N") debug.step();
+          if (k === "C") debug.continue();
+          if (k === "J") debug.back();
+          s.syncProgram();
+          s.setMessage(
+            debug.error?.message ||
+              `${debug.status} · tick ${debug.tick} · next line ${debug.next?.line ?? "end"}`,
+            !!debug.error,
+          );
+        }
+      } else if (k === "W") {
         if (!this.monitor)
           throw new Error(
             "Open ChipSim with --watch PROJECT to monitor an agent project.",
@@ -938,14 +980,17 @@ export class TerminalApp {
       else if (k === "n" || k === "N") {
         if (s.view === "sources") s.nextSourceHit(k === "n" ? 1 : -1);
         else s.findSignal(undefined, k === "n" ? 1 : -1);
-      } else if (/^[1-8]$/.test(k)) s.setView(views[Number(k) - 1]);
+      } else if (/^[1-9]$/.test(k)) s.setView(views[Number(k) - 1]);
       else if (key.name === "tab")
         s.setView(views[(views.indexOf(s.view) + 1) % views.length]);
       else if (k === " " || key.name === "space") {
         if (s.tick === s.trace.length - 1) s.seek(0);
         s.playing = !s.playing;
       } else if (k === "r") {
-        s.rebuild();
+        if (s.programDebugger) {
+          s.programDebugger.reset();
+          s.syncProgram();
+        } else s.rebuild();
         s.setMessage("Reset simulation.");
       } else if (k === "0" || key.name === "home") s.seek(0);
       else if (k === "$" || key.name === "end") s.seek(s.trace.length - 1);
@@ -969,7 +1014,12 @@ export class TerminalApp {
         } else if (["wave", "inspect", "registers"].includes(s.view))
           this.traceDetail.open();
       } else if (k === "j" || key.name === "down") {
-        if (s.view === "activity") {
+        if (s.view === "program" && s.programDebugger)
+          s.programLine = Math.min(
+            s.programDebugger.program.lines.length,
+            s.programLine + 1,
+          );
+        else if (s.view === "activity") {
           s.activityFollow = false;
           s.activityIndex = Math.min(
             activityEvents(s).length - 1,
@@ -993,7 +1043,9 @@ export class TerminalApp {
         else if (s.view === "sources") s.sourceScroll++;
         else s.moveSignal(1);
       } else if (k === "k" || key.name === "up") {
-        if (s.view === "activity") {
+        if (s.view === "program" && s.programDebugger)
+          s.programLine = Math.max(1, s.programLine - 1);
+        else if (s.view === "activity") {
           s.activityFollow = false;
           s.activityIndex = Math.max(0, s.activityIndex - 1);
           s.activityDetailScroll = 0;

@@ -18,7 +18,7 @@ import { exportCSV, exportJSON, exportVCD } from "../src/trace/export.js";
 import { documentTitle } from "../src/documents/title.js";
 
 const manual = new URL(
-  "../docs/references/renesas-hd74hc77.pdf",
+  "../docs/references/hd74hc77/renesas-hd74hc77.pdf",
   import.meta.url,
 ).pathname;
 const documentPromise = extractPDFFile(manual);

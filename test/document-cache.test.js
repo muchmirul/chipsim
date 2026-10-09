@@ -16,7 +16,7 @@ import { TuiState } from "../src/tui/state.js";
 import { TerminalApp } from "../src/tui/app.js";
 import { render, displayWidth, screenText } from "../src/tui/render.js";
 
-const pdf = new URL("../docs/references/ti-tca9534.pdf", import.meta.url)
+const pdf = new URL("../docs/references/tca9534/ti-tca9534.pdf", import.meta.url)
   .pathname;
 const extracted = extractPDFFile(pdf);
 function legacy(document) {
@@ -140,7 +140,7 @@ test("failed saved-PDF refresh preserves disk records, source and the working ex
     before = experiment(state),
     onDisk = await state.workspace.records("documents");
   await copyFile(
-    new URL("../docs/references/ti-pca9555.pdf", import.meta.url),
+    new URL("../docs/references/pca9555/ti-pca9555.pdf", import.meta.url),
     document.filePath,
   );
   await assert.rejects(

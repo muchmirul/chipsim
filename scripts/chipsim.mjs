@@ -17,7 +17,7 @@ export async function main(args = process.argv.slice(2)) {
   }
   const usage = `ChipSim · terminal hardware behavior workbench\nUsage: npm start -- [options]\n  --model pio|pru|flexio|udb|xmos|etpu|model.json\n  --document manual.pdf       Import a PDF; compile supported tables or reviewed profiles
   --list-profiles              List reviewed automatic document profiles\n  --dwfv /path/to/dwfv        Optional external viewer command
-  --watch PROJECT             Monitor agent activity and completed runs\n  --workspace .chipsim        Persistent local workspace directory\n  --params parameters.json    Parameter overrides\n  --inputs events.json        Timed input stimulus\n  --ticks 100                 Duration for document models\n  --snapshot                  Print one terminal frame without a TTY\n  --at 0 --columns 120 --rows 40  Snapshot dimensions and cursor\n  --view wave|inspect|log|sources|model|registers|stimulus|activity\n  --no-color                  Disable colored text\n  --help                      Show this help\n\nInside the TUI: ? help · m models · p params · i pins · d import · c create · q quit.\nOptional waveform viewer: V opens the exported trace in installed dwfv.\n`;
+  --watch PROJECT             Monitor agent activity and completed runs\n  --workspace .chipsim        Persistent local workspace directory\n  --program experiment.chip   Load a source experiment; 9 opens line debugger\n  --params parameters.json    Parameter overrides\n  --inputs events.json        Timed input stimulus\n  --ticks 100                 Duration for document models\n  --snapshot                  Print one terminal frame without a TTY\n  --at 0 --columns 120 --rows 40  Snapshot dimensions and cursor\n  --view wave|inspect|log|sources|model|registers|stimulus|activity|program\n  --no-color                  Disable colored text\n  --help                      Show this help\n\nInside the TUI: ? help · m models · p params · i pins · d import · c create · q quit.\nOptional waveform viewer: V opens the exported trace in installed dwfv.\n`;
   if (args.includes("--help") || args.includes("-h")) {
     process.stdout.write(usage);
     process.stdout.write(
@@ -45,6 +45,7 @@ export async function main(args = process.argv.slice(2)) {
     "dwfv",
     "workspace",
     "watch",
+    "program",
     "params",
     "inputs",
     "ticks",
@@ -87,6 +88,14 @@ export async function main(args = process.argv.slice(2)) {
       state.selectModel(options.model);
     else await state.loadFile(options.model);
   }
+  if (
+    options.program &&
+    ["params", "inputs", "ticks"].some((key) => options[key])
+  )
+    throw new Error(
+      "--program declares its own parameters, inputs and time advancement.",
+    );
+  if (options.program) await state.loadProgramFile(options.program);
   if (options.params) {
     const supplied = JSON.parse(
       await readFile(resolve(options.params), "utf8"),

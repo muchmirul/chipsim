@@ -43,7 +43,7 @@ export async function recordActivity(project, event) {
     await rm(temporary, { force: true });
   }
   if (
-    record.command === "run" &&
+    ["run", "program-run"].includes(record.command) &&
     record.status === "succeeded" &&
     record.details?.resultSha256 &&
     record.details?.sessionSha256
@@ -76,7 +76,7 @@ export async function readPublishedRun(project) {
     if (
       event.format !== "chipsim-agent-activity" ||
       event.version !== 1 ||
-      event.command !== "run" ||
+      !["run", "program-run"].includes(event.command) ||
       event.status !== "succeeded" ||
       typeof event.id !== "string" ||
       typeof event.time !== "string"

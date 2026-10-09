@@ -169,7 +169,7 @@
     {
       "id": "flexio-manual",
       "title": "Using FlexIO to emulate communications and timing peripherals",
-      "filename": "docs/references/nxp-flexio-an12174.pdf",
+      "filename": "docs/references/s32k144/nxp-flexio-an12174.pdf",
       "sha256": "9707f1feeb81bbc9869cf496678f119a7b54514958700f72a3b3108f86af5088",
       "url": "https://www.nxp.com/docs/en/application-note/AN12174.pdf"
     }

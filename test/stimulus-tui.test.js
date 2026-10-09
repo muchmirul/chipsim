@@ -10,13 +10,14 @@ import { TerminalApp } from "../src/tui/app.js";
 import { render, screenText, displayWidth } from "../src/tui/render.js";
 import { exportJSON, exportVCD } from "../src/trace/export.js";
 import { buildScenario } from "../src/model/templates.js";
+import references from "../docs/references/manifest.json" with { type: "json" };
 
 async function setup(t, manual = "renesas-hd74hc77.pdf") {
   const workspace = await mkdtemp(join(tmpdir(), "chipsim-stimulus-"));
   t.after(() => rm(workspace, { recursive: true, force: true }));
   const state = new TuiState({ workspace });
   await state.initialize();
-  if (manual) await state.loadFile(join(state.root, "docs/references", manual));
+  if (manual) await state.loadFile(join(state.root, references.documents.find((d) => d.path.endsWith("/" + manual)).path));
   const input = new EventEmitter(),
     output = new EventEmitter();
   input.isRaw = false;
@@ -239,6 +240,8 @@ test("terminal event scheduling, value/move menus, delete, clear/restore, and un
   assert.equal(s.config.inputs.length, 2);
   key("", "tab");
   assert.equal(s.view, "activity");
+  key("", "tab");
+  assert.equal(s.view, "program");
   key("", "tab");
   assert.equal(s.view, "wave");
 });

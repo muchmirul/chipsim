@@ -13,7 +13,7 @@ import { buildScenario } from "../src/model/templates.js";
 import { TuiState } from "../src/tui/state.js";
 import { TerminalApp } from "../src/tui/app.js";
 import { screenText, render, displayWidth } from "../src/tui/render.js";
-const path = new URL("../docs/references/nexperia-74hc157.pdf", import.meta.url)
+const path = new URL("../docs/references/74hc157/nexperia-74hc157.pdf", import.meta.url)
   .pathname;
 const document = extractPDFFile(path);
 async function setup(t) {

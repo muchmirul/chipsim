@@ -32,7 +32,7 @@ with tempfile.TemporaryDirectory(prefix="chipsim-monitor-pty-") as temporary:
         assert result.stderr == "", result.stderr
         return report
 
-    prepared = agent("prepare", ROOT / "docs/references/nexperia-74hc00.pdf", "--out", project)
+    prepared = agent("prepare", ROOT / "docs/references/74hc00/nexperia-74hc00.pdf", "--out", project)
     model = project / prepared["models"][0]["file"]
     spec = json.loads(model.read_text())
     model_id = spec["id"]
@@ -95,7 +95,7 @@ with tempfile.TemporaryDirectory(prefix="chipsim-monitor-pty-") as temporary:
         send("W")
         wait("Agent's shorter experiment")
         assert "tick 5/5" in frame() and "format decimal" in frame()
-        assert "[REGISTERS] 6" in frame()
+        assert re.search(r"\[REGISTERS\]\s?6", frame()), frame()
         send("t")
         wait("Go to normalized tick")
         run("third", "Agent's third experiment", 10)

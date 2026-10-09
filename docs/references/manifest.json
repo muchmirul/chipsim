@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "retrieved_on": "2026-10-07",
-  "description": "Complete official PDFs cited by ChipSim architecture examples, reviewed document profiles, and data-derived function-table tests. Versions are pinned snapshots.",
+  "retrieved_on": "2026-10-08",
+  "description": "Unchanged pinned official PDFs organized by device/family. catalog.json maps document roles, programming references and simulation coverage.",
   "documents": [
     {
       "chips": ["pio"],
-      "path": "docs/references/rp2040-datasheet.pdf",
+      "path": "docs/references/rp2040/rp2040-datasheet.pdf",
       "title": "RP2040 Datasheet",
       "publisher": "Raspberry Pi",
       "revision": "Build 2025-02-20; 3184e62-clean",
@@ -17,11 +17,12 @@
       "pdf_start_page": 312,
       "relevant_sections": "Chapter 3, especially 3.1-3.2 and 3.4-3.5",
       "supports": "Instruction memory, state machines, FIFOs, shifts, pin control, and instruction behavior.",
-      "model_assumptions": "The model combines multiple instructions into semantic actions. FIFO delay, bounded polling, and normalized timing are model choices; WAIT alone is not a timeout."
+      "model_assumptions": "The model combines multiple instructions into semantic actions. FIFO delay, bounded polling, and normalized timing are model choices; WAIT alone is not a timeout.",
+      "id": "rp2040-rp2040-datasheet"
     },
     {
       "chips": ["pru"],
-      "path": "docs/references/ti-am335x-trm-spruh73q.pdf",
+      "path": "docs/references/am335x/ti-am335x-trm-spruh73q.pdf",
       "title": "AM335x and AMIC110 Sitara Processors Technical Reference Manual",
       "publisher": "Texas Instruments",
       "revision": "SPRUH73Q; revised December 2019",
@@ -33,11 +34,12 @@
       "pdf_start_page": 208,
       "relevant_sections": "4.4.1 PRU Cores; 4.4.1.2; Table 4-21",
       "supports": "PRU execution and the direct R30/R31 I/O paths.",
-      "model_assumptions": "Only direct-output mode is modeled. Four ticks of unavailable firmware represent a teaching experiment; detailed instruction timing, bus arbitration, and optional shift-output hardware are outside scope."
+      "model_assumptions": "Only direct-output mode is modeled. Four ticks of unavailable firmware represent a teaching experiment; detailed instruction timing, bus arbitration, and optional shift-output hardware are outside scope.",
+      "id": "am335x-ti-am335x-trm-spruh73q"
     },
     {
       "chips": ["flexio"],
-      "path": "docs/references/nxp-flexio-an12174.pdf",
+      "path": "docs/references/s32k144/nxp-flexio-an12174.pdf",
       "title": "Using FlexIO to emulate communications and timing peripherals",
       "publisher": "NXP",
       "revision": "AN12174, Rev. 0, June 2018",
@@ -49,11 +51,12 @@
       "pdf_start_page": 3,
       "relevant_sections": "2 Overview of the FlexIO module; 4.1.1 transmit configuration",
       "supports": "Shifter/timer structure, triggers, and transfer configuration.",
-      "model_assumptions": "The example uses a representative S32K144 resource budget. Register encodings, buffer aliases, and automatic framing are abstracted; custom ACK handling is host software."
+      "model_assumptions": "The example uses a representative S32K144 resource budget. Register encodings, buffer aliases, and automatic framing are abstracted; custom ACK handling is host software.",
+      "id": "s32k144-nxp-flexio-an12174"
     },
     {
       "chips": ["udb"],
-      "path": "docs/references/infineon-psoc5lp-architecture-trm.pdf",
+      "path": "docs/references/psoc5lp/infineon-psoc5lp-architecture-trm.pdf",
       "title": "PSoC 5LP Architecture TRM",
       "publisher": "Cypress / Infineon",
       "revision": "001-78426 Rev. *G",
@@ -65,11 +68,12 @@
       "pdf_start_page": 165,
       "relevant_sections": "21 Universal Digital Blocks; 22 UDB Array and Digital System Interconnect",
       "supports": "PLDs, datapaths, configuration stores, and routing.",
-      "model_assumptions": "The design is a composed UDB network, not a claim that the complete link fits one UDB. Fitting, propagation delay, and exact clock distribution are abstracted."
+      "model_assumptions": "The design is a composed UDB network, not a claim that the complete link fits one UDB. Fitting, propagation delay, and exact clock distribution are abstracted.",
+      "id": "psoc5lp-infineon-psoc5lp-architecture-trm"
     },
     {
       "chips": ["xmos"],
-      "path": "docs/references/xmos-xs3-architecture.pdf",
+      "path": "docs/references/xcore-xs3/xmos-xs3-architecture.pdf",
       "title": "The XMOS XS3 Architecture",
       "publisher": "XMOS",
       "revision": "XM-014007-PS v2.1.0, 2025-03-06",
@@ -81,11 +85,12 @@
       "pdf_start_page": 18,
       "relevant_sections": "3 Concurrent Threads; 5 Instruction Issue and Execution; 10 Resources and the Thread Scheduler; 14 Timers; 15 Ports, Input and Output; 17 Events",
       "supports": "Execution sharing, resource-driven scheduling, timed ports, timers, and event handling.",
-      "model_assumptions": "The model allows one pending unbuffered timed write. Displayed CLK is a data bit, distinct from the underlying port clock. Time domains and counter wrap are abstracted."
+      "model_assumptions": "The model allows one pending unbuffered timed write. Displayed CLK is a data bit, distinct from the underlying port clock. Time domains and counter wrap are abstracted.",
+      "id": "xcore-xs3-xmos-xs3-architecture"
     },
     {
       "chips": ["xmos"],
-      "path": "docs/references/xmos-clocked-io-an03001.pdf",
+      "path": "docs/references/xcore-xs3/xmos-clocked-io-an03001.pdf",
       "title": "AN03001: XCORE Clocked Input and Output",
       "publisher": "XMOS",
       "revision": "XM-015254-AN v1.0.0, 2025-03-11",
@@ -97,11 +102,12 @@
       "pdf_start_page": 6,
       "relevant_sections": "1 Generating a Clock Signal; 3 Performing I/O on Specific Clock Edges; 5 Summary of Clocked Port Behavior",
       "supports": "Port clock configuration and I/O timing conditions.",
-      "model_assumptions": "This supports the port timing explanation; it is not the executable implementation of ChipSim's DATA/CLK/ACK recipe."
+      "model_assumptions": "This supports the port timing explanation; it is not the executable implementation of ChipSim's DATA/CLK/ACK recipe.",
+      "id": "xcore-xs3-xmos-clocked-io-an03001"
     },
     {
       "chips": ["etpu"],
-      "path": "docs/references/nxp-etpu-channel-hardware-an2933.pdf",
+      "path": "docs/references/etpu/nxp-etpu-channel-hardware-an2933.pdf",
       "title": "Understanding the eTPU Channel Hardware",
       "publisher": "Freescale / NXP",
       "revision": "AN2933, Rev. 0, December 2004",
@@ -113,11 +119,12 @@
       "pdf_start_page": 3,
       "relevant_sections": "2 Architecture of the eTPU Channel; 5.1-5.3",
       "supports": "Match/capture action units, pin actions, recognition control, event latches, and servicing.",
-      "model_assumptions": "CLK rearming is modeled with two slots. Separate DATA-channel preparation is assumed timely. A missed required CLK target ends the demonstration rather than predicting every later hardware effect."
+      "model_assumptions": "CLK rearming is modeled with two slots. Separate DATA-channel preparation is assumed timely. A missed required CLK target ends the demonstration rather than predicting every later hardware effect.",
+      "id": "etpu-nxp-etpu-channel-hardware-an2933"
     },
     {
       "chips": ["etpu"],
-      "path": "docs/references/nxp-etpu-essentials-an2353.pdf",
+      "path": "docs/references/etpu/nxp-etpu-essentials-an2353.pdf",
       "title": "The Essentials of Enhanced Time Processing Unit",
       "publisher": "Freescale / NXP",
       "revision": "AN2353, Rev. 1, August 2004",
@@ -129,11 +136,12 @@
       "pdf_start_page": 3,
       "relevant_sections": "3 Channel Hardware; 4 Memory; 5 The Microengine",
       "supports": "Shared microengine, memory, channels, and hardware-assisted timing.",
-      "model_assumptions": "ACK capture is evaluated by its timestamp, with a model-defined two-tick service delay. These timing constants are teaching assumptions, not device latency specifications."
+      "model_assumptions": "ACK capture is evaluated by its timestamp, with a model-defined two-tick service delay. These timing constants are teaching assumptions, not device latency specifications.",
+      "id": "etpu-nxp-etpu-essentials-an2353"
     },
     {
       "chips": ["hc595"],
-      "path": "docs/references/nexperia-74hc595.pdf",
+      "path": "docs/references/74hc595/nexperia-74hc595.pdf",
       "title": "74HC595; 74HCT595 product data sheet",
       "publisher": "Nexperia",
       "revision": "Rev. 12, 20 March 2024",
@@ -146,12 +154,13 @@
       "pdf_start_page": 1,
       "relevant_sections": "1 General description; 5 Functional diagram; 6.2 Pin description; 7 Functional description, Table 3",
       "supports": "Eight-stage shifting, independent storage clock, active-low shift reset, simultaneous clock ordering, and output gating.",
-      "model_assumptions": "Ideal digital steps; configured initial values are scenario choices, not guaranteed power-on state. Parallel latch value and output-enable flag are represented separately; analog high impedance, propagation delays, and setup/hold constraints are omitted."
+      "model_assumptions": "Ideal digital steps; configured initial values are scenario choices, not guaranteed power-on state. Parallel latch value and output-enable flag are represented separately; analog high impedance, propagation delays, and setup/hold constraints are omitted.",
+      "id": "74hc595-nexperia-74hc595"
     },
     {
       "chips": [],
       "compiler": "function-table",
-      "path": "docs/references/nexperia-74hc00.pdf",
+      "path": "docs/references/74hc00/nexperia-74hc00.pdf",
       "title": "74HC00; 74HCT00 product data sheet",
       "publisher": "Nexperia",
       "revision": "Rev. 11, 29 April 2025",
@@ -164,12 +173,13 @@
       "pdf_start_page": 3,
       "relevant_sections": "5.2 Pin description; 6 Functional description, Table 3",
       "supports": "Binary combinational function table and numbered gate instances. These are regression references, not fingerprint-specific compiler rules.",
-      "model_assumptions": "Ideal instantaneous binary logic. Indexed channels are derived from pin lists; electrical and timing behavior is omitted."
+      "model_assumptions": "Ideal instantaneous binary logic. Indexed channels are derived from pin lists; electrical and timing behavior is omitted.",
+      "id": "74hc00-nexperia-74hc00"
     },
     {
       "chips": [],
       "compiler": "function-table",
-      "path": "docs/references/nexperia-74hc86.pdf",
+      "path": "docs/references/74hc86/nexperia-74hc86.pdf",
       "title": "74HC86; 74HCT86 product data sheet",
       "publisher": "Nexperia",
       "revision": "Rev. 7, 2 April 2024",
@@ -182,12 +192,13 @@
       "pdf_start_page": 3,
       "relevant_sections": "5.2 Pin description; 6 Functional description, Table 3",
       "supports": "Binary combinational function table and numbered gate instances. These are regression references, not fingerprint-specific compiler rules.",
-      "model_assumptions": "Ideal instantaneous binary logic. Indexed channels are derived from pin lists; electrical and timing behavior is omitted."
+      "model_assumptions": "Ideal instantaneous binary logic. Indexed channels are derived from pin lists; electrical and timing behavior is omitted.",
+      "id": "74hc86-nexperia-74hc86"
     },
     {
       "chips": [],
       "compiler": "function-table",
-      "path": "docs/references/nexperia-74hc157.pdf",
+      "path": "docs/references/74hc157/nexperia-74hc157.pdf",
       "title": "74HC157; 74HCT157 product data sheet",
       "publisher": "Nexperia",
       "revision": "Rev. 10, 28 May 2024",
@@ -200,13 +211,14 @@
       "pdf_start_page": 3,
       "relevant_sections": "5.2 Pin description; 6 Functional description, Table 3",
       "supports": "Four independent data channels using shared select and enable pins, derived from the binary table and pin descriptions. Regression reference, not a fingerprint-specific compiler rule.",
-      "model_assumptions": "Ideal instantaneous binary logic; normalized ticks, no electrical or propagation-delay model."
+      "model_assumptions": "Ideal instantaneous binary logic; normalized ticks, no electrical or propagation-delay model.",
+      "id": "74hc157-nexperia-74hc157"
     },
     {
       "chips": [],
       "compiler": "function-table",
       "kind": "sequential",
-      "path": "docs/references/nexperia-74hc377.pdf",
+      "path": "docs/references/74hc377/nexperia-74hc377.pdf",
       "title": "74HC377; 74HCT377 product data sheet",
       "publisher": "Nexperia",
       "revision": "Rev. 6, 5 August 2024",
@@ -219,13 +231,14 @@
       "pdf_start_page": 3,
       "relevant_sections": "5.2 Pin description; 6 Functional description, Table 3",
       "supports": "Eight independent retained output bits with shared clock and enable; edge loading and explicit no-change rows derived from table content. Regression reference, not a fingerprint-specific rule.",
-      "model_assumptions": "Configured initial output bits are scenario values, not specified power-on state. Tick zero establishes clock history; ideal edge evaluation omits physical setup/hold constraints, metastability, electrical characteristics, and delays."
+      "model_assumptions": "Configured initial output bits are scenario values, not specified power-on state. Tick zero establishes clock history; ideal edge evaluation omits physical setup/hold constraints, metastability, electrical characteristics, and delays.",
+      "id": "74hc377-nexperia-74hc377"
     },
     {
       "chips": [],
       "compiler": "function-table",
       "kind": "sequential",
-      "path": "docs/references/nexperia-74hc273.pdf",
+      "path": "docs/references/74hc273/nexperia-74hc273.pdf",
       "title": "74HC273; 74HCT273 product data sheet",
       "publisher": "Nexperia",
       "revision": "Rev. 8, 5 August 2024",
@@ -238,13 +251,14 @@
       "pdf_start_page": 4,
       "relevant_sections": "5.2 Pin description on PDF page 3; 6 Functional description, Table 3 on PDF page 4",
       "supports": "Eight retained output bits with shared clock and asynchronous reset; reset dominance and edge loading derived from table content. Regression reference, not a fingerprint-specific rule.",
-      "model_assumptions": "Configured initial output bits are scenario values, not specified power-on state. Tick zero establishes clock history; ideal edge evaluation omits physical setup/hold constraints, metastability, electrical characteristics, and delays."
+      "model_assumptions": "Configured initial output bits are scenario values, not specified power-on state. Tick zero establishes clock history; ideal edge evaluation omits physical setup/hold constraints, metastability, electrical characteristics, and delays.",
+      "id": "74hc273-nexperia-74hc273"
     },
     {
       "chips": [],
       "compiler": "function-table",
       "kind": "tri-state",
-      "path": "docs/references/ti-sn74lvc1g125.pdf",
+      "path": "docs/references/sn74lvc1g125/ti-sn74lvc1g125.pdf",
       "title": "SN74LVC1G125 Single Bus Buffer Gate With 3-State Output",
       "publisher": "Texas Instruments",
       "revision": "SCES223U, revised August 2026",
@@ -257,11 +271,12 @@
       "pdf_start_page": 11,
       "relevant_sections": "7.4 Device Functional Modes, Table 7-1 and its input/output symbol footnotes on PDF page 11",
       "supports": "One buffer with binary data/enable inputs and explicit high-impedance output. Regression reference; behavior is compiled from table content, without a fingerprint-specific rule.",
-      "model_assumptions": "Ideal instantaneous output evaluation, including tick zero. Z means the output driver is released, not a resolved bus voltage. External pull-ups, contention, electrical load, propagation delay and other device features are outside scope."
+      "model_assumptions": "Ideal instantaneous output evaluation, including tick zero. Z means the output driver is released, not a resolved bus voltage. External pull-ups, contention, electrical load, propagation delay and other device features are outside scope.",
+      "id": "sn74lvc1g125-ti-sn74lvc1g125"
     },
     {
       "chips": ["pca9555"],
-      "path": "docs/references/ti-pca9555.pdf",
+      "path": "docs/references/pca9555/ti-pca9555.pdf",
       "title": "PCA9555 Remote 16-bit I2C and SMBus I/O Expander with Interrupt Output and Configuration Registers",
       "publisher": "Texas Instruments",
       "revision": "SCPS131J, revised March 2021",
@@ -273,13 +288,14 @@
       "pdf_start_page": 19,
       "relevant_sections": "8.1\u20138.5.2, especially interrupt/erratum on PDF page 16 and register descriptions on pages 19\u201321",
       "supports": "Two-bank register addresses/defaults, output latches, direction, input inversion, independent input interrupt acknowledgment and released pin drivers. Reviewed fingerprint-specific transaction-level profile.",
-      "model_assumptions": "One addressed byte per normalized request-token change; no physical I2C serialization, paired multi-byte alternation, bus-pointer persistence, analog supply/loading, ACK/NACK races, or shared-bus interrupt erratum. Interrupt baseline at reset and high external starting levels are scenario choices."
+      "model_assumptions": "One addressed byte per normalized request-token change; no physical I2C serialization, paired multi-byte alternation, bus-pointer persistence, analog supply/loading, ACK/NACK races, or shared-bus interrupt erratum. Interrupt baseline at reset and high external starting levels are scenario choices.",
+      "id": "pca9555-ti-pca9555"
     },
     {
       "chips": [],
       "compiler": "function-table",
       "kind": "retained",
-      "path": "docs/references/renesas-hd74hc77.pdf",
+      "path": "docs/references/hd74hc77/renesas-hd74hc77.pdf",
       "title": "HD74HC77 Datasheet",
       "publisher": "Renesas Electronics",
       "revision": "REJ03D0552-0200, Rev. 2.00, 6 October 2005; includes 2010 cover/notices",
@@ -291,13 +307,14 @@
       "pdf_start_page": 3,
       "relevant_sections": "Function Table and symbol definitions on PDF page 3 (printed page 1); description and pin arrangement on pages 3\u20134",
       "supports": "One table-level binary latch with level-sensitive data updates and explicit no-change outputs. Regression reference, not a fingerprint-specific rule.",
-      "model_assumptions": "One generic table instance; package replication/group-enable wiring in the diagram is not inferred. Initial output is an explicit scenario value; instantaneous normalized level evaluation omits setup/hold, delays, electrical behavior and other device features. Original reproduction/usage notices are retained; no general redistribution permission is asserted."
+      "model_assumptions": "One generic table instance; package replication/group-enable wiring in the diagram is not inferred. Initial output is an explicit scenario value; instantaneous normalized level evaluation omits setup/hold, delays, electrical behavior and other device features. Original reproduction/usage notices are retained; no general redistribution permission is asserted.",
+      "id": "hd74hc77-renesas-hd74hc77"
     },
     {
       "chips": [],
       "compiler": "function-table",
       "kind": "sequential",
-      "path": "docs/references/ti-sn74ahc273-q1.pdf",
+      "path": "docs/references/sn74ahc273-q1/ti-sn74ahc273-q1.pdf",
       "title": "SN74AHC273-Q1 Automotive Octal D-Type Flip-Flops with Clear",
       "publisher": "Texas Instruments",
       "revision": "SLVSJA7A, revised June 2026",
@@ -309,13 +326,14 @@
       "pdf_start_page": 12,
       "relevant_sections": "Pin Functions on PDF page 3; 7.4 Device Functional Modes, Table 7-1 and local symbol footnotes on PDF page 12",
       "supports": "One generic table-level flip-flop: rising-edge capture, asynchronous clear, grouped inactive-clock alternatives, and explicitly defined Q0 retention. Rows determine behavior; no fingerprint-specific rule.",
-      "model_assumptions": "One table instance, without inferring the eight numbered package channels. Initial Q is a scenario value. Ideal normalized digital steps omit setup/hold violations, metastability, propagation delays and electrical behavior. Original usage notices remain; this local development repository asserts no general redistribution permission."
+      "model_assumptions": "One table instance, without inferring the eight numbered package channels. Initial Q is a scenario value. Ideal normalized digital steps omit setup/hold violations, metastability, propagation delays and electrical behavior. Original usage notices remain; this local development repository asserts no general redistribution permission.",
+      "id": "sn74ahc273-q1-ti-sn74ahc273-q1"
     },
     {
       "chips": [],
       "compiler": "function-table",
       "kind": "binary",
-      "path": "docs/references/renesas-hd74hc138.pdf",
+      "path": "docs/references/hd74hc138/renesas-hd74hc138.pdf",
       "title": "HD74HC138 Datasheet",
       "publisher": "Renesas Electronics",
       "revision": "REJ03D0570-0300, Rev. 3.00, 25 March 2009; includes 2010 cover/notices",
@@ -327,11 +345,12 @@
       "pdf_start_page": 4,
       "relevant_sections": "Function Table and H/L/X definitions on PDF page 4 (printed page 2); description on PDF page 3",
       "supports": "One six-input/eight-output binary decoder function: enable gating and one active-low selected output. Hierarchical centered group headers and tightly adjacent subscripted signal labels are read from table geometry; no fingerprint-specific rules.",
-      "model_assumptions": "Ideal digital table evaluation includes every binary control/select combination. No pin-number mapping, electrical levels, propagation delays, hazards, loading or physical package wiring is inferred. Complete original notices remain; no general redistribution permission is asserted for this local development reference."
+      "model_assumptions": "Ideal digital table evaluation includes every binary control/select combination. No pin-number mapping, electrical levels, propagation delays, hazards, loading or physical package wiring is inferred. Complete original notices remain; no general redistribution permission is asserted for this local development reference.",
+      "id": "hd74hc138-renesas-hd74hc138"
     },
     {
       "chips": ["tca9534"],
-      "path": "docs/references/ti-tca9534.pdf",
+      "path": "docs/references/tca9534/ti-tca9534.pdf",
       "title": "TCA9534 Low Voltage 8-Bit I2C and SMBUS Low-Power I/O Expander with Interrupt Output and Configuration Registers",
       "publisher": "Texas Instruments",
       "revision": "SCPS197D, revised October 2017; complete official download with 2026 notices/package addendum",
@@ -343,11 +362,12 @@
       "pdf_start_page": 19,
       "relevant_sections": "8.3.1\u20138.4.1 on PDF page 17; 8.6.2/Table 3 on page 19; 8.6.3/Tables 4\u20137 on page 20; bus transaction limits on pages 21\u201323",
       "supports": "Single eight-bit GPIO port with four addressed registers, documented defaults/access, input-only polarity inversion, released output drivers, and input mismatch interrupt acknowledgment. Reviewed exact-fingerprint transaction-level profile.",
-      "model_assumptions": "Completed individually addressed bytes on normalized request-token changes; no physical I2C/SMBus, slave-address pins, command-pointer persistence, repeated bus bytes, ACK interrupt races, delays, supply ramps, pulls/loading or contention. External high starting levels and interrupt reset baseline are explicit scenarios; power_reset abstracts completed POR. Original development-use notices remain; no general redistribution permission is asserted."
+      "model_assumptions": "Completed individually addressed bytes on normalized request-token changes; no physical I2C/SMBus, slave-address pins, command-pointer persistence, repeated bus bytes, ACK interrupt races, delays, supply ramps, pulls/loading or contention. External high starting levels and interrupt reset baseline are explicit scenarios; power_reset abstracts completed POR. Original development-use notices remain; no general redistribution permission is asserted.",
+      "id": "tca9534-ti-tca9534"
     },
     {
       "chips": ["esp32c6-pcnt", "esp32c6-gpio"],
-      "path": "docs/references/espressif-esp32-c6-trm.pdf",
+      "path": "docs/references/esp32-c6/espressif-esp32-c6-trm.pdf",
       "title": "ESP32-C6 Technical Reference Manual",
       "publisher": "Espressif Systems",
       "revision": "Version 1.2, 20 March 2026",
@@ -360,7 +380,245 @@
       "pdf_start_page": 1012,
       "relevant_sections": "Chapter 31: PCNT mode tables pp. 1014-1015, counter/control pp. 1015-1016, fields pp. 1020-1023. Chapter 7: GPIO routing pp. 250-251/280, output/enable registers pp. 270-273, package restrictions p. 244",
       "supports": "Two reviewed scopes: PCNT channel 0 edge/control modes, pause/clear and static signed limits; GPIO OUT/ENABLE latches and their atomic set/clear aliases in a preconfigured simple-output path.",
-      "model_assumptions": "PCNT: channel 1/filtering disabled, ideal levels and static configuration; no MMIO, interrupts/watchpoints or live limits. GPIO: relative addressed completed words, fixed routing, selected logical driver; no inputs, alias readback, package mapping, ETM, open drain or IO MUX programming; invalid bit 31 normalized to zero. Both omit CPU and physical timing. Original copyright/notices retained for local development; no general redistribution permission asserted."
+      "model_assumptions": "PCNT: channel 1/filtering disabled, ideal levels and static configuration; no MMIO, interrupts/watchpoints or live limits. GPIO: relative addressed completed words, fixed routing, selected logical driver; no inputs, alias readback, package mapping, ETM, open drain or IO MUX programming; invalid bit 31 normalized to zero. Both omit CPU and physical timing. Original copyright/notices retained for local development; no general redistribution permission asserted.",
+      "id": "esp32-c6-espressif-esp32-c6-trm"
+    },
+    {
+      "path": "docs/references/rp2040/pico-c-sdk.pdf",
+      "title": "Raspberry Pi Pico C/C++ SDK",
+      "publisher": "Raspberry Pi",
+      "source_url": "https://datasheets.raspberrypi.com/pico/raspberry-pi-pico-c-sdk.pdf",
+      "bytes": 6297830,
+      "pages": 828,
+      "sha256": "93d3befbac8c07bfa08704437f29060ed4100cad5bd256d41a9d5fbe3f82fa31",
+      "chips": [],
+      "category": "context",
+      "retrieved_on": "2026-10-08",
+      "revision": "Build 2026-09-10; ea68919-clean",
+      "pdf_start_page": 1,
+      "relevant_sections": "See this chip folder README for the programming workflow and modeled scope.",
+      "supports": "Vendor context and programming reference; adding this PDF does not extend simulated hardware.",
+      "model_assumptions": "Only the explicitly documented ChipSim model is executable. CPU firmware, electrical behavior and unmodeled chip features are not inferred from this document.",
+      "id": "rp2040-pico-c-sdk"
+    },
+    {
+      "path": "docs/references/am335x/datasheet.pdf",
+      "title": "AM335x Sitara Processors Datasheet",
+      "publisher": "Texas Instruments",
+      "source_url": "https://www.ti.com/lit/ds/symlink/am3358.pdf",
+      "bytes": 3838166,
+      "pages": 264,
+      "sha256": "ec145b6b19a7ff35118bb0ec06b5ae9c51aa97ccdf4da935f2176d9168af0205",
+      "chips": [],
+      "category": "context",
+      "retrieved_on": "2026-10-08",
+      "revision": "SPRS717L; revised March 2020",
+      "pdf_start_page": 1,
+      "relevant_sections": "See this chip folder README for the programming workflow and modeled scope.",
+      "supports": "Vendor context and programming reference; adding this PDF does not extend simulated hardware.",
+      "model_assumptions": "Only the explicitly documented ChipSim model is executable. CPU firmware, electrical behavior and unmodeled chip features are not inferred from this document.",
+      "id": "am335x-datasheet"
+    },
+    {
+      "path": "docs/references/am335x/pru-programming-guide.pdf",
+      "title": "PRU Assembly Instruction User Guide",
+      "publisher": "Texas Instruments",
+      "source_url": "https://www.ti.com/lit/ug/spruij2/spruij2.pdf",
+      "bytes": 121819,
+      "pages": 50,
+      "sha256": "3ba121cf2337875606c70205271df462bce70ee20239fc1ba287a7f72e9acf94",
+      "chips": [],
+      "category": "context",
+      "retrieved_on": "2026-10-08",
+      "revision": "SPRUIJ2; April 2018",
+      "pdf_start_page": 1,
+      "relevant_sections": "See this chip folder README for the programming workflow and modeled scope.",
+      "supports": "Vendor context and programming reference; adding this PDF does not extend simulated hardware.",
+      "model_assumptions": "Only the explicitly documented ChipSim model is executable. CPU firmware, electrical behavior and unmodeled chip features are not inferred from this document.",
+      "id": "am335x-pru-programming-guide"
+    },
+    {
+      "path": "docs/references/psoc5lp/datasheet.pdf",
+      "title": "PSoC 5LP CY8C58LP Family Datasheet",
+      "publisher": "Infineon",
+      "source_url": "https://www.infineon.com/assets/row/public/documents/30/49/infineon-psoc-5lp-cy8c58lp-datasheet-datasheet-en.pdf",
+      "bytes": 6588447,
+      "pages": 140,
+      "sha256": "44169b47450fe803d22eb80b101c17d61c42dfb41d99683520e48e3d429370d0",
+      "chips": [],
+      "category": "context",
+      "retrieved_on": "2026-10-08",
+      "revision": "001-84932 Rev. *O; 11 December 2024",
+      "pdf_start_page": 1,
+      "relevant_sections": "See this chip folder README for the programming workflow and modeled scope.",
+      "supports": "Vendor context and programming reference; adding this PDF does not extend simulated hardware.",
+      "model_assumptions": "Only the explicitly documented ChipSim model is executable. CPU firmware, electrical behavior and unmodeled chip features are not inferred from this document.",
+      "id": "psoc5lp-datasheet"
+    },
+    {
+      "path": "docs/references/psoc5lp/creator-programming-guide.pdf",
+      "title": "PSoC Creator User Guide",
+      "publisher": "Infineon",
+      "source_url": "https://www.infineon.com/assets/row/public/documents/cross-divisions/44/infineon-psoc-creator-user-guide-usermanual-en.pdf",
+      "bytes": 11959353,
+      "pages": 587,
+      "sha256": "f5be9d0b28ad9e6f7327c4c5cf6f2e0241dfbea0588af7b6288d29f17e45f0e1",
+      "chips": [],
+      "category": "context",
+      "retrieved_on": "2026-10-08",
+      "revision": "001-93417 Rev. *N",
+      "pdf_start_page": 1,
+      "relevant_sections": "See this chip folder README for the programming workflow and modeled scope.",
+      "supports": "Vendor context and programming reference; adding this PDF does not extend simulated hardware.",
+      "model_assumptions": "Only the explicitly documented ChipSim model is executable. CPU firmware, electrical behavior and unmodeled chip features are not inferred from this document.",
+      "id": "psoc5lp-creator-programming-guide"
+    },
+    {
+      "path": "docs/references/xcore-xs3/xtc-programming-guide.pdf",
+      "title": "XMOS XTC Tools Guide 15.3",
+      "publisher": "XMOS",
+      "source_url": "https://www.xmos.com/documentation/XM-014363-PC/pdf/xtc_tools_guide_v15.3.pdf",
+      "bytes": 1607674,
+      "pages": 193,
+      "sha256": "3baba78a3faf4294f3481b37a6c2199b84afb6d26887a1b5cb7f75824107995d",
+      "chips": [],
+      "category": "context",
+      "retrieved_on": "2026-10-08",
+      "revision": "XM-014363-PC v15.3; 29 April 2026",
+      "pdf_start_page": 1,
+      "relevant_sections": "See this chip folder README for the programming workflow and modeled scope.",
+      "supports": "Vendor context and programming reference; adding this PDF does not extend simulated hardware.",
+      "model_assumptions": "Only the explicitly documented ChipSim model is executable. CPU firmware, electrical behavior and unmodeled chip features are not inferred from this document.",
+      "id": "xcore-xs3-xtc-programming-guide"
+    },
+    {
+      "path": "docs/references/esp32-c6/datasheet.pdf",
+      "title": "ESP32-C6 Series Datasheet",
+      "publisher": "Espressif",
+      "source_url": "https://www.espressif.com/sites/default/files/documentation/esp32-c6_datasheet_en.pdf",
+      "bytes": 975625,
+      "pages": 86,
+      "sha256": "372a5b42b2900c83ef4309149c8835e9ae2d1be19244995bf2fb83af4dc5edf1",
+      "chips": [],
+      "category": "context",
+      "retrieved_on": "2026-10-08",
+      "revision": "v1.5; 31 March 2026",
+      "pdf_start_page": 1,
+      "relevant_sections": "See this chip folder README for the programming workflow and modeled scope.",
+      "supports": "Vendor context and programming reference; adding this PDF does not extend simulated hardware.",
+      "model_assumptions": "Only the explicitly documented ChipSim model is executable. CPU firmware, electrical behavior and unmodeled chip features are not inferred from this document.",
+      "id": "esp32-c6-datasheet"
+    },
+    {
+      "path": "docs/references/s32k144/datasheet.pdf",
+      "title": "S32K1xx Data Sheet",
+      "publisher": "NXP",
+      "source_url": "https://cache.nxp.com/docs/en/data-sheet/S32K1xx.pdf",
+      "bytes": 1843583,
+      "pages": 108,
+      "sha256": "abc7b1a0e5ba9a6761bc261c5ba17ce80bb608bf2372debfedd8c73c02245cc0",
+      "chips": [],
+      "category": "context",
+      "retrieved_on": "2026-10-08",
+      "revision": "Rev. 15; 5 March 2026",
+      "pdf_start_page": 1,
+      "relevant_sections": "See this chip folder README for the programming workflow and modeled scope.",
+      "supports": "Vendor context and programming reference; adding this PDF does not extend simulated hardware.",
+      "model_assumptions": "Only the explicitly documented ChipSim model is executable. CPU firmware, electrical behavior and unmodeled chip features are not inferred from this document.",
+      "id": "s32k144-datasheet"
+    },
+    {
+      "path": "docs/references/etpu/mpc5554-datasheet.pdf",
+      "title": "MPC5554 Microcontroller Data Sheet",
+      "publisher": "NXP",
+      "source_url": "https://cache.nxp.com/docs/en/data-sheet/MPC5554.pdf",
+      "bytes": 2614562,
+      "pages": 58,
+      "sha256": "e000f0b1d8d8e8d8b0136660c36a0bb18b0c3e649a6f30a4114dda364f5be2c6",
+      "chips": [],
+      "category": "context",
+      "retrieved_on": "2026-10-08",
+      "revision": "MPC5554 Rev. 4; May 2012",
+      "pdf_start_page": 1,
+      "relevant_sections": "See this chip folder README for the programming workflow and modeled scope.",
+      "supports": "Vendor context and programming reference; adding this PDF does not extend simulated hardware.",
+      "model_assumptions": "Only the explicitly documented ChipSim model is executable. CPU firmware, electrical behavior and unmodeled chip features are not inferred from this document.",
+      "id": "etpu-mpc5554-datasheet"
+    },
+    {
+      "path": "docs/references/esp32-c6/esp-idf-programming-guide.pdf",
+      "title": "ESP-IDF Programming Guide 5.2 ESP32-C6",
+      "publisher": "Espressif",
+      "source_url": "https://docs.espressif.com/projects/esp-idf/en/v5.2/esp32c6/esp-idf-en-v5.2-esp32c6.pdf",
+      "bytes": 22707811,
+      "pages": 2929,
+      "sha256": "6807a7b0de28ddc7456821da0d98ea78a0d74deba0647c51a5d0be8b8a36c0ce",
+      "chips": [],
+      "category": "context",
+      "retrieved_on": "2026-10-08",
+      "revision": "ESP-IDF v5.2; 15 February 2024",
+      "pdf_start_page": 1,
+      "relevant_sections": "See this chip folder README for the programming workflow and modeled scope.",
+      "supports": "Vendor context and programming reference; adding this PDF does not extend simulated hardware.",
+      "model_assumptions": "Only the explicitly documented ChipSim model is executable. CPU firmware, electrical behavior and unmodeled chip features are not inferred from this document.",
+      "id": "esp32-c6-esp-idf-programming-guide"
+    },
+    {
+      "id": "s32k144-reference-manual",
+      "title": "S32K1xx Series Reference Manual",
+      "publisher": "NXP Semiconductors",
+      "source_url": "https://community.nxp.com/pwmxy87654/attachments/pwmxy87654/S32K/32215/1/S32K-RM.pdf",
+      "revision": "S32K1XXRM Rev. 13; April 2020 (archived vendor-community copy)",
+      "path": "docs/references/s32k144/reference-manual-rev13.pdf",
+      "bytes": 14294076,
+      "pages": 2179,
+      "sha256": "4339261ebd1e69bc142eab0f905fc4f03bdee94df5066bf199056d3e6c518c85",
+      "chips": [],
+      "category": "context",
+      "retrieved_on": "2026-10-08",
+      "pdf_start_page": 1,
+      "relevant_sections": "See this chip folder README for programming workflow and modeled scope.",
+      "supports": "Vendor context and programming reference; adding this PDF does not extend simulated hardware.",
+      "model_assumptions": "Only the explicitly documented ChipSim model is executable. Native instruction execution, electrical behavior and unmodeled features are not inferred.",
+      "provenance": "Public archive on NXP Community. Rev. 14.2 is listed as account-required by the current NXP product page. No new behavior is compiled from this revision."
+    },
+    {
+      "id": "etpu-programming-guide",
+      "title": "Programming the eTPU",
+      "publisher": "Freescale Semiconductor / NXP",
+      "source_url": "https://cache.nxp.com/docs/en/application-note/AN2848.pdf",
+      "revision": "AN2848 Rev. 1; August 2008",
+      "path": "docs/references/etpu/programming-guide-an2848.pdf",
+      "bytes": 659211,
+      "pages": 14,
+      "sha256": "8f3a28f30a85ab9b04bc183f2d1e86a053530169e4c5ce3d7c116fb3ed907457",
+      "chips": [],
+      "category": "context",
+      "retrieved_on": "2026-10-08",
+      "pdf_start_page": 1,
+      "relevant_sections": "See this chip folder README for programming workflow and modeled scope.",
+      "supports": "Vendor context and programming reference; adding this PDF does not extend simulated hardware.",
+      "model_assumptions": "Only the explicitly documented ChipSim model is executable. Native instruction execution, electrical behavior and unmodeled features are not inferred.",
+      "provenance": "Official NXP cache download; public AN2848 listed on the eTPU Archive page."
+    },
+    {
+      "id": "xcore-xs3-datasheet",
+      "title": "xcore.ai Datasheet XU316-1024-QF60B",
+      "publisher": "XMOS Ltd",
+      "source_url": "https://www.xmos.com/documentation/XM-014429-PC/pdf/XU316-1024-QF60B.pdf",
+      "revision": "XM-014429-PC v2.0.0; 13 January 2025",
+      "path": "docs/references/xcore-xs3/xu316-1024-qf60b-datasheet.pdf",
+      "bytes": 1662678,
+      "pages": 86,
+      "sha256": "e00242516a2931801b101add7a2c54684d1b46d3a9739e543a783c403d9277fd",
+      "chips": [],
+      "category": "context",
+      "retrieved_on": "2026-10-08",
+      "pdf_start_page": 1,
+      "relevant_sections": "See this chip folder README for programming workflow and modeled scope.",
+      "supports": "Vendor context and programming reference; adding this PDF does not extend simulated hardware.",
+      "model_assumptions": "Only the explicitly documented ChipSim model is executable. Native instruction execution, electrical behavior and unmodeled features are not inferred.",
+      "provenance": "Official current documentation PDF endpoint. This exact package remains a context reference for the semantic timed-port example."
     }
   ]
 }

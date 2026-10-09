@@ -19,8 +19,8 @@ import { TuiState } from "../src/tui/state.js";
 import { TerminalApp } from "../src/tui/app.js";
 import { screenText, render, displayWidth } from "../src/tui/render.js";
 const root = new URL("../", import.meta.url).pathname;
-const hcPDF = join(root, "docs/references/nexperia-74hc595.pdf");
-const c6PDF = join(root, "docs/references/espressif-esp32-c6-trm.pdf");
+const hcPDF = join(root, "docs/references/74hc595/nexperia-74hc595.pdf");
+const c6PDF = join(root, "docs/references/esp32-c6/espressif-esp32-c6-trm.pdf");
 const hcPromise = extractPDFFile(hcPDF),
   c6Promise = extractPDFFile(c6PDF);
 async function setup(t, document) {
@@ -229,7 +229,7 @@ test("finding models verifies current PDF bytes even with a current cache versio
     before = experiment(state),
     records = await state.workspace.records("documents");
   await copyFile(
-    join(root, "docs/references/ti-tca9534.pdf"),
+    join(root, "docs/references/tca9534/ti-tca9534.pdf"),
     document.filePath,
   );
   await app.sourceSimulations.find(document);

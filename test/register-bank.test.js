@@ -43,7 +43,7 @@ const build = (options = {}) =>
     ...options,
   }).spec;
 const actualPath = new URL(
-  "../docs/references/rp2040-datasheet.pdf",
+  "../docs/references/rp2040/rp2040-datasheet.pdf",
   import.meta.url,
 ).pathname;
 const actualPromise = extractPDFFile(actualPath);

@@ -1,6 +1,8 @@
 # Simulation references
 
-This directory documents the vendor sources for the six architecture examples and reviewed datasheet profiles. All twenty-one PDFs are bundled in full and unchanged. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
+This directory documents the vendor sources for the six architecture examples and reviewed datasheet profiles. The library contains 34 complete, unchanged PDFs in 19 chip/family folders. The [library index](references/README.md) and [machine-readable catalog](references/catalog.json) map datasheet, reference-manual and programming-guide roles to pinned documents. The account-gated ETPURM is skipped at the user’s request; its contents are not claimed as bundled. The source mappings explain what each reference supports; the custom protocol and normalized timing remain ChipSim teaching assumptions.
+
+Programming guides provide checked page citations for `.chip` experiments and chip-specific context for external agents. A downloaded guide does not add a CPU, compiler or native instruction backend. See [programming](PROGRAMMING.md) and [existing simulator assessment](EXISTING_SIMULATORS.md).
 
 Document revisions below come from document text, rather than PDF modification timestamps. PDF links use one-based viewer page numbers, which may differ from printed page labels. Retrieved on **2026-10-07** unless a later date is listed below.
 
@@ -9,7 +11,7 @@ Document revisions below come from document text, rather than PDF modification t
 - **Models:** `esp32c6-pcnt`, one PCNT unit/channel 0; `esp32c6-gpio`, GPIO output registers
 - **Version:** v1.2, 20 March 2026 (revision history on PDF page 1389)
 - **Publisher:** Espressif Systems
-- **File:** [espressif-esp32-c6-trm.pdf](references/espressif-esp32-c6-trm.pdf#page=1012) (1,394 pages)
+- **File:** [espressif-esp32-c6-trm.pdf](references/esp32-c6/espressif-esp32-c6-trm.pdf#page=1012) (1,394 pages)
 - **Origin:** User-selected local manual, copied unchanged on 2026-10-08.
 - **Vendor URL:** [ESP32-C6 TRM](https://www.espressif.com/sites/default/files/documentation/esp32-c6_technical_reference_manual_en.pdf)
 - **Read:** Chapter 31, especially pages 1014–1016 and 1020–1023; Chapter 7 pages 244, 250–251, 270–273 and 280.
@@ -23,7 +25,7 @@ Document revisions below come from document text, rather than PDF modification t
 - **Model:** `pio`
 - **Version:** Build 2025-02-20; 3184e62-clean
 - **Publisher:** Raspberry Pi
-- **File:** [rp2040-datasheet.pdf](references/rp2040-datasheet.pdf#page=312) (642 pages)
+- **File:** [rp2040-datasheet.pdf](references/rp2040/rp2040-datasheet.pdf#page=312) (642 pages)
 - **Official download:** [RP2040 Datasheet](https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf)
 - **Read:** Chapter 3, especially 3.1-3.2 and 3.4-3.5.
 
@@ -36,7 +38,7 @@ Document revisions below come from document text, rather than PDF modification t
 - **Model:** `pru`
 - **Version:** SPRUH73Q; revised December 2019
 - **Publisher:** Texas Instruments
-- **File:** [ti-am335x-trm-spruh73q.pdf](references/ti-am335x-trm-spruh73q.pdf#page=208) (5,118 pages)
+- **File:** [ti-am335x-trm-spruh73q.pdf](references/am335x/ti-am335x-trm-spruh73q.pdf#page=208) (5,118 pages)
 - **Official download:** [AM335x and AMIC110 Sitara Processors Technical Reference Manual](https://www.ti.com/lit/ug/spruh73q/spruh73q.pdf)
 - **Read:** 4.4.1 PRU Cores; 4.4.1.2; Table 4-21.
 
@@ -49,7 +51,7 @@ Document revisions below come from document text, rather than PDF modification t
 - **Model:** `flexio`
 - **Version:** AN12174, Rev. 0, June 2018
 - **Publisher:** NXP
-- **File:** [nxp-flexio-an12174.pdf](references/nxp-flexio-an12174.pdf#page=3) (46 pages)
+- **File:** [nxp-flexio-an12174.pdf](references/s32k144/nxp-flexio-an12174.pdf#page=3) (46 pages)
 - **Official download:** [Using FlexIO to emulate communications and timing peripherals](https://www.nxp.com/docs/en/application-note/AN12174.pdf)
 - **Read:** 2 Overview of the FlexIO module; 4.1.1 transmit configuration.
 
@@ -62,7 +64,7 @@ Document revisions below come from document text, rather than PDF modification t
 - **Model:** `udb`
 - **Version:** 001-78426 Rev. *G
 - **Publisher:** Cypress / Infineon
-- **File:** [infineon-psoc5lp-architecture-trm.pdf](references/infineon-psoc5lp-architecture-trm.pdf#page=165) (428 pages)
+- **File:** [infineon-psoc5lp-architecture-trm.pdf](references/psoc5lp/infineon-psoc5lp-architecture-trm.pdf#page=165) (428 pages)
 - **Official download:** [PSoC 5LP Architecture TRM](https://www.infineon.com/assets/row/public/documents/30/57/infineon-psoc5lp-architecture-trm-additionaltechnicalinformation-en.pdf)
 - **Read:** 21 Universal Digital Blocks; 22 UDB Array and Digital System Interconnect.
 
@@ -75,7 +77,7 @@ Document revisions below come from document text, rather than PDF modification t
 - **Model:** `xmos`
 - **Version:** XM-014007-PS v2.1.0, 2025-03-06
 - **Publisher:** XMOS
-- **File:** [xmos-xs3-architecture.pdf](references/xmos-xs3-architecture.pdf#page=18) (343 pages)
+- **File:** [xmos-xs3-architecture.pdf](references/xcore-xs3/xmos-xs3-architecture.pdf#page=18) (343 pages)
 - **Official download:** [The XMOS XS3 Architecture](https://www.xmos.com/documentation/XM-014007-PS/pdf/XM-014007-PS-xs3-arch-inst-2.1.0.pdf)
 - **Read:** 3 Concurrent Threads; 5 Instruction Issue and Execution; 10 Resources and the Thread Scheduler; 14 Timers; 15 Ports, Input and Output; 17 Events.
 
@@ -88,7 +90,7 @@ Document revisions below come from document text, rather than PDF modification t
 - **Model:** `xmos`
 - **Version:** XM-015254-AN v1.0.0, 2025-03-11
 - **Publisher:** XMOS
-- **File:** [xmos-clocked-io-an03001.pdf](references/xmos-clocked-io-an03001.pdf#page=6) (9 pages)
+- **File:** [xmos-clocked-io-an03001.pdf](references/xcore-xs3/xmos-clocked-io-an03001.pdf#page=6) (9 pages)
 - **Official download:** [AN03001: XCORE Clocked Input and Output](https://www.xmos.com/documentation/XM-015254-AN/pdf/AN03001_v1.0.0.pdf)
 - **Read:** 1 Generating a Clock Signal; 3 Performing I/O on Specific Clock Edges; 5 Summary of Clocked Port Behavior.
 
@@ -101,7 +103,7 @@ Document revisions below come from document text, rather than PDF modification t
 - **Model:** `etpu`
 - **Version:** AN2933, Rev. 0, December 2004
 - **Publisher:** Freescale / NXP
-- **File:** [nxp-etpu-channel-hardware-an2933.pdf](references/nxp-etpu-channel-hardware-an2933.pdf#page=3) (40 pages)
+- **File:** [nxp-etpu-channel-hardware-an2933.pdf](references/etpu/nxp-etpu-channel-hardware-an2933.pdf#page=3) (40 pages)
 - **Official download:** [Understanding the eTPU Channel Hardware](https://www.nxp.com/docs/en/user-guide/AN2933.pdf)
 - **Read:** 2 Architecture of the eTPU Channel; 5.1-5.3.
 
@@ -114,7 +116,7 @@ Document revisions below come from document text, rather than PDF modification t
 - **Model:** `etpu`
 - **Version:** AN2353, Rev. 1, August 2004
 - **Publisher:** Freescale / NXP
-- **File:** [nxp-etpu-essentials-an2353.pdf](references/nxp-etpu-essentials-an2353.pdf#page=3) (12 pages)
+- **File:** [nxp-etpu-essentials-an2353.pdf](references/etpu/nxp-etpu-essentials-an2353.pdf#page=3) (12 pages)
 - **Official download:** [The Essentials of Enhanced Time Processing Unit](https://www.nxp.com/docs/en/user-guide/AN2353.pdf)
 - **Read:** 3 Channel Hardware; 4 Memory; 5 The Microengine.
 
@@ -127,7 +129,7 @@ Document revisions below come from document text, rather than PDF modification t
 - **Profile:** `hc595`, automatically compiled when the exact reviewed PDF is imported.
 - **Version:** Rev. 12, 20 March 2024.
 - **Publisher:** Nexperia.
-- **File:** [nexperia-74hc595.pdf](references/nexperia-74hc595.pdf#page=1) (21 pages).
+- **File:** [nexperia-74hc595.pdf](references/74hc595/nexperia-74hc595.pdf#page=1) (21 pages).
 - **Official download:** [74HC595 / 74HCT595 datasheet](https://assets.nexperia.com/documents/data-sheet/74HC_HCT595.pdf).
 - **Read:** General description, Figure 4 on PDF page 3, and Table 3 on PDF page 5.
 
@@ -137,14 +139,14 @@ Document revisions below come from document text, rather than PDF modification t
 
 ## Function-table regression references
 
-- **74HC00 / 74HCT00:** [complete PDF](references/nexperia-74hc00.pdf#page=3), Rev. 11, 29 April 2025, 14 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT00.pdf).
-- **74HC86 / 74HCT86:** [complete PDF](references/nexperia-74hc86.pdf#page=3), Rev. 7, 2 April 2024, 12 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT86.pdf).
-- **74HC157 / 74HCT157:** [complete PDF](references/nexperia-74hc157.pdf#page=3), Rev. 10, 28 May 2024, 15 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT157.pdf).
+- **74HC00 / 74HCT00:** [complete PDF](references/74hc00/nexperia-74hc00.pdf#page=3), Rev. 11, 29 April 2025, 14 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT00.pdf).
+- **74HC86 / 74HCT86:** [complete PDF](references/74hc86/nexperia-74hc86.pdf#page=3), Rev. 7, 2 April 2024, 12 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT86.pdf).
+- **74HC157 / 74HCT157:** [complete PDF](references/74hc157/nexperia-74hc157.pdf#page=3), Rev. 10, 28 May 2024, 15 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT157.pdf).
 
 All three are unchanged Nexperia references retrieved on **2026-10-08**. Pin descriptions and function tables are on PDF page 3. They verify content-based binary logic compilation and four indexed channels, including shared enable/select controls for the multiplexer, not fingerprint-specific profiles. Electrical characteristics and timing remain outside the compiled model scope.
 
-- **74HC377 / 74HCT377:** [complete PDF](references/nexperia-74hc377.pdf#page=3), Rev. 6, 5 August 2024, 15 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT377.pdf). Function table and pin descriptions are on PDF page 3.
-- **74HC273 / 74HCT273:** [complete PDF](references/nexperia-74hc273.pdf#page=4), Rev. 8, 5 August 2024, 17 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT273.pdf). Function table is on PDF page 4; pin descriptions are on PDF page 3.
+- **74HC377 / 74HCT377:** [complete PDF](references/74hc377/nexperia-74hc377.pdf#page=3), Rev. 6, 5 August 2024, 15 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT377.pdf). Function table and pin descriptions are on PDF page 3.
+- **74HC273 / 74HCT273:** [complete PDF](references/74hc273/nexperia-74hc273.pdf#page=4), Rev. 8, 5 August 2024, 17 pages; [official source](https://assets.nexperia.com/documents/data-sheet/74HC_HCT273.pdf). Function table is on PDF page 4; pin descriptions are on PDF page 3.
 
 These two unchanged Nexperia references, retrieved on **2026-10-08**, test data-derived sequential compilation with eight output bits, shared controls, retained state, and asynchronous reset where specified. Configured initial output bits are scenario values; physical timing, setup/hold violations, metastability, and electrical behavior remain outside scope.
 
@@ -156,7 +158,7 @@ Exact sizes and SHA-256 checksums are recorded in [manifest.json](references/man
 
 - **Version:** SCES223U, revised August 2026; retrieved 2026-10-08.
 - **Publisher:** Texas Instruments.
-- **File:** [ti-sn74lvc1g125.pdf](references/ti-sn74lvc1g125.pdf#page=11) (52 pages; original bytes and final-page notice preserved).
+- **File:** [ti-sn74lvc1g125.pdf](references/sn74lvc1g125/ti-sn74lvc1g125.pdf#page=11) (52 pages; original bytes and final-page notice preserved).
 - **Official source:** [SN74LVC1G125 data sheet](https://www.ti.com/lit/ds/symlink/sn74lvc1g125.pdf).
 - **Read:** 7.4 Device Functional Modes, Table 7-1 and its input/output symbol footnotes on PDF page 11.
 - **Supports:** One binary-input buffer whose table defines driven HIGH/LOW and released high-impedance Z outputs. This is a regression reference for data-derived compilation, not a part-number or fingerprint rule.
@@ -167,7 +169,7 @@ Exact sizes and SHA-256 checksums are recorded in [manifest.json](references/man
 - **Model:** `pca9555`, reviewed automatic profile
 - **Version:** SCPS131J, revised March 2021; retrieved 2026-10-08
 - **Publisher:** Texas Instruments
-- **File:** [ti-pca9555.pdf](references/ti-pca9555.pdf#page=19) (49 pages)
+- **File:** [ti-pca9555.pdf](references/pca9555/ti-pca9555.pdf#page=19) (49 pages)
 - **Official download:** [PCA9555 datasheet](https://www.ti.com/lit/ds/symlink/pca9555.pdf)
 - **Read:** PDF pages 14–16 (GPIO, POR, interrupt and erratum), 19–21 (addresses, register descriptions, bus transaction limits).
 
@@ -179,7 +181,7 @@ Exact sizes and SHA-256 checksums are recorded in [manifest.json](references/man
 
 - **Version:** REJ03D0552-0200, Rev. 2.00, 6 October 2005; official copy includes the 2010 cover and notices. Retrieved 2026-10-08.
 - **Publisher:** Renesas Electronics.
-- **File:** [renesas-hd74hc77.pdf](references/renesas-hd74hc77.pdf#page=3) (9 complete PDF pages; original notices retained).
+- **File:** [renesas-hd74hc77.pdf](references/hd74hc77/renesas-hd74hc77.pdf#page=3) (9 complete PDF pages; original notices retained).
 - **Official source:** [HD74HC77 datasheet](https://www.renesas.com/en/document/dst/hd74hc77-datasheet).
 - **Read:** PDF page 3 (printed page 1), Function Table and H/L/X definitions; the description and package diagram are on PDF pages 3–4.
 - **Supports:** One table-level latch with explicit level-sensitive updates and retention. Regression source for data-derived compilation; no part-number or fingerprint rule selects its behavior.
@@ -189,7 +191,7 @@ Exact sizes and SHA-256 checksums are recorded in [manifest.json](references/man
 
 - **Version:** SLVSJA7A, revised June 2026; retrieved 2026-10-08.
 - **Publisher:** Texas Instruments.
-- **File:** [ti-sn74ahc273-q1.pdf](references/ti-sn74ahc273-q1.pdf#page=12) (30 complete PDF pages, 1,769,129 bytes; original notices retained).
+- **File:** [ti-sn74ahc273-q1.pdf](references/sn74ahc273-q1/ti-sn74ahc273-q1.pdf#page=12) (30 complete PDF pages, 1,769,129 bytes; original notices retained).
 - **Official source:** [SN74AHC273-Q1 datasheet](https://www.ti.com/lit/ds/symlink/sn74ahc273-q1.pdf).
 - **Read:** PDF page 12, Table 7-1 and complete wrapped input/output definitions; PDF page 3, typed CLK pin declaration and Signal Types legend.
 - **Supports:** Data-derived sequential compilation with asynchronous clear, rising-edge capture, explicit Q0 previous-state retention, and a clock cell listing steady low, steady high, or falling edge. No chip name or fingerprint selects the rules.
@@ -199,7 +201,7 @@ Exact sizes and SHA-256 checksums are recorded in [manifest.json](references/man
 
 - **Version:** REJ03D0570-0300, Rev. 3.00, 25 March 2009; official copy includes 2010 cover/notices. Retrieved 2026-10-08.
 - **Publisher:** Renesas Electronics.
-- **File:** [renesas-hd74hc138.pdf](references/renesas-hd74hc138.pdf#page=4) (10 complete PDF pages, unchanged).
+- **File:** [renesas-hd74hc138.pdf](references/hd74hc138/renesas-hd74hc138.pdf#page=4) (10 complete PDF pages, unchanged).
 - **Official source:** [HD74HC138 datasheet](https://www.renesas.com/en/document/dst/hd74hc138-datasheet).
 - **Read:** PDF page 4 (printed page 2), complete Function Table, centered Inputs/Enable/Select/Outputs groups, and H/L/X definitions; PDF page 3, device description.
 - **Supports:** One six-input/eight-output binary decoder function, including all enable/select combinations. The table supplies the logic; no device name or fingerprint chooses it. Exactly one output is low when enabled; all outputs are high when disabled.
@@ -209,7 +211,7 @@ Exact sizes and SHA-256 checksums are recorded in [manifest.json](references/man
 
 - **Publisher:** Texas Instruments.
 - **Document:** SCPS197D, revised October 2017; complete original official download with current notices/package addendum, retrieved 2026-10-08.
-- **Local PDF:** [ti-tca9534.pdf](references/ti-tca9534.pdf#page=19), 42 pages; exact byte count and SHA-256 are in the manifest.
+- **Local PDF:** [ti-tca9534.pdf](references/tca9534/ti-tca9534.pdf#page=19), 42 pages; exact byte count and SHA-256 are in the manifest.
 - **Official source:** https://www.ti.com/lit/ds/symlink/tca9534.pdf
 - **Sections:** PDF page 17 for INT and POR; page 19/Table 3 for addresses and defaults; page 20/Tables 4–7 for access, latch readback, input-only polarity inversion, and direction; pages 21–23 document physical bus transactions outside the model.
 - **Supports:** An exact-fingerprint reviewed one-port GPIO model with four addressed registers, individual released/driven outputs, external input levels, and input mismatch acknowledgment. Sixteen acceptance cases and independent byte/transaction oracles validate the modeled digital scope.

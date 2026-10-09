@@ -3,14 +3,14 @@
 ChipSim can derive combinational and supported edge-triggered logic from a new PDF's published function table locally, without a model provider or a chip-specific fingerprint rule. Geometry identifies columns; explicit table symbols define behavior. This covers complete binary mappings, binary-input tables with defined high-impedance outputs, complete level-sensitive retention tables, and bounded sequential tables with documented clock-edge semantics. Arbitrary prose, general stateful devices, analog behavior, and entire reference manuals remain outside automatic interpretation.
 
 ```sh
-npm start -- --document docs/references/nexperia-74hc00.pdf
-npm start -- --document docs/references/nexperia-74hc86.pdf
-npm start -- --document docs/references/nexperia-74hc157.pdf
-npm start -- --document docs/references/renesas-hd74hc138.pdf
-npm start -- --document docs/references/nexperia-74hc377.pdf
-npm start -- --document docs/references/nexperia-74hc273.pdf
-npm start -- --document docs/references/ti-sn74lvc1g125.pdf
-npm start -- --document docs/references/ti-sn74ahc273-q1.pdf
+npm start -- --document docs/references/74hc00/nexperia-74hc00.pdf
+npm start -- --document docs/references/74hc86/nexperia-74hc86.pdf
+npm start -- --document docs/references/74hc157/nexperia-74hc157.pdf
+npm start -- --document docs/references/hd74hc138/renesas-hd74hc138.pdf
+npm start -- --document docs/references/74hc377/nexperia-74hc377.pdf
+npm start -- --document docs/references/74hc273/nexperia-74hc273.pdf
+npm start -- --document docs/references/sn74lvc1g125/ti-sn74lvc1g125.pdf
+npm start -- --document docs/references/sn74ahc273-q1/ti-sn74ahc273-q1.pdf
 npm run document -- path/to/manual.pdf --json
 npm run document -- path/to/manual.pdf --out generated.model.json
 ```
@@ -87,7 +87,7 @@ Bounds are two output columns, eight source rows, and 64 input/state combination
 The Renesas HD74HC77 reference supplies a table on PDF page 3 (printed page 1). Its generic `Data`, `Enable G`, and `Q` headings describe one table instance. `Enable G` becomes `EnableG` in model identifiers only when geometry identifies the two adjacent words as one heading. Package replication and grouped-enable wiring in its pin diagram are not inferred. This model demonstrates the table's latch behavior, rather than the whole four-latch package.
 
 ```sh
-npm start -- --document docs/references/renesas-hd74hc77.pdf
+npm start -- --document docs/references/hd74hc77/renesas-hd74hc77.pdf
 ```
 
 `p` configures initial retained bits; `i` drives data or enable. Tick zero applies the level rows immediately. The default Gray-code sweep changes one input at a time in the first table instance so you can see data following an open enable and holding behind a closed enable. Other indexed instances use offset data patterns. Initial bits and normalized timing are explicit scenario choices; simultaneous enable/data events cannot prove physical setup/hold compliance. Source symbols remain visible in Model view, exported JSON, and browser Sources.

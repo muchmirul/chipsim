@@ -17,7 +17,7 @@ import { TerminalApp } from "../src/tui/app.js";
 import { render, displayWidth } from "../src/tui/render.js";
 import { exportVCD } from "../src/trace/export.js";
 
-const path = new URL("../docs/references/ti-tca9534.pdf", import.meta.url)
+const path = new URL("../docs/references/tca9534/ti-tca9534.pdf", import.meta.url)
   .pathname;
 const documentPromise = extractPDFFile(path);
 const modelPromise = documentPromise.then(

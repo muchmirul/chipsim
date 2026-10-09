@@ -1,6 +1,6 @@
 # Third-party documents
 
-The PDFs in `docs/references/` are complete copies obtained from the official publisher URLs recorded in `manifest.json`. Their contents have not been edited. Filenames were standardized for this repository.
+The PDFs in `docs/references/` are complete downloads from publisher sites and the explicitly recorded NXP Community archive. Their bytes have not been edited by ChipSim. Filenames were standardized for this repository; each manifest entry identifies the actual host and revision.
 
 | Documents                                                                                                      | Publisher / attribution                                                                                                       |
 | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
@@ -14,6 +14,8 @@ The PDFs in `docs/references/` are complete copies obtained from the official pu
 | eTPU notes AN2933 and AN2353                                                                                   | Freescale Semiconductor; distributed by NXP Semiconductors.                                                                   |
 
 Original copyright, trademark, license, and usage notices remain inside each document. Inclusion in ChipSim does not change those terms or imply vendor endorsement. No repository-wide license is applied to these third-party PDFs.
+
+The chip folders also retain unchanged programming and device references: Raspberry Pi's Pico C/C++ SDK guide; TI's AM335x datasheet (SPRS717L) and PRU programming guide (SPRUIJ2); NXP's S32K1xx and MPC5554 datasheets; the S32K1xx reference manual Rev. 13 archived on NXP Community; Freescale/NXP's Programming the eTPU note AN2848 Rev. 1; Infineon's PSoC 5LP datasheet and PSoC Creator User Guide; XMOS's XU316-1024-QF60B datasheet and XTC tools guide; and Espressif's ESP32-C6 datasheet and ESP-IDF v5.2 programming guide. Each publisher's original notices remain in its PDF. These local development references carry no new redistribution grant. Revisions, download URLs, provenance and downloaded-byte hashes are recorded in `docs/references/manifest.json`; `catalog.json` records document roles and missing references.
 
 The unchanged TI SN74LVC1G125 data sheet (SCES223U, August 2026) is retained as a local development reference for its modeled TI device. Its final-page notice restricts resource use to development of applications using the described TI products; no general redistribution permission is asserted.
 

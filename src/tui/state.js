@@ -13,6 +13,10 @@ import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Workspace } from "./workspace.js";
 import { Stimulus } from "./stimulus.js";
+import { parseProgram } from "../program/parse.js";
+import { ProgramDebugger } from "../program/engine.js";
+import { verifyProgramGuides } from "../program/guides.js";
+import { readBounded } from "../agent/io.js";
 export class TuiState {
   constructor({
     workspace = ".chipsim",
@@ -60,6 +64,8 @@ export class TuiState {
     this.activityFollow = true;
     this.activityFilter = "";
     this.activityDetailScroll = 0;
+    this.programDebugger = null;
+    this.programLine = 1;
   }
   get model() {
     return this.models.find((m) => m.id === this.modelId);
@@ -142,6 +148,7 @@ export class TuiState {
   selectModel(id) {
     if (!this.models.some((m) => m.id === id))
       throw new Error("Unknown model " + id);
+    this.programDebugger = null;
     this.modelId = id;
     this.selected = 0;
     this.logIndex = 0;
@@ -157,6 +164,7 @@ export class TuiState {
     this.setMessage("Loaded " + this.model.name);
   }
   setParameter(id, value) {
+    this.requireManualExperiment();
     const parameters = normalizeParameters(this.model.parameters, {
       ...this.config.parameters,
       [id]: value,
@@ -167,15 +175,18 @@ export class TuiState {
     this.setMessage("Updated " + id);
   }
   setInputs(inputs) {
+    this.requireManualExperiment();
     this.stimulus.apply(inputs, { reset: true });
     this.setMessage(
       "Stimulus applied · " + this.config.inputs.length + " events",
     );
   }
   driveInput(signalId, value, tick = this.tick) {
+    this.requireManualExperiment();
     this.stimulus.drive(signalId, value, tick);
   }
   setDuration(ticks) {
+    this.requireManualExperiment();
     if (this.model.kind === "builtin")
       throw new Error("Built-in duration follows frame and ACK controls.");
     if (!Number.isInteger(ticks) || ticks < 1 || ticks > 10000)
@@ -185,6 +196,7 @@ export class TuiState {
     this.stimulus.clearHistory(this.modelId);
   }
   accessRegister(operation, address, value = 0) {
+    this.requireManualExperiment();
     const tick = this.tick + 1;
     const inputs = registerAccessInputs(this.model, this.config.inputs, {
       tick,
@@ -621,7 +633,60 @@ export class TuiState {
       duration: this.config.duration,
       tick: this.tick,
       display: this.format,
+      ...(this.programDebugger
+        ? {
+            program: {
+              text: this.programDebugger.program.text,
+              steps: this.programDebugger.steps.length,
+              status: this.programDebugger.status,
+              maxTicks: this.programDebugger.maxTicks,
+              maxSteps: this.programDebugger.maxSteps,
+            },
+          }
+        : {}),
     };
+  }
+  requireManualExperiment() {
+    if (this.programDebugger)
+      throw new Error(
+        "The source program controls this experiment. Edit/reload it with P, or detach it with Q in Program view.",
+      );
+  }
+  async loadProgramFile(path) {
+    const text = (await readBounded(path, 65536)).toString("utf8");
+    const debug = await this.prepareProgram(text, this.model);
+    this.programDebugger = debug;
+    this.programPath = resolve(path);
+    this.programLine = debug.next.line;
+    this.view = "program";
+    this.syncProgram();
+    this.setMessage(
+      "Program ready · N step · C continue · K breakpoint · J back",
+    );
+  }
+  async prepareProgram(text, model, documents = this.documents, limits = {}) {
+    const program = parseProgram(text);
+    const manual = documents.find((doc) =>
+      model.sources.some((s) => s.sha256 === doc.sha256),
+    );
+    const guides = await verifyProgramGuides(program, model, {
+      root: this.root,
+      manual,
+    });
+    return new ProgramDebugger(model, program, { ...limits, guides });
+  }
+  syncProgram() {
+    const debug = this.programDebugger;
+    this.playing = false;
+    this.traceDetail = null;
+    this.configurations.set(this.modelId, {
+      parameters: debug.parameters,
+      inputs: debug.inputs,
+      duration: Math.max(1, debug.tick),
+    });
+    this.trace = debug.trace;
+    this.seek(debug.tick);
+    this.programLine = debug.next?.line || debug.steps.at(-1)?.line || 1;
   }
   async loadSession(
     session,
@@ -664,11 +729,62 @@ export class TuiState {
       session.duration > 10000
     )
       throw new Error("Invalid duration in session.");
-    const trace = model.simulate(parameters, {
+    let trace = model.simulate(parameters, {
       inputs,
       ticks: session.duration,
     });
-    if (rejectFault && trace.some((snapshot) => snapshot.phase === "fault"))
+    let debug = null;
+    if (session.program) {
+      const saved = session.program;
+      if (
+        !Number.isInteger(saved.steps) ||
+        saved.steps < 0 ||
+        saved.steps > 10000
+      )
+        throw new Error("Invalid saved program step count.");
+      debug = await this.prepareProgram(saved.text, model, documents, {
+        maxTicks: saved.maxTicks,
+        maxSteps: saved.maxSteps,
+      });
+      for (let i = 0; i < saved.steps; i++) {
+        if (!debug.step())
+          throw new Error("Saved program step count exceeds its execution.");
+      }
+      // A step-budget fault occurs before recording another statement.
+      if (
+        saved.status === "fault" &&
+        debug.status !== "fault" &&
+        debug.steps.length === debug.maxSteps
+      )
+        debug.step();
+      if (
+        saved.status !== undefined &&
+        !["paused", "breakpoint", "halted", "fault"].includes(saved.status)
+      )
+        throw new Error("Invalid saved program status.");
+      if (
+        ["halted", "fault"].includes(saved.status) &&
+        debug.status !== saved.status
+      )
+        throw new Error(
+          "Saved program status does not match source-program replay.",
+        );
+      const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+      if (
+        !equal(debug.parameters, parameters) ||
+        !equal(debug.inputs, inputs) ||
+        Math.max(1, debug.tick) !== session.duration
+      )
+        throw new Error(
+          "Saved experiment does not match source-program replay.",
+        );
+      trace = debug.trace;
+    }
+    if (
+      rejectFault &&
+      (debug?.status === "fault" ||
+        trace.some((snapshot) => snapshot.phase === "fault"))
+    )
       throw new Error("New run contains a simulation fault");
     if (backupCurrent) {
       if (model.id !== this.modelId || this.model.kind !== "document")
@@ -692,6 +808,9 @@ export class TuiState {
     this.stimulus.clearHistory(model.id);
     this.modelId = model.id;
     this.trace = trace;
+    this.programDebugger = debug;
+    if (debug)
+      this.programLine = debug.next?.line || debug.steps.at(-1)?.line || 1;
     this.selected = 0;
     this.logIndex = 0;
     this.blockScroll = 0;
