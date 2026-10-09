@@ -1,0 +1,26 @@
+{
+  "mode": "sampled",
+  "sampleEvery": "5ns",
+  "from": "0ns",
+  "to": "1275ns",
+  "signals": [
+    { "left": "adder_tb.A", "right": "adder_tb.a[3:0]", "role": "input" },
+    { "left": "adder_tb.B", "right": "adder_tb.b[3:0]", "role": "input" },
+    { "left": "adder_tb.X", "right": "adder_tb.x[4:0]", "role": "output" },
+    {
+      "left": "adder_tb.nand_probe",
+      "right": "adder_tb.nand_probe",
+      "role": "output"
+    },
+    {
+      "left": "adder_tb.edges",
+      "right": "adder_tb.edges[7:0]",
+      "role": "output"
+    },
+    {
+      "left": "adder_tb.logic_probe",
+      "right": "adder_tb.logic_probe[3:0]",
+      "role": "output"
+    }
+  ]
+}

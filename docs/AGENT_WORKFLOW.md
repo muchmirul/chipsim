@@ -266,3 +266,5 @@ Agent permissions and provider data handling remain controlled by that agent;
 ChipSim itself makes no background network calls or uploads.
 
 Run `npm run test:install` to repeat the isolated, offline package-install test.
+
+For HDL experiments, use `chipsim hdl doctor|import|run|compare` and [HDL.md](HDL.md). This separate process interface accepts source/testbench manifests and explicit comparison maps, keeps one versioned JSON result with meaningful exit status, and exports waveform artifacts without requiring a PDF. Source fingerprints identify the HDL files and simulator backend; they do not establish vendor documentation fidelity. Waveform import is data-only and never executes HDL.

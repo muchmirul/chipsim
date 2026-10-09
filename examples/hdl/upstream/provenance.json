@@ -1,0 +1,18 @@
+{
+  "project": "cocotb/cocotb",
+  "revision": "f622ed090a46b919548e744725a7d1f23ea93ffe",
+  "files": [
+    {
+      "file": "upstream/adder.sv",
+      "url": "https://raw.githubusercontent.com/cocotb/cocotb/f622ed090a46b919548e744725a7d1f23ea93ffe/examples/adder/hdl/adder.sv",
+      "sha256": "fbae5386cde21e66530009683f5eed38d32888e0be87c14b8738711f66dd1345",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "upstream/adder.vhdl",
+      "url": "https://raw.githubusercontent.com/cocotb/cocotb/f622ed090a46b919548e744725a7d1f23ea93ffe/examples/adder/hdl/adder.vhdl",
+      "sha256": "2fa437ae55a5e15adbd7ac27bc9dbbbabe60dfaea19f0d3b86211d72c2a0792f",
+      "license": "CC0-1.0"
+    }
+  ]
+}

@@ -38,12 +38,18 @@ export function signalRows(trace, signal, options) {
     }
     const value = cell.value,
       changed = col > 0 && !same(cell, previous) && previous.kind !== "empty";
-    if (value === "Z" || value === undefined) middle[col] = "·";
+    if (
+      value === "Z" ||
+      value === undefined ||
+      (signal.width === 1 && typeof value === "string" && !/^[01]$/.test(value))
+    )
+      middle[col] = "·";
     else if (signal.width === 1) {
-      top[col] = value ? "─" : changed ? "┐" : " ";
-      bottom[col] = value ? (changed ? "┘" : " ") : "─";
-      if (changed && value) top[col] = "┌";
-      if (changed && !value) bottom[col] = "└";
+      const high = value === 1 || value === "1";
+      top[col] = high ? "─" : changed ? "┐" : " ";
+      bottom[col] = high ? (changed ? "┘" : " ") : "─";
+      if (changed && high) top[col] = "┌";
+      if (changed && !high) bottom[col] = "└";
       middle[col] = changed ? "│" : " ";
     } else {
       top[col] = changed ? "┬" : "─";
@@ -57,7 +63,10 @@ export function signalRows(trace, signal, options) {
     const cell = cells[start];
     if (
       cell.kind === "value" &&
-      (signal.width > 1 || cell.value === "Z" || cell.value === undefined)
+      (signal.width > 1 ||
+        cell.value === "Z" ||
+        cell.value === undefined ||
+        (typeof cell.value === "string" && !/^[01]+$/.test(cell.value)))
     ) {
       // Keep the boundary glyph and at least one space before the next run.
       const left = start + Number(middle[start] === "│"),
@@ -95,7 +104,9 @@ export function signalRows(trace, signal, options) {
     if (cell.kind === "mixed") middle[cursor] = "≋";
     else if (
       cell.kind === "value" &&
-      (cell.value === undefined || cell.value === "Z")
+      (cell.value === undefined ||
+        cell.value === "Z" ||
+        (typeof cell.value === "string" && !/^[01]+$/.test(cell.value)))
     )
       middle[cursor] = cell.value === "Z" ? "Z" : "x";
   }

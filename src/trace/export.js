@@ -1,7 +1,9 @@
 import { vcdBits } from "../core/logic.js";
+import { waveformVCD } from "../hdl/vcd.js";
 const quote = (value) => '"' + String(value ?? "").replaceAll('"', '""') + '"';
 
 export function exportJSON(model, trace, parameters, inputs = []) {
+  if (model.waveform) return JSON.stringify(model.waveform, null, 2);
   return JSON.stringify(
     {
       format: "chipsim-trace",
@@ -14,6 +16,8 @@ export function exportJSON(model, trace, parameters, inputs = []) {
         sources: model.sources,
         evidence: model.evidence || [],
         assumptions: model.assumptions,
+        signals: model.signals,
+        registers: model.registers || [],
         definition: model.spec || null,
       },
       parameters,
@@ -33,6 +37,7 @@ export function exportCSV(model, trace) {
     ];
   const header = [
     "tick",
+    ...(model.waveform ? ["simulator_time", "time_unit"] : []),
     "state",
     "phase",
     ...signals.map((id) => "signal." + id),
@@ -42,6 +47,12 @@ export function exportCSV(model, trace) {
   ];
   const rows = trace.map((snapshot) => [
     snapshot.tick,
+    ...(model.waveform
+      ? [
+          snapshot.time,
+          model.waveform.timescale.magnitude + model.waveform.timescale.unit,
+        ]
+      : []),
     snapshot.state,
     snapshot.phase,
     ...signals.map((id) => snapshot.signals[id]),
@@ -57,6 +68,7 @@ export function exportCSV(model, trace) {
 }
 
 export function exportVCD(model, trace) {
+  if (model.waveform) return waveformVCD(model.waveform);
   const variables = [
     ...model.signals.map((signal) => ({ ...signal, kind: "signals" })),
     ...[

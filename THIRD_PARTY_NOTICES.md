@@ -29,6 +29,8 @@ The ESP32-C6 Technical Reference Manual v1.2 (20 March 2026) was supplied by the
 
 ## Bundled software
 
+`examples/hdl/upstream/adder.sv` and `adder.vhdl` are unmodified examples from [cocotb/cocotb](https://github.com/cocotb/cocotb), explicitly released as CC0-1.0 in each file. Their original notices remain. `examples/hdl/upstream/provenance.json` records the exact revision, source URLs and SHA-256 hashes. The surrounding ChipSim testbenches/reference script are also CC0-1.0. Icarus Verilog and GHDL are optional external tools and are not bundled in the npm package.
+
 The browser app and portable HTML bundle Mozilla PDF.js (`pdfjs-dist`), including its PDF worker, under Apache License 2.0. The complete license is retained in [docs/licenses/pdfjs-LICENSE.txt](docs/licenses/pdfjs-LICENSE.txt). PDF.js copyright and license comments remain in the generated bundle.
 
 Build and test tools (esbuild, Prettier, and Playwright) are development dependencies; their licenses are distributed with their installed packages. They are not model providers or runtime services.

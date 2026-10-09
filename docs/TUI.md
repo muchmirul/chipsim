@@ -2,6 +2,8 @@
 
 The TUI is ChipSim's primary interface. `npm start` runs it directly, with no generated browser bundle. Node.js 22.13+ is required; PDF extraction additionally requires Poppler. `node scripts/chipsim.mjs --help` lists launch options.
 
+**H** opens the HDL workbench: import VCD/waveform JSON, run a Verilog/VHDL project, or compare mapped signals with another waveform/exported model trace. `--vcd FILE` opens a recorded trace directly; `--hdl PROJECT --hdl-out NEW_DIRECTORY` runs and opens a project. HDL views use timestamp sample indices and show exact simulator time at the cursor. Replay is read-only; `S` saves a waveform session and `x` exports with its simulator timescale. See [HDL](HDL.md) for manifests, maps, backend setup, examples and limits.
+
 ## Working session
 
 Choose a model with `m`, edit parameters with `p`, and press Space to run. Playback stops at a terminal outcome or trace end. `h/l` and arrows move through the trace. `w/e/b` find rising/falling/previous rising edges of the selected signal. `[ ]` find changes across the whole model. Numeric presentation cycles with uppercase `F` and preserves the cursor.

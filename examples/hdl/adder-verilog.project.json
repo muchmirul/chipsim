@@ -1,0 +1,11 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "name": "Open-source Verilog adder",
+  "language": "verilog",
+  "standard": "2012",
+  "sources": ["upstream/adder.sv", "adder_tb.sv"],
+  "top": "adder_tb",
+  "waveform": "trace.vcd",
+  "timeoutMs": 30000
+}

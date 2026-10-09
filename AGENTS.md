@@ -16,6 +16,7 @@ ChipSim is a local hardware behavior workbench. Keep the six supplied architectu
 - `docs/TUI.md`: primary terminal interface, keys, source workflow, and dwfv interoperability.
 - `docs/MODEL_FORMAT.md`: the declarative model contract and execution order.
 - `docs/DEVELOPMENT.md`: source layout, build, verification, and extension points.
+- `docs/HDL.md`: external Icarus/GHDL runs, waveform import, exact time and mapped comparisons.
 - `docs/REFERENCES.md`: pinned vendor PDFs and model scope.
 
 Do not edit `chipsim.html` or `.generated/`; these are build outputs. Edit `src/`, the HTML shell, and model JSON. Do not reintroduce a monolithic simulation script.
@@ -65,6 +66,8 @@ The optional browser server is `npm run web` at `127.0.0.1:8000`; `npm run dev:w
 If a manual does not specify enough behavior, report the gap and offer an explicit configurable assumption. Do not claim that an invented model was generated accurately from the datasheet.
 
 ## Architecture and invariants
+
+- `src/hdl/` imports bounded digital waveform data independently of executable document models. Preserve per-bit logic, wide buses, full signal identifiers, aliases, exact simulator timestamps and unavailable values. Timestamp sample indices are not uniformly spaced physical time or HDL source steps. Never execute code while importing traces. Run HDL only on an explicit run action through argument-array external backends; preserve failed diagnostics/partial traces, source snapshots, tool identity, existing output folders and active experiments. Comparisons require explicit signal mappings/widths and explicit tick duration for model traces; separate input discrepancies, coverage and sampled/continuous scope. No whole-design equivalence or vendor fidelity claim follows from a matching waveform. Run `npm run test:hdl` with both real backends for HDL changes, plus TUI/install checks when affected.
 
 - Agent monitoring uses `--watch PROJECT` and Activity (`8`); `W` pauses only run reload. Preserve the headless command's single JSON result and exit code; journaling errors are warnings. Publish only complete runs, verify their fingerprints/source/schema/checks before loading, and retain the working trace on failures. Observe model edits as pending work, never execute or automatically install incomplete models. Preserve view/cursor/base/zoom/signal selection, defer reload during prompts/overlays/dwfv, and stop polling on exit. Explicit `agent note` milestones may describe other work; do not claim to capture all agent/editor actions or private reasoning.
 

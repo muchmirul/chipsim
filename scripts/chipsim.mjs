@@ -15,8 +15,16 @@ export async function main(args = process.argv.slice(2)) {
     const agent = await import("./agent.mjs");
     return agent.main(args.slice(1));
   }
+  if (args[0] === "hdl") {
+    const hdl = await import("./hdl.mjs");
+    return hdl.main(args.slice(1));
+  }
   const usage = `ChipSim · terminal hardware behavior workbench\nUsage: npm start -- [options]\n  --model pio|pru|flexio|udb|xmos|etpu|model.json\n  --document manual.pdf       Import a PDF; compile supported tables or reviewed profiles
-  --list-profiles              List reviewed automatic document profiles\n  --dwfv /path/to/dwfv        Optional external viewer command
+  --list-profiles              List reviewed automatic document profiles
+  --vcd trace.vcd|waveform.json Read-only HDL waveform replay
+  --hdl project.json          Run a Verilog/VHDL project before opening
+  --hdl-out NEW_DIRECTORY     Required with --hdl; preserve run artifacts
+  --dwfv /path/to/dwfv        Optional external viewer command
   --watch PROJECT             Monitor agent activity and completed runs\n  --workspace .chipsim        Persistent local workspace directory\n  --program experiment.chip   Load a source experiment; 9 opens line debugger\n  --params parameters.json    Parameter overrides\n  --inputs events.json        Timed input stimulus\n  --ticks 100                 Duration for document models\n  --snapshot                  Print one terminal frame without a TTY\n  --at 0 --columns 120 --rows 40  Snapshot dimensions and cursor\n  --view wave|inspect|log|sources|model|registers|stimulus|activity|program\n  --no-color                  Disable colored text\n  --help                      Show this help\n\nInside the TUI: ? help · m models · p params · i pins · d import · c create · q quit.\nOptional waveform viewer: V opens the exported trace in installed dwfv.\n`;
   if (args.includes("--help") || args.includes("-h")) {
     process.stdout.write(usage);
@@ -53,6 +61,9 @@ export async function main(args = process.argv.slice(2)) {
     "columns",
     "rows",
     "view",
+    "vcd",
+    "hdl",
+    "hdl-out",
   ]);
   for (let i = 0; i < args.length; i++) {
     const key = args[i].slice(2);
@@ -71,8 +82,33 @@ export async function main(args = process.argv.slice(2)) {
     throw new Error(
       "ChipSim needs an interactive terminal. Use --snapshot for text output or --help for usage.",
     );
+  if (
+    (options.vcd || options.hdl) &&
+    ["model", "document", "watch", "program", "params", "inputs", "ticks"].some(
+      (key) => options[key],
+    )
+  )
+    throw new Error(
+      "HDL waveform launches use their recorded configuration; open other experiments separately.",
+    );
+  if (options.vcd && options.hdl) throw new Error("Choose --vcd or --hdl.");
+  if (!!options.hdl !== !!options["hdl-out"])
+    throw new Error("--hdl requires --hdl-out NEW_DIRECTORY.");
   const state = new TuiState({ workspace: options.workspace || ".chipsim" });
   await state.initialize();
+  if (options.vcd) await state.loadWaveformFile(options.vcd);
+  if (options.hdl) {
+    const { runHDL } = await import("../src/hdl/run.js");
+    const { result, waveform } = await runHDL(options.hdl, options["hdl-out"]);
+    if (!result.ok)
+      throw new Error(
+        "HDL run failed: " +
+          result.error +
+          "; diagnostics: " +
+          result.artifacts.diagnostics,
+      );
+    state.installWaveform(waveform);
+  }
   let monitor;
   if (options.watch) {
     if (["params", "inputs", "ticks"].some((key) => options[key]))
