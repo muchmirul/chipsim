@@ -48,7 +48,8 @@ export const pad = (text, width) => {
   return clipped + " ".repeat(Math.max(0, width - displayWidth(clipped)));
 };
 export const display = (value, format, width = 8) =>
-  typeof value === "number" && value >= 0
+  (typeof value === "number" && value >= 0) ||
+  (typeof value === "string" && /^[01]+$/.test(value))
     ? formatPayload(value, format, width)
     : String(value ?? "—");
 

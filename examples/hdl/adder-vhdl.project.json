@@ -1,0 +1,11 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "name": "Open-source VHDL adder",
+  "language": "vhdl",
+  "standard": "08",
+  "sources": ["upstream/adder.vhdl", "adder_tb.vhdl"],
+  "top": "adder_tb",
+  "waveform": "trace.vcd",
+  "timeoutMs": 30000
+}

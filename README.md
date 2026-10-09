@@ -19,6 +19,7 @@ _A supplied RP2040 PIO teaching experiment at tick 18. DATA, CLK and ACK share a
 | Supported datasheet function tables | Combinational logic, multiplexing/decoding, supported flip-flops, latches and explicitly defined released outputs | Complete, unambiguous supported tables; unsupported rows are rejected             |
 | A new peripheral idea               | Guided counter, FIFO, shift-transfer, behavior-table and register-bank builders                                   | Developer-selected rules and assumptions remain visible                           |
 | An unfamiliar reference manual      | Searchable source project, model format, verification commands and coding-agent instructions                      | A developer or external agent must author behavior when no supported model exists |
+| Verilog / VHDL source and testbench | Icarus Verilog / GHDL runs, VCD inspection, mapped signal comparison                                              | Recorded digital results; explicit timing assumptions for model comparisons       |
 
 The library includes **34 original vendor PDFs across 19 chip/family folders**, with source URLs, revisions, fingerprints and programming references. Start with the [chip and reference library](docs/references/README.md) and [example programs](examples/programs/README.md). The full account-gated NXP eTPU reference manual is not bundled; the catalog records the available public documents and gaps.
 
@@ -338,7 +339,21 @@ _Press `E` to revise an entered table and compare a draft against the same param
 
 _`x` exports the complete executed trace as CSV, JSON or VCD. `S` saves a replayable session. VCD is a waveform interchange file; it contains signal changes, not the executable model or programming source. JSON retains model provenance and experiment configuration._
 
-VCD uses a nominal `1ns` timescale for viewer compatibility; each timestamp unit remains an **abstract model tick**, not a nanosecond timing claim. ChipSim generates it from its simulated trace. It is not a general-purpose viewer for arbitrary third-party VCD files.
+Model-generated VCD uses a nominal `1ns` timescale for viewer compatibility; each timestamp unit remains an **abstract model tick**, not a nanosecond timing claim. Imported HDL waveforms instead preserve their simulator timescale and timestamps. The terminal shows timestamp sample indices horizontally and exact simulator time at the cursor.
+
+### Run HDL and compare signals
+
+Press **H** in the terminal to import VCD, run an HDL project, or compare the active trace with another waveform/model trace. Install Icarus Verilog and GHDL to run the supplied open-source examples; waveform import works without them.
+
+```sh
+chipsim hdl doctor
+chipsim hdl run examples/hdl/adder-verilog.project.json --out tmp/verilog-run
+chipsim hdl run examples/hdl/adder-vhdl.project.json --out tmp/vhdl-run
+chipsim --vcd tmp/verilog-run/waveform.json
+chipsim hdl compare tmp/verilog-run/trace.vcd tmp/vhdl-run/trace.vcd --map examples/hdl/adder-compare.json
+```
+
+Use new output directories on each run. The cocotb CC0 adders exercise all 256 four-bit input pairs; their testbenches also record a clock, edge counter, NAND probes and mixed unknown/released bits. Comparisons require explicit signal names and compatible widths; comparing with abstract model ticks also requires a chosen tick duration. See [HDL projects and comparison](docs/HDL.md) and the [example walkthrough](examples/hdl/README.md), including HDL versus a datasheet-derived ChipSim NAND model. `npm run test:hdl` verifies both real simulators.
 
 For external waveform viewing, install [dwfv](https://github.com/psurply/dwfv) separately and press `V`; quit dwfv to return to ChipSim. Use `--dwfv /path/to/dwfv` or `CHIPSIM_DWFV` for a chosen executable. ChipSim's TUI is its own implementation; no dwfv source is copied into it. See [interop and reviewed version](docs/TUI.md#dwfv) and [vendor/software notices](THIRD_PARTY_NOTICES.md).
 
@@ -359,7 +374,7 @@ By default the TUI caches PDFs, models and exports under `.chipsim/` in its laun
 
 ## Current limits and next steps
 
-ChipSim models ideal digital behavior within a declared scope. It does not simulate analog voltage, physical timing, power, area, transistor layouts or a complete SoC. There is currently no Verilog/VHDL execution/import backend and no native C/C++, assembly, ELF/BIN, XMOS XE or eTPU microcode execution. The six architecture demonstrations do not accept arbitrary replacement native programs.
+ChipSim models ideal digital behavior within a declared scope. It does not simulate analog voltage, power, area, transistor layouts or a complete SoC. Its terminal/headless HDL workflow runs Verilog/SystemVerilog through Icarus Verilog and VHDL through GHDL, preserving dumped simulator timestamps. Native C/C++, assembly, ELF/BIN, XMOS XE or eTPU microcode execution remains unsupported. The six architecture demonstrations do not accept arbitrary replacement native programs.
 
 PDFs must contain searchable text and be at most **80 MiB**. OCR is external preprocessing, and diagrams may require direct review in the original PDF. Strict prepared-project checks currently bind a model to one manual; not every PDF revision or table form is supported. “No supported model” is a valid import result, followed by explicit developer/agent authoring.
 

@@ -6,6 +6,7 @@ import { views } from "./views.js";
 import { modelsForDocument } from "../documents/recognize.js";
 import { activityRows } from "./activity-panel.js";
 import { programRows } from "./program-panel.js";
+import { timeLabel } from "../hdl/time.js";
 const row = (text, style = "") => ({ text, style });
 function section(title, width) {
   return row(
@@ -70,7 +71,9 @@ function waveform(state, height) {
   );
   lines.push(
     row(
-      "… zoom for label · ≋ multiple values/column · x unavailable · Enter details",
+      state.model.waveform
+        ? "Timestamp sample indices · X unknown · Z released · Enter exact time/details"
+        : "… zoom for label · ≋ multiple values/column · x unavailable · Enter details",
       "dim",
     ),
   );
@@ -471,6 +474,10 @@ function modelInfo(state, height) {
 }
 const help = [
   [
+    "HDL",
+    "H import VCD / run Verilog or VHDL project / compare mapped signals",
+  ],
+  [
     "Navigation",
     "1 wave · 2 blocks · 3 log · 4 sources · 5 model · 6 regs · 7 inputs · 8 agent · 9 program",
   ],
@@ -559,12 +566,18 @@ export function render(state) {
     .join(columns < 110 ? " " : "  ");
   let lines = [
     row(
-      "CHIPSIM  " + state.model.name + "   · behavioral · normalized ticks",
+      "CHIPSIM  " +
+        state.model.name +
+        (state.model.waveform
+          ? " · HDL waveform replay"
+          : "   · behavioral · normalized ticks"),
       "title",
     ),
     row(tabs, "dim"),
     row(
-      `tick ${state.tick}/${state.trace.length - 1}  state ${s.state}  format ${state.format}  zoom ${state.zoom.toFixed(2)}  ${state.playing ? "RUNNING" : "paused"}`,
+      state.model.waveform
+        ? `sample ${state.tick}/${state.trace.length - 1} · time ${timeLabel(s.time, state.model.waveform.timescale)} · ${state.format} · ${state.playing ? "PLAYING" : "paused"}`
+        : `tick ${state.tick}/${state.trace.length - 1}  state ${s.state}  format ${state.format}  zoom ${state.zoom.toFixed(2)}  ${state.playing ? "RUNNING" : "paused"}`,
       "selected",
     ),
   ];
@@ -629,7 +642,7 @@ export function render(state) {
     ),
     row(state.message, state.error ? "error" : "status"),
     row(
-      "q quit · ? help · 1–9 views · m models · d import · x export" +
+      "q quit · ? help · 1–9 views · m models · H HDL · d import · x export" +
         (state.activity ? " · W watch" : " · c create"),
       "dim",
     ),

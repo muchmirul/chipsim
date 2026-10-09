@@ -20,6 +20,8 @@ import { RegisterBankEditor } from "./register-bank-editor.js";
 import { SourceSimulations } from "./source-simulations.js";
 import { TraceDetail } from "./trace-detail.js";
 import { activityEvents } from "./activity-panel.js";
+import { HdlPanel } from "./hdl-panel.js";
+import { searchBits } from "../hdl/values.js";
 const unquote = (path) =>
   /^(['"]).*\1$/.test(path) ? path.slice(1, -1) : path;
 export class TerminalApp {
@@ -50,6 +52,7 @@ export class TerminalApp {
     this.registerBankEditor = new RegisterBankEditor(this);
     this.sourceSimulations = new SourceSimulations(this);
     this.traceDetail = new TraceDetail(this);
+    this.hdlPanel = new HdlPanel(this);
   }
   draw() {
     if (this.closed || this.external) return;
@@ -96,12 +99,18 @@ export class TerminalApp {
     this.closed = true;
     clearInterval(this.timer);
     this.monitor?.close();
+    const pendingRun = this.hdlPanel.close();
     this.input.off("keypress", this.keyHandler);
     this.output.off("resize", this.resizeHandler);
     this.input.setRawMode(this.previousRaw);
     this.input.pause();
     this.output.write("\x1b[0m\x1b[?25h\x1b[?1049l");
-    this.onExit(code);
+    if (pendingRun)
+      pendingRun.then(
+        () => this.onExit(code),
+        () => this.onExit(code),
+      );
+    else this.onExit(code);
   }
   async task(action) {
     this.state.busy = true;
@@ -143,7 +152,9 @@ export class TerminalApp {
     const m = this.state.model;
     if (!m.parameters.length) {
       this.state.setMessage(
-        "This model has no runtime parameters · i drives input pins · a loads stimulus",
+        this.state.model.waveform
+          ? "Recorded waveform · change HDL parameters/testbench and use H to run again"
+          : "This model has no runtime parameters · i drives input pins · a loads stimulus",
       );
       return;
     }
@@ -332,7 +343,12 @@ export class TerminalApp {
       [
         { label: "CSV", value: "csv" },
         { label: "JSON · provenance + parameters + stimulus", value: "json" },
-        { label: "VCD · normalized tick waveform", value: "vcd" },
+        {
+          label: this.state.model.waveform
+            ? "VCD · simulator timestamps"
+            : "VCD · normalized tick waveform",
+          value: "vcd",
+        },
       ],
       (format) =>
         this.prompt(
@@ -804,6 +820,7 @@ export class TerminalApp {
         return;
       }
       if (k === "?") s.help = true;
+      else if (k === "H") this.hdlPanel.menu();
       else if (k === "P")
         this.prompt(
           "Load source program (.chip)",
@@ -882,7 +899,7 @@ export class TerminalApp {
         this.stimulusEditor.remove();
       else if (k === "u") this.registerMenu();
       else if (k === "d")
-        this.prompt("Import PDF, model JSON, or session JSON", "", (path) =>
+        this.prompt("Import PDF, model/session JSON, or VCD", "", (path) =>
           this.task(() =>
             s.loadFile(unquote(path), (message) => {
               s.setMessage(message);
@@ -940,12 +957,18 @@ export class TerminalApp {
         if (s.view === "stimulus") this.stimulusEditor.actions(load);
         else load();
       } else if (k === "t")
-        this.prompt("Go to normalized tick", s.tick, (text) => {
-          const parsed = parsePayload(text);
-          if (!parsed || parsed.value >= s.trace.length)
-            throw new Error("Tick must be 0–" + (s.trace.length - 1));
-          s.seek(parsed.value);
-        });
+        this.prompt(
+          s.model.waveform
+            ? "Go to timestamp sample index"
+            : "Go to normalized tick",
+          s.tick,
+          (text) => {
+            const parsed = parsePayload(text);
+            if (!parsed || parsed.value >= s.trace.length)
+              throw new Error("Tick must be 0–" + (s.trace.length - 1));
+            s.seek(parsed.value);
+          },
+        );
       else if (k === "T")
         this.prompt(
           "Document model duration · ticks",
@@ -960,6 +983,17 @@ export class TerminalApp {
         s.format = formats[(formats.indexOf(s.format) + 1) % formats.length];
       } else if (k === "f")
         this.prompt("Find selected signal value", 0, (text) => {
+          if (s.model.waveform) {
+            const bits = searchBits(text, s.signal.width);
+            const found = s.trace.find(
+              (snapshot) =>
+                snapshot.tick > s.tick &&
+                snapshot.signals[s.signal.id] === bits,
+            );
+            if (found) s.seek(found.tick);
+            else s.setMessage("No later matching signal value.");
+            return;
+          }
           const parsed =
             /^z$/i.test(text.trim()) && s.signal.triState
               ? { value: "Z" }

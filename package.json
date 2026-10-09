@@ -31,6 +31,7 @@
     "web": "node scripts/serve.mjs",
     "dev:web": "node scripts/build.mjs --watch",
     "test:tui": "python3 scripts/test-tui-pty.py",
+    "test:hdl": "node scripts/test-hdl.mjs",
     "test:dwfv": "node scripts/verify-dwfv.mjs",
     "verify:web": "node scripts/verify.mjs --web",
     "document": "node scripts/document.mjs",

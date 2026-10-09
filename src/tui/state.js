@@ -17,6 +17,8 @@ import { parseProgram } from "../program/parse.js";
 import { ProgramDebugger } from "../program/engine.js";
 import { verifyProgramGuides } from "../program/guides.js";
 import { readBounded } from "../agent/io.js";
+import { readWaveform } from "../hdl/io.js";
+import { waveformModel } from "../hdl/trace.js";
 export class TuiState {
   constructor({
     workspace = ".chipsim",
@@ -260,8 +262,14 @@ export class TuiState {
             (_, i) => current - i - 1,
           );
     for (const index of indexes) {
-      const before = this.trace[index - 1]?.signals[id],
-        after = this.trace[index].signals[id];
+      const level = (value) =>
+        this.model.kind === "waveform" &&
+        this.signal.width === 1 &&
+        /^[01]$/.test(value)
+          ? Number(value)
+          : value;
+      const before = level(this.trace[index - 1]?.signals[id]),
+        after = level(this.trace[index].signals[id]);
       if (before === undefined) continue;
       if (
         kind === "any"
@@ -520,6 +528,7 @@ export class TuiState {
   }
   async loadFile(path, onProgress = () => {}) {
     path = resolve(path);
+    if (/\.vcd$/i.test(path)) return this.loadWaveformFile(path);
     if (/\.pdf$/i.test(path)) {
       const extracted = await extractPDFFile(path, { onProgress });
       const existing = this.documents.find(
@@ -613,9 +622,27 @@ export class TuiState {
         );
       return document;
     }
-    const text = await readFile(path, "utf8");
-    if (text.length > 3 * 1048576) throw new Error("JSON file exceeds 3 MiB.");
+    const text = (await readBounded(path, 64 * 1048576)).toString("utf8");
     const json = JSON.parse(text);
+    if (json.format === "chipsim-waveform") return this.installWaveform(json);
+    if (json.format === "chipsim-waveform-session") {
+      if (
+        json.version !== 1 ||
+        !Number.isInteger(json.tick) ||
+        json.tick < 0 ||
+        !["hex", "decimal", "binary", "octal"].includes(json.display)
+      )
+        throw new Error("Invalid waveform session.");
+      const model = waveformModel(json.waveform);
+      if (json.tick >= model.waveform.events.length)
+        throw new Error("Waveform session cursor is outside the trace.");
+      this.installWaveform(json.waveform);
+      this.format = json.display;
+      this.seek(json.tick);
+      return;
+    }
+    if (text.length > 3 * 1048576)
+      throw new Error("Model/session JSON file exceeds 3 MiB.");
     if (json.format === "chipsim-session") {
       await this.loadSession(json);
       return;
@@ -623,6 +650,14 @@ export class TuiState {
     await this.installModel(json);
   }
   session() {
+    if (this.model.waveform)
+      return {
+        format: "chipsim-waveform-session",
+        version: 1,
+        waveform: this.model.waveform,
+        tick: this.tick,
+        display: this.format,
+      };
     return {
       format: "chipsim-session",
       version: 1,
@@ -647,12 +682,17 @@ export class TuiState {
     };
   }
   requireManualExperiment() {
+    if (this.model.kind === "waveform")
+      throw new Error(
+        "Recorded HDL waveform is read-only. Change its testbench and use H → Run HDL project.",
+      );
     if (this.programDebugger)
       throw new Error(
         "The source program controls this experiment. Edit/reload it with P, or detach it with Q in Program view.",
       );
   }
   async loadProgramFile(path) {
+    if (this.model.waveform) this.requireManualExperiment();
     const text = (await readBounded(path, 65536)).toString("utf8");
     const debug = await this.prepareProgram(text, this.model);
     this.programDebugger = debug;
@@ -662,6 +702,23 @@ export class TuiState {
     this.syncProgram();
     this.setMessage(
       "Program ready · N step · C continue · K breakpoint · J back",
+    );
+  }
+  async loadWaveformFile(path) {
+    const wave = await readWaveform(path);
+    this.installWaveform(wave);
+  }
+  installWaveform(wave) {
+    let index = this.models.length;
+    while (this.models.some((model) => model.id === "hdl-waveform-" + index))
+      index++;
+    const model = waveformModel(wave, "hdl-waveform-" + index);
+    this.models.push(model);
+    this.selectModel(model.id);
+    this.documentId = null;
+    this.view = "wave";
+    this.setMessage(
+      "HDL waveform loaded · H run/compare · timestamp sample indices; exact time at cursor",
     );
   }
   async prepareProgram(text, model, documents = this.documents, limits = {}) {

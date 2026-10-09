@@ -2,7 +2,7 @@
 // Pack/install outside the checkout without fetching dependencies or launching
 // a model provider. Exercise the public process contract agents actually use.
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, rm, readFile } from "node:fs/promises";
+import { mkdtemp, mkdir, rm, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFile } from "node:child_process";
@@ -35,6 +35,13 @@ try {
     "docs/MODEL_FORMAT.md",
     "docs/PROGRAMMING.md",
     "docs/EXISTING_SIMULATORS.md",
+    "docs/HDL.md",
+    "src/hdl/vcd.js",
+    "src/hdl/run.js",
+    "scripts/hdl.mjs",
+    "examples/hdl/upstream/adder.sv",
+    "examples/hdl/upstream/adder.vhdl",
+    "examples/hdl/upstream/provenance.json",
     "docs/references/catalog.json",
     "examples/esp32c6-gpio.chip",
     "examples/programs/catalog.json",
@@ -70,6 +77,50 @@ try {
     { cwd, maxBuffer: 1048576 },
   );
   const binary = join(prefix, "bin/chipsim");
+  const hdlInput = join(cwd, "external.vcd");
+  await writeFile(
+    hdlInput,
+    "$timescale 1ns $end\n$var wire 1 a out $end\n$enddefinitions $end\n0a\n#5\n1a\n#10\n",
+  );
+  const hdlResult = JSON.parse(
+    (
+      await run(
+        binary,
+        ["hdl", "import", hdlInput, "--out", join(cwd, "hdl import")],
+        { cwd },
+      )
+    ).stdout,
+  );
+  assert.equal(hdlResult.ok, true);
+  await writeFile(
+    join(cwd, "hdl-map.json"),
+    JSON.stringify({ signals: [{ left: "out", right: "out" }] }),
+  );
+  const compared = JSON.parse(
+    (
+      await run(
+        binary,
+        [
+          "hdl",
+          "compare",
+          hdlInput,
+          hdlResult.artifacts.waveform,
+          "--map",
+          join(cwd, "hdl-map.json"),
+        ],
+        { cwd },
+      )
+    ).stdout,
+  );
+  assert.equal(compared.comparison.match, true);
+  assert.match(
+    (
+      await run(binary, ["--vcd", hdlResult.artifacts.waveform, "--snapshot"], {
+        cwd,
+      })
+    ).stdout,
+    /HDL waveform replay/,
+  );
   const cli = async (args) => {
     const result = await run(binary, ["agent", ...args], {
       cwd,
@@ -89,6 +140,30 @@ try {
   );
   assert.equal((await cli(["doctor"])).pdfTools.length, 2);
   const installed = join(prefix, "lib/node_modules/chipsim");
+  const backendCheck = JSON.parse(
+    (await run(binary, ["hdl", "doctor"], { cwd })).stdout,
+  );
+  if (backendCheck.tools.every((tool) => tool.available)) {
+    for (const language of ["verilog", "vhdl"]) {
+      const hdlRun = JSON.parse(
+        (
+          await run(
+            binary,
+            [
+              "hdl",
+              "run",
+              join(installed, `examples/hdl/adder-${language}.project.json`),
+              "--out",
+              join(cwd, "installed hdl " + language),
+            ],
+            { cwd },
+          )
+        ).stdout,
+      );
+      assert.equal(hdlRun.ok, true);
+      assert.ok(hdlRun.tools.every((tool) => tool.available));
+    }
+  }
   const chipContext = (await cli(["context", "esp32-c6"])).programmingContext;
   assert.equal(chipContext.decision.nativeExecution.available, false);
   assert.ok(chipContext.models.some((model) => model.id === "esp32c6-gpio"));

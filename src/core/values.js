@@ -18,6 +18,25 @@ function parsePayload(raw) {
 }
 function formatPayload(value, format, bits = 8) {
   if (value === "Z") return "Z";
+  // External HDL buses retain every bit, including unknowns and widths >32.
+  if (typeof value === "string") {
+    if (!/^[01]+$/.test(value)) return value;
+    value = BigInt("0b" + value);
+  }
+  if (typeof value === "bigint") {
+    if (format === "decimal") return value.toString();
+    if (format === "binary")
+      return "0b" + value.toString(2).padStart(bits, "0");
+    if (format === "octal")
+      return "0o" + value.toString(8).padStart(Math.ceil(bits / 3), "0");
+    return (
+      "0x" +
+      value
+        .toString(16)
+        .toUpperCase()
+        .padStart(Math.ceil(bits / 4), "0")
+    );
+  }
   if (format === "decimal") return String(value);
   if (format === "binary") return "0b" + value.toString(2).padStart(bits, "0");
   if (format === "octal")
