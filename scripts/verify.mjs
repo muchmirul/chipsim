@@ -95,6 +95,8 @@ for (const file of [
   "docs/AGENT_PROJECT.md",
   "README.md",
   "docs/DEVELOPMENT.md",
+  "docs/CHANGELOG.md",
+  "docs/VISUALIZATION.md",
   "docs/MODEL_FORMAT.md",
   "docs/TUI.md",
   "docs/DOCUMENT_PROFILES.md",

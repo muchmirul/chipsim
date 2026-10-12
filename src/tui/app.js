@@ -22,6 +22,7 @@ import { TraceDetail } from "./trace-detail.js";
 import { activityEvents } from "./activity-panel.js";
 import { HdlPanel } from "./hdl-panel.js";
 import { searchBits } from "../hdl/values.js";
+import { VisualPanel } from "./visual-panel.js";
 const unquote = (path) =>
   /^(['"]).*\1$/.test(path) ? path.slice(1, -1) : path;
 export class TerminalApp {
@@ -53,6 +54,7 @@ export class TerminalApp {
     this.sourceSimulations = new SourceSimulations(this);
     this.traceDetail = new TraceDetail(this);
     this.hdlPanel = new HdlPanel(this);
+    this.visualPanel = new VisualPanel(this);
   }
   draw() {
     if (this.closed || this.external) return;
@@ -82,10 +84,11 @@ export class TerminalApp {
       ) {
         this.state.seek(this.state.tick + 1);
         if (
-          this.state.tick >= this.state.trace.length - 1 ||
-          ["fault", "success", "timeout", "complete"].includes(
-            this.state.snapshot.phase,
-          )
+          this.state.tick >= this.state.lastTick ||
+          (this.state.view !== "compare" &&
+            ["fault", "success", "timeout", "complete"].includes(
+              this.state.snapshot.phase,
+            ))
         )
           this.state.playing = false;
         this.draw();
@@ -396,22 +399,21 @@ export class TerminalApp {
     });
   }
   sourcesMenu() {
-    if (!this.state.documents.length) {
-      if (this.state.model.kind === "builtin") {
-        const source = this.state.model.sources[0];
-        if (source?.path?.startsWith("docs/references/"))
-          return this.task(async () => {
-            await this.state.loadFile(
-              resolve(this.state.root, source.path),
-              (message) => {
-                this.state.setMessage(message);
-                this.draw();
-              },
-            );
-            this.state.view = "sources";
-            this.state.page = source.pdf_start_page || 1;
+    if (!this.state.document && this.state.model.kind === "builtin") {
+      if (
+        this.state.model.sources.some((source) =>
+          source.path?.startsWith("docs/references/"),
+        )
+      )
+        return this.task(async () => {
+          await this.state.loadModelSource((message) => {
+            this.state.setMessage(message);
+            this.draw();
           });
-      }
+          this.state.view = "sources";
+        });
+    }
+    if (!this.state.documents.length) {
       this.state.setMessage("Import a PDF with d first.");
       return;
     }
@@ -863,7 +865,11 @@ export class TerminalApp {
             !!debug.error,
           );
         }
-      } else if (k === "W") {
+      } else if (k === "g") s.setView("states");
+      else if (k === "v") s.setView("flow");
+      else if (k === "D") s.setView("compare");
+      else if (k === "Y") s.pinExperiment();
+      else if (k === "W") {
         if (!this.monitor)
           throw new Error(
             "Open ChipSim with --watch PROJECT to monitor an agent project.",
@@ -1018,7 +1024,7 @@ export class TerminalApp {
       else if (key.name === "tab")
         s.setView(views[(views.indexOf(s.view) + 1) % views.length]);
       else if (k === " " || key.name === "space") {
-        if (s.tick === s.trace.length - 1) s.seek(0);
+        if (s.tick === s.lastTick) s.seek(0);
         s.playing = !s.playing;
       } else if (k === "r") {
         if (s.programDebugger) {
@@ -1027,12 +1033,14 @@ export class TerminalApp {
         } else s.rebuild();
         s.setMessage("Reset simulation.");
       } else if (k === "0" || key.name === "home") s.seek(0);
-      else if (k === "$" || key.name === "end") s.seek(s.trace.length - 1);
+      else if (k === "$" || key.name === "end") s.seek(s.lastTick);
       else if (k === "w") s.jumpEdge("rise");
       else if (k === "e") s.jumpEdge("fall");
       else if (k === "b") s.jumpEdge("rise", -1);
-      else if (k === "]") s.jumpChange(1);
-      else if (k === "[") s.jumpChange(-1);
+      else if (k === "]")
+        s.view === "compare" ? s.seekDifference(1) : s.jumpChange(1);
+      else if (k === "[")
+        s.view === "compare" ? s.seekDifference(-1) : s.jumpChange(-1);
       else if (k === "+" || k === "=") {
         if (k === "=") s.fit();
         else s.zoomBy(2);
@@ -1040,15 +1048,19 @@ export class TerminalApp {
       else if (k === "z") s.center();
       else if (k === "C") s.changesOnly = !s.changesOnly;
       else if (key.name === "return") {
-        if (s.view === "sources") this.sourcesMenu();
+        if (s.view === "states") this.visualPanel.stateDetails();
+        else if (s.view === "compare") this.visualPanel.comparisons();
+        else if (s.view === "sources") this.sourcesMenu();
         else if (s.view === "stimulus") this.stimulusEditor.event();
         else if (s.view === "log") {
           const entry = s.logs()[s.logIndex];
           if (entry) this.traceDetail.open(entry);
-        } else if (["wave", "inspect", "registers"].includes(s.view))
+        } else if (["wave", "inspect", "registers", "flow"].includes(s.view))
           this.traceDetail.open();
       } else if (k === "j" || key.name === "down") {
-        if (s.view === "program" && s.programDebugger)
+        if (s.view === "states") s.graphIndex++;
+        else if (["flow", "compare"].includes(s.view)) s.visualScroll++;
+        else if (s.view === "program" && s.programDebugger)
           s.programLine = Math.min(
             s.programDebugger.program.lines.length,
             s.programLine + 1,
@@ -1077,7 +1089,10 @@ export class TerminalApp {
         else if (s.view === "sources") s.sourceScroll++;
         else s.moveSignal(1);
       } else if (k === "k" || key.name === "up") {
-        if (s.view === "program" && s.programDebugger)
+        if (s.view === "states") s.graphIndex = Math.max(0, s.graphIndex - 1);
+        else if (["flow", "compare"].includes(s.view))
+          s.visualScroll = Math.max(0, s.visualScroll - 1);
+        else if (s.view === "program" && s.programDebugger)
           s.programLine = Math.max(1, s.programLine - 1);
         else if (s.view === "activity") {
           s.activityFollow = false;

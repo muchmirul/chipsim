@@ -130,6 +130,20 @@ test("agent prepare handles the supplied ESP32-C6 manual and bounded, paginated 
     await readFile(join(project, "AGENTS.md"), "utf8"),
     /independently justified/,
   );
+  assert.match(
+    await readFile(join(project, "AGENTS.md"), "utf8"),
+    /docs\/CHANGELOG\.md/,
+  );
+  for (const file of [
+    "CHANGELOG.md",
+    "TUI.md",
+    "DEVELOPMENT.md",
+    "VISUALIZATION.md",
+  ])
+    assert.equal(
+      await readFile(join(project, "docs", file), "utf8"),
+      await readFile(join(root, "docs", file), "utf8"),
+    );
   const model = join(project, prepared.result.models[1].file);
   const checked = await agentCommand(["check", model, "--project", project]);
   assert.equal(checked.exitCode, 0);

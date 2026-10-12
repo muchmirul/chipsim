@@ -1,5 +1,14 @@
 # Declarative model format · version 1
 
+Declarative simulation snapshots now also expose optional observation fields:
+`transition` is `{from,to,index}` or `null`; `operations` records the first 64
+completed assignments in execution order with stage, target, width, before/after
+and evaluated field reads; `operationCount` counts all completed assignments.
+They preserve same-value writes, lazy selected reads and successful fault
+prefixes without changing actions or transition priority. These are exported
+trace observations, not new model-schema instructions. See
+[Visualization](VISUALIZATION.md) for graph, flow and old-trace interpretation.
+
 A ChipSim model describes a bounded behavior scenario. It is JSON data interpreted locally, with no JavaScript execution. A model must declare its scope, source evidence, assumptions, and executable acceptance cases. The authoritative validator is `src/model/validate.js`; the complete working example is `examples/timer.model.json`.
 
 ## Required top-level fields

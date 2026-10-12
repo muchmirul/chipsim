@@ -35,8 +35,11 @@ with tempfile.TemporaryDirectory(prefix='chipsim-program-pty-') as workspace:
         os.write(master, keys.encode())
     try:
         wait('EXPERIMENT SOURCE')
+        wait('no waveform history yet')
+        assert 'tick 0/0' in frame()
         assert not termios.tcgetattr(slave)[3] & termios.ICANON
         send('N'); wait('paused · tick 1 · next line 6')
+        assert 'no waveform history yet' not in frame()
         send('N'); wait('paused · tick 2 · next line 7')
         send('jjK'); wait('Breakpoint toggled on line 9')
         send('C'); wait('breakpoint · tick 5 · next line 9')
@@ -62,6 +65,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-program-pty-') as workspace:
         send('K'); wait('Breakpoint toggled on line 9')
         send('C'); wait('halted · tick 7 · next line end')
         send('r'); wait('Reset simulation.')
+        wait('no waveform history yet')
         send('Q'); wait('Program detached')
         send('q'); proc.wait(timeout=5)
         end = time.monotonic() + 1
@@ -71,7 +75,46 @@ with tempfile.TemporaryDirectory(prefix='chipsim-program-pty-') as workspace:
         assert proc.returncode == 0
         assert termios.tcgetattr(slave)[3] & (termios.ICANON|termios.ECHO) == original[3] & (termios.ICANON|termios.ECHO)
         assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
-        print('Program PTY verified: source steps, breakpoint, replay, guide popup, saved source, signal oracle, 80×24/120×40, reset/detach and terminal cleanup.')
+
+        # Reproduce PIO startup in a workspace containing only ESP32 references.
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack('HHHH', 40, 120, 0, 0))
+        captured = ''
+        proc = subprocess.Popen([
+            os.environ.get('CHIPSIM_NODE', 'node'), 'scripts/chipsim.mjs',
+            '--workspace', workspace, '--no-color', '--model', 'pio',
+            '--program', str(ROOT/'examples/programs/pio-transfer.chip')
+        ], cwd=ROOT, stdin=slave, stdout=slave, stderr=slave, close_fds=True)
+        wait('no waveform history yet')
+        assert 'DATA' in frame() and 'CLK' in frame() and 'ACK' in frame()
+        assert 'tick 0/0' in frame() and '0 steps' in frame()
+        send('4'); wait('No reference PDF is loaded for RP2040 PIO')
+        assert 'ESP32-C6' not in frame()
+        send('\r'); wait('Reference loaded for RP2040 PIO')
+        assert 'PDF page 312/642' in frame(), frame()
+        assert 'Reference for RP2040 PIO' in frame()
+        send('9'); wait('no waveform history yet')
+        assert '0 steps' in frame(), frame()
+        send('N'); wait('paused · tick 0 · next line 12')
+        assert 'no waveform history yet' in frame()
+        send('N'); wait('paused · tick 16 · next line 13')
+        assert 'no waveform history yet' not in frame()
+        send('4'); wait('Reference for RP2040 PIO')
+        send('9C'); wait('halted · tick 40 · next line end')
+        send('1'); wait('tick 40/40  state success')
+        assert 'CLK' in frame() and 'ACK' in frame()
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack('HHHH', 24, 80, 0, 0))
+        proc.send_signal(signal.SIGWINCH)
+        send('9r'); wait('no waveform history yet')
+        assert 'DATA' in frame() and 'CLK' in frame() and 'ACK' in frame()
+        send('q'); proc.wait(timeout=5)
+        end = time.monotonic() + 1
+        while time.monotonic() < end and select.select([master], [], [], .05)[0]:
+            try: captured += os.read(master, 65536).decode('utf8', 'replace')
+            except OSError: break
+        assert proc.returncode == 0
+        assert termios.tcgetattr(slave)[3] & (termios.ICANON|termios.ECHO) == original[3] & (termios.ICANON|termios.ECHO)
+        assert '\x1b[?25h' in captured and '\x1b[?1049l' in captured
+        print('Program PTY verified: source steps, breakpoint, replay, guide popup, saved source, signal oracle, 80×24/120×40, initial values/history guidance, unrelated-workspace isolation, reference import without execution, reset/detach and terminal cleanup.')
     finally:
         if proc.poll() is None: proc.terminate(); proc.wait(timeout=5)
         os.close(master); os.close(slave)

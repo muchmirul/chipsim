@@ -14,8 +14,10 @@ ChipSim is a local hardware behavior workbench. Keep the six supplied architectu
 - `docs/ESP32_C6_GPIO.md`: GPIO word transactions, atomic aliases, logical output observation and boundaries.
 - `docs/ESP32_C6_PCNT.md`: the user-selected ESP32-C6 manual, single-channel scope, signed counts and terminal experiments.
 - `docs/TUI.md`: primary terminal interface, keys, source workflow, and dwfv interoperability.
+- `docs/VISUALIZATION.md`: state graphs, actual assignment/bit-flow observations, frozen references, comparison coverage and limits.
 - `docs/MODEL_FORMAT.md`: the declarative model contract and execution order.
 - `docs/DEVELOPMENT.md`: source layout, build, verification, and extension points.
+- `docs/CHANGELOG.md`: context, usage, limits and regression coverage for feature and behavior changes.
 - `docs/HDL.md`: external Icarus/GHDL runs, waveform import, exact time and mapped comparisons.
 - `docs/REFERENCES.md`: pinned vendor PDFs and model scope.
 
@@ -100,5 +102,7 @@ If a manual does not specify enough behavior, report the gap and offer an explic
 - Escape all document/model text before HTML rendering. Validate geometry and references before rendering imported models. Do not trust document metadata or imported JSON.
 
 ## Finishing changes
+
+For every added feature or behavior change, update its topic guide and add a `docs/CHANGELOG.md` entry. Document the original problem or use case, the action/command that triggers it, the observable behavior, applicable limits and preserved state, implementation pointers, and meaningful regression coverage. Document each distinct behavior individually; a list of changed files is insufficient. Keep instructions discoverable from the README and agent workflow. When an agent-project workflow changes, update the prepared-project instructions and copied documentation as needed. See `docs/DEVELOPMENT.md` for the entry format.
 
 Run the checks appropriate to what changed. Keep `README.md` and model documentation aligned with actual behavior. Report what works, what was tested, and material remaining limits. Describe automatic simulation only for the actually compiled scope: a reviewed profile, a validated supported function table, or an authored model linked to that PDF. Never describe arbitrary unfamiliar PDF import as automatic chip simulation unless the implementation actually models that chip behavior and has been verified.

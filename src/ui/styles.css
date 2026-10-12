@@ -1211,3 +1211,238 @@ body.dragging .drop-zone {
     overflow: auto;
   }
 }
+/* Trace-backed educational views share the transport cursor. */
+.view-tabs,
+.visual-toolbar,
+.state-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.visual-toolbar {
+  margin: 14px 0;
+}
+.visual-card {
+  padding: 20px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  min-width: 0;
+}
+.visual-card h2 {
+  margin: 0 0 12px;
+  font-size: 19px;
+}
+.visual-card p {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.fsm-scroll,
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.fsm-scroll {
+  overflow: auto;
+  max-height: 620px;
+}
+.fsm-svg {
+  display: block;
+  width: 100%;
+  max-height: none;
+}
+.fsm-edge {
+  fill: none;
+  stroke: #c5cdd2;
+  stroke-width: 2;
+}
+.fsm-edge.visited {
+  stroke: var(--teal);
+}
+.fsm-edge.taken {
+  stroke: var(--amber);
+  stroke-width: 4;
+}
+.fsm-edge.hold {
+  stroke-dasharray: 4 4;
+}
+.fsm-node {
+  cursor: pointer;
+}
+.fsm-node rect {
+  fill: var(--paper);
+  stroke: #c5cdd2;
+  stroke-width: 1.5;
+}
+.fsm-node.current rect {
+  fill: #e5f4f3;
+  stroke: var(--teal);
+  stroke-width: 3;
+}
+.fsm-node.focused rect,
+.fsm-node:focus rect {
+  stroke: var(--ink);
+}
+.fsm-node text {
+  fill: var(--ink);
+  font: 13px var(--mono);
+}
+.fsm-node .fsm-caption {
+  font-size: 10px;
+}
+.state-picker {
+  margin: 12px 0;
+}
+.state-picker [aria-pressed="true"] {
+  border-color: var(--teal);
+  background: #e5f4f3;
+}
+.fsm-rule {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+  display: grid;
+  gap: 8px;
+}
+.fsm-rule code,
+.fsm-rule pre {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.fsm-rule.taken {
+  border-left: 4px solid var(--amber);
+  padding-left: 12px;
+}
+.fsm-rule button {
+  justify-self: start;
+}
+.bit-word {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 8px 0;
+}
+.bit {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 6px;
+  min-width: 22px;
+  text-align: center;
+  font: 15px var(--mono);
+}
+.bit.active {
+  border-color: var(--teal);
+  background: #e5f4f3;
+  font-weight: bold;
+}
+.flow-end {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+}
+.serial-channel {
+  display: grid;
+  justify-items: center;
+  padding: 10px;
+  gap: 4px;
+  text-align: center;
+}
+.flow-wire {
+  position: relative;
+  height: 80px;
+  width: 50px;
+}
+.flow-wire:before {
+  content: "";
+  position: absolute;
+  left: 24px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--teal);
+}
+.flow-arrow {
+  position: absolute;
+  bottom: -9px;
+  left: 13px;
+  color: var(--teal);
+  font-size: 30px;
+}
+.moving-bit {
+  position: absolute;
+  left: 9px;
+  top: 50px;
+  background: var(--teal);
+  color: white;
+  border-radius: 50%;
+  padding: 4px 10px;
+  font: 17px var(--mono);
+}
+.capturing .moving-bit {
+  animation: capture-bit 0.45s ease-out;
+}
+@keyframes capture-bit {
+  from {
+    transform: translateY(-55px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.flow-operations {
+  padding-left: 24px;
+}
+.flow-operations li {
+  border-bottom: 1px solid var(--line);
+  padding: 15px 0;
+}
+.assignment-flow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.assignment-flow > div {
+  flex: 1;
+  min-width: min(260px, 100%);
+}
+.assignment-flow code,
+.assignment-flow span:not(.bit) {
+  overflow-wrap: anywhere;
+}
+.assignment-flow code {
+  display: block;
+}
+.assignment-arrow {
+  font-size: 32px;
+  color: var(--teal);
+}
+.comparison-states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.comparison-svg {
+  width: 100%;
+  min-width: 650px;
+  font: 10px var(--mono);
+}
+.unavailable-range {
+  fill: #eee;
+  opacity: 0.8;
+}
+@media (prefers-reduced-motion: reduce) {
+  .capturing .moving-bit {
+    animation: none;
+  }
+}
+@media (max-width: 760px) {
+  .visual-card {
+    padding: 12px;
+  }
+  .view-bar {
+    flex-wrap: wrap;
+  }
+}

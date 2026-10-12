@@ -488,3 +488,4 @@ with tempfile.TemporaryDirectory(prefix='chipsim-pty-') as workspace:
 
 subprocess.run([__import__('sys').executable, str(ROOT/'scripts/test-agent-monitor-pty.py')], cwd=ROOT, check=True)
 subprocess.run([__import__('sys').executable, str(ROOT/'scripts/test-program-pty.py')], cwd=ROOT, check=True)
+subprocess.run([__import__('sys').executable, str(ROOT/'scripts/test-visuals-pty.py')], cwd=ROOT, check=True)

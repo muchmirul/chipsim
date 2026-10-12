@@ -11,6 +11,12 @@ have no saved context files: the same command generates current context without
 changing model files. Do not guess the chip's ISA or supported backend.
 
 Read `docs/AGENT_WORKFLOW.md`, `docs/PROGRAMMING.md` and `docs/MODEL_FORMAT.md` before authoring.
+Read `docs/CHANGELOG.md` for the reasons, usage and limits of recent behavior
+changes. Read `docs/VISUALIZATION.md` before explaining graphs, bit flow or
+experiment comparisons; observations must not be presented as inferred wiring.
+Copied documentation describes the version that prepared this project;
+older projects may have no change log. Consult the installed checkout's docs
+for newer behavior. `context` refreshes model capabilities, not copied docs.
 `examples/timer.model.json` is a complete syntax example with illustrative
 assumptions and its own original source. Do not relabel it as this chip's behavior.
 

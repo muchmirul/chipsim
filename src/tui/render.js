@@ -7,6 +7,7 @@ import { modelsForDocument } from "../documents/recognize.js";
 import { activityRows } from "./activity-panel.js";
 import { programRows } from "./program-panel.js";
 import { timeLabel } from "../hdl/time.js";
+import { stateRows, flowRows, comparisonRows } from "./visual-render.js";
 const row = (text, style = "") => ({ text, style });
 function section(title, width) {
   return row(
@@ -15,6 +16,54 @@ function section(title, width) {
   );
 }
 function waveform(state, height) {
+  if (state.programDebugger && state.trace.length === 1) {
+    const status = state.programDebugger.status,
+      maxSignals = Math.max(1, height - 3),
+      first = Math.max(
+        0,
+        Math.min(
+          state.selected - Math.floor(maxSignals / 2),
+          state.model.signals.length - maxSignals,
+        ),
+      );
+    return [
+      row("SIGNALS · initial values at tick 0", "selected"),
+      row(
+        ["halted", "fault"].includes(status)
+          ? "No time advanced · program " +
+              (status === "halted" ? "halted" : "stopped")
+          : (state.view === "program"
+              ? "N step · C continue"
+              : "9 Program · N step / C continue") +
+              " · no waveform history yet",
+        "dim",
+      ),
+      ...state.model.signals
+        .slice(first, first + maxSignals)
+        .map((signal) =>
+          row(
+            pad(
+              (state.signal.id === signal.id ? "› " : "  ") +
+                (signal.label || signal.id),
+              22,
+            ) +
+              " = " +
+              display(
+                state.snapshot.signals[signal.id],
+                state.format,
+                signal.width,
+              ),
+            state.signal.id === signal.id ? "selected" : "wave",
+          ),
+        ),
+      row(
+        state.view === "program"
+          ? "1 choose signal · Enter details"
+          : "j/k choose signal · Enter details",
+        "dim",
+      ),
+    ].slice(0, height);
+  }
   const width = Math.max(1, state.columns - 24),
     maxSignals = Math.max(1, Math.floor((height - 3) / 3)),
     first = Math.max(
@@ -240,10 +289,9 @@ function sources(state, height) {
   const document = state.document;
   if (!document)
     return [
-      row(
-        "No PDF is loaded. Press d to import a datasheet or reference manual.",
-      ),
+      row("No reference PDF is loaded for " + state.model.name + "."),
       row("Press Enter to import the first bundled source for this model."),
+      row("d imports another PDF.", "dim"),
       ...state.model.sources.map((s) =>
         row(
           (s.title || s.filename || s.id) + " · " + (s.path || s.url || ""),
@@ -254,7 +302,7 @@ function sources(state, height) {
   const page = document.pages.find((p) => p.number === state.page),
     text = wrapped(page?.text || "", state.columns),
     linked = modelsForDocument(document, state.models),
-    max = Math.max(0, text.length - (height - 5));
+    max = Math.max(0, text.length - (height - 6));
   state.sourceScroll = Math.min(max, Math.max(0, state.sourceScroll));
   return [
     row(
@@ -277,8 +325,14 @@ function sources(state, height) {
       "j/k scroll · h/l page · / search · n/N matches · Enter choose PDF",
       "dim",
     ),
+    row(
+      state.model.sources.some((source) => source.sha256 === document.sha256)
+        ? "Reference for " + state.model.name
+        : "Browsing another PDF · model: " + state.model.name,
+      "dim",
+    ),
     ...text
-      .slice(state.sourceScroll, state.sourceScroll + height - 5)
+      .slice(state.sourceScroll, state.sourceScroll + height - 6)
       .map((text) => row(text)),
     row("o simulations and scope for this PDF · B export sources", "dim"),
   ];
@@ -525,6 +579,7 @@ const help = [
     "Agent monitor",
     "--watch PROJECT · 8 activity · W pause reload · G follow newest",
   ],
+  ["Visuals", "g states · v bit flow · Y capture reference · D comparison"],
   ["General", "? help · Esc close overlay · q/Ctrl-C quit"],
 ];
 export function render(state) {
@@ -546,6 +601,7 @@ export function render(state) {
     );
   if (!s) return "Loading ChipSim…";
   const tabs = views
+    .slice(0, 9)
     .map(
       (name, index) =>
         (name === state.view
@@ -573,11 +629,27 @@ export function render(state) {
           : "   · behavioral · normalized ticks"),
       "title",
     ),
-    row(tabs, "dim"),
+    row(
+      ["states", "flow", "compare"].includes(state.view)
+        ? "1–9 standard views · " +
+            ["states", "flow", "compare"]
+              .map(
+                (name, index) =>
+                  (state.view === name
+                    ? "[" + name.toUpperCase() + "]"
+                    : name) +
+                  " " +
+                  ["g", "v", "D"][index],
+              )
+              .join(" · ") +
+            " · Y capture"
+        : tabs,
+      "dim",
+    ),
     row(
       state.model.waveform
         ? `sample ${state.tick}/${state.trace.length - 1} · time ${timeLabel(s.time, state.model.waveform.timescale)} · ${state.format} · ${state.playing ? "PLAYING" : "paused"}`
-        : `tick ${state.tick}/${state.trace.length - 1}  state ${s.state}  format ${state.format}  zoom ${state.zoom.toFixed(2)}  ${state.playing ? "RUNNING" : "paused"}`,
+        : `tick ${state.tick}/${state.lastTick}  state ${s.state}  format ${state.format}  zoom ${state.zoom.toFixed(2)}  ${state.playing ? "RUNNING" : "paused"}`,
       "selected",
     ),
   ];
@@ -599,7 +671,12 @@ export function render(state) {
       ...registers(state, Math.max(1, available - gh - 3)),
       row(s.message || "Hold state", "event"),
     );
-  } else if (state.view === "log") lines.push(...logs(state, available));
+  } else if (state.view === "states")
+    lines.push(...stateRows(state, available));
+  else if (state.view === "flow") lines.push(...flowRows(state, available));
+  else if (state.view === "compare")
+    lines.push(...comparisonRows(state, available));
+  else if (state.view === "log") lines.push(...logs(state, available));
   else if (state.view === "registers")
     lines.push(...registerTable(state, available));
   else if (state.view === "model") lines.push(...modelInfo(state, available));
@@ -642,7 +719,9 @@ export function render(state) {
     ),
     row(state.message, state.error ? "error" : "status"),
     row(
-      "q quit · ? help · 1–9 views · m models · H HDL · d import · x export" +
+      (["states", "flow", "compare"].includes(state.view)
+        ? "q quit · ? help · g states · v flow · Y capture · D compare · Enter details"
+        : "q quit · ? help · 1–9 views · m models · H HDL · d import · x export") +
         (state.activity ? " · W watch" : " · c create"),
       "dim",
     ),

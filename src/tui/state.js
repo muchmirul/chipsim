@@ -19,6 +19,12 @@ import { verifyProgramGuides } from "../program/guides.js";
 import { readBounded } from "../agent/io.js";
 import { readWaveform } from "../hdl/io.js";
 import { waveformModel } from "../hdl/trace.js";
+import { stateGraph } from "../visualization/state-graph.js";
+import {
+  captureExperiment,
+  compareExperiments,
+  recordedExperiment,
+} from "../visualization/experiments.js";
 export class TuiState {
   constructor({
     workspace = ".chipsim",
@@ -68,6 +74,10 @@ export class TuiState {
     this.activityDetailScroll = 0;
     this.programDebugger = null;
     this.programLine = 1;
+    this.graphIndex = 0;
+    this.visualScroll = 0;
+    this.reference = null;
+    this.comparisonCache = null;
   }
   get model() {
     return this.models.find((m) => m.id === this.modelId);
@@ -82,13 +92,117 @@ export class TuiState {
     return this.configurations.get(this.modelId);
   }
   get snapshot() {
-    return this.trace[this.tick] || this.trace.at(-1);
+    return (
+      this.trace[this.tick] || {
+        tick: this.tick,
+        state: "unavailable",
+        phase: "unavailable",
+        signals: {},
+        registers: {},
+        active: [],
+        values: {},
+        changes: [],
+        evidence: [],
+        message: "Current experiment has no snapshot at this tick.",
+        detail: "",
+      }
+    );
+  }
+  get lastTick() {
+    return this.view === "compare" && this.reference && !this.model.waveform
+      ? Math.max(this.trace.length, this.reference.trace.length) - 1
+      : this.trace.length - 1;
+  }
+  experiment() {
+    return {
+      model: this.model,
+      trace: this.trace,
+      session: this.session(),
+      label: "Current",
+    };
+  }
+  pinExperiment() {
+    this.reference = captureExperiment(
+      this.model,
+      this.trace,
+      this.session(),
+      this.model.name + " · captured reference",
+    );
+    this.comparisonCache = null;
+    this.setMessage(
+      "Reference captured · change parameters/stimulus, then D compare.",
+    );
+  }
+  comparison() {
+    if (!this.reference) return null;
+    if (
+      this.comparisonCache?.trace !== this.trace ||
+      this.comparisonCache?.reference !== this.reference
+    )
+      this.comparisonCache = {
+        trace: this.trace,
+        reference: this.reference,
+        result: compareExperiments(this.reference, this.experiment()),
+      };
+    return this.comparisonCache.result;
+  }
+  async loadComparisonFile(path) {
+    const json = JSON.parse(
+      (await readBounded(path, 32 * 1048576)).toString("utf8"),
+    );
+    let reference;
+    if (json.format === "chipsim-trace")
+      reference = recordedExperiment(json, path);
+    else {
+      if (json.format !== "chipsim-session")
+        throw new Error(
+          "Choose a saved ChipSim model/program session; use H for HDL comparisons.",
+        );
+      const temporary = new TuiState({
+        workspace: this.workspace.path,
+        root: this.root,
+      });
+      temporary.models = [...this.models];
+      temporary.documents = [...this.documents];
+      await temporary.loadSession(json, { persist: false });
+      reference = captureExperiment(
+        temporary.model,
+        temporary.trace,
+        temporary.session(),
+        temporary.model.name + " · saved reference",
+      );
+      reference.origin = "replayed session";
+    }
+    compareExperiments(reference, this.experiment());
+    this.reference = reference;
+    this.comparisonCache = null;
+    this.seek(this.tick);
+    this.setMessage("Reference loaded · current experiment kept.");
+  }
+  seekDifference(direction) {
+    const differences = this.comparison()?.differences || [];
+    const next = (
+      direction > 0 ? differences : [...differences].reverse()
+    ).find((item) =>
+      direction > 0 ? item.tick > this.tick : item.tick < this.tick,
+    );
+    if (next) this.seek(next.tick);
+    else this.setMessage("No further differing tick.");
   }
   get document() {
     return this.documents.find((d) => d.id === this.documentId);
   }
   setView(view) {
     this.view = view;
+    this.seek(this.tick);
+    if (view === "states") {
+      const graph = stateGraph(this.model, this.trace, this.tick);
+      this.graphIndex = Math.max(
+        0,
+        graph.nodes.findIndex((node) => node.id === graph.current),
+      );
+    }
+    if (["states", "flow", "compare"].includes(view)) this.visualScroll = 0;
     if (view === "log")
       this.logIndex = Math.max(
         0,
@@ -131,7 +245,7 @@ export class TuiState {
       } catch (error) {
         errors.push(error.message);
       }
-    this.documentId = this.documents.at(-1)?.id || null;
+    this.selectModelDocument();
     this.rebuild();
     if (errors.length) this.setMessage("Workspace: " + errors.join("; "), true);
   }
@@ -156,14 +270,65 @@ export class TuiState {
     this.logIndex = 0;
     this.blockScroll = 0;
     this.rebuild();
-    const document = this.documents.find((d) =>
-      this.model.sources.some((s) => s.sha256 === d.sha256),
-    );
-    if (document) {
-      this.documentId = document.id;
-      this.page = this.model.evidence?.[0]?.page || 1;
-    }
+    this.selectModelDocument();
     this.setMessage("Loaded " + this.model.name);
+  }
+  selectModelDocument() {
+    const source = this.model.sources.find((source) =>
+      this.documents.some((document) => document.sha256 === source.sha256),
+    );
+    const document = source
+      ? this.documents.find((document) => document.sha256 === source.sha256)
+      : null;
+    const documentId = document?.id || null;
+    if (this.documentId !== documentId) {
+      this.sourceScroll = 0;
+      this.sourceQuery = "";
+      this.sourceHits = [];
+      this.sourceHitIndex = 0;
+    }
+    this.documentId = documentId;
+    const page =
+      this.model.evidence?.find((item) => item.sourceId === source?.id)?.page ||
+      source?.pdf_start_page ||
+      1;
+    this.page = document?.pages.some((item) => item.number === page) ? page : 1;
+  }
+  async loadModelSource(onProgress = () => {}) {
+    const source =
+      this.model.kind === "builtin" &&
+      this.model.sources.find((item) =>
+        item.path?.startsWith("docs/references/"),
+      );
+    if (!source) throw new Error("Import a reference PDF with d first.");
+    const extracted = await extractPDFFile(resolve(this.root, source.path), {
+      onProgress,
+    });
+    if (extracted.sha256 !== source.sha256)
+      throw new Error(
+        "Bundled reference fingerprint does not match the model.",
+      );
+    const existing = this.documents.find(
+      (document) => document.sha256 === extracted.sha256,
+    );
+    const document = existing
+      ? replaceExtraction(existing, extracted)
+      : extracted;
+    const documents = existing
+      ? this.documents.map((item) => (item === existing ? document : item))
+      : [...this.documents, document];
+    for (const model of this.models)
+      if (
+        model.kind === "document" &&
+        model.sources.some((item) => item.sha256 === document.sha256)
+      )
+        registerModel(model.spec, documents);
+    const saved = await this.workspace.saveDocument(document);
+    if (existing) this.documents[this.documents.indexOf(existing)] = saved;
+    else this.documents.push(saved);
+    this.selectModelDocument();
+    this.setMessage("Reference loaded for " + this.model.name);
+    return saved;
   }
   setParameter(id, value) {
     this.requireManualExperiment();
@@ -236,7 +401,7 @@ export class TuiState {
   }
   seek(tick) {
     if (!Number.isFinite(tick)) throw new Error("Tick must be finite.");
-    this.tick = Math.max(0, Math.min(this.trace.length - 1, Math.round(tick)));
+    this.tick = Math.max(0, Math.min(this.lastTick, Math.round(tick)));
     const span = Math.max(1, (this.columns - 30) / this.zoom);
     if (this.tick < this.offset) this.offset = this.tick;
     if (this.tick > this.offset + span)
@@ -666,7 +831,7 @@ export class TuiState {
       parameters: this.config.parameters,
       inputs: this.config.inputs,
       duration: this.config.duration,
-      tick: this.tick,
+      tick: Math.min(this.tick, this.trace.length - 1),
       display: this.format,
       ...(this.programDebugger
         ? {
@@ -700,6 +865,7 @@ export class TuiState {
     this.programLine = debug.next.line;
     this.view = "program";
     this.syncProgram();
+    this.selectModelDocument();
     this.setMessage(
       "Program ready · N step · C continue · K breakpoint · J back",
     );
@@ -873,13 +1039,7 @@ export class TuiState {
     this.blockScroll = 0;
     this.offset = 0;
     this.playing = false;
-    const document = this.documents.find((doc) =>
-      model.sources.some((source) => source.sha256 === doc.sha256),
-    );
-    if (document) {
-      this.documentId = document.id;
-      this.page = model.evidence?.[0]?.page || 1;
-    }
+    this.selectModelDocument();
     this.format = ["hex", "decimal", "binary", "octal"].includes(
       session.display,
     )

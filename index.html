@@ -164,6 +164,33 @@
             >
               Model & sources
             </button>
+            <button
+              data-view="states"
+              id="tab-states"
+              role="tab"
+              aria-selected="false"
+              aria-controls="view-states"
+            >
+              States
+            </button>
+            <button
+              data-view="flow"
+              id="tab-flow"
+              role="tab"
+              aria-selected="false"
+              aria-controls="view-flow"
+            >
+              Bit flow
+            </button>
+            <button
+              data-view="comparison"
+              id="tab-comparison"
+              role="tab"
+              aria-selected="false"
+              aria-controls="view-comparison"
+            >
+              Comparison
+            </button>
           </div>
           <div class="export-actions">
             <select id="trace-format" aria-label="Trace export format">
@@ -209,6 +236,49 @@
           hidden
         >
           <div id="source-panel"></div>
+        </section>
+        <section
+          id="view-states"
+          class="view"
+          role="tabpanel"
+          aria-labelledby="tab-states"
+          hidden
+        >
+          <div id="states-panel"></div>
+        </section>
+        <section
+          id="view-flow"
+          class="view"
+          role="tabpanel"
+          aria-labelledby="tab-flow"
+          hidden
+        >
+          <div id="flow-panel"></div>
+        </section>
+        <section
+          id="view-comparison"
+          class="view"
+          role="tabpanel"
+          aria-labelledby="tab-comparison"
+          hidden
+        >
+          <div class="visual-toolbar">
+            <button id="capture-reference">Capture reference</button
+            ><button id="load-reference">Load reference…</button
+            ><button id="clear-reference" disabled>Clear</button>
+            <button id="first-difference" disabled>First difference</button
+            ><button id="previous-difference" disabled>
+              Previous difference</button
+            ><button id="next-difference" disabled>Next difference</button
+            ><button id="export-comparison" disabled>Export comparison</button>
+            <input
+              id="reference-file"
+              type="file"
+              accept=".json,application/json"
+              hidden
+            />
+          </div>
+          <div id="comparison-panel"></div>
         </section>
         <footer>
           One tick represents a model step. See each model’s scope and

@@ -28,10 +28,19 @@ try {
     "src/program/engine.js",
     "src/program/guides.js",
     "src/tui/program-panel.js",
+    "src/tui/visual-panel.js",
+    "src/tui/visual-render.js",
+    "src/visualization/state-graph.js",
+    "src/visualization/flow.js",
+    "src/visualization/experiments.js",
     "src/tui/agent-monitor.js",
     "src/tui/activity-panel.js",
     "docs/AGENT_WORKFLOW.md",
     "docs/AGENT_PROJECT.md",
+    "docs/CHANGELOG.md",
+    "docs/VISUALIZATION.md",
+    "docs/TUI.md",
+    "docs/DEVELOPMENT.md",
     "docs/MODEL_FORMAT.md",
     "docs/PROGRAMMING.md",
     "docs/EXISTING_SIMULATORS.md",
@@ -77,6 +86,30 @@ try {
     { cwd, maxBuffer: 1048576 },
   );
   const binary = join(prefix, "bin/chipsim");
+  for (const [view, tick, expected] of [
+    ["states", "32", "Current: wait · Focus: wait"],
+    ["flow", "2", "CAPTURE bit 0"],
+    ["compare", "0", "No reference captured"],
+  ]) {
+    const result = await run(
+      binary,
+      [
+        "--model",
+        "pio",
+        "--view",
+        view,
+        "--at",
+        tick,
+        "--snapshot",
+        "--no-color",
+      ],
+      { cwd, maxBuffer: 1048576 },
+    );
+    assert.ok(
+      result.stdout.includes(expected),
+      "Installed visualization failed: " + view,
+    );
+  }
   const hdlInput = join(cwd, "external.vcd");
   await writeFile(
     hdlInput,
@@ -211,6 +244,20 @@ try {
     await readFile(join(project, "AGENTS.md"), "utf8"),
     /PROGRAMMING_CONTEXT/,
   );
+  assert.match(
+    await readFile(join(project, "AGENTS.md"), "utf8"),
+    /docs\/CHANGELOG\.md/,
+  );
+  for (const file of [
+    "CHANGELOG.md",
+    "TUI.md",
+    "DEVELOPMENT.md",
+    "VISUALIZATION.md",
+  ])
+    assert.equal(
+      await readFile(join(project, "docs", file), "utf8"),
+      await readFile(join(installed, "docs", file), "utf8"),
+    );
   assert.equal(
     JSON.parse(
       await readFile(join(project, "programming-context.json"), "utf8"),

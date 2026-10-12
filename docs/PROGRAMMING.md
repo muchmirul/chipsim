@@ -39,6 +39,8 @@ In **Program (`9`)**, source and waveforms appear together:
 
 The arrow marks the next statement, a dot marks a breakpoint, and the selected row is the line operated on by `K`. Statements that do not advance time (assertions, local variables and branches) remain separate debugger steps even when they share a signal tick. The waveform contains only the executed prefix. Timeline navigation inspects that prefix; it does not execute future code. While attached, the source program owns the experiment: parameter/stimulus/register edits require editing/reloading it or detaching first.
 
+At tick zero, Program and Waveforms show the actual initial signal values and explain that there is no waveform history yet. Press `N` to step or `C` to continue in Program (`9`); history appears when a statement advances time. An initial assertion can leave the display at tick zero. Loading or resetting source never executes statements automatically.
+
 ## Language
 
 One statement per line, whole-line `#` comments, identifiers and exact register names. No inline comments or expressions. Values accept decimal, `0x`, `0b`, `0o`; assertions also accept literal `Z` for released output drivers. `model`, `param` and `guide` are declarations before executable statements. Blank lines, declarations and labels do not count as executed steps.

@@ -4,6 +4,18 @@ Read `AGENTS.md` before changing simulation behavior or adding a model. The term
 
 ## Architecture
 
+`src/visualization/` derives graphs, bit-flow observations and general experiment
+comparisons from shared traces. Engine transition indices and evaluated reads
+must preserve ordered actions, lazy selection, self-transition semantics,
+repeated writes and fault prefixes. Capture is bounded to 64 observations per
+tick while all actions still execute. `src/tui/visual-render.js`/`visual-panel.js`
+and `src/ui/visuals.js` render them. Reference capture copies model data, trace
+and session; imports preflight without installing a model or changing live
+state. Comparison uses common normalized ticks and unavailable coverage. Keep
+draft review's identical-experiment constraints and HDL's explicit units.
+See [Visualization](VISUALIZATION.md), `test/visualization.test.js`,
+`test/ui/visuals.spec.js` and `scripts/test-visuals-pty.py`.
+
 `src/hdl/` owns bounded digital VCD parsing, exact BigInt time conversion, external Icarus/GHDL execution and explicit mapped-signal comparison. `scripts/hdl.mjs` exposes one-JSON-result commands under `chipsim hdl`; it shares process I/O helpers, without changing the existing agent protocol. `waveformModel` adapts recorded timestamp samples for TUI inspection; it does not install a declarative chip model or invent PDF provenance. `src/tui/hdl-panel.js` handles import/run/compare prompts and cancellation. Model trace exports now include signal/register declarations for width-checked comparisons. Run `npm run test:hdl` with both simulators for real HDL, independent arithmetic and actual datasheet-model oracles, failures and PTY interaction. The static browser does not execute/import HDL.
 
 `src/agent/context.js` derives programming guidance from the pinned document catalog and actual model declarations. `prepare` writes a readable context, structured JSON and agent instructions; `context` refreshes discovery for existing projects against fresh original-PDF extraction and executable model acceptance cases. Invalid models are excluded with diagnostics. Chip identification requires an exact catalog fingerprint. Unknown manuals retain unknown architecture; native firmware support must never be inferred from a guide's presence. Context exposes access modes, inputs and parameters without inventing capabilities, and distinguishes built-in scenarios from programmable instruction engines.
@@ -105,6 +117,27 @@ Generated outputs, workspaces, and dependencies are Git-ignored. The static serv
 Prefer declarative JSON for a bounded peripheral scenario; see `docs/MODEL_FORMAT.md` and `examples/timer.model.json`. Importing JSON with `d` requires no rebuild. Each model needs independently justified acceptance cases and explicit source evidence/assumptions. The guided builder provides a starting point; edit and review its assumptions before claiming it describes a particular device.
 
 For behavior beyond the expression language, add a reviewed simulator under `src/models/`, adapt snapshots to the common interface, and register it in the catalog. Keep rendering separate from simulation. Preserve architecture-specific mechanisms and regression coverage.
+
+## Document each feature and behavior change
+
+Update the relevant topic guide alongside the implementation. Add an entry to
+[the behavior change log](CHANGELOG.md) for each distinct added or changed
+behavior, including bug fixes that change what a user or agent observes. Use
+this structure:
+
+- **Context:** the original problem or use case and why the change is needed.
+- **Behavior:** the trigger, command or keys, and the resulting observable behavior.
+- **Agent use and limits:** a concrete example, applicable scope, preserved state,
+  failure behavior, compatibility considerations and remaining limits.
+- **Implementation and checks:** the responsible modules and meaningful checks
+  that protect the behavior.
+
+Keep current usage in the topic guide and the reason for the change in the log.
+Link new guides from `AGENTS.md` and the README. For prepared-project workflows,
+update `docs/AGENT_PROJECT.md` and the documentation copied by
+`src/agent/project.js`; verify the documentation also reaches the installed
+package. Do not invent retrospective release dates or claim unimplemented
+behavior. Existing projects retain their prepared documentation snapshot.
 
 ## Checks
 

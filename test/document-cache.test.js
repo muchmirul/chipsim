@@ -16,8 +16,10 @@ import { TuiState } from "../src/tui/state.js";
 import { TerminalApp } from "../src/tui/app.js";
 import { render, displayWidth, screenText } from "../src/tui/render.js";
 
-const pdf = new URL("../docs/references/tca9534/ti-tca9534.pdf", import.meta.url)
-  .pathname;
+const pdf = new URL(
+  "../docs/references/tca9534/ti-tca9534.pdf",
+  import.meta.url,
+).pathname;
 const extracted = extractPDFFile(pdf);
 function legacy(document) {
   const old = structuredClone(document);
@@ -129,6 +131,8 @@ test("an old terminal workspace refreshes on register-draft entry without replac
   // A current cache is reused: it does not reopen the PDF on every entry.
   const restored = new TuiState({ workspace: state.workspace.path });
   await restored.initialize();
+  assert.equal(restored.document, undefined);
+  restored.selectModel(state.modelId);
   const document = restored.document;
   await rm(document.filePath);
   assert.equal(await restored.refreshDocument(document.id), document);

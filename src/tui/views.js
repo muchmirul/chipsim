@@ -8,4 +8,7 @@ export const views = [
   "stimulus",
   "activity",
   "program",
+  "states",
+  "flow",
+  "compare",
 ];

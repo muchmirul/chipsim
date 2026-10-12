@@ -25,7 +25,7 @@ export async function main(args = process.argv.slice(2)) {
   --hdl project.json          Run a Verilog/VHDL project before opening
   --hdl-out NEW_DIRECTORY     Required with --hdl; preserve run artifacts
   --dwfv /path/to/dwfv        Optional external viewer command
-  --watch PROJECT             Monitor agent activity and completed runs\n  --workspace .chipsim        Persistent local workspace directory\n  --program experiment.chip   Load a source experiment; 9 opens line debugger\n  --params parameters.json    Parameter overrides\n  --inputs events.json        Timed input stimulus\n  --ticks 100                 Duration for document models\n  --snapshot                  Print one terminal frame without a TTY\n  --at 0 --columns 120 --rows 40  Snapshot dimensions and cursor\n  --view wave|inspect|log|sources|model|registers|stimulus|activity|program\n  --no-color                  Disable colored text\n  --help                      Show this help\n\nInside the TUI: ? help · m models · p params · i pins · d import · c create · q quit.\nOptional waveform viewer: V opens the exported trace in installed dwfv.\n`;
+  --watch PROJECT             Monitor agent activity and completed runs\n  --workspace .chipsim        Persistent local workspace directory\n  --program experiment.chip   Load a source experiment; 9 opens line debugger\n  --params parameters.json    Parameter overrides\n  --inputs events.json        Timed input stimulus\n  --ticks 100                 Duration for document models\n  --snapshot                  Print one terminal frame without a TTY\n  --at 0 --columns 120 --rows 40  Snapshot dimensions and cursor\n  --view wave|inspect|log|sources|model|registers|stimulus|activity|program|states|flow|compare\n  --no-color                  Disable colored text\n  --help                      Show this help\n\nInside the TUI: ? help · m models · p params · i pins · d import · c create · q quit.\nVisuals: g states · v bit flow · Y capture reference · D compare.\nOptional waveform viewer: V opens the exported trace in installed dwfv.\n`;
   if (args.includes("--help") || args.includes("-h")) {
     process.stdout.write(usage);
     process.stdout.write(
@@ -156,7 +156,7 @@ export async function main(args = process.argv.slice(2)) {
   if (options.view) {
     if (!views.includes(options.view))
       throw new Error("Unknown view " + options.view);
-    state.view = options.view;
+    state.setView(options.view);
   }
   if (options.snapshot) {
     for (const key of ["columns", "rows"])

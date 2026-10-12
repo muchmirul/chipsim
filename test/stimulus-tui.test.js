@@ -17,7 +17,13 @@ async function setup(t, manual = "renesas-hd74hc77.pdf") {
   t.after(() => rm(workspace, { recursive: true, force: true }));
   const state = new TuiState({ workspace });
   await state.initialize();
-  if (manual) await state.loadFile(join(state.root, references.documents.find((d) => d.path.endsWith("/" + manual)).path));
+  if (manual)
+    await state.loadFile(
+      join(
+        state.root,
+        references.documents.find((d) => d.path.endsWith("/" + manual)).path,
+      ),
+    );
   const input = new EventEmitter(),
     output = new EventEmitter();
   input.isRaw = false;
@@ -242,6 +248,12 @@ test("terminal event scheduling, value/move menus, delete, clear/restore, and un
   assert.equal(s.view, "activity");
   key("", "tab");
   assert.equal(s.view, "program");
+  key("", "tab");
+  assert.equal(s.view, "states");
+  key("", "tab");
+  assert.equal(s.view, "flow");
+  key("", "tab");
+  assert.equal(s.view, "compare");
   key("", "tab");
   assert.equal(s.view, "wave");
 });

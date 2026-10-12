@@ -23,6 +23,13 @@ import {
 import { saveRecord, records } from "../documents/store.js";
 import { exportCSV, exportJSON, exportVCD, download } from "../trace/export.js";
 import { createModelBuilder } from "./creator.js";
+import { statesView, flowView, comparisonView } from "./visuals.js";
+import {
+  captureExperiment,
+  compareExperiments,
+  comparisonJSON,
+  recordedExperiment,
+} from "../visualization/experiments.js";
 import {
   escape,
   inspect,
@@ -43,7 +50,11 @@ async function main() {
     runs = [],
     timer = null,
     currentDocument = null,
-    importController = null;
+    importController = null,
+    reference = null,
+    comparisonCache = null,
+    focusedState = null,
+    lastFlowTick = null;
   const settings = new Map(),
     urls = new Map(),
     documentRefreshes = new Map();
@@ -79,8 +90,50 @@ async function main() {
     $("run").textContent = "▶ Run";
   }
   function seek(value) {
-    tick = Math.max(0, Math.min(Number(value), runs[0].trace.at(-1).tick));
+    tick = Math.max(0, Math.min(Number(value), lastTick()));
     renderTick();
+  }
+  function lastTick() {
+    return view === "comparison" && reference
+      ? Math.max(reference.trace.length, runs[0].trace.length) - 1
+      : runs[0].trace.length - 1;
+  }
+  function experiment() {
+    return {
+      label: "Current",
+      model: model(),
+      trace: runs[0].trace,
+      session: {
+        format: "chipsim-session",
+        version: 1,
+        modelId,
+        model: model().spec || null,
+        ...structuredClone(config()),
+        tick: Math.min(tick, runs[0].trace.length - 1),
+        display: format,
+      },
+    };
+  }
+  function comparison() {
+    if (!reference) return null;
+    if (
+      comparisonCache?.trace !== runs[0].trace ||
+      comparisonCache?.reference !== reference
+    )
+      comparisonCache = {
+        trace: runs[0].trace,
+        reference,
+        report: compareExperiments(reference, experiment()),
+      };
+    return comparisonCache.report;
+  }
+  function jumpDifference(direction) {
+    pause();
+    const diffs = comparison()?.differences || [];
+    const target = (direction < 0 ? [...diffs].reverse() : diffs).find((d) =>
+      direction < 0 ? d.tick < tick : d.tick > tick,
+    );
+    if (target) seek(target.tick);
   }
   function rebuild() {
     pause();
@@ -112,6 +165,8 @@ async function main() {
       });
     }
     runs = next;
+    focusedState = null;
+    lastFlowTick = null;
     tick = 0;
     renderTick();
   }
@@ -245,7 +300,7 @@ async function main() {
     $("execution-log").innerHTML = result.html;
   }
   function renderTick() {
-    const max = runs[0].trace.at(-1).tick;
+    const max = lastTick();
     $("seek").max = max;
     $("seek").value = tick;
     $("tick-label").textContent = tick + " / " + max;
@@ -253,6 +308,7 @@ async function main() {
     $("step").disabled = tick === max;
     $("next-event").disabled = tick === max;
     $("waveforms").classList.toggle("wave-compare", runs.length > 1);
+    $("waveforms").hidden = view === "comparison";
     $("waveforms").innerHTML = runs
       .map((r) =>
         waveform(r.model, r.trace, Math.min(tick, r.trace.at(-1).tick)),
@@ -275,15 +331,58 @@ async function main() {
       .join("");
     if (view === "trace") logs();
     if (view === "sources") sources();
+    if (view === "states")
+      $("states-panel").innerHTML = statesView(
+        model(),
+        runs[0].trace,
+        tick,
+        focusedState,
+      );
+    if (view === "flow") {
+      $("flow-panel").innerHTML = flowView(
+        model(),
+        runs[0].trace,
+        tick,
+        config().parameters,
+        format,
+        tick !== lastFlowTick,
+      );
+      lastFlowTick = tick;
+    }
+    if (view === "comparison") {
+      const report = comparison();
+      $("comparison-panel").innerHTML = comparisonView(
+        reference,
+        experiment(),
+        report,
+        tick,
+        format,
+      );
+      for (const id of [
+        "clear-reference",
+        "export-comparison",
+        "first-difference",
+        "previous-difference",
+        "next-difference",
+      ])
+        $(id).disabled = !reference;
+    }
   }
   function setView(next) {
     view = next;
-    for (const name of ["inspect", "trace", "sources"]) {
+    for (const name of [
+      "inspect",
+      "trace",
+      "sources",
+      "states",
+      "flow",
+      "comparison",
+    ]) {
       $("view-" + name).hidden = name !== view;
       $("tab-" + name).setAttribute("aria-selected", String(name === view));
     }
-    if (view === "trace") logs();
-    if (view === "sources") sources();
+    pause();
+    seek(tick);
   }
   function documentInfo() {
     const d = currentDocument,
@@ -675,19 +774,19 @@ async function main() {
   $("next-event").onclick = () => {
     pause();
     const next = runs[0].trace.find((s) => s.tick > tick && s.changes.length);
-    seek(next?.tick ?? runs[0].trace.at(-1).tick);
+    seek(next?.tick ?? lastTick());
   };
   function play() {
     if (timer) {
       pause();
       return;
     }
-    if (tick >= runs[0].trace.at(-1).tick) seek(0);
+    if (tick >= lastTick()) seek(0);
     $("run").textContent = "Ⅱ Pause";
     timer = setInterval(
       () => {
         seek(tick + 1);
-        if (tick >= runs[0].trace.at(-1).tick) pause();
+        if (tick >= lastTick()) pause();
       },
       Number($("speed").value),
     );
@@ -701,6 +800,123 @@ async function main() {
   };
   for (const button of document.querySelectorAll("[data-view]"))
     button.onclick = () => setView(button.dataset.view);
+  function stateAction(event) {
+    const state = event.target.closest("[data-state]"),
+      observed = event.target.closest("[data-visual-tick]");
+    if (state) {
+      const wasFocused = document.activeElement === event.target;
+      focusedState = state.dataset.state;
+      renderTick();
+      if (wasFocused)
+        $("states-panel")
+          .querySelector(
+            `${event.target.tagName.toLowerCase()}[data-state="${CSS.escape(focusedState)}"]`,
+          )
+          ?.focus();
+    } else if (observed) {
+      pause();
+      seek(observed.dataset.visualTick);
+    }
+  }
+  $("states-panel").onclick = stateAction;
+  $("states-panel").onkeydown = (event) => {
+    if (
+      (event.key === "Enter" || event.key === " ") &&
+      event.target.matches("g[data-state]")
+    ) {
+      event.preventDefault();
+      stateAction(event);
+    }
+  };
+  $("capture-reference").onclick = guarded(() => {
+    reference = captureExperiment(
+      model(),
+      runs[0].trace,
+      experiment().session,
+      model().name + " · captured reference",
+    );
+    comparisonCache = null;
+    renderTick();
+    notice(
+      "Reference captured. Change parameters or stimulus to compare experiments.",
+    );
+  });
+  $("clear-reference").onclick = () => {
+    reference = null;
+    comparisonCache = null;
+    seek(tick);
+  };
+  $("previous-difference").onclick = () => jumpDifference(-1);
+  $("next-difference").onclick = () => jumpDifference(1);
+  $("first-difference").onclick = () => {
+    pause();
+    const first = comparison()?.firstDifference;
+    if (first !== null && first !== undefined) seek(first);
+  };
+  $("export-comparison").onclick = guarded(() =>
+    download(
+      JSON.stringify(
+        comparisonJSON(reference, experiment(), comparison()),
+        null,
+        2,
+      ),
+      "chipsim-comparison.json",
+    ),
+  );
+  $("load-reference").onclick = () => $("reference-file").click();
+  $("reference-file").onchange = guarded(async () => {
+    const file = $("reference-file").files[0];
+    if (!file) return;
+    if (file.size > 32 * 1048576)
+      throw new Error("Reference file exceeds 32 MiB.");
+    const data = JSON.parse(await file.text());
+    let candidate;
+    if (data.format === "chipsim-trace")
+      candidate = recordedExperiment(data, file.name);
+    else {
+      if (data.format !== "chipsim-session" || data.version !== 1)
+        throw new Error("Choose a saved session or exported JSON trace.");
+      if (data.program)
+        throw new Error(
+          "For source-program runs, load the exported trace.json here; the terminal can replay program sessions.",
+        );
+      const target = data.model
+        ? registerModel(data.model, documents)
+        : models.find((m) => m.id === data.modelId);
+      if (!target || target.id !== data.modelId)
+        throw new Error("Reference model identity is invalid or unavailable.");
+      const parameters = normalizeParameters(
+          target.parameters,
+          data.parameters,
+        ),
+        inputs = validateInputs(target.signals, data.inputs || []);
+      if (
+        !Number.isInteger(data.duration) ||
+        data.duration < 1 ||
+        data.duration > 10000
+      )
+        throw new Error("Invalid reference duration.");
+      const trace = target.simulate(parameters, {
+        inputs,
+        ticks: data.duration,
+      });
+      candidate = captureExperiment(
+        target,
+        trace,
+        { ...data, parameters, inputs },
+        file.name,
+      );
+      candidate.origin = "replayed session";
+    }
+    compareExperiments(candidate, experiment());
+    reference = candidate;
+    comparisonCache = null;
+    pause();
+    seek(tick);
+    notice(
+      "Reference loaded. Current model, settings and trace are preserved.",
+    );
+  });
   $("changes-only").onchange = logs;
   $("log-filter").oninput = logs;
   $("execution-log").onclick = (e) => {
@@ -800,7 +1016,7 @@ async function main() {
           parameters: config().parameters,
           inputs: config().inputs,
           duration: config().duration,
-          tick,
+          tick: Math.min(tick, runs[0].trace.length - 1),
           display: format,
           compare: $("compare-toggle").checked ? compareId : null,
         },

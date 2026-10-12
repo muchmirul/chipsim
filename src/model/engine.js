@@ -3,25 +3,34 @@ export { validateInputs } from "./stimulus.js";
 import { operators, validateModel } from "./validate.js";
 import { HIGH_IMPEDANCE, truth } from "../core/logic.js";
 
-export function evaluate(expr, context) {
+export function evaluate(expr, context, onRead) {
   if (typeof expr === "string") {
-    if (expr === "tick") return context.tick;
-    if (expr === "stateAge") return context.tick - context.entered;
+    if (expr === "tick" || expr === "stateAge") {
+      const value =
+        expr === "tick" ? context.tick : context.tick - context.entered;
+      onRead?.(expr, value);
+      return value;
+    }
     const match = /^(param|reg|signal)\.(.+)$/.exec(expr);
-    return match
-      ? context[
+    if (match) {
+      const value =
+        context[
           { param: "parameters", reg: "registers", signal: "signals" }[match[1]]
-        ][match[2]]
-      : expr;
+        ][match[2]];
+      onRead?.(expr, value);
+      return value;
+    }
+    return expr;
   }
   if (!expr || typeof expr !== "object") return expr;
   if (!operators.has(expr.op)) throw new Error(`Unknown operator ${expr.op}`);
   if (expr.op === "select")
     return evaluate(
-      expr.args[truth(evaluate(expr.args[0], context)) ? 1 : 2],
+      expr.args[truth(evaluate(expr.args[0], context, onRead)) ? 1 : 2],
       context,
+      onRead,
     );
-  const [a, b] = expr.args.map((arg) => evaluate(arg, context));
+  const [a, b] = expr.args.map((arg) => evaluate(arg, context, onRead));
   if (
     (a === HIGH_IMPEDANCE || b === HIGH_IMPEDANCE) &&
     !["eq", "ne"].includes(expr.op)
@@ -143,8 +152,11 @@ export function simulateModel(model, supplied = {}, options = {}) {
     fault = null,
     message = "",
     evidence = [],
-    active = [];
-  const execute = (actions) => {
+    active = [],
+    operations = [],
+    operationCount = 0,
+    taken = null;
+  const execute = (actions, stage) => {
     for (const action of actions) {
       if (action.log !== undefined) {
         message = action.log;
@@ -154,17 +166,34 @@ export function simulateModel(model, supplied = {}, options = {}) {
         definitions = kind === "reg" ? model.registers : model.signals;
       const definition = definitions.find((item) => item.id === id),
         width = definition.width,
-        value = evaluate(action.value, context);
+        values = context[kind === "reg" ? "registers" : "signals"],
+        before = values[id],
+        reads = new Map(),
+        recording = operations.length < 64,
+        value = evaluate(
+          action.value,
+          context,
+          recording ? (field, value) => reads.set(field, value) : undefined,
+        );
       if (value === HIGH_IMPEDANCE) {
         if (kind !== "signal" || !definition.triState)
           throw new Error(`${action.target}: Z requires a tri-state output`);
         context.signals[id] = HIGH_IMPEDANCE;
-        continue;
+      } else {
+        if (!Number.isSafeInteger(value) && typeof value !== "boolean")
+          throw new Error(`${action.target}: result is not a safe integer`);
+        values[id] = ((Number(value) % 2 ** width) + 2 ** width) % 2 ** width;
       }
-      if (!Number.isSafeInteger(value) && typeof value !== "boolean")
-        throw new Error(`${action.target}: result is not a safe integer`);
-      context[kind === "reg" ? "registers" : "signals"][id] =
-        ((Number(value) % 2 ** width) + 2 ** width) % 2 ** width;
+      operationCount++;
+      if (recording)
+        operations.push({
+          stage,
+          target: action.target,
+          width,
+          before,
+          after: values[id],
+          reads: [...reads].map(([field, value]) => ({ field, value })),
+        });
     }
   };
   const trace = [];
@@ -172,6 +201,9 @@ export function simulateModel(model, supplied = {}, options = {}) {
     context.tick = tick;
     message = "";
     evidence = [];
+    operations = [];
+    operationCount = 0;
+    taken = null;
     active = state.active || [];
     while (inputIndex < inputs.length && inputs[inputIndex].tick === tick) {
       const event = inputs[inputIndex++];
@@ -179,18 +211,21 @@ export function simulateModel(model, supplied = {}, options = {}) {
     }
     try {
       if (tick === 0) {
-        execute(state.entry);
+        execute(state.entry, "initial entry");
         message ||= "Initial state";
       } else if (!state.terminal && !fault) {
-        execute(state.tick);
-        const transition = state.transitions.find((transition) =>
+        execute(state.tick, "state tick");
+        const index = state.transitions.findIndex((transition) =>
           truth(evaluate(transition.when, context)),
         );
-        if (transition) {
-          execute(transition.actions);
+        if (index >= 0) {
+          const transition = state.transitions[index],
+            from = state.id;
+          execute(transition.actions, "transition");
           state = states.get(transition.to);
+          taken = { from, to: state.id, index };
           context.entered = tick;
-          execute(state.entry);
+          execute(state.entry, "state entry");
           message =
             transition.message || message || `Enter ${state.label || state.id}`;
           evidence = transition.evidence || [];
@@ -212,6 +247,9 @@ export function simulateModel(model, supplied = {}, options = {}) {
       message,
       detail: fault || "",
       evidence,
+      transition: taken,
+      operations,
+      operationCount,
     };
     snapshot.changes = changesBetween(trace.at(-1), snapshot);
     trace.push(snapshot);

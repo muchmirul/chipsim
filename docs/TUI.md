@@ -23,16 +23,54 @@ Views are:
 1. **Waveforms**: signal shapes, cursor, selected value, compact register summary, and current event. `j/k` selects a signal and scrolls the visible signal list.
 2. **Hardware blocks**: active resources, live node values, and connections. A resource marked ACTIVE participated at the selected tick. `j/k` scrolls the block grid when it exceeds the terminal height.
 3. **Log**: all trace events, with changes-only mode on by default. `/` filters by state/event/register text; uppercase `C` toggles changes-only. Select a row and Enter seeks to its tick and opens complete step details.
-4. **Sources**: the imported PDF's text by original PDF page. `h/l` changes pages, `j/k` scrolls, `/` searches, `n/N` cycles matching pages. Enter chooses a cached PDF or imports the first bundled source when no document is loaded.
+4. **Sources**: the imported PDF's text by original PDF page. `h/l` changes pages, `j/k` scrolls, `/` searches, `n/N` cycles matching pages. Startup, model selection, source-program loading and session restore select a fingerprint-matching reference; an unrelated cached PDF is not selected as the model's reference. When no matching reference is loaded, Enter imports the built-in model's bundled source without resetting its experiment. Otherwise Enter chooses a cached PDF. Deliberately browsing another PDF is labeled separately from a reference for the active model.
 5. **Model**: scope, assumptions, parameters, source fingerprints, evidence quotations, warnings, and implementation recipe. `j/k` scrolls.
 6. **Registers**: every signal/register and its change at this tick. `j/k` selects, `/` filters, and `h/l` moves the timeline.
 7. **Input stimulus**: explicit scheduled pin events, values, hold intervals, and events outside the current trace. `j/k` selects a row; Enter opens edit/move/remove/seek actions. `i` schedules an event at a chosen tick. `/` filters pin names or tick numbers; `F` changes numeric presentation.
 8. **Agent activity**: source reads, notes, model edits, validation and run progress from the project selected with `--watch`. Event details retain complete messages and paths; `W` pauses automatic run loading without stopping activity updates.
 9. **Program**: `.chip` experiment source, current statement, breakpoints, locals and guide references alongside the signals. `P` loads source; `j/k` selects a line, `N` steps a statement, `K` toggles its breakpoint, `C` continues, `J` replays one statement backward, `G` shows verified guides, `r` resets and `Q` detaches the program. `S` saves a replayable source session. Direct stimulus/parameter edits require detaching first. Source statements are behavioral experiment operations, not CPU instructions; see [programming](PROGRAMMING.md).
 
+Loading a program shows its initial signal values at tick zero and a prompt to step or continue. Waveform history starts when an executed statement advances simulation time; assertions can execute without advancing it.
+
+Additional views use letter keys: `g` opens the state graph, `v` opens bit flow,
+and `D` opens experiment comparison. `Y` captures a reference. These views follow
+the cursor and join Tab navigation; numeric `1`–`9` retain their meanings. See
+[visual inspection](VISUALIZATION.md) for examples and scope. In Comparison,
+`[`/`]` jump between differing ticks and playback reaches the longer trace's
+end, including beyond the live model's terminal outcome.
+
 Prompts accept Enter for their displayed default. Type a value to replace it; Backspace deletes, Ctrl-U clears, and Esc cancels. Boolean and enum parameters have menus. Integer parameters support decimal, hexadecimal, binary, and octal. Released output drivers display `Z` in every numeric format. Waveforms show labeled middle/dotted segments; `f` accepts `Z` for tri-state output search. Rising/falling edge jumps require numeric levels; any-change navigation includes releases and re-enables. `i` opens input-pin editing at the cursor. Select a pin, enter a decimal/hex/binary/octal value, and its outputs/logs/waveforms are recomputed while preserving the cursor. It replaces an existing event for that pin/tick and keeps other scheduled events. Values hold until the pin's next event. Invalid widths or simulation faults keep the previous trace and stimulus. `S` saves the edited stimulus with a session. Long or multiline input stimulus should be loaded from a JSON file with `a`.
 
 ## Reading waveforms and step details
+
+### Inspect state transitions
+
+Press `g` for the node-and-arrow graph. `j/k` focuses a state; Enter opens its
+conditions, actions, evidence and observed ticks. CLI `--view states` focuses the
+state at `--at`, just as Log aligns to that cursor. `v` shows captures or executed
+assignments. The browser has States and Bit flow tabs and a full directed graph.
+
+Open Log (`3`) to inspect the named model state and events at each recorded tick.
+Select a row with `j/k` and press Enter for the complete state, phase, event,
+register changes and available citations. The header also shows the state at the
+timeline cursor. Changes-only includes signal/register events as well as state
+changes; use `/` to filter text or uppercase `C` to show all recorded ticks.
+
+For `examples/programs/pio-transfer.chip`, first use Program (`9`) and uppercase
+`C` to execute the experiment, then open Log (`3`). With its supplied parameters:
+
+| Tick | State     | What happened                                              |
+| ---- | --------- | ---------------------------------------------------------- |
+| 0    | `send`    | Initial transfer state; source execution has not started.  |
+| 32   | `wait`    | The eight-bit frame has finished; the model waits for ACK. |
+| 35   | `success` | ACK is observed and the model latches success.             |
+
+The program's `halt` is reached at tick 40; it is separate from the model entering
+`success`. Changing ACK or timing parameters changes the observed transitions.
+Log and waveform navigation inspect recorded data; they do not execute future
+source statements. See [Programming](PROGRAMMING.md) for stepping and reset.
+
+### Inspect signal values and step effects
 
 Bus labels stay inside their constant-value segment. A complete shorter spelling, such as `0xB3` instead of `0x000000B3`, can appear when space is limited; it represents the same value and base. If no complete label fits, `…` marks the segment. Press `+` to zoom in, `-` to zoom out, and `=` to fit. The selected signal's exact value remains below the waveforms, and `6` lists exact values at the cursor.
 

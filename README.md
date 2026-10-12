@@ -47,7 +47,12 @@ Try these actions in order:
 1. Press **Space** to play or pause the PIO example. Use `h/l` or left/right arrows to inspect one tick at a time.
 2. Press `p` and change a parameter such as the payload. The experiment is recomputed so you can compare its behavior.
 3. Press `1` for waveforms, `2` for hardware blocks, `3` for events or `6` for exact register values. These views describe the same experiment at the same cursor.
-4. Press `m` to choose another architecture. Observe how its execution mechanism changes.
+
+Use `g` for a state-machine graph and `v` for bit captures or executed assignments.
+Capture a reference with `Y`, change the experiment, then `D` to compare it on a
+shared tick axis. The browser has **States**, **Bit flow**, and **Comparison**
+tabs. See [visual inspection](docs/VISUALIZATION.md) for the PIO success/timeout
+example, saved-run imports, observation context and limits. 4. Press `m` to choose another architecture. Observe how its execution mechanism changes.
 
 ![PIO parameter menu showing configurable payload, frame size and timing choices](docs/screenshots/parameters.png)
 
@@ -109,6 +114,8 @@ The [supplied `.chip` source](examples/esp32c6-gpio.chip) enables GPIO0's **logi
 ### Step C — Step and inspect the result
 
 Loading source does not execute its statements. In **Program (`9`)**, press `N` to execute one statement. Select line 9 with `j/k`, press `K` to set a breakpoint, then `C` to continue.
+
+Before time advances, the signal pane shows initial values and says there is no waveform history yet. Use `N` or `C` in Program to generate the trace, then `1` to inspect waveforms. Sources (`4`) selects a matching reference for the model; unrelated PDFs remain available for explicit browsing.
 
 ![GPIO source experiment paused before its clear instruction, with the logical driver high](docs/screenshots/program.png)
 
@@ -390,6 +397,7 @@ For hardware validation, compare independently chosen expectations with vendor e
 | ESP32-C6 scenarios                                   | [GPIO](docs/ESP32_C6_GPIO.md), [PCNT](docs/ESP32_C6_PCNT.md)                               |
 | References, revisions and native programming targets | [Reference library](docs/references/README.md)                                             |
 | Contributor setup, optional browser and verification | [Development](docs/DEVELOPMENT.md)                                                         |
+| Context, usage and limits for behavior changes       | [Change log](docs/CHANGELOG.md)                                                            |
 | Reproduce these terminal images                      | [Screenshot capture](docs/screenshots/README.md)                                           |
 
 For contributors: `npm ci`, `npm test` and `npm run verify`. The optional browser uses the same simulation core; build and launch it with `npm run build` and `npm run web`. Source modules live under `src/`, packaged models under `models/`, and runnable examples under `examples/`.

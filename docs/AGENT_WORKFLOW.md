@@ -5,6 +5,19 @@ extracts sources, verifies quotations, executes acceptance cases, and produces
 waveforms and register traces. The same model opens in the TUI. No model provider,
 API key, MCP server, or embedded LLM is needed by ChipSim.
 
+For interpreting run artifacts, read [Visualization](VISUALIZATION.md): `g`
+shows state rules, `v` shows actual captures/assignments, and `Y`/`D` compares a
+frozen reference with another experiment. The browser accepts exported program
+`trace.json` as a recorded comparison reference; only the terminal replays
+program sessions. Reference imports preserve the live experiment. `prepare`
+copies this guide so external agents can distinguish observations from physical
+wiring, normalized ticks from silicon timing, and matching traces from proof.
+
+Read [the behavior change log](CHANGELOG.md) for the context, usage, limits and
+regression coverage of recent changes. Newly prepared projects include a copy;
+it describes the ChipSim version that prepared the project. Existing projects
+are not automatically updated with newer documentation.
+
 ## Install
 
 Use Node.js 22.13+ and Poppler (`pdfinfo`, `pdftotext`). From a local checkout:
@@ -83,7 +96,7 @@ chip-work/
   sources.json              Extracted text and selected table geometry
   pages/00001.txt …         One file per one-based PDF page, usable with rg
   analysis.json             Supported model list, structural rows, diagnostics
-  docs/                     Model contract and this workflow
+  docs/                     Model contract, programming/workflow guides and change log
   examples/                 Syntax example with its original source/assumptions
   models/                   Valid compiled models, if supported; author here
   programs/                 Source experiments written by a person or agent
