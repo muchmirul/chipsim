@@ -1,4 +1,4 @@
-// Common geometry for Poppler words and PDF.js text items. Rows are retained
+// Geometry for Poppler words. Rows are retained
 // on selected table pages; paragraph extraction remains unchanged.
 export function positionedLines(items) {
   const words = items

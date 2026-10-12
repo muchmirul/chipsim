@@ -5,6 +5,102 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-12 — Native Pi and prime-agent extension
+
+### Named tools over the existing local protocol
+
+**Context:** Coding agents previously needed to construct shell commands for
+each operation. The user requested direct control from Pi and prime-agent
+across projects. **Use/behavior:** Install this checkout with `pi install PATH`
+and `prime-agent package install PATH`; the shared `pi.extensions` manifest
+registers 17 tools for context, PDF preparation/evidence, checks, simulation,
+program execution, activity, HDL and terminal snapshots. Native integration
+avoids another server/transport while preserving the versioned CLI boundary.
+**Limits/preservation:** File tools still author models/programs. No embedded
+provider, native-firmware backend, automatic model interpretation or dependency
+installer is added. Existing source hashes, quote/schema/acceptance gates,
+new-directory protection, run exports and activity remain authoritative.
+Each call uses its current cwd, argument arrays, bounded output/time and owned
+process cancellation; failures retain structured CLI diagnostics/artifact paths.
+**Implementation/checks:** `extensions/chipsim.ts`, `src/integrations/` and
+the package manifest; regression checks cover CLI mapping drift, concurrent cwd,
+literal text, real PDFs, source corruption, protected destinations, successful
+PIO execution, HDL mismatch, cancellation, limits and outside-checkout install.
+Prepared projects copy the new guide and help exposes its current path.
+See [Agent extensions](AGENT_EXTENSIONS.md).
+
+### Agent terminal handoff
+
+**Context:** Agents need to show the actual simulation interface after producing
+artifacts. **Use/behavior:** `/chipsim [PROJECT]` opens default/watch mode;
+`--session FILE`, `--model ID|FILE` and `--vcd FILE` select a saved experiment
+or waveform. In Pi/in-process hosts, `q` returns to the same agent.
+Prime-agent 0.9.8's default daemon lacks client-terminal/custom-UI access:
+the command instead provides a safely quoted separate-terminal launch command;
+all simulation tools work in the daemon. **Limits/preservation:** This is a
+user slash command in a real interactive terminal. Print/RPC callers use the
+snapshot tool. The command waits for idle, releases/restores the host TUI even
+on child failure, and does not create a browser frontend or shared model state.
+**Implementation/checks:** Shared slash handler with Pi mode/Prime hasUI
+compatibility; unit failure restoration/daemon fallback and real ChipSim PTY
+handoff through a host lifecycle harness at 80×24/120×40.
+Native loader checks run without model requests. Installation is an explicit
+host package operation; extension loading/tool calls never edit host settings.
+
+## 2026-10-12 — TUI-only workbench
+
+### One interactive interface
+
+**Context:** A separate browser workbench and HTML walkthrough created confusion
+about where to use new simulation features. ChipSim now focuses on terminal use.
+**Behavior:** `npm start`, `npm run dev` and `npm run tui` open the same TUI.
+The browser frontend, local web server, HTML shell and portable/generated
+bundles are removed. Use Space for playback, `g` for state graphs, `v` for bit
+flow, and `Y`/`D` for experiment comparison. There is no separate demo playback
+button. **Agent use and limits:** Demonstrate actual recorded experiments in the
+terminal. The engine, `.chip` debugger, model/agent/HDL headless commands,
+JSON/CSV/VCD exports, existing `.chipsim/` workspaces and saved sessions remain
+available. Headless commands support reproducible TUI experiments; they do not
+provide another interactive frontend. **Implementation/checks:** Removed
+`src/ui/`, the web scripts, HTML entry points and browser download helper. Unit and real PTY checks retain
+the terminal graph, bit-flow, comparison and source-program workflows at 80×24
+and 120×40. See [TUI](TUI.md) and [visual inspection](VISUALIZATION.md).
+
+### Local PDF extraction and persistence
+
+**Context:** PDF.js and IndexedDB existed for the removed browser interface.
+**Behavior:** The Poppler extractor and terminal workspace own PDF import,
+source verification, table geometry and persistence. Browser-only extraction
+and storage modules and the bundled PDF.js license are removed with that
+dependency. **Agent use and limits:** Use `d` in the TUI or the headless prepare
+and extraction commands; original PDF fingerprints, citations and acceptance
+cases still gate model creation. Existing terminal caches and model/session
+formats are unchanged; terminal sessions do not embed PDFs. **Implementation/checks:**
+`extract-node.js`, `layout.js` and `workspace.js` retain original-PDF, table,
+cache-refresh, source-verification, session and terminal import coverage. Only
+browser rendering assertions and browser-only tests were removed.
+
+### Contributor, package and agent instructions
+
+**Context:** Web build commands, dependencies and copied guides implied that
+contributors should maintain a second frontend. **Behavior:** Removed `build`,
+`web`, `dev:web`, `test:ui` and `verify:web`, plus Playwright, esbuild and PDF.js
+dependencies/configuration. `npm run verify` checks engine, source and terminal
+behavior directly. Prettier remains the only npm development dependency;
+there are no npm runtime dependencies. **Agent use and limits:** Current topic
+guides and newly prepared projects specify terminal demonstrations and the
+TUI-only boundary. Existing prepared projects retain their documentation
+snapshot; consult current installed guides for newer behavior.
+**Implementation/checks:** `test/tui-only.test.js` rejects web entry points,
+toolchains and browser runtime APIs in shipped source. `test-install.mjs`
+checks the packed distribution for removed web assets and verifies offline
+installation, headless commands, copied documentation and terminal snapshots.
+See [Development](DEVELOPMENT.md) and [agent workflow](AGENT_WORKFLOW.md).
+
+Earlier entries describe the interfaces available when those changes were
+introduced. Their browser usage and browser-test references are historical;
+the current topic guides describe the supported TUI-only workflow.
+
 ## 2026-10-09 — Trace-backed visualization and experiment comparison
 
 ### Exact transition and assignment observations

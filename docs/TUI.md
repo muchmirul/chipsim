@@ -1,6 +1,6 @@
 # Terminal workbench
 
-The TUI is ChipSim's primary interface. `npm start` runs it directly, with no generated browser bundle. Node.js 22.13+ is required; PDF extraction additionally requires Poppler. `node scripts/chipsim.mjs --help` lists launch options.
+The TUI is ChipSim's only interactive interface. `npm start` runs it directly; no frontend build is required. Node.js 22.13+ is required; PDF extraction additionally requires Poppler. `node scripts/chipsim.mjs --help` lists launch options.
 
 **H** opens the HDL workbench: import VCD/waveform JSON, run a Verilog/VHDL project, or compare mapped signals with another waveform/exported model trace. `--vcd FILE` opens a recorded trace directly; `--hdl PROJECT --hdl-out NEW_DIRECTORY` runs and opens a project. HDL views use timestamp sample indices and show exact simulator time at the cursor. Replay is read-only; `S` saves a waveform session and `x` exports with its simulator timescale. See [HDL](HDL.md) for manifests, maps, backend setup, examples and limits.
 
@@ -48,7 +48,7 @@ Prompts accept Enter for their displayed default. Type a value to replace it; Ba
 Press `g` for the node-and-arrow graph. `j/k` focuses a state; Enter opens its
 conditions, actions, evidence and observed ticks. CLI `--view states` focuses the
 state at `--at`, just as Log aligns to that cursor. `v` shows captures or executed
-assignments. The browser has States and Bit flow tabs and a full directed graph.
+assignments. All three views render directly in the terminal.
 
 Open Log (`3`) to inspect the named model state and events at each recorded tick.
 Select a row with `j/k` and press Enter for the complete state, phase, event,
@@ -133,7 +133,7 @@ By default `.chipsim/` lives in the launch directory:
   exports/<model-id>.vcd            Trace prepared for an external viewer
 ```
 
-It is Git-ignored. `--workspace PATH` chooses another directory. Terminal and browser workspaces are separate; shared model/session JSON is portable between interfaces. Session JSON includes the primary model, parameters, inputs, duration, tick, and display format; it does not include PDFs.
+It is Git-ignored. `--workspace PATH` chooses another directory. Model/session JSON is portable between terminal workspaces and headless agent runs. Session JSON includes the primary model, parameters, inputs, duration, tick, and display format; it does not include PDFs.
 
 `x` exports the complete primary trace as CSV, JSON, or VCD. JSON includes provenance and a custom model's executable definition. Values not yet defined, such as an unarmed deadline, appear as unknown in VCD. VCD timestamps carry a nominal `1ns` scale for tool compatibility; each unit is an abstract model tick.
 

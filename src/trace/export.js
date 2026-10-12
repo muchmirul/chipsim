@@ -105,12 +105,3 @@ export function exportVCD(model, trace) {
   }
   return lines.join("\n") + "\n";
 }
-
-export function download(text, filename, type = "application/json") {
-  const url = URL.createObjectURL(new Blob([text], { type })),
-    link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}

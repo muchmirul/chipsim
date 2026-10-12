@@ -1,25 +1,25 @@
-# Visual inspection of experiments
+# Terminal visual inspection of experiments
 
 ChipSim computes a trace, then renders the recorded snapshot at the playback
 cursor. Moving the cursor does not execute CPU instructions or establish
-physical timing. All views share that cursor.
+physical timing. All TUI views share that cursor. Press Space to play/pause,
+or use left/right arrows to inspect one tick at a time. These features run
+directly in the terminal without a frontend build or web server.
 
-| View            | Question answered                                              | Terminal      | Browser    |
-| --------------- | -------------------------------------------------------------- | ------------- | ---------- |
-| Waveforms       | When did a pin change?                                         | `1`           | Signals    |
-| Hardware blocks | Which modeled resources participated?                          | `2`           | Inspect    |
-| Registers       | What values were retained?                                     | `6`           | Inspect    |
-| State graph     | What paths are possible and which was taken?                   | `g`           | States     |
-| Bit flow        | Which bit was captured or which assignment read/wrote a value? | `v`           | Bit flow   |
-| Comparison      | Where do two experiments disagree?                             | `Y`, then `D` | Comparison |
+| View            | Question answered                                              | Key           |
+| --------------- | -------------------------------------------------------------- | ------------- |
+| Waveforms       | When did a pin change?                                         | `1`           |
+| Hardware blocks | Which modeled resources participated?                          | `2`           |
+| Registers       | What values were retained?                                     | `6`           |
+| State graph     | What paths are possible and which was taken?                   | `g`           |
+| Bit flow        | Which bit was captured or which assignment read/wrote a value? | `v`           |
+| Comparison      | Where do two experiments disagree?                             | `Y`, then `D` |
 
 ## State graph
 
 The directed finite-state-machine diagram uses nodes for states and arrows for
-transitions. The browser renders the full graph, with double borders for
-terminal states. Browser graphs scroll in both directions, keeping node text
-readable up to the 64-state model bound. The terminal renders the focused state,
-incoming/outgoing branches and retention loops; `j/k` focuses another state and
+transitions. The terminal renders the focused state, incoming/outgoing branches
+and retention loops; `j/k` focuses another state and
 Enter lists full rules and observed ticks. A focused state can differ from the
 current state.
 
@@ -33,9 +33,8 @@ Built-in nodes summarize teaching-scenario phases, not an extracted vendor FSM
 or complete instruction-level program. PIO includes its FIFO load stall; XMOS
 and eTPU retain their distinct fault paths. eTPU guards describe capture/service
 behavior rather than immediate polling. Observed counts cover the entire trace;
-highlighting describes the cursor tick. In the browser, click a node (or use
-Enter/Space), inspect its rules, then **First observed** to seek that transition.
-Terminal rule selection also seeks its first observed tick.
+highlighting describes the cursor tick. Focus a state with `j/k`, press Enter
+to inspect its rules, then select a rule to seek its first observed tick.
 
 New declarative traces record exact `{from,to,index}` transition metadata. Old
 observations cannot establish which same-target rule fired, or whether a
@@ -50,9 +49,8 @@ the left), current DATA/CLK/ACK, receiver samples and decoded word. Dots mark
 uncaptured bits. A capture follows the recorded sample-count increase, including
 a zero or repeated bit. Tick zero invents no edge; a PIO load stall claims no
 bit launch. The receiver belongs to the teaching experiment, not inferred chip
-wiring. Browser animation moves the captured bit once when the cursor changes
-to its capture tick, honors reduced motion and has cosmetic speed. The terminal
-shows a capture arrow and bit highlighting.
+wiring. The terminal shows a capture arrow and bit highlighting at the recorded
+capture tick; Space advances playback and arrows step between snapshots.
 
 Document models show executed assignments in order: stage, target width,
 before/after values and field values actually read during evaluation. Sequential
@@ -69,12 +67,11 @@ not invent internal dependencies or physical data paths.
 
 ## Compare experiments
 
-Run a reference, press `Y` in the terminal or **Capture reference** in browser
-Comparison, then change parameters, stimulus, model or session. The captured
-trace, declaration widths and settings stay unchanged. `D` opens comparison;
-`[`/`]` jump to previous/next differences. Browser buttons also jump to the first
-difference. Enter in terminal Comparison opens load/export/clear actions.
-Capture again deliberately replaces the reference.
+Run a reference, press `Y`, then change parameters, stimulus, model or session.
+The captured trace, declaration widths and settings stay unchanged. `D` opens comparison;
+`[`/`]` jump to previous/next differences. Enter in Comparison opens capture,
+load, clear, first-difference and export actions. Capture again deliberately
+replaces the reference.
 
 Comparison checks exact state/phase/signal/register names at identical normalized
 ticks. It separately reports parameters, ordered stimulus events, duration and
@@ -93,9 +90,8 @@ Load accepts `chipsim-session` or exported `chipsim-trace` JSON up to 32 MiB.
 Validation/comparison preflight happens before replacing the reference. Failure
 keeps the previous reference and experiment. Terminal sessions replay model and
 program behavior with existing source-guide checks, without installing the
-reference model. Browser model sessions replay without installation. For `.chip`
-runs in the browser, load exported `trace.json`: the static browser does not
-replay source programs or verify their guide files.
+reference model. Exported `trace.json` can also be loaded as a recorded reference
+without replaying a program.
 
 Imported traces are labeled **recorded**: bounds, field declarations and widths
 are validated, but import executes no definition and authenticates no run.

@@ -11,15 +11,17 @@ import {
 } from "../src/model/register-tables/read.js";
 import { readRegisterRows } from "../src/model/register-bank/read.js";
 import { analyzeDocument } from "../src/model/from-document.js";
-import { registerInventory } from "../src/ui/register-tables.js";
 import { TuiState } from "../src/tui/state.js";
 import { TerminalApp } from "../src/tui/app.js";
 import { render, displayWidth } from "../src/tui/render.js";
-const path = new URL("../docs/references/tca9534/ti-tca9534.pdf", import.meta.url)
-  .pathname;
+const path = new URL(
+  "../docs/references/tca9534/ti-tca9534.pdf",
+  import.meta.url,
+).pathname;
 const tcaPromise = extractPDFFile(path);
 const pcaPromise = extractPDFFile(
-  new URL("../docs/references/pca9555/ti-pca9555.pdf", import.meta.url).pathname,
+  new URL("../docs/references/pca9555/ti-pca9555.pdf", import.meta.url)
+    .pathname,
 );
 const isolated = async () => {
   const d = await tcaPromise;
@@ -139,11 +141,6 @@ test("generic positioned register maps work without a device name, fingerprint o
     () => registerDraftRows(readRegisterTables(document).tables[0]),
     /unique aliases/,
   );
-  const injected = fixture();
-  injected.pages[0].layoutLines[2].cells[1].text = "<img src=x>";
-  const html = registerInventory(injected);
-  assert.match(html, /&lt;img src=x&gt;/);
-  assert.ok(!html.includes("<img"));
 });
 
 test("missing, ambiguous, qualified and malformed register cells reject the entire draft", async () => {

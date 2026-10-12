@@ -95,4 +95,4 @@ Results report matching status, coverage, number of changed samples, first diffe
 
 `npm test` includes parser, exact-time/logic comparison, process failure/cancellation and waveform state/rendering tests without requiring installed HDL backends. `npm run test:hdl` requires both real simulators, exercises the upstream designs, independent 256-case oracle, real sourced model comparison, mismatch/error cases and real terminal import/run/compare/export. `npm run test:install` checks packed CLI commands outside the checkout. Backend versions used for development: Icarus Verilog 12.0 and GHDL 4.1.0 (mcode).
 
-The terminal and headless CLI implement this workflow. The static browser retains its existing model workflow; it does not launch local compiler processes or import external HDL traces.
+The terminal and headless CLI implement this workflow. Inspect recorded HDL results in the TUI; the headless commands provide reproducible artifacts for that same interface.

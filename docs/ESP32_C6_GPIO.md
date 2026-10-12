@@ -52,7 +52,7 @@ npm run model -- simulate gpio.model.json --ticks 24 --format vcd --out gpio.vcd
 
 ## Source and boundaries
 
-Chapter 7, pages 250–251 and 280, defines output routing. Pages 270–273 define the six offsets, latch defaults and mask effects. Page 244 describes package restrictions. Citations use original one-based PDF pages and are verified against the pinned document fingerprint before compilation. Sixteen embedded checks and an independent BigInt oracle cover word masks, all 31 selectable logical bits, held requests, reset and rejected accesses; terminal/browser and trace-export checks exercise the complete import workflow.
+Chapter 7, pages 250–251 and 280, defines output routing. Pages 270–273 define the six offsets, latch defaults and mask effects. Page 244 describes package restrictions. Citations use original one-based PDF pages and are verified against the pinned document fingerprint before compilation. Sixteen embedded checks and an independent BigInt oracle cover word masks, all 31 selectable logical bits, held requests, reset and rejected accesses; terminal and trace-export checks exercise the complete import workflow.
 
 Logical GPIO numbers do not guarantee available package pins. GPIO14 is unavailable on variants without in-package flash; variants with in-package flash reserve GPIO24–30 for flash and do not expose GPIO10–11. This simulation makes no package or board connection claim.
 

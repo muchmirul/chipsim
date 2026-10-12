@@ -58,4 +58,4 @@ The counter begins cleared with chosen configuration applied. Demonstration sett
 
 Excluded behavior includes channel 1, other units, filtering, GPIO routing, APB synchronization/clock timing, MMIO, interrupt/watchpoint enables and latches, zero modes, other thresholds, and live limit reconfiguration. Page 1015 describes delayed application of live limit changes; this profile uses static parameters only. It cannot verify interrupt service code, filter timing or full firmware.
 
-Checks cover sixteen embedded cases, an independent literal mode-table oracle across all edge/control encodings and both initial pulse levels, signed boundaries, original-PDF provenance, terminal import/persistence/parameter edits, browser PDF.js agreement, and trace exports.
+Checks cover sixteen embedded cases, an independent literal mode-table oracle across all edge/control encodings and both initial pulse levels, signed boundaries, original-PDF provenance, terminal import/persistence/parameter edits, Poppler extraction, and trace exports.

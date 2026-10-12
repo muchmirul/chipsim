@@ -15,8 +15,10 @@ import { TerminalApp } from "../src/tui/app.js";
 import { EventEmitter } from "node:events";
 import { screenText, render, displayWidth } from "../src/tui/render.js";
 const path = (part) =>
-  new URL("../docs/references/74hc" + part + "/nexperia-74hc" + part + ".pdf", import.meta.url)
-    .pathname;
+  new URL(
+    "../docs/references/74hc" + part + "/nexperia-74hc" + part + ".pdf",
+    import.meta.url,
+  ).pathname;
 const documents = Promise.all(
   ["00", "86"].map((part) => extractPDFFile(path(part))),
 );
@@ -169,7 +171,7 @@ test("layout reconstruction sorts reading order and safely decodes XML text", ()
     "A&B",
   );
 });
-test("table metadata rejects malformed fields before either interface renders them", async () => {
+test("table metadata rejects malformed fields before terminal rendering", async () => {
   const spec = analyzeDocument((await documents)[0]).models[0].spec;
   for (const mutate of [
     (copy) => copy.sourceTable.rows[0].inputs.push(0),

@@ -1,6 +1,9 @@
 # Programming and modeling this chip
 
-This folder is a local ChipSim project prepared from one PDF. Use the installed
+This folder is a local ChipSim project prepared from one PDF. ChipSim's only
+interactive frontend is the TUI. Use terminal playback and inspection for
+demonstrations; do not create browser or HTML simulation frontends. Headless
+commands prepare and verify artifacts for that terminal workflow. Use the installed
 `chipsim` command. Run `chipsim agent help` for the machine-readable command
 contract. **First read `PROGRAMMING_CONTEXT.md` and `programming-context.json`.**
 They identify this chip by its PDF fingerprint and describe the available models,
@@ -11,6 +14,11 @@ have no saved context files: the same command generates current context without
 changing model files. Do not guess the chip's ISA or supported backend.
 
 Read `docs/AGENT_WORKFLOW.md`, `docs/PROGRAMMING.md` and `docs/MODEL_FORMAT.md` before authoring.
+When native ChipSim tools are present in Pi or prime-agent, use
+`chipsim_context`, `chipsim_search`/`chipsim_page`, then check/run tools instead
+of constructing shell commands. Read `docs/AGENT_EXTENSIONS.md` for schemas,
+errors, cancellation and `/chipsim` handoff. Existing source and model gates
+apply identically; the extension does not author models or execute native firmware.
 Read `docs/CHANGELOG.md` for the reasons, usage and limits of recent behavior
 changes. Read `docs/VISUALIZATION.md` before explaining graphs, bit flow or
 experiment comparisons; observations must not be presented as inferred wiring.

@@ -64,6 +64,7 @@ export async function prepareProject(pdf, output) {
     for (const file of [
       "MODEL_FORMAT.md",
       "AGENT_WORKFLOW.md",
+      "AGENT_EXTENSIONS.md",
       "CHANGELOG.md",
       "TUI.md",
       "VISUALIZATION.md",

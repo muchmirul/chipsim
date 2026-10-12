@@ -1,6 +1,6 @@
 # ChipSim
 
-**Turn a hardware question into a repeatable, inspectable experiment.** ChipSim is a local terminal workbench for exploring digital behavior from chip datasheets and reference manuals. You can drive inputs, try register sequences, step through a program, and inspect signals alongside the documentation that supports the model.
+**Turn a hardware question into a repeatable, inspectable experiment.** ChipSim is a TUI-only local workbench for exploring digital behavior from chip datasheets and reference manuals. You can drive inputs, try register sequences, step through a program, and inspect signals alongside the documentation that supports the model.
 
 For a hardware or firmware developer, it helps answer questions such as: “Does clearing this bit change the output latch?”, “Which clock edge captures the data?”, or “What happens when the FIFO fills?” Save the experiment and trace to make the answer reviewable before testing the real device.
 
@@ -38,7 +38,7 @@ chipsim agent doctor
 chipsim --model pio
 ```
 
-Keep the checkout if using this local installation. Add the PATH line to your shell configuration if you want it available in future terminals. Without installing, run `node scripts/chipsim.mjs` from the checkout. The terminal app has no npm runtime dependencies; contributor and browser tools use `npm ci`.
+Keep the checkout if using this local installation. Add the PATH line to your shell configuration if you want it available in future terminals. Without installing, run `node scripts/chipsim.mjs` from the checkout. The terminal app has no npm runtime dependencies; contributor tools use `npm ci`.
 
 Use a terminal of at least **80 × 24**; the screenshots below use **110 × 36**. Press `?` for help and `q` to quit.
 
@@ -47,12 +47,12 @@ Try these actions in order:
 1. Press **Space** to play or pause the PIO example. Use `h/l` or left/right arrows to inspect one tick at a time.
 2. Press `p` and change a parameter such as the payload. The experiment is recomputed so you can compare its behavior.
 3. Press `1` for waveforms, `2` for hardware blocks, `3` for events or `6` for exact register values. These views describe the same experiment at the same cursor.
+4. Press `m` to choose another architecture. Observe how its execution mechanism changes.
 
 Use `g` for a state-machine graph and `v` for bit captures or executed assignments.
 Capture a reference with `Y`, change the experiment, then `D` to compare it on a
-shared tick axis. The browser has **States**, **Bit flow**, and **Comparison**
-tabs. See [visual inspection](docs/VISUALIZATION.md) for the PIO success/timeout
-example, saved-run imports, observation context and limits. 4. Press `m` to choose another architecture. Observe how its execution mechanism changes.
+shared tick axis. See [visual inspection](docs/VISUALIZATION.md) for the PIO success/timeout
+example, saved-run imports, observation context and limits.
 
 ![PIO parameter menu showing configurable payload, frame size and timing choices](docs/screenshots/parameters.png)
 
@@ -140,6 +140,23 @@ chipsim --document ../chip-work/manual.pdf \
 This gives a reviewable result: the model's declared behavior, the exact input sequence, observed values, assertions and source references travel together. The [programming guide](docs/PROGRAMMING.md) explains the language and debugger in detail.
 
 ## 3. Use agent mode with a coding agent
+
+**Pi and prime-agent have a native ChipSim extension.** Register the checkout
+once for simulation tools across all projects:
+
+```sh
+pi install /absolute/path/to/chipsim
+prime-agent package install /absolute/path/to/chipsim
+```
+
+Ask either agent to use `chipsim_context`, check/run an experiment and inspect
+its artifacts. In Pi, `/chipsim --model pio` opens the actual TUI and `q` returns
+to the agent. Prime-agent's default daemon cannot lend its terminal: `/chipsim`
+provides a separate-terminal launch command, and `chipsim_snapshot` returns text.
+`/chipsim PROJECT` selects a prepared project, and
+`/chipsim --session FILE` opens a saved run. The [extension guide](docs/AGENT_EXTENSIONS.md)
+covers tools, sample prompts, scope, Node selection and errors. Both hosts use
+the existing local CLI; no MCP server is needed.
 
 **Agent mode is a local command interface, not an agent built into ChipSim.** Your chosen coding agent reads the manual and writes model JSON or `.chip` source; ChipSim extracts evidence, checks it, executes the experiment and exposes results. No LLM integration, provider account, API key or agent-specific extension is required by ChipSim.
 
@@ -377,7 +394,7 @@ Useful files have distinct jobs:
 | `session.json`                 | Model and experiment configuration, plus replayable program data when present |
 | `result.json`                  | Run outcome, verification summary and artifact paths                          |
 
-By default the TUI caches PDFs, models and exports under `.chipsim/` in its launch directory. Use `--workspace PATH` for another location. Prepared agent projects and run folders are separate artifacts. **Sessions do not embed PDFs**; attach the original manual when reopening on another machine to verify source evidence. Terminal and optional browser storage are separate.
+By default the TUI caches PDFs, models and exports under `.chipsim/` in its launch directory. Use `--workspace PATH` for another location. Prepared agent projects and run folders are separate artifacts. **Sessions do not embed PDFs**; attach the original manual when reopening on another machine to verify source evidence. Model and session JSON are portable between TUI workspaces and headless agent runs.
 
 ## Current limits and next steps
 
@@ -396,8 +413,8 @@ For hardware validation, compare independently chosen expectations with vendor e
 | Automatic profile and table boundaries               | [Reviewed profiles](docs/DOCUMENT_PROFILES.md), [function tables](docs/FUNCTION_TABLES.md) |
 | ESP32-C6 scenarios                                   | [GPIO](docs/ESP32_C6_GPIO.md), [PCNT](docs/ESP32_C6_PCNT.md)                               |
 | References, revisions and native programming targets | [Reference library](docs/references/README.md)                                             |
-| Contributor setup, optional browser and verification | [Development](docs/DEVELOPMENT.md)                                                         |
+| Contributor setup and verification                   | [Development](docs/DEVELOPMENT.md)                                                         |
 | Context, usage and limits for behavior changes       | [Change log](docs/CHANGELOG.md)                                                            |
 | Reproduce these terminal images                      | [Screenshot capture](docs/screenshots/README.md)                                           |
 
-For contributors: `npm ci`, `npm test` and `npm run verify`. The optional browser uses the same simulation core; build and launch it with `npm run build` and `npm run web`. Source modules live under `src/`, packaged models under `models/`, and runnable examples under `examples/`.
+For contributors: `npm ci`, `npm test` and `npm run verify`. The terminal is the only interactive interface. Headless commands use the same simulation core to prepare and verify experiments for terminal inspection; no frontend build is required. Source modules live under `src/`, packaged models under `models/`, and runnable examples under `examples/`.

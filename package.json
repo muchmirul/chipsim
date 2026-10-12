@@ -3,16 +3,26 @@
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "Local chip simulation tools for coding agents and terminal inspection",
+  "description": "TUI hardware behavior workbench with headless tools for coding agents",
+  "keywords": [
+    "pi-package",
+    "hardware",
+    "simulation"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions/chipsim.ts"
+    ]
+  },
   "files": [
+    "extensions/",
     "src/",
     "scripts/",
     "docs/",
     "models/",
     "examples/",
     "AGENTS.md",
-    "THIRD_PARTY_NOTICES.md",
-    "index.html"
+    "THIRD_PARTY_NOTICES.md"
   ],
   "engines": {
     "node": ">=22.13.0"
@@ -20,29 +30,21 @@
   "scripts": {
     "start": "node scripts/chipsim.mjs",
     "dev": "node scripts/chipsim.mjs",
-    "build": "node scripts/build.mjs",
     "test": "node --test test/*.test.js",
-    "test:ui": "playwright test",
     "verify": "node scripts/verify.mjs",
     "extract": "node scripts/extract.mjs",
     "model": "node scripts/model.mjs",
-    "format": "prettier --write src scripts test models examples index.html package.json '*.md' 'docs/*.md'",
+    "format": "prettier --write src extensions scripts test models examples package.json '*.md' 'docs/*.md'",
     "tui": "node scripts/chipsim.mjs",
-    "web": "node scripts/serve.mjs",
-    "dev:web": "node scripts/build.mjs --watch",
-    "test:tui": "python3 scripts/test-tui-pty.py",
+    "test:tui": "python3 scripts/test-tui-pty.py && python3 scripts/test-agent-extension-pty.py",
     "test:hdl": "node scripts/test-hdl.mjs",
     "test:dwfv": "node scripts/verify-dwfv.mjs",
-    "verify:web": "node scripts/verify.mjs --web",
     "document": "node scripts/document.mjs",
     "agent": "node scripts/agent.mjs",
     "test:install": "node scripts/test-install.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "^1.63.0",
-    "esbuild": "^0.28.2",
-    "prettier": "^3.9.9",
-    "pdfjs-dist": "^6.4.299"
+    "prettier": "^3.9.9"
   },
   "bin": {
     "chipsim": "scripts/chipsim.mjs"

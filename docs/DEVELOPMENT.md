@@ -1,6 +1,6 @@
 # Developing ChipSim
 
-Read `AGENTS.md` before changing simulation behavior or adding a model. The terminal workbench is the primary interface; the optional browser shares its simulation and model modules.
+Read `AGENTS.md` before changing simulation behavior or adding a model. The TUI is the only interactive interface. Headless commands share its engine, source checks and trace formats so coding agents can prepare reproducible experiments for terminal inspection. No frontend build is required.
 
 ## Architecture
 
@@ -9,14 +9,14 @@ comparisons from shared traces. Engine transition indices and evaluated reads
 must preserve ordered actions, lazy selection, self-transition semantics,
 repeated writes and fault prefixes. Capture is bounded to 64 observations per
 tick while all actions still execute. `src/tui/visual-render.js`/`visual-panel.js`
-and `src/ui/visuals.js` render them. Reference capture copies model data, trace
-and session; imports preflight without installing a model or changing live
+render them. Reference capture copies model data, trace and session; imports
+preflight without installing a model or changing live
 state. Comparison uses common normalized ticks and unavailable coverage. Keep
 draft review's identical-experiment constraints and HDL's explicit units.
 See [Visualization](VISUALIZATION.md), `test/visualization.test.js`,
-`test/ui/visuals.spec.js` and `scripts/test-visuals-pty.py`.
+and `scripts/test-visuals-pty.py`.
 
-`src/hdl/` owns bounded digital VCD parsing, exact BigInt time conversion, external Icarus/GHDL execution and explicit mapped-signal comparison. `scripts/hdl.mjs` exposes one-JSON-result commands under `chipsim hdl`; it shares process I/O helpers, without changing the existing agent protocol. `waveformModel` adapts recorded timestamp samples for TUI inspection; it does not install a declarative chip model or invent PDF provenance. `src/tui/hdl-panel.js` handles import/run/compare prompts and cancellation. Model trace exports now include signal/register declarations for width-checked comparisons. Run `npm run test:hdl` with both simulators for real HDL, independent arithmetic and actual datasheet-model oracles, failures and PTY interaction. The static browser does not execute/import HDL.
+`src/hdl/` owns bounded digital VCD parsing, exact BigInt time conversion, external Icarus/GHDL execution and explicit mapped-signal comparison. `scripts/hdl.mjs` exposes one-JSON-result commands under `chipsim hdl`; it shares process I/O helpers, without changing the existing agent protocol. `waveformModel` adapts recorded timestamp samples for TUI inspection; it does not install a declarative chip model or invent PDF provenance. `src/tui/hdl-panel.js` handles import/run/compare prompts and cancellation. Model trace exports now include signal/register declarations for width-checked comparisons. Run `npm run test:hdl` with both simulators for real HDL, independent arithmetic and actual datasheet-model oracles, failures and PTY interaction.
 
 `src/agent/context.js` derives programming guidance from the pinned document catalog and actual model declarations. `prepare` writes a readable context, structured JSON and agent instructions; `context` refreshes discovery for existing projects against fresh original-PDF extraction and executable model acceptance cases. Invalid models are excluded with diagnostics. Chip identification requires an exact catalog fingerprint. Unknown manuals retain unknown architecture; native firmware support must never be inferred from a guide's presence. Context exposes access modes, inputs and parameters without inventing capabilities, and distinguishes built-in scenarios from programmable instruction engines.
 
@@ -36,27 +36,38 @@ A model provides a common interface: ID, name, summary, scope, fidelity, paramet
 
 `src/model/registers/gpio-expander.js` generates shared GPIO actions for the independently reviewed PCA9555 and TCA9534 profiles. Factories provide every byte address, label, and writable reset value; source-specific evidence and scope stay in the wrappers. It supports one or two eight-bit ports with per-bit direction, input-only inversion, latch readback, physical-level interrupt baselines, and released drivers. It is a trusted model construction helper, not a PDF classifier. Keep the independent one-/two-port byte and mixed-operation oracles when changing it.
 
-`src/model/tables/` reads positioned function tables and compiles exhaustive binary or bounded edge-triggered logic into the shared model language. `src/documents/layout.js` shares geometry handling between Poppler and PDF.js. `src/model/from-document.js` applies reviewed profiles first, then data-derived tables. Table layout, symbol interpretation, indexed pin mapping, model generation, and scenario/check generation are separate modules. Sequential table compilation stores clock history in declared registers and retained state in output signals; it uses the existing JSON interpreter. `src/model/table-metadata.js` validates source-table snapshots before display. See `FUNCTION_TABLES.md` for supported symbols, bounds, and rejected cases.
+`src/model/tables/` reads positioned function tables and compiles exhaustive binary or bounded edge-triggered logic into the shared model language. `src/documents/layout.js` normalizes Poppler word geometry for table analysis. `src/model/from-document.js` applies reviewed profiles first, then data-derived tables. Table layout, symbol interpretation, indexed pin mapping, model generation, and scenario/check generation are separate modules. Sequential table compilation stores clock history in declared registers and retained state in output signals; it uses the existing JSON interpreter. `src/model/table-metadata.js` validates source-table snapshots before display. See `FUNCTION_TABLES.md` for supported symbols, bounds, and rejected cases.
 
-`centered-headers.js` enumerates bounded contiguous header partitions, requiring a unique centered match for explicit input/output roles and hierarchical enable/select subgroups. It joins tightly adjacent numeric header suffixes without merging data cells. Preserve negative missing/ambiguous-header cases and both extraction-engine checks. The HD74HC138 original PDF supplies a complete six-input/eight-output regression oracle.
+`centered-headers.js` enumerates bounded contiguous header partitions, requiring a unique centered match for explicit input/output roles and hierarchical enable/select subgroups. It joins tightly adjacent numeric header suffixes without merging data cells. Preserve negative missing/ambiguous-header cases and original-PDF extraction checks. The HD74HC138 original PDF supplies a complete six-input/eight-output regression oracle.
 
-`layout-notes.js` joins bounded, matching-indentation numbered footnotes before validating the entire definition. `typed-pins.js` reads positioned NAME/NO./TYPE/DESCRIPTION roles with a complete local input-role legend. `clock-patterns.js` defines steady/transition clock masks and documented edge matching. Sequential list rows explicitly retain all outputs and store the clock pair before history changes; tightly positioned Q0 needs a local previous-state definition and one Q column. Neither helper supplies missing cells or infers package replication. Keep these syntactic rules independent of part names and fingerprints, with real PDFs, negative ambiguity cases, both extraction engines, and independent sequential oracles as regression evidence.
+`layout-notes.js` joins bounded, matching-indentation numbered footnotes before validating the entire definition. `typed-pins.js` reads positioned NAME/NO./TYPE/DESCRIPTION roles with a complete local input-role legend. `clock-patterns.js` defines steady/transition clock masks and documented edge matching. Sequential list rows explicitly retain all outputs and store the clock pair before history changes; tightly positioned Q0 needs a local previous-state definition and one Q column. Neither helper supplies missing cells or infers package replication. Keep these syntactic rules independent of part names and fingerprints, with real PDFs, negative ambiguity cases, Poppler extraction, and independent sequential oracles as regression evidence.
 
-`src/model/templates.js` suggests conservative source excerpts and builds local scenarios using `src/model/builders/`. Counter, FIFO, and shifter rules are explicitly declared assumptions. Source matching confirms provenance, not circuit correctness. The builder validates generated definitions and checks before either interface installs them.
+`src/model/templates.js` suggests conservative source excerpts and builds local scenarios using `src/model/builders/`. Counter, FIFO, and shifter rules are explicitly declared assumptions. Source matching confirms provenance, not circuit correctness. The builder validates generated definitions and checks before the TUI or headless command installs them.
 
-`src/model/register-tables/read.js` extracts bounded structural byte-register inventories from positioned headers and rows, independently of device names or fingerprints. It preserves unknown defaults, leaves all operation masks unresolved, and never installs a model. `from-document.js` exposes these as `registerTables` separately from executable models. Poppler and PDF.js scan up to 32 register-table pages in addition to the function-table budget. The terminal uses fresh inventories to prefill source-linked authoring; the optional browser renders escaped facts and exports the same unresolved templates. See `REGISTER_BANKS.md` for supported layouts and review requirements.
+`src/model/register-tables/read.js` extracts bounded structural byte-register inventories from positioned headers and rows, independently of device names or fingerprints. It preserves unknown defaults, leaves all operation masks unresolved, and never installs a model. `from-document.js` exposes these as `registerTables` separately from executable models. Poppler scans up to 32 register-table pages in addition to the function-table budget. The terminal uses fresh inventories to prefill source-linked authoring with the same unresolved templates. See `REGISTER_BANKS.md` for supported layouts and review requirements.
 
 `src/model/register-bank/read.js` validates explicit address/mode/reset/mask rows; `build.js` produces uniform-width register actions with named access logs and optional validated transaction metadata. Balanced expression trees support the full 16-word bound without raising interpreter limits. `src/tui/register-bank-editor.js` owns its guided prompts. `src/tui/authoring.js` shares bounded regular-file loading, retry prompts, and unique catalog IDs with the behavior-table editor. Hardware-set events and their before/after bus ordering are explicit developer choices; no register semantics are inferred from names or PDF prose. See `REGISTER_BANKS.md`.
 
-`src/model/builders/sourced.js` supplies the shared quotation/provenance/acceptance gate for developer-authored builders. `src/model/behavior-table/read.js` validates entered state/input/output rules and exhaustive agreeing coverage; `build.js` compiles them to the existing JSON language with named states and visible state codes. These rules are entered data, never an automatic PDF interpretation. Only retained output columns add a prior-state dimension. `src/tui/behavior-table-editor.js` owns prompts and bounded local rule-file loading; parsing/model behavior stay outside the terminal controller. Rule/source errors restore the authoring prompt before committing any model. The optional browser imports generated JSON using the same validator/engine, without adding a provider or separate interpreter.
+`src/model/builders/sourced.js` supplies the shared quotation/provenance/acceptance gate for developer-authored builders. `src/model/behavior-table/read.js` validates entered state/input/output rules and exhaustive agreeing coverage; `build.js` compiles them to the existing JSON language with named states and visible state codes. These rules are entered data, never an automatic PDF interpretation. Only retained output columns add a prior-state dimension. `src/tui/behavior-table-editor.js` owns prompts and bounded local rule-file loading; parsing/model behavior stay outside the terminal controller. Rule/source errors restore the authoring prompt before committing any model.
 
-`src/model/tables/retained-read.js` exhausts level-sensitive input/prior-output cases with explicit no-change semantics and requires complete agreeing rows. `retained-build.js` generates bounded actions, initial-state parameters, a Gray-code demonstration, acceptance cases, and source metadata. It shares the JSON engine, indexed-pin resolver, importer, rendering, and exports; it never invents a clock edge or package wiring. Unnumbered table IDs use their ordinal on the page so Poppler and PDF.js produce the same identity despite differing line counts. Multi-word headings must be adjacent within one source text item or a narrow word-spacing gap; separated column labels cannot be merged to hide a missing cell.
+`src/model/tables/retained-read.js` exhausts level-sensitive input/prior-output cases with explicit no-change semantics and requires complete agreeing rows. `retained-build.js` generates bounded actions, initial-state parameters, a Gray-code demonstration, acceptance cases, and source metadata. It shares the JSON engine, indexed-pin resolver, importer, rendering, and exports; it never invents a clock edge or package wiring. Unnumbered table IDs use their ordinal on the page so source identity remains stable despite differing extracted line counts. Multi-word headings must be adjacent within one source text item or a narrow word-spacing gap; separated column labels cannot be merged to hide a missing cell.
 
-`src/core/logic.js` defines released-driver state Z, guarded truth evaluation, and VCD bit encoding. Only explicitly declared tri-state output signals can store Z; input stimulus and internal registers remain numeric. The interpreter must reject Z in numeric/boolean operations and conditions rather than relying on JavaScript coercion. Combinational table compilation supports explicitly defined Z outputs; sequential Z tables are still outside automatic scope. `src/ui/values.js` shares escaped browser values and `src/ui/logic-wave.js` draws release segments without numeric waveform coordinates for Z.
+`src/core/logic.js` defines released-driver state Z, guarded truth evaluation, and VCD bit encoding. Only explicitly declared tri-state output signals can store Z; input stimulus and internal registers remain numeric. The interpreter must reject Z in numeric/boolean operations and conditions rather than relying on JavaScript coercion. Combinational table compilation supports explicitly defined Z outputs; sequential Z tables are still outside automatic scope. The terminal waveform renderer preserves released, unknown and numeric values distinctly.
 
 `behavior-table/behavior.js` is the pure table-to-model generator. `authoring.js` stores a portable bounded draft and compares its regenerated behavior against imported JSON, independent of object key order. `builders/assumptions.js` shares scenario/provenance wording. Optional authoring records never execute code; mismatches reject import. Legacy recovery requires exact regeneration, not a model name match. Extra independent cases remain part of revisions.
 
 ## Terminal interface
+
+The native Pi/prime-agent adapter is `extensions/chipsim.ts` plus
+`src/integrations/extension.js` and `process.js`. Host-supplied TypeBox builds
+the tool schemas; no standalone runtime dependency is added. Each call runs
+the existing packaged CLI with current `ctx.cwd`, bounded output/time and
+owned-process cancellation. CLI JSON is the authority, including failed-run
+artifacts and comparison mismatches. `/chipsim` suspends/restores an accessible
+host TUI; prime-agent's default daemon gets a separate-terminal launch command.
+headless tools never request keyboard input. See [Agent extensions](AGENT_EXTENSIONS.md)
+for native-loader/PTY checks and compatibility boundaries. The install test
+checks the manifest, included entry/docs and bridge outside the checkout.
 
 `src/agent/activity.js` publishes bounded, atomic per-command activity records and
 a latest-successful-run pointer inside prepared projects. `commands.js` records
@@ -80,7 +91,7 @@ the latter is included in `npm run test:tui`.
 
 `src/tui/source-simulations.js` owns the source-specific chooser and explicit find/create workflow. Read-only choices derive from installed models, not cached analysis IDs. Finding forces a fresh local extraction/hash check before previewing compiler results; creating one reserves a new ID and uses the normal source/check gate. Preserve active experiments on preview/cancel and existing models on creation. Menu items can provide a `detail` string, with bounded `h/l` scrolling for scope. Related built-in examples must remain distinguishable from document models.
 
-`src/documents/cache.js` versions extracted source data and merges fresh extraction with stable document identity. Both extractors stamp the version. Old caches refresh on demand when opening the terminal register-bank builder or browser document dialog, using the workspace PDF or IndexedDB bytes. Verify the unchanged SHA-256 and all linked model citations before persisting; preserve models and experiments without rebuilding or reinstalling them. Replace stale analysis and scan-limit metadata rather than spreading the old record over new data. Refresh never installs newly compiled behavior. Bump the extraction version when newly retained source data needs a cache upgrade; avoid extracting all manuals during startup.
+`src/documents/cache.js` versions extracted source data and merges fresh extraction with stable document identity. The Poppler extractor stamps the version. Old caches refresh on demand when opening the terminal register-bank builder, using the saved workspace PDF. Verify the unchanged SHA-256 and all linked model citations before persisting; preserve models and experiments without rebuilding or reinstalling them. Replace stale analysis and scan-limit metadata rather than spreading the old record over new data. Refresh never installs newly compiled behavior. Bump the extraction version when newly retained source data needs a cache upgrade; avoid extracting all manuals during startup.
 
 `src/core/trace-diff.js` compares bounded contiguous normalized traces by state, phase, signals, and registers, preserving released/zero/unavailable distinctions and ignoring presentation/log wording. `src/tui/trace-review.js` owns the read-only difference menus and portable comparison export. It captures the baseline session and proposed definition without seeking the working trace or installing a model. Equivalence is limited to the compared experiment.
 
@@ -104,13 +115,20 @@ npm start -- --model pio --snapshot --at 2 --view registers
 
 `npm run dev` also launches the TUI directly. Changes take effect on restart. JSON in `models/` is loaded at launch; user models live in the selected workspace. See `docs/TUI.md` for keyboard controls and optional dwfv integration.
 
-## Optional browser
+## TUI-only interface boundary
 
-`npm ci` installs pinned development dependencies. `npm run build` bundles the browser UI and PDF.js worker and writes `.generated/app.js` and portable `chipsim.html`. `npm run web` serves the completed build at `127.0.0.1:8000`; `PORT=8001 npm run web` changes the port. `npm run dev:web` watches dependencies and serves localhost. Restart the watcher after changing packaged JSON under `models/`.
+`npm ci` installs the pinned contributor formatter. `npm start`, `npm run dev`
+and `npm run tui` launch the same terminal application. State graphs, bit flow,
+waveforms and comparisons belong in `src/tui/`; shared observations and engine
+code remain independent of presentation. Poppler is the PDF extraction backend,
+and `.chipsim/` is the persistent terminal workspace.
 
-`src/ui/` owns browser presentation. `src/documents/pdf.js` extracts PDFs with a local embedded PDF.js worker. IndexedDB stores source documents and models; a memory fallback warns when persistence is unavailable. The optional frontend supports direct-file offline use after building, and uses the same model builders and exports as the TUI.
-
-Generated outputs, workspaces, and dependencies are Git-ignored. The static server accepts GET/HEAD only, binds to loopback, and excludes `.git`, `node_modules`, and `.env` paths. It is a local preview server, not an internet-facing application server.
+The browser frontend, server, HTML bundles, IndexedDB storage, PDF.js extractor,
+and web build/test dependencies have been removed. Do not add alternate
+interactive frontends or HTML simulation demos. `test/tui-only.test.js` enforces
+this boundary; `npm run test:install` also checks the packed distribution for
+removed web entry points. Headless model, agent and HDL commands remain support
+tools for terminal experiments and automated verification.
 
 ## Add a model
 
@@ -143,17 +161,16 @@ behavior. Existing projects retain their prepared documentation snapshot.
 
 - `npm test`: numeric formats, built-in width/ACK combinations and constraints, model execution order, wrapping, provenance, builders, and terminal state/rendering.
 - `npm run test:tui`: real POSIX PTY interaction, raw mode restoration, navigation, numeric inputs, export, resize, and PDF-to-model creation.
-- `npm run verify`: all unit and PTY checks plus all pinned PDF fingerprints and reviewed profile checks, model coverage, example acceptance cases, and documentation existence. No browser build required.
+- `npm run verify`: all unit and PTY checks plus all pinned PDF fingerprints and reviewed profile checks, model coverage, example acceptance cases, documentation existence, and the TUI-only architecture boundary.
 - `npm run test:dwfv -- /path/to/dwfv`: optional real VCD parser interoperability for six built-ins, two generated scenarios, entered register banks, reviewed profiles, and compiled function-table models, including unknown register values.
-- `npm run build && npm run verify:web`: default verification plus the portable browser bundle.
-- `npm run test:ui`: Chromium controls, exports, local PDF extraction/storage, sourced model import/rejection, guided builders, sessions, mobile layout, and offline direct-file use.
-- `npm run format`: Prettier for repository JavaScript, JSON, HTML, and Markdown.
+- `npm run test:install`: offline installation outside the checkout, package contents, headless commands and terminal snapshots.
+- `npm run format`: Prettier for repository JavaScript, JSON, and Markdown.
 
-Install Chromium once with `npx playwright install chromium`. Browser tests use their own contexts, not the user's browsing session. Tests store temporary terminal workspaces outside the repository.
+Tests store temporary terminal workspaces outside the repository.
 
 ## Review limits
 
-Quote verification normalizes whitespace and confirms the quote exists on the cited page. Different PDF text engines can differ in hyphenation or ligatures; choose robust excerpts and check both interfaces when needed. Scanned documents require OCR outside ChipSim.
+Quote verification normalizes whitespace and confirms the quote exists on the cited page. PDF text extraction can differ from the printed layout in hyphenation or ligatures; choose robust excerpts and verify them against the original PDF with Poppler. Scanned documents require OCR outside ChipSim.
 
 Timing is normalized, not cycle accurate. eTPU distinguishes capture arrival from shared service time; adjustable ACK capture remains independent of final CLK bookkeeping. VCD files declare a conventional time unit for viewer compatibility, and explicitly label timestamps as normalized ticks. Registers with no value yet are exported as unknown, not zero.
 

@@ -131,7 +131,7 @@ test("TUI model workspace persists sourced models and restores shared sessions",
   assert.equal(files.entries[0].id, spec.id);
   assert.equal(s.config.parameters.period, 3);
 });
-test("Poppler import, source search, and PDF association operate without a browser", async (t) => {
+test("Poppler import, source search, and PDF association operate in the terminal", async (t) => {
   const s = await state(t);
   const doc = await s.loadFile(
     join(s.root, "docs/references/s32k144/nxp-flexio-an12174.pdf"),

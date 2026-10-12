@@ -16,7 +16,6 @@ import {
 import { exportJSON } from "../src/trace/export.js";
 import { TuiState } from "../src/tui/state.js";
 import { render, screenText, displayWidth } from "../src/tui/render.js";
-import { statesView, flowView, comparisonView } from "../src/ui/visuals.js";
 const example = JSON.parse(
   await readFile(
     new URL("../examples/timer.model.json", import.meta.url),
@@ -244,28 +243,4 @@ test("terminal visuals fit both sizes; reference import is atomic and comparison
   assert.equal(state.snapshot.state, "unavailable");
   state.setView("wave");
   assert.equal(state.tick, 1);
-});
-
-test("browser visual markup escapes imported labels, shows actual reads and unavailable coverage", () => {
-  const spec = structuredClone(example);
-  spec.states[0].label = '<img src=x onerror="alert(1)">';
-  const trace = simulateModel(spec, {}, { ticks: 2 });
-  const model = { ...spec, kind: "document", spec };
-  const graph = statesView(model, trace, 1);
-  assert.ok(!graph.includes("<img"));
-  assert.match(graph, /&lt;img/);
-  assert.match(graph, /fsm-edge/);
-  assert.match(flowView(model, trace, 1, {}, "hex"), /reg.count/);
-  const session = { parameters: {}, inputs: [], duration: 2 },
-    ref = captureExperiment(model, trace.slice(0, 1), session),
-    current = { model, trace, session };
-  const html = comparisonView(
-    ref,
-    current,
-    compareExperiments(ref, current),
-    2,
-    "hex",
-  );
-  assert.match(html, /unavailable/);
-  assert.ok(!html.includes("NaN"));
 });

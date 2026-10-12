@@ -10,6 +10,10 @@ import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { builtinModels, registerModel } from "../src/models/index.js";
+if (process.argv.length > 2) {
+  console.error("Usage: npm run verify (TUI-only verification; no options)");
+  process.exit(2);
+}
 const root = new URL("../", import.meta.url),
   read = (path) => readFile(new URL(path, root));
 const manifest = JSON.parse(await read("docs/references/manifest.json")),
@@ -92,6 +96,7 @@ for (const directory of ["models", "examples"])
 for (const file of [
   "AGENTS.md",
   "docs/AGENT_WORKFLOW.md",
+  "docs/AGENT_EXTENSIONS.md",
   "docs/AGENT_PROJECT.md",
   "README.md",
   "docs/DEVELOPMENT.md",
@@ -110,14 +115,6 @@ for (const file of [
   "docs/HDL.md",
 ])
   assert.ok((await read(file)).length > 100);
-const checkWeb = process.argv.includes("--web");
-if (checkWeb) {
-  const html = (await read("chipsim.html")).toString();
-  assert.ok(html.includes("ChipSim"));
-  assert.ok(!html.includes('src=".generated/app.js"'));
-  assert.ok(!html.includes('href="src/ui/styles.css"'));
-  assert.ok(!html.includes("The comparison from Section 8"));
-}
 execFileSync(
   process.execPath,
   [
@@ -135,7 +132,15 @@ if (process.platform === "win32") {
     stdio: "inherit",
     cwd: root,
   });
+  execFileSync(
+    "python3",
+    [new URL("scripts/test-agent-extension-pty.py", root).pathname],
+    {
+      stdio: "inherit",
+      cwd: root,
+    },
+  );
 }
 console.log(
-  `Verified ${paths.size} PDF fingerprints (${(bytes / 1048576).toFixed(1)} MiB), model coverage, declarative examples, documentation, engine/builder/TUI checks${checkWeb ? ", and portable browser build" : ""}.`,
+  `Verified ${paths.size} PDF fingerprints (${(bytes / 1048576).toFixed(1)} MiB), model coverage, declarative examples, documentation, engine/builder/TUI checks.`,
 );

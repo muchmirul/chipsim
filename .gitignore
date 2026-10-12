@@ -5,10 +5,6 @@ __pycache__/
 tmp/
 
 node_modules/
-.generated/
-chipsim.html
-playwright-report/
-test-results/
 
 .chipsim/
 .chipsim-agent/

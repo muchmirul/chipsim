@@ -98,7 +98,7 @@ Input stimulus can be supplied separately or stored in the model's optional `exa
 ]
 ```
 
-Only input signals can be driven; each value must fit its width. Events apply before actions at that absolute tick and hold until changed. Events are sorted by tick; events for the same tick preserve supplied order. The last event for a signal at a tick wins. Values outside the simulated duration are not applied. At most 10,000 events are allowed. The TUI, browser, and simulation CLI use `exampleInputs` unless the caller supplies stimulus; an explicit empty array disables the demonstration events. Acceptance cases use only their own `inputs` (or none) and never inherit demonstration stimulus.
+Only input signals can be driven; each value must fit its width. Events apply before actions at that absolute tick and hold until changed. Events are sorted by tick; events for the same tick preserve supplied order. The last event for a signal at a tick wins. Values outside the simulated duration are not applied. At most 10,000 events are allowed. The TUI and headless simulation commands use `exampleInputs` unless the caller supplies stimulus; an explicit empty array disables the demonstration events. Acceptance cases use only their own `inputs` (or none) and never inherit demonstration stimulus.
 
 ## Expressions and actions
 
@@ -324,6 +324,6 @@ Use uppercase `E` in the TUI to revise a valid draft. If editing generated JSON 
 
 ## Limits and extensions
 
-Limits are 32 parameters, 32 signals, 128 registers, 32 diagram nodes, 128 edges, 64 states, 32 transitions per state, 64 actions per action list, 32 sources, 256 evidence entries, and 64 acceptance cases. Browser model files are capped at 2 MiB. These limits keep imported behavior bounded and inspectable.
+Limits are 32 parameters, 32 signals, 128 registers, 32 diagram nodes, 128 edges, 64 states, 32 transitions per state, 64 actions per action list, 32 sources, 256 evidence entries, and 64 acceptance cases. Terminal model files are capped at 2 MiB. These limits keep imported behavior bounded and inspectable.
 
 Version 1 does not implement memories, analog physics, electrical timing, instruction decoding, register-access side effects, concurrent state machines, or complete chips implicitly. Express a bounded scenario explicitly, or add a reviewed JavaScript model using the common interface for behavior the JSON language cannot represent. Keep assumptions visible and add targeted verification whenever expanding the engine.

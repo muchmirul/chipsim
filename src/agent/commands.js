@@ -210,6 +210,7 @@ export async function agentCommand(args) {
         documentation: Object.fromEntries(
           [
             "AGENT_WORKFLOW.md",
+            "AGENT_EXTENSIONS.md",
             "MODEL_FORMAT.md",
             "PROGRAMMING.md",
             "EXISTING_SIMULATORS.md",

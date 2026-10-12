@@ -13,7 +13,6 @@ import { simulateModel } from "../src/model/engine.js";
 import { validateModel, ModelError } from "../src/model/validate.js";
 import { TuiState } from "../src/tui/state.js";
 import { screenText, render, displayWidth } from "../src/tui/render.js";
-import { tableReference } from "../src/ui/render.js";
 import { exportCSV, exportJSON, exportVCD } from "../src/trace/export.js";
 import { documentTitle } from "../src/documents/title.js";
 
@@ -245,7 +244,6 @@ test("TUI import, direct input edits, all formats, original source symbols, sess
   while (!screenText(state).includes("No change") && state.infoScroll < 100)
     state.infoScroll++;
   assert.match(screenText(state), /No change/);
-  assert.match(tableReference(state.model), /No change/);
   const restored = new TuiState({ workspace });
   await restored.initialize();
   await restored.loadSession(state.session());

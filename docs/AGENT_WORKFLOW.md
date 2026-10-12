@@ -2,14 +2,13 @@
 
 The coding agent reads a manual and authors a bounded behavioral model. ChipSim
 extracts sources, verifies quotations, executes acceptance cases, and produces
-waveforms and register traces. The same model opens in the TUI. No model provider,
+waveforms and register traces. The same model opens in the TUI, ChipSim's only interactive frontend. No model provider,
 API key, MCP server, or embedded LLM is needed by ChipSim.
 
 For interpreting run artifacts, read [Visualization](VISUALIZATION.md): `g`
 shows state rules, `v` shows actual captures/assignments, and `Y`/`D` compares a
-frozen reference with another experiment. The browser accepts exported program
-`trace.json` as a recorded comparison reference; only the terminal replays
-program sessions. Reference imports preserve the live experiment. `prepare`
+frozen reference with another experiment. The TUI accepts exported `trace.json`
+as a recorded reference and replays program sessions with guide checks. Reference imports preserve the live experiment. `prepare`
 copies this guide so external agents can distinguish observations from physical
 wiring, normalized ticks from silicon timing, and matching traces from proof.
 
@@ -19,6 +18,13 @@ it describes the ChipSim version that prepared the project. Existing projects
 are not automatically updated with newer documentation.
 
 ## Install
+
+For native named tools in Pi and prime-agent, follow
+[Agent extensions](AGENT_EXTENSIONS.md). Both load the same adapter; the tool
+calls below use the same process contract and source gates. `/chipsim` opens
+the TUI inside Pi; prime-agent's daemon returns a separate-terminal launch
+command. `chipsim_snapshot` supplies text in
+headless sessions. Other agents can continue using shell/Python commands.
 
 Use Node.js 22.13+ and Poppler (`pdfinfo`, `pdftotext`). From a local checkout:
 

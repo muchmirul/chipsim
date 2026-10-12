@@ -12,12 +12,13 @@ import { exportJSON, exportCSV, exportVCD } from "../src/trace/export.js";
 import { registerModel } from "../src/models/index.js";
 import { TuiState } from "../src/tui/state.js";
 import { screenText, render, displayWidth } from "../src/tui/render.js";
-import { waveform } from "../src/ui/render.js";
 import { formatPayload } from "../src/core/values.js";
 import { EventEmitter } from "node:events";
 import { TerminalApp } from "../src/tui/app.js";
-const path = new URL("../docs/references/sn74lvc1g125/ti-sn74lvc1g125.pdf", import.meta.url)
-  .pathname;
+const path = new URL(
+  "../docs/references/sn74lvc1g125/ti-sn74lvc1g125.pdf",
+  import.meta.url,
+).pathname;
 const document = extractPDFFile(path);
 const compiled = document.then((doc) => analyzeDocument(doc).models[0].spec);
 const events = (tick, value) => [
@@ -312,7 +313,7 @@ test("only declared tri-state outputs accept Z; malformed definitions and snapsh
   copy.states[0].transitions[0].when = "signal.pin_y";
   assert.match(simulateModel(copy).at(-1).detail, /logical condition/);
 });
-test("JSON, CSV, VCD, browser SVG, and whole-bus output Z preserve the same released state", async () => {
+test("JSON, CSV, VCD, and whole-bus output Z preserve the same released state", async () => {
   const spec = await compiled,
     model = registerModel(spec),
     trace = simulateModel(spec);
@@ -322,10 +323,6 @@ test("JSON, CSV, VCD, browser SVG, and whole-bus output Z preserve the same rele
   );
   assert.match(exportCSV(model, trace), /"Z"/);
   assert.match(exportVCD(model, trace), /#4\nb1 v0\nb0 v1\nbz v2/);
-  const svg = waveform(model, trace, 4);
-  assert.match(svg, /high-impedance/);
-  assert.match(svg, /high impedance/);
-  assert.ok(!/NaN|undefined/.test(svg));
   for (const format of ["hex", "decimal", "binary", "octal"])
     assert.equal(formatPayload("Z", format, 32), "Z");
   const bus = structuredClone(spec);

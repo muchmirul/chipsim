@@ -7,6 +7,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { pathToFileURL } from "node:url";
 const run = promisify(execFile);
 const root = new URL("../", import.meta.url).pathname;
 const temporary = await mkdtemp(join(tmpdir(), "chipsim-install-"));
@@ -22,6 +23,10 @@ try {
   const [pack] = JSON.parse(packed.stdout);
   for (const path of [
     "src/agent/commands.js",
+    "extensions/chipsim.ts",
+    "src/integrations/extension.js",
+    "src/integrations/process.js",
+    "docs/AGENT_EXTENSIONS.md",
     "src/agent/activity.js",
     "src/agent/context.js",
     "src/agent/program.js",
@@ -68,6 +73,14 @@ try {
     !pack.files.some((file) =>
       /^(?:node_modules|\.chipsim|tmp|test-results|\.git)\//.test(file.path),
     ),
+  );
+  assert.ok(
+    !pack.files.some((file) =>
+      /^(?:src\/ui\/|src\/documents\/(?:pdf|store)\.js$|scripts\/(?:build|serve)\.mjs$|(?:index|chipsim)\.html$|\.generated\/|playwright\.)/.test(
+        file.path,
+      ),
+    ),
+    "The installed package must contain only terminal interfaces and headless support tools",
   );
   await run(
     "npm",
@@ -173,6 +186,26 @@ try {
   );
   assert.equal((await cli(["doctor"])).pdfTools.length, 2);
   const installed = join(prefix, "lib/node_modules/chipsim");
+  const metadata = JSON.parse(
+    await readFile(join(installed, "package.json"), "utf8"),
+  );
+  assert.deepEqual(metadata.pi.extensions, ["./extensions/chipsim.ts"]);
+  // Exercise the installed bridge, not a checkout import or PATH-resolved binary.
+  const bridgeProbe = await run(
+    process.execPath,
+    [
+      "--input-type=module",
+      "-e",
+      `
+    import { runChipSim } from ${JSON.stringify(pathToFileURL(join(installed, "src/integrations/process.js")).href)};
+    const result = await runChipSim(["agent", "context", "pio"], { cwd: process.cwd() });
+    if (!result.ok) throw new Error(JSON.stringify(result));
+    console.log(JSON.stringify(result));
+  `,
+    ],
+    { cwd, maxBuffer: 2 * 1048576 },
+  );
+  assert.equal(JSON.parse(bridgeProbe.stdout).ok, true);
   const backendCheck = JSON.parse(
     (await run(binary, ["hdl", "doctor"], { cwd })).stdout,
   );
@@ -247,6 +280,10 @@ try {
   assert.match(
     await readFile(join(project, "AGENTS.md"), "utf8"),
     /docs\/CHANGELOG\.md/,
+  );
+  assert.match(
+    await readFile(join(project, "AGENTS.md"), "utf8"),
+    /only\s+interactive frontend is the TUI/,
   );
   for (const file of [
     "CHANGELOG.md",
