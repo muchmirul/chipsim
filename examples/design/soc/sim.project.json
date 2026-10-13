@@ -1,0 +1,10 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "language": "verilog",
+  "standard": "2012",
+  "sources": ["picorv32.v", "soc.sv", "soc_tb.sv"],
+  "assets": ["firmware.hex"],
+  "top": "soc_tb",
+  "waveform": "trace.vcd"
+}

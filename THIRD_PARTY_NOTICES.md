@@ -1,5 +1,12 @@
 # Third-party documents
 
+`examples/design/soc/picorv32.v` contains the unchanged PicoRV32 processor by
+Claire Xenia Wolf / YosysHQ, under the ISC license retained in its file header.
+It is pinned to commit `ef203c2b0a3fb793280f5114941416c425c5b461`; source and
+SHA-256 are documented in `examples/design/README.md`. Its inclusion is for a
+small firmware/RTL integration fixture, not a silicon qualification claim.
+
+
 The PDFs in `docs/references/` are complete downloads from publisher sites and the explicitly recorded NXP Community archive. Their bytes have not been edited by ChipSim. Filenames were standardized for this repository; each manifest entry identifies the actual host and revision.
 
 | Documents                                                                                                      | Publisher / attribution                                                                                                       |

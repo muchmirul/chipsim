@@ -1,5 +1,16 @@
 # ChipSim in Pi and prime-agent
 
+The extension also exposes the [versioned design workbench](DESIGN.md):
+`chipsim_design_init/doctor/lock/plan/run`, `chipsim_job_status/logs/cancel/retry`,
+`chipsim_artifact_list/inspect/verify/import/export/compare`, and `chipsim_checks`.
+Use an explicit project path on each call. `chipsim_design_run` returns an
+accepted background job; only `chipsim_job_cancel` cancels it. IDs and target
+names remain literals, while path arguments resolve in the current call's cwd.
+HDL tools accept boolean `debug`; snapshots accept `hdlDebug`, `atEvent`, and
+`design`, plus project/pipeline/artifacts/checks/debug views. `/chipsim PROJECT`
+recognizes either prepared document projects or `chipsim.design.json` projects.
+
+
 ChipSim is a native extension for both agents. Named tools control the same
 local CLI that provides source verification, simulation, activity monitoring
 and saved TUI sessions. The agent's existing file tools author model JSON,
@@ -88,8 +99,52 @@ provenance, not whole-chip fidelity. The native adapter preserves all existing g
 Paths resolve against the **current tool call's** working directory. There is
 no hidden selected project that can leak across concurrent calls or project changes.
 
+`chipsim_command` is a general controller for the same CLI. An agent can use this
+one tool for discovery, planning, execution, jobs, evidence and terminal snapshots:
+
+```javascript
+chipsim_command({args: ["help"]})
+chipsim_command({args: ["design", "help"]})
+chipsim_command({args: ["design", "commands"]})
+chipsim_command({args: ["design", "guide", "rtl"]})
+chipsim_command({args: ["design", "status", "--project", ".", "--target", "simulation"]})
+chipsim_command({args: ["design", "run", "--project", ".", "--target", "simulation"]})
+chipsim_command({args: ["job", "status", "JOB_ID", "--project", "."]})
+chipsim_command({args: ["job", "status", "JOB_ID", "--project", ".", "--wait", "--timeout-ms", "1000"]})
+chipsim_command({args: ["artifact", "list", "--project", ".", "--limit", "20"]})
+chipsim_command({args: ["checks", "--project", ".", "--target", "simulation"]})
+chipsim_command({args: ["--design", ".", "--snapshot", "--view", "checks"]})
+```
+
+Omitted or empty `args` opens help. Pass arguments after the executable name as
+literal strings; each path containing spaces is one argument, without added shell
+quotes. The bridge directly invokes the packaged CLI. It uses the CLI's validation,
+source gates, evidence records, structured failures and process limits. It accepts
+`agent`, `hdl`, `design`, `job`, `artifact` and `checks`, plus help, profile listing
+and `--snapshot`. Interactive inspection uses `/chipsim`.
+
+Input is bounded to 128 arguments, 8192 characters per argument and 64 KiB total.
+Headless families return their existing JSON envelopes; help and snapshots return
+text. For long jobs, call `design run` without `--wait`, then `job status`/`logs`;
+stopping the call does not cancel an accepted job. Use `job cancel` explicitly.
+The typed tools below remain available for callers that prefer named parameters.
+
+`design guide [TOPIC]` supplies optional recipes for required files, missing-input
+preparation and installed examples, without a project or tool execution. Topics
+include RTL, testbench, waveform, firmware, registers, formal, physical and model
+(use lowercase topic IDs). Agents can create/find/prepare missing prerequisites
+within the requested scope, then run the appropriate target. Read
+[DESIGN_INPUTS.md](DESIGN_INPUTS.md); these recipes are not a mandatory workflow.
+
+`design commands` exposes the machine-readable workbench contract and integration
+input/output formats. `design status` supplies current readiness and suggested
+next argument arrays without executing tool probes. For a brief wait, use
+`--wait --timeout-ms 1000` (maximum 60000); a timeout returns the still-running
+job. For incremental logs, retain the returned byte `cursor` even at current EOF.
+
 | Tool                    | Required fields           | Optional fields / purpose                              |
 | ----------------------- | ------------------------- | ------------------------------------------------------ |
+| `chipsim_command`       | none                      | Literal CLI `args` array; defaults to help              |
 | `chipsim_help`          | none                      | Contract and installed documentation paths             |
 | `chipsim_doctor`        | none                      | Node and Poppler availability                          |
 | `chipsim_context`       | `target`                  | `project`, `model`; call before programming            |
@@ -159,7 +214,8 @@ a user command, not a model-callable tool that waits for keyboard input.
 ## Contributor context and checks
 
 `extensions/chipsim.ts` is the native entry. `src/integrations/extension.js`
-registers tools/command; `process.js` invokes the packaged CLI through Node using
+registers tools/command, including the general argument-array controller;
+`process.js` invokes the packaged CLI through Node using
 argument arrays, without a shell or PATH lookup for ChipSim. Loading registers
 capabilities only; no subprocess or watcher starts. Source gates, engine behavior,
 exports and activity stay in the CLI. Prepared projects copy this guide;

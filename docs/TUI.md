@@ -1,5 +1,14 @@
 # Terminal workbench
 
+`chipsim --design PROJECT` opens the [artifact workbench](DESIGN.md). Use Tab
+for Project, Pipeline, Artifacts and Checks; `0` returns to Project. Enter opens
+actions/links, `o` inspects a payload, `r` accepts a target, `X` cancels a selected
+job, and `R` retries it. Closing the terminal leaves accepted jobs running.
+Background results preserve the active experiment and selections. Inspection
+state is saved separately from sealed records. Layout inspection hands off to
+an installed KLayout and restores the terminal afterward.
+
+
 The TUI is ChipSim's only interactive interface. `npm start` runs it directly; no frontend build is required. Node.js 22.13+ is required; PDF extraction additionally requires Poppler. `node scripts/chipsim.mjs --help` lists launch options.
 
 **H** opens the HDL workbench: import VCD/waveform JSON, run a Verilog/VHDL project, or compare mapped signals with another waveform/exported model trace. `--vcd FILE` opens a recorded trace directly; `--hdl PROJECT --hdl-out NEW_DIRECTORY` runs and opens a project. HDL views use timestamp sample indices and show exact simulator time at the cursor. Replay is read-only; `S` saves a waveform session and `x` exports with its simulator timescale. See [HDL](HDL.md) for manifests, maps, backend setup, examples and limits.

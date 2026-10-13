@@ -1,0 +1,19 @@
+{
+  "format": "chipsim-design",
+  "version": 1,
+  "id": "minimal-counter",
+  "name": "Minimal counter",
+  "tasks": {
+    "simulate": {
+      "adapter": "hdl",
+      "options": { "project": "sim.project.json" },
+      "outputs": [{ "path": "out/waveform.json", "kind": "waveform" }]
+    }
+  },
+  "targets": {
+    "simulation": {
+      "tasks": ["simulate"],
+      "requiredChecks": ["simulate:simulation", "simulate:outputs"]
+    }
+  }
+}

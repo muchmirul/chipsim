@@ -117,6 +117,15 @@ export async function main(args = process.argv.slice(2)) {
         if (!comparison.match) exitCode = 1;
       } else throw new Error("Unknown HDL command " + command);
     }
+    if (report?.artifacts && args.includes("--out") && args[0] !== "run") {
+      await (
+        await import("../src/design/standalone.js")
+      ).inventoryStandalone(
+        resolve(args[args.indexOf("--out") + 1]),
+        args[0],
+        report,
+      );
+    }
   } catch (error) {
     exitCode = 2;
     report = {

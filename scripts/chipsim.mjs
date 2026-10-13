@@ -11,6 +11,9 @@ import { normalizeParameters } from "../src/model/engine.js";
 import { views } from "../src/tui/views.js";
 import { AgentMonitor } from "../src/tui/agent-monitor.js";
 export async function main(args = process.argv.slice(2)) {
+  if (["design", "job", "artifact", "checks"].includes(args[0])) {
+    return (await import("../src/design/cli.js")).main(args);
+  }
   if (args[0] === "agent") {
     const agent = await import("./agent.mjs");
     return agent.main(args.slice(1));
@@ -26,12 +29,12 @@ export async function main(args = process.argv.slice(2)) {
   --at-event INDEX             Initial event cursor for a debug recording
   --hdl project.json          Run a Verilog/VHDL project before opening
   --hdl-out NEW_DIRECTORY     Required with --hdl; preserve run artifacts
-  --dwfv /path/to/dwfv        Optional external viewer command
-  --watch PROJECT             Monitor agent activity and completed runs\n  --workspace .chipsim        Persistent local workspace directory\n  --program experiment.chip   Load a source experiment; 9 opens line debugger\n  --params parameters.json    Parameter overrides\n  --inputs events.json        Timed input stimulus\n  --ticks 100                 Duration for document models\n  --snapshot                  Print one terminal frame without a TTY\n  --at 0 --columns 120 --rows 40  Snapshot dimensions and cursor\n  --view wave|inspect|log|sources|model|registers|stimulus|activity|program|states|flow|compare|debug\n  --no-color                  Disable colored text\n  --help                      Show this help\n\nInside the TUI: ? help · m models · p params · i pins · d import · c create · q quit.\nVisuals: g states · v bit flow · Y capture reference · D compare.\nOptional waveform viewer: V opens the exported trace in installed dwfv.\n`;
+  --design PROJECT           Open the versioned project workbench; 0 returns to Project\n  --dwfv /path/to/dwfv        Optional external viewer command
+  --watch PROJECT             Monitor agent activity and completed runs\n  --workspace .chipsim        Persistent local workspace directory\n  --program experiment.chip   Load a source experiment; 9 opens line debugger\n  --params parameters.json    Parameter overrides\n  --inputs events.json        Timed input stimulus\n  --ticks 100                 Duration for document models\n  --snapshot                  Print one terminal frame without a TTY\n  --at 0 --columns 120 --rows 40  Snapshot dimensions and cursor\n  --view wave|inspect|log|sources|model|registers|stimulus|activity|program|states|flow|compare|debug|project|pipeline|artifacts|checks\n  --no-color                  Disable colored text\n  --help                      Show this help\n\nInside the TUI: ? help · m models · p params · i pins · d import · c create · q quit.\nVisuals: g states · v bit flow · Y capture reference · D compare.\nOptional waveform viewer: V opens the exported trace in installed dwfv.\n`;
   if (args.includes("--help") || args.includes("-h")) {
     process.stdout.write(usage);
     process.stdout.write(
-      "Coding agents: chipsim agent help · local PDF search, validation and trace artifacts without a TTY.\n",
+      "Project commands: chipsim design commands · design guide [TOPIC] · design status --project PROJECT · design help · job · artifact · checks.\nCoding agents: chipsim agent help · local PDF search, validation and trace artifacts without a TTY.\n",
     );
     return;
   }
@@ -68,6 +71,7 @@ export async function main(args = process.argv.slice(2)) {
     "hdl-out",
     "hdl-debug",
     "at-event",
+    "design",
   ]);
   for (let i = 0; i < args.length; i++) {
     const key = args[i].slice(2);
@@ -103,6 +107,15 @@ export async function main(args = process.argv.slice(2)) {
     throw new Error("--hdl requires --hdl-out NEW_DIRECTORY.");
   const state = new TuiState({ workspace: options.workspace || ".chipsim" });
   await state.initialize();
+  let designPanel;
+  if (options.design) {
+    if (options.watch || options.hdl)
+      throw new Error(
+        "Open --design separately from --watch or --hdl; start project jobs from Pipeline.",
+      );
+    const { DesignPanel } = await import("../src/tui/design-panel.js");
+    designPanel = await new DesignPanel(state, options.design).initialize();
+  }
   if (options.vcd) await state.loadWaveformFile(options.vcd);
   if (options["hdl-debug"]) await state.loadDebugFile(options["hdl-debug"]);
   if (options.hdl) {
@@ -196,6 +209,11 @@ export async function main(args = process.argv.slice(2)) {
     viewer: options.dwfv || process.env.CHIPSIM_DWFV || "dwfv",
     onExit: (code) => process.exit(code),
   });
+  if (designPanel) {
+    app.designPanel = designPanel;
+    designPanel.onChange = () => app.draw();
+    designPanel.external = () => app.external;
+  }
   if (monitor) {
     app.monitor = monitor;
     monitor.onChange = () => app.draw();
@@ -212,6 +230,7 @@ export async function main(args = process.argv.slice(2)) {
   });
   app.start();
   monitor?.start();
+  designPanel?.start();
 }
 if (
   process.argv[1] &&

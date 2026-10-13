@@ -8,6 +8,7 @@ import {
   toolCommands,
   toolArguments,
   tuiArguments,
+  commandArguments,
 } from "../src/integrations/extension.js";
 import {
   runChipSim,
@@ -21,6 +22,7 @@ const root = new URL("../", import.meta.url).pathname;
 const Type = {
   String: (options) => ({ type: "string", ...options }),
   Integer: (options) => ({ type: "integer", ...options }),
+  Array: (items, options) => ({ type: "array", items, ...options }),
   Literal: (value) => ({ const: value }),
   Union: (values) => ({ anyOf: values }),
   Optional: (value) => ({ ...value, optional: true }),
@@ -79,7 +81,7 @@ test("native tool mappings cover every agent command and preserve literal text a
     ),
     ["agent", "search", "--offset", "0", "--", ".", "--out $(touch NEVER)"],
   );
-  assert.equal(registry().tools.size, 17);
+  assert.equal(registry().tools.size, 34);
   assert.equal(
     nodeCommand({ CHIPSIM_NODE: "/opt/node" }, { bun: "1" }),
     "/opt/node",
@@ -115,6 +117,154 @@ test("tool calls use their current cwd independently and forward cancellation", 
   assert.equal(calls[0].options.signal, signal);
   assert.equal(calls[0].args[3], "/tmp/one/work");
   assert.equal(calls[1].args[3], "/tmp/two/work");
+});
+
+test("general commands keep arguments literal, enforce bounds and forward cwd/cancellation", async () => {
+  const calls = [];
+  const { tools } = registry({
+    run: async (args, options) => {
+      calls.push({ args, options });
+      return { ok: true };
+    },
+  });
+  const signal = new AbortController().signal;
+  const args = ["agent", "search", ".", "--", "--snapshot $(touch NEVER)"];
+  await invoke(tools, "chipsim_command", { args }, "/tmp/one", signal);
+  await invoke(
+    tools,
+    "chipsim_command",
+    { args: ["job", "status", "--project", "."] },
+    "/tmp/two",
+  );
+  assert.deepEqual(calls[0].args, args);
+  assert.equal(calls[0].options.cwd, "/tmp/one");
+  assert.equal(calls[0].options.signal, signal);
+  assert.equal(calls[0].options.textOutput, false);
+  assert.equal(calls[1].options.cwd, "/tmp/two");
+  for (const invalid of [
+    "design run",
+    [null],
+    ["a\0b"],
+    Array(129).fill("x"),
+    ["x".repeat(8193)],
+    Array(9).fill("x".repeat(8192)),
+  ])
+    assert.throws(() => commandArguments(invalid), /ChipSim args/);
+  for (const interactive of [
+    ["--design", "."],
+    ["bash", "-c", "pwd"],
+  ])
+    assert.throws(
+      () => commandArguments(interactive),
+      /Pass ChipSim arguments/,
+    );
+  assert.deepEqual(commandArguments(), { args: ["--help"], textOutput: true });
+});
+
+test("one general tool drives discovery, durable jobs, evidence, checks and snapshots", async (t) => {
+  const cwd = await temporary(t),
+    { tools } = registry();
+  const call = (args) => invoke(tools, "chipsim_command", { args }, cwd);
+  assert.match(
+    (await call([])).content[0].text,
+    /Project commands: chipsim design commands/,
+  );
+  assert.equal(
+    (await call(["design", "help"])).details.format,
+    "chipsim-design-result",
+  );
+  const catalog = (await call(["design", "commands"])).details;
+  const guidance = (await call([...catalog.guidance.command, "testbench"]))
+    .details.guide;
+  assert.equal(guidance.optional, true);
+  assert.ok(guidance.recipe.adapters.includes("cocotb"));
+  assert.ok(
+    catalog.commands.some(
+      (c) => c.family === "design" && c.command === "status",
+    ),
+  );
+  const project = "chip $(touch NEVER)";
+  assert.equal((await call(["design", "init", project])).details.ok, true);
+  await access(join(cwd, project, "chipsim.design.json"));
+  await assert.rejects(access(join(cwd, "NEVER")), { code: "ENOENT" });
+  await writeFile(
+    join(cwd, project, "task.mjs"),
+    "import {writeFile} from 'node:fs/promises'; await writeFile('result.txt', 'captured result');",
+  );
+  await writeFile(
+    join(cwd, project, "chipsim.design.json"),
+    JSON.stringify({
+      format: "chipsim-design",
+      version: 1,
+      id: "controller-fixture",
+      tasks: {
+        sim: {
+          adapter: "command",
+          inputs: ["task.mjs"],
+          options: { command: process.execPath, args: ["task.mjs"] },
+          outputs: [{ path: "result.txt", kind: "report" }],
+        },
+      },
+      targets: {
+        simulation: {
+          tasks: ["sim"],
+          requiredChecks: ["sim:execution", "sim:outputs"],
+        },
+      },
+    }),
+  );
+  const accepted = (await call(["design", "run", "--project", project]))
+    .details;
+  assert.equal(accepted.accepted, true);
+  const job = (
+    await call([
+      "job",
+      "status",
+      accepted.job.id,
+      "--project",
+      project,
+      "--wait",
+      "--timeout-ms",
+      "60000",
+    ])
+  ).details.job;
+  assert.equal(job.state, "completed");
+  assert.equal(job.ready, true);
+  const current = (await call(["design", "status", "--project", project]))
+    .details;
+  assert.equal(current.ready, true);
+  assert.equal(current.latestRun.id, job.run);
+  const artifacts = (await call(["artifact", "list", "--project", project]))
+    .details.artifacts;
+  const output = artifacts.find((a) => a.path === "result.txt");
+  assert.equal(
+    (await call(["artifact", "inspect", output.id, "--project", project]))
+      .details.preview,
+    "captured result",
+  );
+  assert.equal(
+    (await call(["checks", "--project", project])).details.ready,
+    true,
+  );
+  const snapshot = await call([
+    "--design",
+    project,
+    "--snapshot",
+    "--view",
+    "checks",
+    "--no-color",
+  ]);
+  assert.match(snapshot.content[0].text, /CHECKS/);
+  assert.match(snapshot.content[0].text, /READY/);
+  await assert.rejects(
+    call(["design", "unknown", "--project", project]),
+    (error) => {
+      assert.ok(error instanceof ChipSimProcessError);
+      assert.equal(error.details.result.ok, false);
+      assert.equal(error.details.exitCode, 2);
+      return true;
+    },
+  );
 });
 
 test("native tools prepare real PDF evidence, check/run models and preserve failed destinations", async (t) => {

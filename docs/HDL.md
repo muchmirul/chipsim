@@ -1,5 +1,12 @@
 # HDL projects, waveform import and behavior comparison
 
+HDL manifests can also be tasks in the [versioned design workbench](DESIGN.md).
+Managed runs snapshot source bytes before execution and publish native waveforms,
+debug recordings and diagnostics as graph artifacts. Standalone commands keep
+their existing format and add `artifacts.json`; explicit import preserves unknown
+historical provenance. Artifact and check queries never execute HDL.
+
+
 ChipSim's terminal workbench can inspect external HDL traces, run **Verilog/SystemVerilog with Icarus Verilog** and **VHDL with GHDL**, and compare mapped signals with another HDL waveform or a ChipSim behavior trace. The execution backend supplies HDL scheduling semantics. Waveform replay in ChipSim is a recorded-results viewer.
 
 ## Event debugging with linked source and hardware

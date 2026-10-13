@@ -1,0 +1,301 @@
+{
+  "format": "chipsim-design",
+  "version": 1,
+  "id": "scratch",
+  "name": "Two-word peripheral",
+  "filesets": {
+    "rtl": ["rtl/scratch.sv"]
+  },
+  "tasks": {
+    "sim": {
+      "adapter": "hdl",
+      "options": {
+        "project": "sim.project.json"
+      },
+      "outputs": [
+        {
+          "path": "out/waveform.json",
+          "kind": "waveform"
+        }
+      ]
+    },
+    "debug": {
+      "adapter": "hdl",
+      "options": {
+        "project": "sim.project.json",
+        "debug": true
+      },
+      "outputs": [
+        {
+          "path": "out/debug.json",
+          "kind": "hdl-debug"
+        }
+      ]
+    },
+    "registers": {
+      "adapter": "peakrdl",
+      "options": {
+        "rdl": "registers.rdl"
+      },
+      "outputs": [
+        {
+          "path": "out/registers.sv",
+          "kind": "rtl"
+        },
+        {
+          "path": "out/registers.h",
+          "kind": "firmware-header"
+        },
+        {
+          "path": "out/registers.xml",
+          "kind": "register-map"
+        }
+      ]
+    },
+    "package": {
+      "adapter": "fusesoc",
+      "inputs": ["scratch.core"],
+      "filesets": ["rtl"],
+      "options": {
+        "core": "chipsim:examples:scratch:1.0"
+      }
+    },
+    "verilator": {
+      "adapter": "verilator",
+      "filesets": ["rtl"],
+      "inputs": ["scratch_tb.sv"],
+      "options": {
+        "top": "scratch_tb",
+        "flags": ["-Wno-fatal"]
+      },
+      "outputs": [
+        {
+          "path": "trace.vcd",
+          "kind": "waveform-vcd"
+        }
+      ]
+    },
+    "regression": {
+      "adapter": "cocotb",
+      "filesets": ["rtl"],
+      "inputs": ["test_scratch.py"],
+      "options": {
+        "makefile": "Makefile"
+      },
+      "outputs": [
+        {
+          "path": "results.xml",
+          "kind": "test-report"
+        }
+      ]
+    },
+    "proof": {
+      "adapter": "sby",
+      "filesets": ["rtl"],
+      "inputs": ["formal.sv"],
+      "options": {
+        "config": "formal.sby",
+        "scope": "Reset, selected writes, holds and combinational readback",
+        "assumptions": ["Reset asserted at the first sampled clock"]
+      },
+      "outputs": [
+        {
+          "path": "out/status",
+          "kind": "formal-status"
+        }
+      ]
+    },
+    "synth": {
+      "adapter": "command",
+      "filesets": ["rtl"],
+      "options": {
+        "command": "yosys",
+        "versionArgs": ["-V"],
+        "args": [
+          "-p",
+          "read_verilog -sv rtl/scratch.sv; synth -top scratch; write_verilog netlist.v; write_json netlist.json"
+        ]
+      },
+      "outputs": [
+        {
+          "path": "netlist.v",
+          "kind": "netlist"
+        },
+        {
+          "path": "netlist.json",
+          "kind": "netlist-graph"
+        }
+      ]
+    },
+    "equivalence": {
+      "adapter": "eqy",
+      "filesets": ["rtl"],
+      "bindings": [
+        {
+          "task": "synth",
+          "output": "netlist.v",
+          "path": "netlist.v"
+        }
+      ],
+      "options": {
+        "config": "equivalence.eqy",
+        "scope": "Synthesized scratch netlist against the RTL"
+      }
+    },
+    "physical": {
+      "adapter": "orfs",
+      "filesets": ["rtl"],
+      "inputs": ["constraints.sdc"],
+      "options": {
+        "flow": "/opt/OpenROAD-flow-scripts/flow",
+        "config": "config.mk",
+        "context": {
+          "stage": "finish",
+          "corner": "sky130hd typical",
+          "units": {
+            "time": "ns",
+            "area": "um^2"
+          }
+        },
+        "stages": ["finish", "drc", "lvs"],
+        "reports": {
+          "timing": {
+            "path": "out/logs/6_report.json",
+            "metrics": [
+              {
+                "field": "finish__timing__setup__ws",
+                "operator": "gte",
+                "value": 0
+              },
+              {
+                "field": "finish__timing__drv__setup_violation_count",
+                "operator": "eq",
+                "value": 0
+              },
+              {
+                "field": "finish__timing__drv__hold_violation_count",
+                "operator": "eq",
+                "value": 0
+              }
+            ],
+            "scope": "Reported setup slack and setup/hold violation counts at the declared corner",
+            "assumptions": [
+              "Unconstrained paths, exception correctness and other process corners are outside this check"
+            ]
+          },
+          "drc": {
+            "path": "out/reports/6_drc.lyrdb"
+          },
+          "lvs": {
+            "path": "out/results/6_lvs.lvsdb"
+          }
+        }
+      },
+      "outputs": [
+        {
+          "path": "out/results/6_final.gds",
+          "kind": "layout"
+        },
+        {
+          "path": "out/results/6_final.odb",
+          "kind": "physical-database"
+        }
+      ]
+    },
+    "inspect-physical": {
+      "adapter": "openroad-mcp",
+      "bindings": [
+        {
+          "task": "physical",
+          "output": "out/results/6_final.odb",
+          "path": "input/final.odb"
+        }
+      ],
+      "options": {
+        "requests": [
+          {
+            "name": "create_interactive_session",
+            "arguments": {
+              "session_id": "chipsim",
+              "cwd": "{workspace}"
+            }
+          },
+          {
+            "name": "interactive_openroad_exec",
+            "arguments": {
+              "session_id": "chipsim",
+              "command": "read_db input/final.odb"
+            }
+          },
+          {
+            "name": "interactive_openroad_query",
+            "arguments": {
+              "session_id": "chipsim",
+              "command": "report_design_area"
+            }
+          },
+          {
+            "name": "interactive_openroad_exec",
+            "arguments": {
+              "session_id": "chipsim",
+              "command": "write_db out/inspected.odb"
+            }
+          },
+          {
+            "name": "terminate_interactive_session",
+            "arguments": {
+              "session_id": "chipsim"
+            }
+          }
+        ]
+      },
+      "outputs": [
+        {
+          "path": "out/inspected.odb",
+          "kind": "physical-database"
+        },
+        {
+          "path": "mcp-session.jsonl",
+          "kind": "event-stream"
+        }
+      ]
+    }
+  },
+  "targets": {
+    "simulation": {
+      "tasks": ["sim"],
+      "requiredChecks": ["sim:simulation", "sim:outputs"]
+    },
+    "debugging": {
+      "tasks": ["debug"],
+      "requiredChecks": ["debug:simulation", "debug:outputs"]
+    },
+    "generation": {
+      "tasks": ["registers", "package"],
+      "requiredChecks": ["registers:outputs", "package:execution"]
+    },
+    "verification": {
+      "tasks": ["sim", "verilator", "regression", "proof", "equivalence"],
+      "requiredChecks": [
+        "sim:simulation",
+        "verilator:execution",
+        "regression:tests",
+        "proof:formal",
+        "equivalence:equivalence"
+      ]
+    },
+    "asic": {
+      "tasks": ["physical"],
+      "requiredChecks": [
+        "physical:outputs",
+        "physical:timing",
+        "physical:drc",
+        "physical:lvs"
+      ]
+    },
+    "physical-inspection": {
+      "tasks": ["inspect-physical"],
+      "requiredChecks": ["inspect-physical:mcp", "inspect-physical:outputs"]
+    }
+  }
+}

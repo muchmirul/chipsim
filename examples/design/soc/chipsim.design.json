@@ -1,0 +1,69 @@
+{
+  "format": "chipsim-design",
+  "version": 1,
+  "id": "picorv32-fixture",
+  "name": "Firmware to PicoRV32 MMIO fixture",
+  "tasks": {
+    "firmware": {
+      "adapter": "firmware",
+      "inputs": ["main.c", "start.S"],
+      "options": {
+        "linker": "link.ld",
+        "flags": [
+          "-march=rv32i",
+          "-mabi=ilp32",
+          "-nostdlib",
+          "-nostartfiles",
+          "-ffreestanding",
+          "-O2"
+        ]
+      },
+      "outputs": [
+        { "path": "out/firmware.elf", "kind": "firmware" },
+        {
+          "path": "out/firmware.hex",
+          "kind": "memory-image",
+          "format": "verilog-byte-hex"
+        }
+      ]
+    },
+    "soc": {
+      "adapter": "hdl",
+      "options": { "project": "sim.project.json" },
+      "bindings": [
+        {
+          "task": "firmware",
+          "output": "out/firmware.hex",
+          "path": "firmware.hex"
+        }
+      ],
+      "outputs": [{ "path": "out/waveform.json", "kind": "waveform" }]
+    },
+    "renode": {
+      "adapter": "renode",
+      "inputs": ["platform.repl"],
+      "options": { "script": "run.resc" },
+      "bindings": [
+        {
+          "task": "firmware",
+          "output": "out/firmware.elf",
+          "path": "firmware.elf"
+        }
+      ]
+    }
+  },
+  "targets": {
+    "simulation": {
+      "tasks": ["soc"],
+      "requiredChecks": ["firmware:outputs", "soc:simulation", "soc:outputs"]
+    },
+    "firmware": {
+      "tasks": ["firmware"],
+      "requiredChecks": ["firmware:outputs"]
+    },
+    "software": {
+      "tasks": ["renode"],
+      "requiredChecks": ["firmware:outputs", "renode:execution"]
+    }
+  }
+}

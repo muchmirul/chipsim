@@ -1,0 +1,10 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "name": "Two-word peripheral regression",
+  "language": "verilog",
+  "standard": "2012",
+  "sources": ["rtl/scratch.sv", "scratch_tb.sv"],
+  "top": "scratch_tb",
+  "waveform": "trace.vcd"
+}

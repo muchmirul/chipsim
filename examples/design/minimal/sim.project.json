@@ -1,0 +1,10 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "name": "Minimal counter testbench",
+  "language": "verilog",
+  "standard": "2012",
+  "sources": ["counter.v", "counter_tb.v"],
+  "top": "counter_tb",
+  "waveform": "trace.vcd"
+}

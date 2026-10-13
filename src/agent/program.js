@@ -36,7 +36,10 @@ export async function loadAgentProgram(file, options) {
   await options.progress?.(
     "Verifying programming-guide fingerprints and quoted PDF pages",
   );
-  const guides = await verifyProgramGuides(program, model, { manual });
+  const guides = await verifyProgramGuides(program, model, {
+    manual,
+    ...(options.guideRoot ? { root: options.guideRoot } : {}),
+  });
   const debug = new ProgramDebugger(model, program, {
     guides,
     maxTicks: options.ticks,
@@ -108,6 +111,9 @@ export async function runAgentProgram(file, output, options) {
       ],
     };
     await writeJSON(join(root, "result.json"), result);
+    await (
+      await import("../design/standalone.js")
+    ).inventoryStandalone(root, "program", result);
     return result;
   });
 }

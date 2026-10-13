@@ -97,6 +97,7 @@ export const toolCommands = [
   {
     family: "hdl",
     command: "doctor",
+    options: ["debug"],
     description:
       "Check installed Icarus Verilog and GHDL backends; never install them automatically.",
   },
@@ -113,7 +114,7 @@ export const toolCommands = [
     family: "hdl",
     command: "run",
     positionals: ["project"],
-    options: ["out"],
+    options: ["out", "debug"],
     required: ["project", "out"],
     description:
       "Explicitly execute a reviewed local HDL project manifest using installed Icarus/GHDL in a NEW directory. Keep diagnostics and partial traces on failure.",
@@ -128,6 +129,145 @@ export const toolCommands = [
       "Compare recorded traces using an explicit signal/width/timing mapping. A mismatch is a tool failure with comparison details; matching traces do not establish whole-design equivalence.",
   },
 ];
+
+for (const [family, command, positionals, options, required, description] of [
+  [
+    "design",
+    "init",
+    ["directory"],
+    [],
+    ["directory"],
+    "Create versioned design manifests without executing tools; preserves existing files.",
+  ],
+  [
+    "design",
+    "doctor",
+    [],
+    ["project", "target"],
+    ["project"],
+    "Inspect declared target inputs, tool identities and missing dependencies.",
+  ],
+  [
+    "design",
+    "lock",
+    [],
+    ["project", "path"],
+    ["project", "path"],
+    "Calculate an external dependency directory fingerprint without modifying the lock file.",
+  ],
+  [
+    "design",
+    "plan",
+    [],
+    ["project", "target"],
+    ["project"],
+    "Snapshot declared inputs and resolve a target dependency graph without running its tasks.",
+  ],
+  [
+    "design",
+    "run",
+    [],
+    ["project", "target", "no-reuse"],
+    ["project"],
+    "Accept a durable background design job. Returns immediately; cancelling this call does not cancel an accepted job.",
+  ],
+  [
+    "job",
+    "status",
+    ["id"],
+    ["project"],
+    ["id", "project"],
+    "Read a durable job and recover interrupted workers.",
+  ],
+  [
+    "job",
+    "logs",
+    ["id"],
+    ["project", "offset", "limit"],
+    ["id", "project"],
+    "Read bounded job logs; follow nextOffset.",
+  ],
+  [
+    "job",
+    "cancel",
+    ["id"],
+    ["project"],
+    ["id", "project"],
+    "Explicitly cancel an accepted job, preserving available evidence.",
+  ],
+  [
+    "job",
+    "retry",
+    ["id"],
+    ["project"],
+    ["id", "project"],
+    "Retry a finished job with its original snapshot in a new attempt.",
+  ],
+  [
+    "artifact",
+    "list",
+    [],
+    ["project", "offset", "limit"],
+    ["project"],
+    "List typed artifacts in bounded pages.",
+  ],
+  [
+    "artifact",
+    "inspect",
+    ["id"],
+    ["project", "offset", "limit"],
+    ["id", "project"],
+    "Verify and inspect artifact metadata, input lineage, consumers, checks and a bounded preview.",
+  ],
+  [
+    "artifact",
+    "verify",
+    ["id"],
+    ["project"],
+    ["id", "project"],
+    "Verify immutable records and all referenced payloads.",
+  ],
+  [
+    "artifact",
+    "import",
+    ["directory"],
+    ["project"],
+    ["directory", "project"],
+    "Explicitly import an evidence bundle or historical directory; unavailable provenance remains unknown.",
+  ],
+  [
+    "artifact",
+    "export",
+    ["id"],
+    ["project", "out"],
+    ["id", "project", "out"],
+    "Export verified evidence and source snapshots to a new portable directory.",
+  ],
+  [
+    "artifact",
+    "compare",
+    ["leftRun", "rightRun"],
+    ["project"],
+    ["leftRun", "rightRun", "project"],
+    "Compare native artifact identities between two recorded runs.",
+  ],
+  [
+    "checks",
+    "",
+    [],
+    ["project", "target", "run"],
+    ["project"],
+    "Evaluate required checks against current target inputs and policy; missing, stale or inconclusive evidence blocks readiness.",
+  ],
+])
+  toolCommands.push({
+    family,
+    command,
+    positionals,
+    options,
+    required,
+    description,
+  });
 
 const fieldDescriptions = {
   target: "Catalog chip/model ID or prepared project directory.",
@@ -154,14 +294,58 @@ const fieldDescriptions = {
   map: "Explicit comparison mapping JSON path.",
 };
 const numericFields = new Set(["page", "limit", "offset", "ticks", "steps"]);
+const booleanFields = new Set(["debug", "no-reuse"]);
+const literalFields = new Set(["target", "id", "leftRun", "rightRun", "run"]);
+
+// One general entry point shares the existing CLI parsers and result contracts.
+// Arguments stay literal; interactive terminal ownership belongs to /chipsim.
+export function commandArguments(args = []) {
+  if (
+    !Array.isArray(args) ||
+    args.length > 128 ||
+    args.some(
+      (a) => typeof a !== "string" || a.includes("\0") || a.length > 8192,
+    ) ||
+    Buffer.byteLength(JSON.stringify(args)) > 65536
+  )
+    throw new Error(
+      "ChipSim args must be at most 128 strings, 8192 characters each and 64 KiB total.",
+    );
+  const argv =
+    !args.length || (args.length === 1 && args[0] === "help")
+      ? ["--help"]
+      : [...args];
+  const headless = [
+    "agent",
+    "hdl",
+    "design",
+    "job",
+    "artifact",
+    "checks",
+  ].includes(argv[0]);
+  const textOutput =
+    !headless &&
+    ["--help", "-h", "--snapshot", "--list-profiles"].some((flag) =>
+      argv.includes(flag),
+    );
+  if (!headless && !textOutput)
+    throw new Error(
+      "Pass ChipSim arguments starting with agent, hdl, design, job, artifact or checks; use --snapshot for a terminal frame, or help for discovery. Open the interactive TUI with /chipsim.",
+    );
+  return { args: argv, textOutput };
+}
 
 export function toolArguments(spec, params, cwd) {
   const family = spec.family || "agent";
-  const args = [family, spec.command];
+  const args = [family, ...(spec.command ? [spec.command] : [])];
   for (const key of spec.options || [])
     if (params[key] !== undefined) {
+      if (booleanFields.has(key)) {
+        if (params[key]) args.push("--" + key);
+        continue;
+      }
       const value =
-        numericFields.has(key) || key === "model"
+        numericFields.has(key) || literalFields.has(key) || key === "model"
           ? String(params[key])
           : resolve(cwd, params[key]);
       args.push("--" + key, value);
@@ -171,7 +355,9 @@ export function toolArguments(spec, params, cwd) {
   if (family === "agent") args.push("--");
   for (const key of spec.positionals || [])
     args.push(
-      family === "hdl" ? resolve(cwd, params[key]) : String(params[key]),
+      family === "hdl" || key === "directory"
+        ? resolve(cwd, params[key])
+        : String(params[key]),
     );
   return args;
 }
@@ -194,10 +380,14 @@ function launchCommand(args) {
 export function tuiArguments(input, cwd) {
   const text = input.trim();
   if (!text)
-    return existsSync(join(cwd, "chipsim.project.json"))
-      ? ["--watch", cwd]
-      : [];
-  const match = /^(--session|--model|--vcd)\s+(.+)$/s.exec(text);
+    return existsSync(join(cwd, "chipsim.design.json"))
+      ? ["--design", cwd]
+      : existsSync(join(cwd, "chipsim.project.json"))
+        ? ["--watch", cwd]
+        : [];
+  const match = /^(--session|--model|--vcd|--hdl-debug|--design)\s+(.+)$/s.exec(
+    text,
+  );
   if (match) {
     const value = unquote(match[2].trim());
     if (
@@ -215,6 +405,8 @@ export function tuiArguments(input, cwd) {
       "Use /chipsim [PROJECT | --session FILE | --model ID | --vcd FILE].",
     );
   const project = resolve(cwd, unquote(text));
+  if (existsSync(join(project, "chipsim.design.json")))
+    return ["--design", project];
   if (!existsSync(join(project, "chipsim.project.json")))
     throw new Error("Not a prepared ChipSim project: " + project);
   return ["--watch", project];
@@ -230,6 +422,37 @@ export function registerChipSim(
     stdout = process.stdout,
   } = {},
 ) {
+  agent.registerTool({
+    name: "chipsim_command",
+    label: "ChipSim command",
+    description:
+      'General ChipSim controller. Pass literal CLI arguments without the executable, e.g. {"args":["design","run","--project",".","--target","simulation"]}. Empty args or ["help"] lists usage; ["design","commands"] returns machine-readable commands and integration formats. Before preparing chip inputs, ["design","guide"] or ["design","guide","rtl"] gives optional recipes, minimum files, missing-input preparation and installed examples; inspect/reuse existing work, then create/find/prepare prerequisites instead of requiring generated outputs from the user. Guidance does not enforce a workflow or execute tools. design status --project PATH returns current checks and next actions. ["hdl","help"] and ["agent","help"] give other family details. Supports jobs, artifacts, checks and --snapshot. Paths resolve in the current call’s cwd. Start durable jobs without --wait; poll job status with --wait --timeout-ms 1000 and job logs using its cursor; job cancel explicitly cancels them. Uses the existing CLI validation and evidence gates.',
+    parameters: Type.Object(
+      {
+        args: Type.Optional(
+          Type.Array(Type.String({ maxLength: 8192 }), {
+            maxItems: 128,
+            description:
+              "Literal arguments after chipsim. No quoting, shell expansion, pipes or command chaining; omit for help.",
+          }),
+        ),
+      },
+      { additionalProperties: false },
+    ),
+    async execute(_id, params, signal, _update, ctx) {
+      const { args, textOutput } = commandArguments(params.args);
+      const result = await run(args, { cwd: ctx.cwd, signal, textOutput });
+      return {
+        content: [
+          {
+            type: "text",
+            text: textOutput ? result.text : JSON.stringify(result, null, 2),
+          },
+        ],
+        details: result,
+      };
+    },
+  });
   for (const spec of toolCommands) {
     const properties = {};
     for (const key of new Set([
@@ -237,9 +460,11 @@ export function registerChipSim(
       ...(spec.options || []),
     ])) {
       const options = { description: fieldDescriptions[key] };
-      const field = numericFields.has(key)
-        ? Type.Integer({ ...options, minimum: key === "offset" ? 0 : 1 })
-        : Type.String({ ...options, minLength: 1 });
+      const field = booleanFields.has(key)
+        ? Type.Union([Type.Literal(true), Type.Literal(false)])
+        : numericFields.has(key)
+          ? Type.Integer({ ...options, minimum: key === "offset" ? 0 : 1 })
+          : Type.String({ ...options, minLength: 1 });
       properties[key] = spec.required?.includes(key)
         ? field
         : Type.Optional(field);
@@ -247,9 +472,13 @@ export function registerChipSim(
     agent.registerTool({
       name:
         "chipsim_" +
-        (spec.family === "hdl" ? "hdl_" : "") +
+        (spec.family && spec.family !== "checks"
+          ? spec.family + "_"
+          : spec.family === "checks"
+            ? "checks"
+            : "") +
         spec.command.replaceAll("-", "_"),
-      label: "ChipSim " + (spec.family === "hdl" ? "HDL " : "") + spec.command,
+      label: "ChipSim " + (spec.family ? spec.family + " " : "") + spec.command,
       description: spec.description,
       parameters: Type.Object(properties, { additionalProperties: false }),
       async execute(_id, params, signal, _update, ctx) {
@@ -297,23 +526,56 @@ export function registerChipSim(
               "states",
               "flow",
               "compare",
+              "debug",
+              "project",
+              "pipeline",
+              "artifacts",
+              "checks",
             ].map((v) => Type.Literal(v)),
           ),
         ),
         at: Type.Optional(Type.Integer({ minimum: 0 })),
+        hdlDebug: Type.Optional(
+          Type.String({
+            description: "HDL debug recording or portable session path.",
+          }),
+        ),
+        atEvent: Type.Optional(Type.Integer({ minimum: 0 })),
+        design: Type.Optional(
+          Type.String({ description: "Versioned design project directory." }),
+        ),
         columns: Type.Optional(Type.Integer({ minimum: 20, maximum: 500 })),
         rows: Type.Optional(Type.Integer({ minimum: 20, maximum: 500 })),
       },
       { additionalProperties: false },
     ),
     async execute(_id, params, signal, _update, ctx) {
-      if (params.model && params.waveform)
-        throw new Error("Choose model or waveform, not both.");
+      if (
+        [params.model, params.waveform, params.hdlDebug, params.design].filter(
+          Boolean,
+        ).length > 1
+      )
+        throw new Error(
+          "Choose model or waveform, or one HDL debug recording or design project.",
+        );
       const args = ["--snapshot", "--no-color"];
-      for (const key of ["model", "waveform", "view", "at", "columns", "rows"])
+      for (const key of [
+        "model",
+        "waveform",
+        "hdlDebug",
+        "atEvent",
+        "design",
+        "view",
+        "at",
+        "columns",
+        "rows",
+      ])
         if (params[key] !== undefined)
           args.push(
-            "--" + (key === "waveform" ? "vcd" : key),
+            "--" +
+              ({ waveform: "vcd", hdlDebug: "hdl-debug", atEvent: "at-event" }[
+                key
+              ] || key),
             String(params[key]),
           );
       const result = await run(args, {

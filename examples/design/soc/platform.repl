@@ -1,0 +1,9 @@
+cpu: CPU.RiscV32 @ sysbus
+    cpuType: "rv32i"
+    timeProvider: empty
+
+ram: Memory.MappedMemory @ sysbus 0x0
+    size: 0x1000
+
+words: Memory.MappedMemory @ sysbus 0x10000000
+    size: 0x1000

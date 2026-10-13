@@ -4,6 +4,12 @@ ChipSim accepts a small, local **experiment language** in `.chip` files. A progr
 
 Verilog/VHDL designs and testbenches use the separate [HDL workflow](HDL.md), through Icarus Verilog and GHDL. Those runs produce recorded signals for inspection/comparison; `.chip` source stepping does not step HDL source or its event scheduler.
 
+For native software on a selected CPU, the separate [design workbench](DESIGN.md)
+can compile `.c`/`.s`/`.S` with an external cross toolchain and bind its ELF/HEX
+into matching RTL or an emulator platform. `.asm` needs a toolchain-specific
+assembler task; it is not directly executable by ChipSim. Use
+`chipsim design guide firmware` for inputs and missing-file preparation.
+
 The same language works across model types because it describes experiments rather than a CPU instruction set. Supported operations still depend on the model: a pin-only logic chip cannot perform addressed register writes; a semantic built-in example exposes its parameters and ACK input, not a user-programmable native instruction memory. ChipSim does not claim that one binary runs on every chip. [The chip library](references/README.md) records native programming targets and exact simulation boundaries. [Existing simulators](EXISTING_SIMULATORS.md) are the reference for future native-code backends.
 
 ## First GPIO program

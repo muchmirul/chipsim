@@ -5,6 +5,7 @@ ChipSim is a local TUI hardware behavior workbench. The terminal is the only int
 ## Read first
 
 - `README.md`: user workflow, setup, and current limits.
+- `docs/DESIGN_INPUTS.md`: optional chip-development input recipes and missing-file preparation. Use `chipsim design guide [TOPIC]` to discover formats, minimum files and installed examples. Inspect existing work, then create/find/prepare missing prerequisites within the user's scope; generated outputs need producers, not mandatory user uploads. `.asm` needs an explicit compatible assembler task; VCD is a recorded result. These recipes are advisory and do not impose stage ordering.
 - `docs/AGENT_WORKFLOW.md`: installable headless commands, source verification, and coding-agent compatibility.
 - `docs/AGENT_EXTENSIONS.md`: shared Pi/prime-agent native tools, global/local registration, cancellation, and TUI handoff.
 - `docs/PROGRAMMING.md`: experiment source, line debugging, guide citations and native-backend limits. Before programming a chip, run `chipsim agent context CHIP_ID` or `chipsim agent context PROJECT --model MODEL_ID`; use the actual declared inputs/registers and applicable guides. Prepared projects include `PROGRAMMING_CONTEXT.md` and `programming-context.json`. Do not silently replace a native firmware request with an experiment script.

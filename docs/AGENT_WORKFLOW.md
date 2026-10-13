@@ -1,5 +1,35 @@
 # ChipSim as a coding-agent tool
 
+For building hardware from scratch or completing partial inputs, start with
+`chipsim design guide [TOPIC]` and [input preparation](DESIGN_INPUTS.md). The
+optional recipes identify file roles, minimum inputs, missing-file actions and
+installed runnable examples. Inspect existing work; create, find or prepare
+missing RTL, tests and configuration within the task's scope. Generate outputs
+through real producer tasks and bind them to consumers. These recipes do not
+impose a stage sequence or require users to provide every file format.
+
+For multi-tool hardware projects, use the [design workbench](DESIGN.md):
+`chipsim design plan/run --project PROJECT --target TARGET`, `chipsim job`,
+`chipsim artifact`, and `chipsim checks`. Accepted jobs survive agent exit.
+All these commands return one `chipsim-design-result` version-1 envelope;
+inspection and imports never start design tools. Existing agent commands retain
+their contracts and produce an additional `artifacts.json` output inventory.
+
+In Pi and prime-agent, `chipsim_command({args:["help"]})` discovers the general
+command interface. Pass the same CLI arguments to this one tool, for example
+`{args:["design","run","--project",".","--target","simulation"]}`.
+Paths use the current call's cwd; job and evidence semantics match the CLI.
+See [Agent extensions](AGENT_EXTENSIONS.md) for examples and limits.
+
+Use `chipsim design commands` for machine-readable workbench discovery and
+`chipsim design status --project PROJECT --target TARGET` for current evidence,
+missing checks and suggested next commands. Start durable jobs, then poll with
+`job status ID --project PROJECT --wait --timeout-ms 1000`; timeouts preserve the
+job. Carry the log `cursor` into the next `job logs --offset` call. ORFS report
+checks and finite OpenROAD-MCP sessions feed the same sealed artifact graph;
+see [DESIGN.md](DESIGN.md) for native formats and verification limits.
+
+
 The coding agent reads a manual and authors a bounded behavioral model. ChipSim
 extracts sources, verifies quotations, executes acceptance cases, and produces
 waveforms and register traces. The same model opens in the TUI, ChipSim's only interactive frontend. No model provider,

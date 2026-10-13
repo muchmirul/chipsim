@@ -9,6 +9,7 @@ import { programRows } from "./program-panel.js";
 import { timeLabel } from "../hdl/time.js";
 import { stateRows, flowRows, comparisonRows } from "./visual-render.js";
 import { debugRows, debugHeader } from "./debug-render.js";
+import { designRows, designViews } from "./design-panel.js";
 const row = (text, style = "") => ({ text, style });
 function section(title, width) {
   return row(
@@ -689,7 +690,28 @@ export function render(state) {
   ];
   const monitoring = state.activity && state.view !== "activity";
   const available = rows - (monitoring ? 8 : 7);
-  if (state.view === "debug") lines.push(...debugRows(state, available));
+  if (
+    designViews.includes(state.view) ||
+    (state.design && state.view === "activity")
+  ) {
+    lines[0] = row(
+      "CHIPSIM · " +
+        (state.design?.summary.project?.name ||
+          state.design?.summary.project?.id ||
+          "Design workbench"),
+      "title",
+    );
+    lines[1] = row(
+      "0 Project · Tab views · project / pipeline / artifacts / checks",
+      "dim",
+    );
+    lines[2] = row(
+      state.view.toUpperCase() +
+        " · versioned inputs → execution → artifacts → checks",
+      "selected",
+    );
+    lines.push(...designRows(state, available));
+  } else if (state.view === "debug") lines.push(...debugRows(state, available));
   else if (
     state.hdlDebug &&
     ["wave", "inspect", "program"].includes(state.view)

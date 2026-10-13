@@ -1,0 +1,4 @@
+addrmap scratch_regs {
+    reg { field { sw=rw; hw=r; reset=0; } value[31:0]; } word0 @ 0x0;
+    reg { field { sw=rw; hw=r; reset=0; } value[31:0]; } word1 @ 0x4;
+};

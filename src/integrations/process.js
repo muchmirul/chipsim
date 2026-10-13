@@ -110,9 +110,11 @@ export async function runChipSim(
       else if (
         !textOutput &&
         (!result ||
-          !["chipsim-agent-result", "chipsim-hdl-result"].includes(
-            result.format,
-          ) ||
+          ![
+            "chipsim-agent-result",
+            "chipsim-hdl-result",
+            "chipsim-design-result",
+          ].includes(result.format) ||
           result.version !== 1 ||
           typeof result.ok !== "boolean")
       )

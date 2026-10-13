@@ -1,5 +1,24 @@
 # Programming and modeling this chip
 
+For chip development from an idea or partial files, use `chipsim design guide`
+and `docs/DESIGN_INPUTS.md`. These optional recipes describe minimum inputs,
+testbenches, firmware and installed starters. Inspect existing work, then
+create/find/prepare missing prerequisites before execution; bind generated
+outputs from producer tasks instead of requiring the user to supply them.
+Choose only the stages useful to the task. VCD records signals, `.v`/`.sv`
+describe hardware, and `.asm` needs a compatible explicit assembler task.
+
+For a multi-tool hardware project, see `docs/DESIGN.md`. A separate
+`chipsim.design.json` can link this prepared source project to durable runs,
+versioned artifacts and checks. Existing document/model commands keep their
+source verification requirements. Opening imported evidence never runs EDA tools.
+Use `chipsim design commands` to discover its argument contract and native file
+formats, then `design status --project PATH --target TARGET` for current checks
+and suggested next commands. Poll accepted jobs with `job status ID --project
+PATH --wait --timeout-ms 1000`. A timeout leaves the job running; only explicit
+`job cancel` cancels it. Save log `cursor` for the next poll even at current EOF.
+
+
 This folder is a local ChipSim project prepared from one PDF. ChipSim's only
 interactive frontend is the TUI. Use terminal playback and inspection for
 demonstrations; do not create browser or HTML simulation frontends. Headless
@@ -19,6 +38,9 @@ When native ChipSim tools are present in Pi or prime-agent, use
 of constructing shell commands. Read `docs/AGENT_EXTENSIONS.md` for schemas,
 errors, cancellation and `/chipsim` handoff. Existing source and model gates
 apply identically; the extension does not author models or execute native firmware.
+Alternatively, use the general `chipsim_command` tool with a literal `args` array:
+`{args:["agent","context","."]}`. `{args:["help"]}` lists the CLI entry points;
+the same tool can plan/run designs and inspect their jobs, artifacts and checks.
 Read `docs/CHANGELOG.md` for the reasons, usage and limits of recent behavior
 changes. Read `docs/VISUALIZATION.md` before explaining graphs, bit flow or
 experiment comparisons; observations must not be presented as inferred wiring.
@@ -30,10 +52,13 @@ assumptions and its own original source. Do not relabel it as this chip's behavi
 
 ## Choose what to program
 
-1. Establish whether the task requests a **behavioral experiment** or **native
-   firmware/assembly**. ChipSim currently executes `.chip` experiments. It cannot
-   execute C/C++, vendor assembly, ELF/BIN, XMOS XE or eTPU microcode. Do not claim
-   native execution or silently substitute a script when native code is required.
+1. Establish whether the task requests a **behavioral experiment**, **RTL** or
+   **native firmware/assembly**. The `.chip` engine executes experiments, not
+   native code. The separate design firmware adapter compiles `.c`/`.s`/`.S`
+   through a configured cross toolchain; execution needs matching CPU RTL or
+   an emulator platform. `.asm` requires an explicit assembler task. Use
+   `design guide firmware` and `docs/DESIGN.md`; do not silently substitute a
+   `.chip` script when native code is required or infer a backend from a chip name.
 2. Select a model whose scope meets the task. Use its exact input names, parameter
    types and declared register addresses/access modes from current context.
    Pin-only chips have no CPU; use input sequences. Register peripherals accept

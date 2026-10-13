@@ -1,0 +1,14 @@
+[options]
+mode prove
+depth 20
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal -sv scratch.sv formal.sv
+prep -top formal
+
+[files]
+rtl/scratch.sv
+formal.sv

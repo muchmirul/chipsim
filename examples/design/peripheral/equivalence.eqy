@@ -1,0 +1,11 @@
+[gold]
+read_verilog -sv rtl/scratch.sv
+prep -top scratch
+
+[gate]
+read_verilog netlist.v
+prep -top scratch
+
+[strategy simple]
+use sat
+depth 20

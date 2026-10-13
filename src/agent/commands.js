@@ -15,6 +15,7 @@ import { programmingContext } from "./context.js";
 import { AgentError, integer, readBounded } from "./io.js";
 import { recordActivity, readActivity, digest } from "./activity.js";
 import metadata from "../../package.json" with { type: "json" };
+import { designGuidance } from "../design/guide.js";
 
 const commands = {
   help: { positionals: [], options: {} },
@@ -207,10 +208,14 @@ export async function agentCommand(args) {
         tool: "chipsim",
         toolVersion: metadata.version,
         commands,
+        designGuidance: designGuidance(),
         documentation: Object.fromEntries(
           [
             "AGENT_WORKFLOW.md",
             "AGENT_EXTENSIONS.md",
+            "DESIGN_INPUTS.md",
+            "DESIGN.md",
+            "HDL.md",
             "MODEL_FORMAT.md",
             "PROGRAMMING.md",
             "EXISTING_SIMULATORS.md",
@@ -225,6 +230,7 @@ export async function agentCommand(args) {
           },
         },
         notes: [
+          "For chip development, use chipsim design guide for optional input recipes. Inspect existing work, then create/find/prepare missing RTL, testbenches, manifests or toolchain inputs before execution; never fabricate generated evidence.",
           "No embedded model provider; author models with your existing coding agent.",
           "Before programming: chipsim agent context CHIP_ID or PROJECT. Select a model, review capabilities and guides, then choose supported experiment or a separate native backend.",
           "PDF pages are one-based, including front matter. Each project contains one manual.",

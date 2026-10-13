@@ -2,7 +2,7 @@
 // Pack/install outside the checkout without fetching dependencies or launching
 // a model provider. Exercise the public process contract agents actually use.
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, rm, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, rm, readFile, writeFile, cp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFile } from "node:child_process";
@@ -26,6 +26,11 @@ try {
     "extensions/chipsim.ts",
     "src/integrations/extension.js",
     "src/integrations/process.js",
+    "src/design/commands.js",
+    "src/design/contracts.js",
+    "src/design/guide.js",
+    "src/design/physical.js",
+    "scripts/design-klayout.py",
     "docs/AGENT_EXTENSIONS.md",
     "src/agent/activity.js",
     "src/agent/context.js",
@@ -42,6 +47,12 @@ try {
     "src/tui/activity-panel.js",
     "docs/AGENT_WORKFLOW.md",
     "docs/AGENT_PROJECT.md",
+    "docs/DESIGN_INPUTS.md",
+    "examples/design/minimal/counter.v",
+    "examples/design/minimal/counter_tb.v",
+    "examples/design/minimal/sim.project.json",
+    "examples/design/minimal/chipsim.design.json",
+    "examples/design/minimal/chipsim.lock.json",
     "docs/CHANGELOG.md",
     "docs/VISUALIZATION.md",
     "docs/TUI.md",
@@ -233,6 +244,11 @@ try {
     return parsed;
   };
   const help = await cli(["help"]);
+  assert.deepEqual(help.designGuidance.command, ["design", "guide"]);
+  assert.match(
+    await readFile(help.documentation["DESIGN_INPUTS.md"], "utf8"),
+    /optional recipes/,
+  );
   assert.match(
     await readFile(help.documentation["MODEL_FORMAT.md"], "utf8"),
     /schemaVersion/,
@@ -259,9 +275,83 @@ try {
     { cwd, maxBuffer: 2 * 1048576 },
   );
   assert.equal(JSON.parse(bridgeProbe.stdout).ok, true);
+  const controllerProbe = await run(
+    process.execPath,
+    [
+      "--input-type=module",
+      "-e",
+      `
+    import {registerChipSim} from ${JSON.stringify(pathToFileURL(join(installed, "src/integrations/extension.js")).href)};
+    const tools = new Map();
+    const Type = new Proxy({}, {get: () => (value) => value});
+    registerChipSim({registerTool: t => tools.set(t.name,t), registerCommand() {}}, Type);
+    const call = args => tools.get('chipsim_command').execute('installed-test', {args}, undefined, undefined, {cwd:process.cwd()});
+    await call(['design','init','controller project']);
+    const catalog = await call(['design','commands']);
+    if (!catalog.details.commands.some(c => c.family === 'design' && c.command === 'status')) throw new Error('Controller discovery failed');
+    const guide = await call(catalog.details.guidance.command.concat('rtl'));
+    if (!guide.details.guide.optional || !guide.details.guide.recipe.minimumInputs.length) throw new Error('Input guidance failed');
+    if (!guide.details.guide.starter.directory.startsWith(${JSON.stringify(installed)} + '/')) throw new Error('Starter path escaped installed package');
+    const status = await call(['design','status','--project','controller project']);
+    if (status.details.ready !== false || !status.details.actions.length) throw new Error('Controller status failed');
+    const help = await call(['design','help']);
+    if (!help.details.ok) throw new Error(JSON.stringify(help));
+    console.log(JSON.stringify(help.details));
+  `,
+    ],
+    { cwd, maxBuffer: 1048576 },
+  );
+  assert.equal(
+    JSON.parse(controllerProbe.stdout).format,
+    "chipsim-design-result",
+  );
+  assert.equal(
+    JSON.parse(
+      await readFile(
+        join(cwd, "controller project/chipsim.design.json"),
+        "utf8",
+      ),
+    ).format,
+    "chipsim-design",
+  );
   const backendCheck = JSON.parse(
     (await run(binary, ["hdl", "doctor"], { cwd })).stdout,
   );
+  if (
+    backendCheck.tools
+      .filter((t) => ["iverilog", "vvp"].includes(t.command))
+      .every((t) => t.available)
+  ) {
+    const guided = JSON.parse(
+      (await run(binary, ["design", "guide", "rtl"], { cwd })).stdout,
+    ).guide;
+    const starter = join(cwd, "guided chip");
+    await cp(guided.starter.directory, starter, {
+      recursive: true,
+      errorOnExist: true,
+      force: false,
+    });
+    const simulated = JSON.parse(
+      (
+        await run(
+          binary,
+          [
+            "design",
+            "run",
+            "--project",
+            starter,
+            "--target",
+            "simulation",
+            "--wait",
+            "--timeout-ms",
+            "30000",
+          ],
+          { cwd, maxBuffer: 2 * 1048576 },
+        )
+      ).stdout,
+    );
+    assert.equal(simulated.job.ready, true);
+  }
   if (backendCheck.tools.every((tool) => tool.available)) {
     for (const language of ["verilog", "vhdl"]) {
       const hdlRun = JSON.parse(
@@ -343,6 +433,7 @@ try {
     "TUI.md",
     "DEVELOPMENT.md",
     "VISUALIZATION.md",
+    "DESIGN_INPUTS.md",
   ])
     assert.equal(
       await readFile(join(project, "docs", file), "utf8"),

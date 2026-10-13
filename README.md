@@ -12,6 +12,24 @@ _A supplied RP2040 PIO teaching experiment at tick 18. DATA, CLK and ACK share a
 
 ## What you can simulate today
 
+Starting a chip from scratch? Run `chipsim design guide rtl` for the minimum
+files, testbench and installed runnable counter example. The
+[input guide](docs/DESIGN_INPUTS.md) tells agents how to create, find or prepare
+missing inputs, with optional paths for firmware, verification and layout.
+
+For RTL and firmware projects, the [versioned design workbench](docs/DESIGN.md)
+connects input snapshots, durable jobs, native artifacts and verification checks.
+Start with `chipsim design run --project examples/design/peripheral --target simulation`,
+then `chipsim --design examples/design/peripheral`. Icarus/GHDL workflows share
+the graph with optional FuseSoC, PeakRDL, Verilator/cocotb, SBY/EQY, ORFS,
+firmware, Renode and OpenROAD-MCP adapters. EDA dependencies remain external.
+Agents can use `chipsim design commands` for structured discovery and
+`chipsim design status --project PROJECT` for current checks and next commands,
+through the CLI or `chipsim_command`. ORFS timing/DRC/LVS reports and finite
+OpenROAD-MCP database inspection feed the same artifact graph. See the
+[integration fixtures](examples/design/README.md) for setup and coverage limits.
+
+
 | Starting point                      | What ChipSim provides                                                                                             | Boundary                                                                          |
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | Six architecture examples           | PIO, PRU, FlexIO, PSoC UDB, XMOS and eTPU transfer mechanisms, with parameters and inspectable traces             | Selected teaching implementations; no arbitrary native instruction execution      |
@@ -157,6 +175,10 @@ provides a separate-terminal launch command, and `chipsim_snapshot` returns text
 `/chipsim --session FILE` opens a saved run. The [extension guide](docs/AGENT_EXTENSIONS.md)
 covers tools, sample prompts, scope, Node selection and errors. Both hosts use
 the existing local CLI; no MCP server is needed.
+
+For one general controller, use `chipsim_command({args:["help"]})`, then pass
+ordinary ChipSim arguments in `args`. It covers design runs, jobs, artifacts,
+checks and terminal snapshots through the same validated CLI.
 
 **Agent mode is a local command interface, not an agent built into ChipSim.** Your chosen coding agent reads the manual and writes model JSON or `.chip` source; ChipSim extracts evidence, checks it, executes the experiment and exposes results. No LLM integration, provider account, API key or agent-specific extension is required by ChipSim.
 

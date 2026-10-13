@@ -1,0 +1,8 @@
+mach create "chipsim-firmware"
+machine LoadPlatformDescription @platform.repl
+sysbus LoadELF @firmware.elf
+cpu PC 0
+emulation RunFor "0.0001"
+sysbus ReadDoubleWord 0x10000000
+sysbus ReadDoubleWord 0x10000004
+quit

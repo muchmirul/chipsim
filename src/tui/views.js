@@ -12,4 +12,10 @@ export const views = [
   "flow",
   "compare",
   "debug",
+  "project",
+  "pipeline",
+  "artifacts",
+  "checks",
 ];
+export const availableViews = (state) =>
+  state.design ? views : views.slice(0, -4);

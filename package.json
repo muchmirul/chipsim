@@ -39,6 +39,8 @@
     "test:tui": "python3 scripts/test-tui-pty.py && python3 scripts/test-agent-extension-pty.py",
     "test:hdl": "node scripts/test-hdl.mjs",
     "test:hdl-debug": "node scripts/test-hdl-debug.mjs",
+    "test:eda": "node scripts/test-eda.mjs",
+    "test:physical": "node scripts/test-physical.mjs",
     "test:dwfv": "node scripts/verify-dwfv.mjs",
     "document": "node scripts/document.mjs",
     "agent": "node scripts/agent.mjs",

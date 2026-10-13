@@ -13,7 +13,7 @@ import {
 } from "../model/templates.js";
 import { writeJSON } from "./workspace.js";
 import { screenText } from "./render.js";
-import { views } from "./views.js";
+import { views, availableViews } from "./views.js";
 import { StimulusEditor } from "./stimulus-editor.js";
 import { BehaviorTableEditor } from "./behavior-table-editor.js";
 import { RegisterBankEditor } from "./register-bank-editor.js";
@@ -106,7 +106,10 @@ export class TerminalApp {
     this.closed = true;
     clearInterval(this.timer);
     this.monitor?.close();
-    const pendingRun = this.hdlPanel.close();
+    const pendingHdl = this.hdlPanel.close();
+    const pendingRun = this.designPanel
+      ? Promise.all([pendingHdl, this.designPanel.close()])
+      : pendingHdl;
     this.input.off("keypress", this.keyHandler);
     this.output.off("resize", this.resizeHandler);
     this.input.setRawMode(this.previousRaw);
@@ -838,7 +841,9 @@ export class TerminalApp {
         return;
       }
       if (k === "?") s.help = true;
-      else if (k === "H") this.hdlPanel.menu();
+      else if (this.designPanel?.handle(k, key, this)) {
+        /* project/artifact controls share the same service as agents */
+      } else if (k === "H") this.hdlPanel.menu();
       else if (this.debugPanel.handle(k, key)) {
         /* shared HDL event controls */
       } else if (k === "P")
@@ -1042,7 +1047,11 @@ export class TerminalApp {
         else s.findSignal(undefined, k === "n" ? 1 : -1);
       } else if (/^[1-9]$/.test(k)) s.setView(views[Number(k) - 1]);
       else if (key.name === "tab")
-        s.setView(views[(views.indexOf(s.view) + 1) % views.length]);
+        s.setView(
+          availableViews(s)[
+            (availableViews(s).indexOf(s.view) + 1) % availableViews(s).length
+          ],
+        );
       else if (k === " " || key.name === "space") {
         if (s.tick === s.lastTick) s.seek(0);
         s.playing = !s.playing;

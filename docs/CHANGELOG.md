@@ -5,6 +5,156 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-13 — Optional input recipes and a runnable RTL starter
+
+**Context:** Agents need to know what to feed ChipSim and how to prepare missing
+files, without requiring every stage or generated output upfront.
+**Use/behavior:** `design guide [TOPIC]` returns structured optional recipes for
+RTL, testbenches, waveforms, firmware, registers, formal, physical design and
+models. It includes missing-input advice and installed example/document paths.
+Discovery is linked from `design commands`, `design init`, `agent help`, native
+controller descriptions and prepared-project instructions. A five-file minimal
+counter includes independent reset/count/hold/wrap assertions and VCD generation.
+**Limits/preservation:** The guide writes nothing, executes no tools and adds no
+workflow gates. `.asm` requires a compatible explicit assembler task; the
+firmware adapter selects `.c`/`.s`/`.S`. Missing reports/waveforms must come from
+actual producers. Existing source checks, tool setup permissions and evidence
+semantics remain unchanged. **Implementation/checks:** `src/design/guide.js`,
+`docs/DESIGN_INPUTS.md`, `examples/design/minimal`; discovery/argument tests,
+real Icarus positive/fault runs and installed-package/agent-controller checks.
+
+## 2026-10-13 — Agent control loop and native physical evidence
+
+### Discover and monitor through the general controller
+
+**Context:** Agents had to parse help text, assemble project state from many
+queries, and track log offsets themselves. **Use/behavior:** `design commands`
+returns the same command/option definitions used by CLI validation, plus native
+integration formats. `design status --project PROJECT --target TARGET` returns
+current checks, task/tool state, latest evidence and suggested argument arrays.
+`--wait --timeout-ms N` on run/retry/job status supports bounded polling; log
+`cursor` remains usable at current EOF. **Limits/preservation:** Status never
+executes version probes or tasks. Timeout returns the accepted job and leaves it
+running; only explicit cancel stops it. Existing typed tools and the default
+wait limit remain available. **Implementation/checks:** `src/design/commands.js`,
+`service.js`, `cli.js`, `jobs.js`; controller lifecycle, timeout, invalid argument,
+staleness and EOF regressions, native bridge and installed-package coverage.
+The TUI reuses its already-computed summary when evaluating checks.
+
+### Physical reports become traceable checks
+
+**Context:** Physical completion produced native files but did not establish
+timing/DRC/LVS outcomes. **Use/behavior:** An ORFS task's `options.reports` selects
+explicit metrics JSON, DRC LYRDB and LVSDB paths. Timing preserves numeric values,
+thresholds, stage/corner/units and SDC hashes. KLayout's native readers count DRC
+items and inspect LVS comparison status; checks retain original report evidence.
+The peripheral fixture requests finish, DRC and LVS. **Limits/preservation:**
+Missing/malformed reports, absent rule categories, empty/skipped/warning LVS
+comparisons or changed report bytes cannot pass. Declared timing criteria cover
+reported paths, not unconstrained coverage or all corners. Rule-deck coverage and
+foundry acceptance remain external requirements. **Implementation/checks:**
+`src/design/physical.js`, `scripts/design-klayout.py`, adapter/evidence integration;
+negative normalization regressions, native KLayout clean/violating and
+matching/mismatching databases, and `npm run test:physical` for the real flow.
+
+### OpenROAD-MCP payload failures and connected database inspection
+
+**Context:** OpenROAD-MCP may report command failure inside JSON while omitting
+MCP `isError`. **Use/behavior:** The adapter checks both error channels, rejects
+truncated or unrecognized responses, and stops further requests on the first
+non-passing result. `mcp-results.json` records normalized outcomes alongside the
+unaltered JSONL transcript, and the `mcp` check reports sequence completeness.
+The peripheral `physical-inspection` target binds the produced ODB to a finite
+session with an explicit shared session ID. **Limits/preservation:** The check
+proves successful complete calls only; it does not imply a hardware property.
+Failed sessions retain output, diagnostics and evidence. No server or provider
+is installed by ChipSim. **Implementation/checks:** `src/design/mcp-result.js`,
+`adapters.js`; protocol/payload/truncation regressions and optional live-server
+acceptance with `npm run test:physical -- --mcp`. See [DESIGN.md](DESIGN.md).
+
+## 2026-10-13 — General command tool for agents
+
+**Context:** An agent needs one discoverable entry point to control ChipSim across
+document work, hardware jobs and evidence inspection. **Use/behavior:**
+`chipsim_command({args:["help"]})` lists usage; pass literal CLI arguments for
+`agent`, `hdl`, `design`, `job`, `artifact`, `checks` or terminal snapshots.
+The current call's cwd resolves paths, and existing CLI results/errors return to
+the agent. **Limits/preservation:** 128 arguments, 8192 characters each, 64 KiB
+total; existing process/output limits apply. Arguments use direct process
+invocation; the interactive TUI keeps `/chipsim`. Typed tools, validation and
+sealed evidence stay shared. Accepted design jobs survive interruption of the
+caller and require explicit `job cancel`. **Implementation/checks:**
+`src/integrations/extension.js`; real controller-to-job/artifact/check/snapshot
+coverage, literal-path/cwd/cancellation regressions in `test/agent-extension.test.js`,
+and installed-package/native-loader checks. See [AGENT_EXTENSIONS.md](AGENT_EXTENSIONS.md).
+
+## 2026-10-13 — Versioned design artifacts and durable jobs
+
+### Captured inputs and connected evidence
+
+**Context:** Native traces and reports did not identify their shared build inputs
+or dependent checks. **Use/behavior:** `chipsim design init/plan/run --project`
+creates version-1 projects and captures dirty source/configuration bytes before
+execution. SHA-256 records link snapshots, plans, attempts, native artifacts and
+checks; payload integrity is checked before reuse, inspection and export.
+**Limits/preservation:** External dependencies remain installed separately and
+must be declared/locked. The worker is not an OS sandbox. Existing standalone
+formats remain readable and gain output inventories without fabricated historical
+provenance. **Implementation/checks:** `src/design/store.js`, `project.js`,
+`evidence.js`; snapshot-during-edit, binding, freshness, corruption and bundle tests
+in `test/design.test.js`. Details and limits are in [DESIGN.md](DESIGN.md).
+
+### Durable execution, retry and explicit cancellation
+
+**Context:** A long hardware job should survive its initiating terminal or agent.
+**Use/behavior:** `design run` returns an accepted job; `job status/logs/cancel/retry`
+reconnects, reads bounded output, cancels owned processes, or retries the original
+snapshot. One task executes at a time per project. Failures preserve staging and
+available artifacts. **Limits/preservation:** A retry cannot silently use changed
+inputs or tools. Closing a waiter or the project TUI does not cancel accepted
+jobs. POSIX process ownership and Linux start-time/token recovery are supported.
+**Implementation/checks:** `src/design/jobs.js`, `process.js`, detached worker;
+real CLI exit, cancellation, retry and killed-worker recovery tests.
+
+### Project, pipeline, artifact and check inspection
+
+**Context:** Users need to follow results to their producer, inputs, consumers and
+checks without leaving ChipSim. **Use/behavior:** `chipsim --design PROJECT`
+adds four terminal views and linked inspection, plus existing HDL/model viewers
+and external KLayout handoff. Background refresh preserves the active experiment.
+Inspection state lives separately from evidence. **Limits/preservation:** FST and
+physical binaries are retained without claiming internal viewers; VCD cannot
+reconstruct process events. **Implementation/checks:** `src/tui/design-panel.js`;
+80×24/120×40 render tests and `scripts/test-design-pty.py` navigation, metadata,
+resize, saved selection and terminal-restoration checks.
+
+### External adapters and release policies
+
+**Context:** Build success alone does not establish verification. **Use/behavior:**
+FuseSoC, PeakRDL, Verilator/cocotb, SBY/EQY, ORFS, firmware, Renode and finite
+OpenROAD-MCP sessions publish native evidence through one adapter interface.
+PeakRDL additionally exports normalized register metadata. Checks retain scope,
+assumptions and supporting artifacts. `chipsim checks` evaluates current policy
+and input freshness; missing/inconclusive/invalid evidence blocks readiness.
+**Limits/preservation:** Required physical checks need actual platform reports;
+no sign-off follows from GDS generation. Renode requires an explicit platform and
+project-specific compiled bridge for HDL co-simulation. **Implementation/checks:**
+`src/design/adapters.js`, `xunit.js`; independently checked peripheral and PicoRV32
+firmware fixtures, empty-suite/timeout/missing-output regressions and the separate
+real-tool `npm run test:eda` suite, which retains failures and reports missing tools.
+
+### Shared agent interfaces and portable evidence
+
+**Context:** Agents and the TUI need the same lineage and execution semantics.
+**Use/behavior:** Native Pi/prime-agent tools expose design/job/artifact/check
+commands, boolean HDL debug flags and event/project snapshots. IDs stay literal;
+paths use each call's cwd. `artifact export/import` transfers verified transitive
+evidence without executing tools. Historical directories require explicit import
+and remain ineligible for automatic reuse. **Implementation/checks:** shared CLI
+services, native extension mapping tests, offline bundle/corruption tests and the
+existing installed-package checks. No provider registration or runtime npm
+dependency is added.
+
 ## 2026-10-13 — Synchronized HDL event debugger
 
 ### Explicit observer builds for both HDL languages

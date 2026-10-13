@@ -22,7 +22,15 @@ import { debugLimits, sourceDigest } from "./debug/recording.js";
 export async function processRun(
   command,
   args,
-  { cwd, timeoutMs = 30000, signal, waveformPath, env, capturePaths = [] } = {},
+  {
+    cwd,
+    timeoutMs = 30000,
+    signal,
+    waveformPath,
+    env,
+    capturePaths = [],
+    owners,
+  } = {},
 ) {
   return new Promise((done) => {
     if (signal?.aborted)
@@ -45,6 +53,18 @@ export async function processRun(
       shell: false,
       detached: process.platform !== "win32",
     });
+    let registered = Promise.resolve();
+    if (owners)
+      child.once("spawn", () => {
+        registered = (async () => {
+          const { processIdentity } = await import("../design/process.js");
+          const { atomic } = await import("../design/store.js");
+          const owner = await processIdentity(child.pid);
+          if (owner) await atomic(join(owners, child.pid + ".json"), owner);
+        })().catch((error) =>
+          kill("Process ownership failed: " + error.message),
+        );
+      });
     const kill = (why) => {
       reason ||= why;
       try {
@@ -88,7 +108,8 @@ export async function processRun(
           ? command + " is not installed or not on PATH"
           : error.message;
     });
-    child.once("close", (code, termination) => {
+    child.once("close", async (code, termination) => {
+      await registered;
       clearTimeout(timer);
       clearInterval(watch);
       signal?.removeEventListener("abort", onAbort);
@@ -249,7 +270,7 @@ export async function readProject(file) {
 export async function runHDL(
   file,
   destination,
-  { signal, onProgress = () => {}, debug = false } = {},
+  { signal, onProgress = () => {}, debug = false, owners } = {},
 ) {
   if (!signal) {
     const controller = new AbortController();
@@ -261,6 +282,7 @@ export async function runHDL(
         signal: controller.signal,
         onProgress,
         debug,
+        owners,
       });
     } finally {
       process.removeListener("SIGINT", cancel);
@@ -350,6 +372,7 @@ export async function runHDL(
         processRun(command(name), [flag], {
           cwd: sourceRoot,
           signal,
+          owners,
           timeoutMs: project.timeoutMs,
           env: {
             CHIPSIM_DEBUG_DESIGN: undefined,
@@ -372,6 +395,7 @@ export async function runHDL(
         cwd: sourceRoot,
         timeoutMs: project.timeoutMs,
         signal,
+        owners,
         waveformPath: wavePath,
         env: captureEnvironment,
         capturePaths: debug
@@ -550,6 +574,9 @@ export async function runHDL(
     };
     await writeFile(join(root, "diagnostics.json"), jsonText(stages));
     await writeFile(join(root, "result.json"), jsonText(result));
+    await (
+      await import("../design/standalone.js")
+    ).inventoryStandalone(root, "hdl", result);
     return { result, waveform, recording };
   });
 }

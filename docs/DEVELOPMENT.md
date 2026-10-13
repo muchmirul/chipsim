@@ -1,5 +1,29 @@
 # Developing ChipSim
 
+`src/design/` owns immutable storage, dependency planning, adapters, durable jobs,
+evidence queries and the headless CLI. `scripts/design-worker.mjs` is the detached
+worker; `src/tui/design-panel.js` uses the same services as native agent tools.
+Do not infer tests/proofs from process success. Keep captured input bytes separate
+from mutable workspaces, verify records/payloads before reuse or export, preserve
+failed staging and use explicit job cancellation. See [DESIGN.md](DESIGN.md) and
+`test/design.test.js`; `npm run test:eda` adds real external backend acceptance.
+
+`src/design/commands.js` is the workbench CLI validation/discovery contract;
+`contracts.js` describes native integration boundaries. `service.js` supplies
+compact target status without probing tools. `guide.js` supplies advisory input
+recipes and installed starter paths through `design guide`; it must not read a
+project, run tools, write scaffolds or impose new execution gates. Keep these
+recipes consistent with adapter behavior and `docs/DESIGN_INPUTS.md`.
+Physical checks live in
+`physical.js`; the explicit ORFS execution step invokes `scripts/design-klayout.py`
+to read native verification databases before sealing them. Inspection must not
+invoke this reader. `mcp-result.js` normalizes OpenROAD-MCP JSON payload errors
+and truncation independently of transport success. Regression coverage is in
+`test/design-reports.test.js`; `klayout -b -r scripts/test-design-reports.py`
+checks native readers, and `npm run test:physical -- --mcp` tests connected
+ORFS/KLayout/OpenROAD-MCP installations with required tools and locks.
+
+
 Read `AGENTS.md` before changing simulation behavior or adding a model. The TUI is the only interactive interface. Headless commands share its engine, source checks and trace formats so coding agents can prepare reproducible experiments for terminal inspection. No frontend build is required.
 
 ## Architecture

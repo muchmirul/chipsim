@@ -155,6 +155,9 @@ export async function runModel(file, project, output, options = {}) {
         : [],
     };
     await writeJSON(join(root, "result.json"), result);
+    await (
+      await import("../design/standalone.js")
+    ).inventoryStandalone(root, "model", result);
     return result;
   });
 }

@@ -1,0 +1,11 @@
+CAPI=2:
+name: chipsim:examples:scratch:1.0
+filesets:
+  rtl:
+    files: [rtl/scratch.sv]
+    file_type: systemVerilogSource
+targets:
+  default:
+    default_tool: icarus
+    filesets: [rtl]
+    toplevel: scratch
