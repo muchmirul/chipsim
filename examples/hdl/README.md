@@ -30,3 +30,31 @@ node scripts/chipsim.mjs hdl compare tmp/hdl-vhdl/trace.vcd tmp/hdl-nand-referen
 Here one abstract model tick is explicitly assigned 5 ns **for the comparison experiment**. The model itself still represents ideal NAND table behavior, without electrical delays. This comparison says nothing about a whole chip or physical timing accuracy.
 
 Run `npm run test:hdl` for both real simulators, independent arithmetic expectations, the datasheet-model comparison, injected discrepancies/failures, and terminal interaction. The test requires both backends and fails if either is missing.
+
+## Synchronized counter/handshake debugging
+
+The original CC0 `counter.sv` and `counter.vhdl` examples instantiate a child
+counter. Reset wins; each rising clock edge with valid and ready increments the
+four-bit count. The testbench uses ten cycles and checks the expected count one
+nanosecond after each rising edge. Signed/wide/unknown probes exercise inspection.
+
+With the [optional instrumented backends](../../docs/HDL_DEBUG.md) installed:
+
+```sh
+chipsim hdl run examples/hdl/counter-verilog.project.json --debug --out tmp/counter-v
+chipsim hdl run examples/hdl/counter-vhdl.project.json --debug --out tmp/counter-h
+chipsim --hdl-debug tmp/counter-v/debug.json
+```
+
+Press I for linked source, RTL hardware and signals; F2 changes focus, F3 expands,
+h/l steps events, K sets a process/value/edge/assertion stop, and C seeks its next
+match. Process activation and the later deferred count update are distinct
+positions, even at identical physical time. All three panes follow one cursor.
+
+The `counter-verilog-fault.project.json` and `counter-vhdl-fault.project.json`
+variants set `FAULT=1`, incrementing by two. Their first mismatch is asserted at
+26 ns. These commands fail intentionally and retain PARTIAL `debug.json` artifacts;
+open those files explicitly to inspect the counter update and assertion. They
+never replace a working experiment automatically. `npm run test:hdl-debug`
+checks both normal/fault runs against independent expected transfers and stock
+simulator outputs, then tests replay in real terminals.

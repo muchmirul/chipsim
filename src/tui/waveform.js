@@ -83,9 +83,13 @@ export function signalRows(trace, signal, options) {
         full =
           cell.value === undefined
             ? "x"
-            : display(cell.value, format, signal.width),
+            : display(cell.value, format, signal.width, signal.signed),
         compact =
-          cell.value === undefined ? "x" : display(cell.value, format, 1),
+          cell.value === undefined
+            ? "x"
+            : signal.signed && format === "decimal"
+              ? full
+              : display(cell.value, format, 1),
         label =
           full.length <= available
             ? full

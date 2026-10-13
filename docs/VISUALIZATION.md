@@ -1,5 +1,13 @@
 # Terminal visual inspection of experiments
 
+For Verilog/VHDL, use **I** with an instrumented recording: source/process,
+elaborated hardware graph and signal waveforms share the exact same after-event
+cursor. **9/2/1** are full-screen versions of those panes. This observer preserves
+same-time process/update events and labels static connections separately from
+observed activation/value changes. It does not infer state-machine edges or
+synthesized flip-flops from source declarations. The state/bit-flow views below
+remain for ChipSim behavior models. See [synchronized HDL debugging](HDL_DEBUG.md).
+
 ChipSim computes a trace, then renders the recorded snapshot at the playback
 cursor. Moving the cursor does not execute CPU instructions or establish
 physical timing. All TUI views share that cursor. Press Space to play/pause,

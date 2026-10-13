@@ -11,4 +11,5 @@ export const views = [
   "states",
   "flow",
   "compare",
+  "debug",
 ];

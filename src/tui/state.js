@@ -19,6 +19,13 @@ import { verifyProgramGuides } from "../program/guides.js";
 import { readBounded } from "../agent/io.js";
 import { readWaveform } from "../hdl/io.js";
 import { waveformModel } from "../hdl/trace.js";
+import { debugModel } from "../hdl/debug/model.js";
+import {
+  HDLRecording,
+  debugLimits,
+  validateDebugSession,
+} from "../hdl/debug/recording.js";
+import { initialDebugUI, followDebugEvent } from "./debug-state.js";
 import { stateGraph } from "../visualization/state-graph.js";
 import {
   captureExperiment,
@@ -78,6 +85,16 @@ export class TuiState {
     this.visualScroll = 0;
     this.reference = null;
     this.comparisonCache = null;
+    this.debugDisplays = new Map();
+  }
+  get hdlDebug() {
+    return this.model?.debugRecording || null;
+  }
+  get debugUI() {
+    if (!this.hdlDebug) return null;
+    if (!this.debugDisplays.has(this.modelId))
+      this.debugDisplays.set(this.modelId, initialDebugUI(this.hdlDebug));
+    return this.debugDisplays.get(this.modelId);
   }
   get model() {
     return this.models.find((m) => m.id === this.modelId);
@@ -111,7 +128,7 @@ export class TuiState {
   get lastTick() {
     return this.view === "compare" && this.reference && !this.model.waveform
       ? Math.max(this.trace.length, this.reference.trace.length) - 1
-      : this.trace.length - 1;
+      : Math.max(0, this.trace.length - 1);
   }
   experiment() {
     return {
@@ -406,6 +423,7 @@ export class TuiState {
     if (this.tick < this.offset) this.offset = this.tick;
     if (this.tick > this.offset + span)
       this.offset = Math.max(0, this.tick - Math.floor(span * 0.7));
+    followDebugEvent(this);
   }
   moveSignal(amount) {
     this.selected = Math.max(
@@ -538,6 +556,29 @@ export class TuiState {
   }
   logs() {
     const query = this.logFilter.toLowerCase();
+    if (this.hdlDebug) {
+      const data = this.hdlDebug.data;
+      return data.events
+        .filter(
+          (e) =>
+            (!this.changesOnly || e.kind !== "boundary") &&
+            `${e.kind} ${e.process || ""} ${e.message || ""} ${Object.keys(e.changes || {}).join(" ")}`
+              .toLowerCase()
+              .includes(query),
+        )
+        .map((e) => ({
+          tick: e.seq,
+          time: e.time,
+          state: e.kind,
+          phase: e.phase,
+          message: e.message || e.process || e.kind,
+          changes: Object.entries(e.changes || {}).map(([id, after]) => ({
+            id,
+            after,
+            kind: "signals",
+          })),
+        }));
+    }
     return this.trace.filter(
       (s) =>
         (!this.changesOnly || s.changes.length || s.phase === "fault") &&
@@ -787,8 +828,29 @@ export class TuiState {
         );
       return document;
     }
-    const text = (await readBounded(path, 64 * 1048576)).toString("utf8");
+    const text = (await readBounded(path, debugLimits.fileBytes)).toString(
+      "utf8",
+    );
     const json = JSON.parse(text);
+    if (json.format === "chipsim-hdl-debug")
+      return this.installDebugRecording(json);
+    if (json.format === "chipsim-hdl-debug-session") {
+      const { recording, ui } = validateDebugSession(json);
+      this.installDebugRecording(recording);
+      this.debugDisplays.set(this.modelId, {
+        ...initialDebugUI(recording),
+        ...ui,
+      });
+      this.format = ui.format;
+      this.zoom = ui.zoom ?? 1;
+      this.seek(ui.eventIndex);
+      if (ui.selectedSignal)
+        this.selected = recording.signals.findIndex(
+          (s) => s.id === ui.selectedSignal,
+        );
+      this.offset = ui.offset ?? this.offset;
+      return;
+    }
     if (json.format === "chipsim-waveform") return this.installWaveform(json);
     if (json.format === "chipsim-waveform-session") {
       if (
@@ -815,6 +877,20 @@ export class TuiState {
     await this.installModel(json);
   }
   session() {
+    if (this.hdlDebug)
+      return {
+        format: "chipsim-hdl-debug-session",
+        version: 1,
+        recording: this.hdlDebug.data,
+        ui: {
+          ...structuredClone(this.debugUI),
+          eventIndex: this.tick,
+          format: this.format,
+          selectedSignal: this.signal?.id || null,
+          zoom: this.zoom,
+          offset: this.offset,
+        },
+      };
     if (this.model.waveform)
       return {
         format: "chipsim-waveform-session",
@@ -873,6 +949,46 @@ export class TuiState {
   async loadWaveformFile(path) {
     const wave = await readWaveform(path);
     this.installWaveform(wave);
+  }
+  async loadDebugFile(path) {
+    const json = JSON.parse(
+      (await readBounded(path, debugLimits.fileBytes)).toString("utf8"),
+    );
+    if (json.format === "chipsim-hdl-debug-session") {
+      const { recording, ui } = validateDebugSession(json);
+      this.installDebugRecording(recording);
+      this.debugDisplays.set(this.modelId, {
+        ...initialDebugUI(recording),
+        ...ui,
+      });
+      this.format = ui.format;
+      this.zoom = ui.zoom ?? 1;
+      this.seek(ui.eventIndex);
+      if (ui.selectedSignal)
+        this.selected = recording.signals.findIndex(
+          (s) => s.id === ui.selectedSignal,
+        );
+      this.offset = ui.offset ?? this.offset;
+      return;
+    }
+    this.installDebugRecording(json);
+  }
+  installDebugRecording(data) {
+    // Construct and validate completely before touching the active experiment.
+    const recording =
+      data instanceof HDLRecording ? data : new HDLRecording(data);
+    let index = this.models.length;
+    while (this.models.some((model) => model.id === "hdl-debug-" + index))
+      index++;
+    const model = debugModel(recording, "hdl-debug-" + index);
+    this.models.push(model);
+    this.selectModel(model.id);
+    this.documentId = null;
+    this.view = "debug";
+    this.seek(0);
+    this.setMessage(
+      "HDL debug · I combined · h/l event · F2 pane · F3 expand · K stops · G follow event",
+    );
   }
   installWaveform(wave) {
     let index = this.models.length;

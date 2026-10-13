@@ -5,6 +5,127 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-13 — Synchronized HDL event debugger
+
+### Explicit observer builds for both HDL languages
+
+**Context:** VCD samples cannot reveal process activations, source locations or
+same-time scheduling. **Use/behavior:** Explicitly build the optional observers
+with `scripts/build-hdl-debug.sh NEW_PREFIX NEW_BUILD_DIRECTORY`, then run
+`chipsim hdl doctor --debug` and `chipsim hdl run PROJECT --debug --out NEW_DIRECTORY`.
+Icarus v12_0 and GHDL v4.1.0 mcode emit dedicated structured metadata/events,
+independent of HDL stdout. The recipe verifies pinned archive hashes, retains
+patched source/build logs/licenses, and fingerprints executables/compiler targets.
+**Limits/preservation:** Ordinary simulator runs remain available; normal runs
+clear observer variables. No npm runtime dependency, automatic build/download,
+source rewriting, native-firmware backend or live simulator control is added.
+**Implementation/checks:** `extensions/hdl-debug/`, `scripts/build-hdl-debug.sh`,
+`src/hdl/debug/tools.js`, `src/hdl/run.js`; fresh-source builds of both recipes
+and real instrumented-versus-stock waveform/oracle checks. Setup and licensing
+are documented in [HDL_DEBUG.md](HDL_DEBUG.md) and the observer README/notices.
+
+### Ordered after-event recordings and honest RTL relationships
+
+**Context:** Collapsing all updates at one timestamp hid no-change process
+activations and deferred updates. **Use/behavior:** `debug.json` preserves
+`(runId,eventIndex)`, exact time, backend phase/delta, original source snapshots
+and hashes, elaborated hierarchy/ports/processes/operators, static connections,
+assertions and sparse digital changes. Sparse checkpoints reconstruct immutable
+snapshots forward or backward; execution highlights clear at non-process events.
+Generated instances retain identity. Narrow Icarus VPI constants are extended to
+their compiler-declared width/signedness. Signed decimal display uses two’s
+complement without changing stored bits or unknown logic. Memory words retain an aggregate node
+for indexed connections; GHDL flattened composites retain scalar declaration order.
+**Limits/preservation:** Graph edges are elaborated RTL, not synthesized hardware
+or observed transfers. Static writers never establish a particular event's writer.
+Source positions identify process activation, not every executed statement;
+Icarus queue regions do not acquire invented delta indices. Runtime-local and
+unsupported non-digital data is explicitly outside capture scope.
+**Implementation/checks:** `collector.js`, `recording.js`, both native observers;
+real generated hierarchy, arrays, functions/tasks, waits/delays, NBA updates,
+no-change activations, aliases, wide/signed values and nine-state logic checks.
+
+### Three synchronized terminal panes and linked inspection
+
+**Context:** Chip developers need code, architecture and signals to describe the
+same simulation step. **Use/behavior:** Open with `--hdl-debug FILE` or H's Open
+debug entry. I shows the combined view; 9/2/1 show source/hardware/signals full
+screen for debug recordings. All panes resolve one after-event snapshot. At
+110×32 or larger, source/hardware sit above waveforms; compact layouts stack.
+F2 focuses, F3 expands/restores, j/k browses, Enter opens complete values/source/
+connections and pin/scope choices. G follows the cursor again. `▶` means observed
+execution, `*` means a changed value, and BROWSE labels independent source browsing.
+**Limits/preservation:** Tab still cycles views and the original numeric views
+remain available for behavior models. No declaration is called a flip-flop merely
+because it is a variable. Imported text is sanitized before terminal rendering.
+**Implementation/checks:** `src/tui/debug-{state,render,panel}.js`, shared state,
+render/app/views modules; every fixture event rendered backward in all three
+panes/full-screen views, plus real 80×24/120×40 PTY resize/focus/expansion checks.
+
+### Replay stepping and stop conditions
+
+**Context:** Chip developers need to find a process, changed signal or failed
+assertion without losing the shared cursor. **Use/behavior:** h/l/arrows or J/N
+step saved events; Space replays. K configures process activation, signal change,
+exact value, binary edge and assertion/report stops. C seeks the next match;
+Space pauses on a match. `--at-event INDEX` makes snapshots reproducible.
+**Limits/preservation:** Up to 32 stops; conditions inspect an existing recording
+and do not run source or steer a live simulator. Unknown-to-one is not a binary
+rising edge. Signal bases, zoom and existing edge/change navigation remain usable.
+**Implementation/checks:** recording replay predicates and debug panel/state;
+independent event/value/edge assertions and real terminal stop/step/details checks.
+
+### Partial artifacts and atomic failure handling
+
+**Context:** A fault, timeout or capture limit must not erase evidence or replace
+a working experiment. **Use/behavior:** Debug runs keep raw observer streams,
+source copies, diagnostics and a validated partial `debug.json`. If no valid event
+stream exists, an inspectable zero-event source/diagnostic recording is retained.
+PARTIAL is visible at the start of the common header; Enter explains completeness.
+H installs only successful captures; failed artifacts can be opened explicitly.
+**Limits/preservation:** 100,000 events, 512 observed signals, 4096 bits/signal,
+64 MiB event data, bounded source/design/portable data. A signal limit retains
+observations of the accepted signals. Unsupported types/widths mark the run partial.
+Malformed mappings, versions, source hashes, hierarchy, timestamps or values reject
+imports before mutation. Names and extension metadata are bounded. Quitting during
+capture cancels the owned process and restores terminal mode after saving evidence.
+**Implementation/checks:** observer bounds, collector validator, runner/state;
+real event/byte/width/signal limits and unsupported types, malformed/truncated streams, compile failure,
+assertions, timeout/cancellation and PTY active-run/terminal-cleanup checks.
+
+### Portable sessions and explicit export semantics
+
+**Context:** Reopening a review must reproduce its exact cursor and linked
+selection; VCD cannot retain event-debug semantics. **Use/behavior:** S saves
+`chipsim-hdl-debug-session` with embedded source/recording, cursor, browsed source,
+follow mode, scope, pins/selected signal, focused/maximized pane, stops, format,
+zoom and offset. JSON export retains the full recording; CSV contains ordered
+event rows. VCD export/menu explicitly label final-value-per-timestamp projection
+and loss of intermediate updates, processes, phases/deltas and source/RTL metadata.
+**Limits/preservation:** Imports/restores need no simulator or original source
+paths and never execute HDL. A partial timestamp may not have settled. Existing
+waveform export/comparison limits still apply to a VCD projection.
+**Implementation/checks:** recording session validator, model/export adapters and
+TUI persistence; atomic corrupt-session tests, exact session round-trip, event
+CSV/VCD checks and installed CLI import at both terminal sizes without simulators.
+
+### Counter/handshake examples and discoverable agent workflow
+
+**Context:** The debugger needs small inspectable normal/fault examples in both
+languages. **Use/behavior:** `counter-verilog.project.json` and
+`counter-vhdl.project.json` run hierarchical reset/valid/ready transfer counters;
+the `-fault` variants increment by two and fail their assertion at 26 ns.
+`npm run test:hdl-debug` requires both stock and instrumented tools and includes
+real PTY review. README, HDL, TUI, visualization and agent guides link the new
+workflow; prepared projects now copy HDL and HDL_DEBUG guides.
+**Limits/preservation:** Examples are original CC0 test designs, not vendor models
+or firmware execution. Matching observations prove the tested experiment only.
+No provider or external agent settings are changed.
+**Implementation/checks:** `examples/hdl/counter.*`, four project manifests,
+`test/hdl-debug*.test.js`, `scripts/test-hdl-debug*.{mjs,py}`, package/install checks
+and `src/agent/project.js`; independent transfer/arithmetic expectations and stock
+waveform comparisons, plus ordinary HDL/TUI/install/verification regression gates.
+
 ## 2026-10-12 — Native Pi and prime-agent extension
 
 ### Named tools over the existing local protocol

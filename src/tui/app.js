@@ -21,6 +21,8 @@ import { SourceSimulations } from "./source-simulations.js";
 import { TraceDetail } from "./trace-detail.js";
 import { activityEvents } from "./activity-panel.js";
 import { HdlPanel } from "./hdl-panel.js";
+import { DebugPanel } from "./debug-panel.js";
+import { advanceDebugReplay } from "./debug-state.js";
 import { searchBits } from "../hdl/values.js";
 import { VisualPanel } from "./visual-panel.js";
 const unquote = (path) =>
@@ -54,6 +56,7 @@ export class TerminalApp {
     this.sourceSimulations = new SourceSimulations(this);
     this.traceDetail = new TraceDetail(this);
     this.hdlPanel = new HdlPanel(this);
+    this.debugPanel = new DebugPanel(this);
     this.visualPanel = new VisualPanel(this);
   }
   draw() {
@@ -82,7 +85,8 @@ export class TerminalApp {
         !this.state.traceDetail &&
         !this.external
       ) {
-        this.state.seek(this.state.tick + 1);
+        if (this.state.hdlDebug) advanceDebugReplay(this.state);
+        else this.state.seek(this.state.tick + 1);
         if (
           this.state.tick >= this.state.lastTick ||
           (this.state.view !== "compare" &&
@@ -344,12 +348,24 @@ export class TerminalApp {
     this.menu(
       "EXPORT FULL TRACE",
       [
-        { label: "CSV", value: "csv" },
-        { label: "JSON · provenance + parameters + stimulus", value: "json" },
         {
-          label: this.state.model.waveform
-            ? "VCD · simulator timestamps"
-            : "VCD · normalized tick waveform",
+          label: this.state.hdlDebug
+            ? "CSV · ordered events and changes"
+            : "CSV",
+          value: "csv",
+        },
+        {
+          label: this.state.hdlDebug
+            ? "JSON · complete debug recording + original sources"
+            : "JSON · provenance + parameters + stimulus",
+          value: "json",
+        },
+        {
+          label: this.state.hdlDebug
+            ? "VCD · final values per time; loses process/delta/source/graph"
+            : this.state.model.waveform
+              ? "VCD · simulator timestamps"
+              : "VCD · normalized tick waveform",
           value: "vcd",
         },
       ],
@@ -823,7 +839,9 @@ export class TerminalApp {
       }
       if (k === "?") s.help = true;
       else if (k === "H") this.hdlPanel.menu();
-      else if (k === "P")
+      else if (this.debugPanel.handle(k, key)) {
+        /* shared HDL event controls */
+      } else if (k === "P")
         this.prompt(
           "Load source program (.chip)",
           s.programPath || "",
@@ -964,9 +982,11 @@ export class TerminalApp {
         else load();
       } else if (k === "t")
         this.prompt(
-          s.model.waveform
-            ? "Go to timestamp sample index"
-            : "Go to normalized tick",
+          s.hdlDebug
+            ? "Go to recorded event index"
+            : s.model.waveform
+              ? "Go to timestamp sample index"
+              : "Go to normalized tick",
           s.tick,
           (text) => {
             const parsed = parsePayload(text);

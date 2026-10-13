@@ -1,0 +1,14 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "name": "VHDL counter handshake",
+  "language": "vhdl",
+  "standard": "08",
+  "sources": ["counter.vhdl"],
+  "top": "counter_tb",
+  "parameters": {
+    "FAULT": 0
+  },
+  "waveform": "trace.vcd",
+  "timeoutMs": 10000
+}

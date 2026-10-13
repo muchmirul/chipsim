@@ -287,3 +287,20 @@ ChipSim itself makes no background network calls or uploads.
 Run `npm run test:install` to repeat the isolated, offline package-install test.
 
 For HDL experiments, use `chipsim hdl doctor|import|run|compare` and [HDL.md](HDL.md). This separate process interface accepts source/testbench manifests and explicit comparison maps, keeps one versioned JSON result with meaningful exit status, and exports waveform artifacts without requiring a PDF. Source fingerprints identify the HDL files and simulator backend; they do not establish vendor documentation fidelity. Waveform import is data-only and never executes HDL.
+
+## HDL event recordings for terminal review
+
+Build the optional observer toolchain explicitly as described in [HDL_DEBUG.md](HDL_DEBUG.md).
+Then use `chipsim hdl doctor --debug` and `chipsim hdl run PROJECT --debug --out
+NEW_DIRECTORY`. The command retains one versioned JSON result and normal exit
+status; `artifacts.debug` and `tui` identify the review artifact/launch command.
+A failed run can still have an inspectable partial recording. Do not call it a
+successful capture or replace the current experiment automatically.
+
+For a reproducible terminal frame, run `chipsim --hdl-debug RUN/debug.json
+--snapshot --view debug --at-event INDEX --columns 120 --rows 40` (on one shell
+line). All three panes show the same recorded event, not a uniform model tick.
+Opening a recording/session does not run HDL. Source fingerprints identify the
+actual copied source, not vendor fidelity. Edit testbench/source and explicitly
+capture a new run to change the experiment. JSON preserves the complete event
+recording; VCD and waveform comparison coalesce to final values per timestamp.

@@ -19,7 +19,7 @@ _A supplied RP2040 PIO teaching experiment at tick 18. DATA, CLK and ACK share a
 | Supported datasheet function tables | Combinational logic, multiplexing/decoding, supported flip-flops, latches and explicitly defined released outputs | Complete, unambiguous supported tables; unsupported rows are rejected             |
 | A new peripheral idea               | Guided counter, FIFO, shift-transfer, behavior-table and register-bank builders                                   | Developer-selected rules and assumptions remain visible                           |
 | An unfamiliar reference manual      | Searchable source project, model format, verification commands and coding-agent instructions                      | A developer or external agent must author behavior when no supported model exists |
-| Verilog / VHDL source and testbench | Icarus Verilog / GHDL runs, VCD inspection, mapped signal comparison                                              | Recorded digital results; explicit timing assumptions for model comparisons       |
+| Verilog / VHDL source and testbench | Icarus/GHDL runs, synchronized source/RTL/signals debugger, VCD inspection and mapped comparison                  | Recorded digital results; explicit timing assumptions for model comparisons       |
 
 The library includes **34 original vendor PDFs across 19 chip/family folders**, with source URLs, revisions, fingerprints and programming references. Start with the [chip and reference library](docs/references/README.md) and [example programs](examples/programs/README.md). The full account-gated NXP eTPU reference manual is not bundled; the catalog records the available public documents and gaps.
 
@@ -364,6 +364,32 @@ _Press `E` to revise an entered table and compare a draft against the same param
 _`x` exports the complete executed trace as CSV, JSON or VCD. `S` saves a replayable session. VCD is a waveform interchange file; it contains signal changes, not the executable model or programming source. JSON retains model provenance and experiment configuration._
 
 Model-generated VCD uses a nominal `1ns` timescale for viewer compatibility; each timestamp unit remains an **abstract model tick**, not a nanosecond timing claim. Imported HDL waveforms instead preserve their simulator timescale and timestamps. The terminal shows timestamp sample indices horizontally and exact simulator time at the cursor.
+
+### Debug HDL source, RTL hardware and signals together
+
+![ChipSim TUI with HDL source, elaborated hardware and signals at event 66](docs/screenshots/hdl-debug.png)
+
+_The counter process activates at 25 ns. All three panes show event 66, before the deferred count update._
+
+Press **I** after opening a debug recording. Source/process, elaborated RTL
+connections, and waveforms share one event cursor, including multiple events at
+the same simulation time. **F2** changes pane focus, **F3** expands it, **h/l**
+steps events, and **K/C** configures/seeks replay stops. At 120×40 the source and
+hardware panes sit above the signals; at 80×24 they stack.
+
+```sh
+chipsim hdl doctor --debug
+chipsim hdl run examples/hdl/counter-verilog.project.json --debug --out tmp/counter-debug
+chipsim --hdl-debug tmp/counter-debug/debug.json
+```
+
+Capturing requires the optional pinned Icarus/GHDL observers. Opening recordings
+and saved sessions needs no simulator. [Install and use synchronized HDL debugging](docs/HDL_DEBUG.md)
+for both languages, the counter/handshake fault examples, exact event semantics,
+portable sessions and limits. **H** also offers Run with debug recording and
+Open debug recording. Partial runs retain artifacts and never replace an active
+experiment automatically. `npm run test:hdl-debug` verifies both capture backends
+and the actual terminal controls.
 
 ### Run HDL and compare signals
 

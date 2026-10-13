@@ -113,6 +113,7 @@ for (const file of [
   "docs/PROGRAMMING.md",
   "docs/EXISTING_SIMULATORS.md",
   "docs/HDL.md",
+  "docs/HDL_DEBUG.md",
 ])
   assert.ok((await read(file)).length > 100);
 execFileSync(

@@ -93,3 +93,11 @@ to execute commands. Models are bounded JSON data; no embedded code or eval.
 ChipSim makes no model-provider calls. Your external coding agent retains its
 own permissions and data-handling configuration. Do not launch other agents or
 upload documents as part of this workflow unless the user requests it.
+
+For source/testbench HDL projects, consult `docs/HDL.md` and `docs/HDL_DEBUG.md`.
+An explicit `chipsim hdl run PROJECT --debug --out NEW_DIRECTORY` can produce a
+portable source/RTL/signal event recording. `chipsim --hdl-debug FILE` opens it
+without execution; `--snapshot --view debug --at-event INDEX` captures the same
+terminal state for review. Build optional instrumented tools only on an explicit
+installation action. Preserve partial artifacts and the active working experiment
+on failure; event replay does not execute native firmware.

@@ -11,7 +11,14 @@ import { randomUUID } from "node:crypto";
 export async function writeJSON(path, data) {
   await mkdir(resolve(path, ".."), { recursive: true });
   const temporary = path + "." + randomUUID() + ".tmp";
-  await writeFile(temporary, JSON.stringify(data, null, 2) + "\n");
+  await writeFile(
+    temporary,
+    JSON.stringify(
+      data,
+      null,
+      data?.format?.startsWith("chipsim-hdl-debug") ? undefined : 2,
+    ) + "\n",
+  );
   await rename(temporary, path);
 }
 export class Workspace {

@@ -1,0 +1,14 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "name": "VHDL counter handshake \u00b7 injected fault",
+  "language": "vhdl",
+  "standard": "08",
+  "sources": ["counter.vhdl"],
+  "top": "counter_tb",
+  "parameters": {
+    "FAULT": 1
+  },
+  "waveform": "trace.vcd",
+  "timeoutMs": 10000
+}

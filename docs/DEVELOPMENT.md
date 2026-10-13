@@ -175,3 +175,30 @@ Quote verification normalizes whitespace and confirms the quote exists on the ci
 Timing is normalized, not cycle accurate. eTPU distinguishes capture arrival from shared service time; adjustable ACK capture remains independent of final CLK bookkeeping. VCD files declare a conventional time unit for viewer compatibility, and explicitly label timestamps as normalized ticks. Registers with no value yet are exported as unknown, not zero.
 
 No LLM integration is present. Complete binary function tables can produce models from their content; they do not establish behavior beyond the table scope. Arbitrary-chip modeling still requires developer interpretation and verification. Importing an unfamiliar manual offers local source search, guided scenarios, a constrained model format, and acceptance checks; it does not reconstruct a complete chip automatically.
+
+## HDL observer and synchronized replay
+
+`extensions/hdl-debug/` contains versioned GPL observer patches and original
+collector sources for Icarus v12_0 and GHDL v4.1.0 mcode. The explicit optional
+`scripts/build-hdl-debug.sh` recipe verifies archive hashes, patches fresh sources,
+builds both backends, retains source/logs/licenses and fingerprints installed
+binaries. No native build or HDL execution occurs on import or npm installation.
+
+`src/hdl/debug/collector.js` normalizes the dedicated observer stream;
+`recording.js` validates identity/references/source hashes/time/value bounds and
+reconstructs immutable snapshots through sparse checkpoints. `model.js` adapts
+those snapshots for existing terminal renderers and labels timestamp projection
+loss. Keep event semantics and metadata outside the UI.
+
+`src/tui/debug-state.js`, `debug-render.js` and `debug-panel.js` own linked
+selection, responsive three-pane rendering and replay stops. Resolve the cursor
+snapshot once per combined render. A process marker means observed activation;
+static read/write/alias relationships never establish the writer of a particular
+event. Render imported text through terminal sanitization. Session validation
+must complete before installation; failures preserve the active experiment.
+
+Run `npm run test:hdl-debug` with both stock and instrumented simulators, alongside
+`npm run verify`, `npm run test:tui`, `npm run test:hdl`, and `npm run test:install`.
+The new suite uses independent adder/handshake oracles, stock waveform comparison,
+real scheduling/logic/limit/failure captures, backward reconstruction and actual
+PTY controls/resize/cancellation. See [HDL_DEBUG.md](HDL_DEBUG.md) for the contract.

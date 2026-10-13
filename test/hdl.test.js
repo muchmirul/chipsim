@@ -248,7 +248,10 @@ test("TUI loads, navigates, exports and restores external traces atomically at b
   const app = new TerminalApp(s, { input, output });
   app.key("H", { name: "h" });
   assert.match(s.menu.title, /HDL/);
-  assert.equal(s.menu.items.length, 3);
+  assert.deepEqual(
+    s.menu.items.map((item) => item.value),
+    ["import", "run", "compare", "debug-run", "debug-open"],
+  );
 });
 
 test("runner bounds/cancels processes and reports missing tools", async () => {

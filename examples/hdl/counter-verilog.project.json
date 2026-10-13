@@ -1,0 +1,14 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "name": "VERILOG counter handshake",
+  "language": "verilog",
+  "standard": "2012",
+  "sources": ["counter.sv"],
+  "top": "counter_tb",
+  "parameters": {
+    "FAULT": 0
+  },
+  "waveform": "trace.vcd",
+  "timeoutMs": 10000
+}

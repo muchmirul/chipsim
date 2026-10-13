@@ -8,6 +8,7 @@ import { activityRows } from "./activity-panel.js";
 import { programRows } from "./program-panel.js";
 import { timeLabel } from "../hdl/time.js";
 import { stateRows, flowRows, comparisonRows } from "./visual-render.js";
+import { debugRows, debugHeader } from "./debug-render.js";
 const row = (text, style = "") => ({ text, style });
 function section(title, width) {
   return row(
@@ -526,6 +527,33 @@ function modelInfo(state, height) {
     ),
   ];
 }
+const debugHelp = [
+  ["Views", "I combined · 9 source · 2 RTL hardware · 1 signals · 3 events"],
+  [
+    "Cursor",
+    "h/l or arrows / J/N previous/next event · t event index · 0/$ first/last",
+  ],
+  ["Replay", "Space replay/pause · K stop conditions · C next matching event"],
+  ["Panes", "F2 focus · F3 expand/restore · j/k browse · Enter details/links"],
+  [
+    "Selection",
+    "Source browsing is separate from execution · G follows recorded events",
+  ],
+  ["Signals", "F numeric base · +/- zoom · = fit · w/e/b edges · [/] changes"],
+  [
+    "Files",
+    "H run/open · S portable session · x JSON/event CSV/VCD projection",
+  ],
+  [
+    "Meaning",
+    "All panes use the same after-event snapshot; static edges are structural",
+  ],
+  [
+    "Capture",
+    "PARTIAL marks incomplete coverage; Enter shows reason and diagnostics",
+  ],
+  ["Quit", "q or Ctrl-C restores the terminal · Tab cycles views"],
+];
 const help = [
   [
     "HDL",
@@ -624,14 +652,18 @@ export function render(state) {
     row(
       "CHIPSIM  " +
         state.model.name +
-        (state.model.waveform
-          ? " · HDL waveform replay"
-          : "   · behavioral · normalized ticks"),
+        (state.hdlDebug
+          ? " · HDL event replay"
+          : state.model.waveform
+            ? " · HDL waveform replay"
+            : "   · behavioral · normalized ticks"),
       "title",
     ),
     row(
-      ["states", "flow", "compare"].includes(state.view)
-        ? "1–9 standard views · " +
+      state.hdlDebug || state.view === "debug"
+        ? "I Combined debug · 9 Source · 2 Hardware · 1 Signals · 3 Events · Tab views"
+        : ["states", "flow", "compare"].includes(state.view)
+          ? "1–9 standard views · " +
             ["states", "flow", "compare"]
               .map(
                 (name, index) =>
@@ -643,19 +675,33 @@ export function render(state) {
               )
               .join(" · ") +
             " · Y capture"
-        : tabs,
+          : tabs,
       "dim",
     ),
     row(
-      state.model.waveform
-        ? `sample ${state.tick}/${state.trace.length - 1} · time ${timeLabel(s.time, state.model.waveform.timescale)} · ${state.format} · ${state.playing ? "PLAYING" : "paused"}`
-        : `tick ${state.tick}/${state.lastTick}  state ${s.state}  format ${state.format}  zoom ${state.zoom.toFixed(2)}  ${state.playing ? "RUNNING" : "paused"}`,
+      state.hdlDebug
+        ? debugHeader(state)
+        : state.model.waveform
+          ? `sample ${state.tick}/${state.trace.length - 1} · time ${timeLabel(s.time, state.model.waveform.timescale)} · ${state.format} · ${state.playing ? "PLAYING" : "paused"}`
+          : `tick ${state.tick}/${state.lastTick}  state ${s.state}  format ${state.format}  zoom ${state.zoom.toFixed(2)}  ${state.playing ? "RUNNING" : "paused"}`,
       "selected",
     ),
   ];
   const monitoring = state.activity && state.view !== "activity";
   const available = rows - (monitoring ? 8 : 7);
-  if (state.view === "wave") {
+  if (state.view === "debug") lines.push(...debugRows(state, available));
+  else if (
+    state.hdlDebug &&
+    ["wave", "inspect", "program"].includes(state.view)
+  )
+    lines.push(
+      ...debugRows(
+        state,
+        available,
+        { wave: "signals", inspect: "hardware", program: "source" }[state.view],
+      ),
+    );
+  else if (state.view === "wave") {
     const wh = Math.max(6, Math.floor(available * 0.6));
     lines.push(
       ...waveform(state, wh),
@@ -719,10 +765,13 @@ export function render(state) {
     ),
     row(state.message, state.error ? "error" : "status"),
     row(
-      (["states", "flow", "compare"].includes(state.view)
-        ? "q quit · ? help · g states · v flow · Y capture · D compare · Enter details"
-        : "q quit · ? help · 1–9 views · m models · H HDL · d import · x export") +
-        (state.activity ? " · W watch" : " · c create"),
+      (state.hdlDebug &&
+      ["debug", "wave", "inspect", "program"].includes(state.view)
+        ? "q quit · ? help · h/l event · Space replay · F2 pane · F3 expand · K stops · C next · Enter detail"
+        : ["states", "flow", "compare"].includes(state.view)
+          ? "q quit · ? help · g states · v flow · Y capture · D compare · Enter details"
+          : "q quit · ? help · 1–9 views · m models · H HDL · d import · x export") +
+        (state.hdlDebug ? "" : state.activity ? " · W watch" : " · c create"),
       "dim",
     ),
   );
@@ -794,7 +843,7 @@ export function render(state) {
   if (state.help) {
     const overlay = [
       section("KEYS", columns),
-      ...help.flatMap(([name, description]) => [
+      ...(state.hdlDebug ? debugHelp : help).flatMap(([name, description]) => [
         row(name + ": " + description),
       ]),
       row("Esc or ? closes help", "dim"),
@@ -805,9 +854,11 @@ export function render(state) {
       ...overlay.slice(0, rows - 6),
     );
   }
-  return lines
-    .slice(0, rows)
-    .map((line) => ({ text: pad(line.text, columns), style: line.style }));
+  return lines.slice(0, rows).map((line) => ({
+    text: pad(line.text, columns),
+    style: line.style,
+    ...(line.parts ? { parts: line.parts } : {}),
+  }));
 }
 const colors = {
   title: "1;36",
@@ -819,9 +870,11 @@ const colors = {
   error: "31",
 };
 export function screenText(state, { color = false } = {}) {
+  const styled = ({ text, style }) =>
+    color && colors[style] ? `\x1b[${colors[style]}m${text}\x1b[0m` : text;
   return render(state)
-    .map(({ text, style }) =>
-      color && colors[style] ? `\x1b[${colors[style]}m${text}\x1b[0m` : text,
+    .map((line) =>
+      color && line.parts ? line.parts.map(styled).join("") : styled(line),
     )
     .join("\n");
 }

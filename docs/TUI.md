@@ -4,6 +4,28 @@ The TUI is ChipSim's only interactive interface. `npm start` runs it directly; n
 
 **H** opens the HDL workbench: import VCD/waveform JSON, run a Verilog/VHDL project, or compare mapped signals with another waveform/exported model trace. `--vcd FILE` opens a recorded trace directly; `--hdl PROJECT --hdl-out NEW_DIRECTORY` runs and opens a project. HDL views use timestamp sample indices and show exact simulator time at the cursor. Replay is read-only; `S` saves a waveform session and `x` exports with its simulator timescale. See [HDL](HDL.md) for manifests, maps, backend setup, examples and limits.
 
+## Synchronized HDL debug view
+
+**H → Run with debug recording** captures an explicit HDL project; **H → Open
+debug recording / debug session** or `chipsim --hdl-debug FILE` opens its data.
+**I** displays original HDL/process source, elaborated RTL hardware and signals
+at one `(runId,eventIndex)` after-event snapshot. Same-time events stay separate.
+At ≥110×32 the first two panes are side by side above signals; compact terminals
+stack them. **9/2/1** show the source/hardware/signal pane full screen for HDL
+recordings. **F2** changes focus, **F3** expands/restores, **j/k** browses within
+that pane, **Enter** shows full details and linked objects, and **G** follows the
+recorded event again. `▶` is observed execution; `*` is changed value; structural
+edges are labeled static. Browsed source never masquerades as execution.
+
+**h/l, arrows, J/N** move the shared event cursor. **Space** replays,
+**K** configures process/signal/value/edge/assertion stops, and **C** seeks the
+next match. Tab continues to cycle views. **S** embeds the recording plus cursor,
+source browsing, selection, scope, pins, focus, format, zoom and stops. **x**
+exports full JSON, event CSV, or explicitly lossy VCD projection. **PARTIAL**
+remains visible for failed/interrupted/limited captures. Imports validate before
+changing the active run and never execute source. See [the complete HDL debug
+guide](HDL_DEBUG.md) for setup, capabilities and precise limits.
+
 ## Working session
 
 Choose a model with `m`, edit parameters with `p`, and press Space to run. Playback stops at a terminal outcome or trace end. `h/l` and arrows move through the trace. `w/e/b` find rising/falling/previous rising edges of the selected signal. `[ ]` find changes across the whole model. Numeric presentation cycles with uppercase `F` and preserves the cursor.

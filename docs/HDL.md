@@ -2,6 +2,18 @@
 
 ChipSim's terminal workbench can inspect external HDL traces, run **Verilog/SystemVerilog with Icarus Verilog** and **VHDL with GHDL**, and compare mapped signals with another HDL waveform or a ChipSim behavior trace. The execution backend supplies HDL scheduling semantics. Waveform replay in ChipSim is a recorded-results viewer.
 
+## Event debugging with linked source and hardware
+
+`chipsim hdl run PROJECT --debug --out NEW_DIRECTORY` captures ordered process
+activations, signal updates and backend scheduling metadata using the optional
+pinned observer builds. Open `debug.json` with `chipsim --hdl-debug FILE`, or use
+H → Run with debug recording / Open debug recording. **I** links source, RTL
+hardware and waveforms at one after-event cursor; **9/2/1** expand those views.
+`chipsim hdl doctor --debug` checks both observer installations.
+See [HDL_DEBUG.md](HDL_DEBUG.md) for installation, controls, schema, fault
+artifacts and limits. Ordinary VCD workflows below remain timestamp projections;
+a VCD file alone cannot supply process/delta/source/RTL event debugging.
+
 ## Start with the supplied open-source designs
 
 Install Icarus Verilog (`iverilog` and `vvp`) and GHDL on PATH. On Debian/Ubuntu, the packages are `iverilog` and `ghdl`. No additional npm runtime packages are needed; importing an already produced waveform needs neither simulator.

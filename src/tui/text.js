@@ -47,11 +47,21 @@ export const pad = (text, width) => {
   const clipped = clip(text, width);
   return clipped + " ".repeat(Math.max(0, width - displayWidth(clipped)));
 };
-export const display = (value, format, width = 8) =>
-  (typeof value === "number" && value >= 0) ||
-  (typeof value === "string" && /^[01]+$/.test(value))
+export const display = (value, format, width = 8, signed = false) => {
+  if (
+    signed &&
+    format === "decimal" &&
+    typeof value === "string" &&
+    /^[01]+$/.test(value)
+  ) {
+    const integer = BigInt("0b" + value);
+    return String(value[0] === "1" ? integer - (1n << BigInt(width)) : integer);
+  }
+  return (typeof value === "number" && value >= 0) ||
+    (typeof value === "string" && /^[01]+$/.test(value))
     ? formatPayload(value, format, width)
     : String(value ?? "—");
+};
 
 // Preserve complete content, including long identifiers and wide characters.
 // Wrapping never truncates a source quotation or a numeric value.

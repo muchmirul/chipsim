@@ -255,6 +255,8 @@ test("terminal event scheduling, value/move menus, delete, clear/restore, and un
   key("", "tab");
   assert.equal(s.view, "compare");
   key("", "tab");
+  assert.equal(s.view, "debug");
+  key("", "tab");
   assert.equal(s.view, "wave");
 });
 

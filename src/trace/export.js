@@ -1,8 +1,10 @@
 import { vcdBits } from "../core/logic.js";
 import { waveformVCD } from "../hdl/vcd.js";
+import { debugCSV, debugVCD } from "../hdl/debug/model.js";
 const quote = (value) => '"' + String(value ?? "").replaceAll('"', '""') + '"';
 
 export function exportJSON(model, trace, parameters, inputs = []) {
+  if (model.debugRecording) return JSON.stringify(model.debugRecording.data);
   if (model.waveform) return JSON.stringify(model.waveform, null, 2);
   return JSON.stringify(
     {
@@ -31,6 +33,7 @@ export function exportJSON(model, trace, parameters, inputs = []) {
 }
 
 export function exportCSV(model, trace) {
+  if (model.debugRecording) return debugCSV(model.debugRecording.data);
   const signals = model.signals.map((signal) => signal.id),
     registers = [
       ...new Set(trace.flatMap((snapshot) => Object.keys(snapshot.registers))),
@@ -68,6 +71,7 @@ export function exportCSV(model, trace) {
 }
 
 export function exportVCD(model, trace) {
+  if (model.debugRecording) return debugVCD(model.debugRecording.data);
   if (model.waveform) return waveformVCD(model.waveform);
   const variables = [
     ...model.signals.map((signal) => ({ ...signal, kind: "signals" })),

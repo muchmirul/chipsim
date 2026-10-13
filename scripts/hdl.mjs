@@ -6,14 +6,15 @@ import { hdlDoctor, runHDL } from "../src/hdl/run.js";
 import { compareBehavior } from "../src/hdl/compare.js";
 
 export const usage = `HDL workbench (local external simulators)
-  chipsim hdl doctor
+  chipsim hdl doctor [--debug]
   chipsim hdl import trace.vcd --out NEW_DIRECTORY
-  chipsim hdl run project.json --out NEW_DIRECTORY
+  chipsim hdl run project.json [--debug] --out NEW_DIRECTORY
   chipsim hdl compare LEFT.vcd|json RIGHT.vcd|json --map mapping.json [--out NEW_DIRECTORY]
+  chipsim --hdl-debug debug.json|session.json [--at-event INDEX]
   chipsim --vcd trace.vcd|waveform.json
   chipsim --hdl project.json --hdl-out NEW_DIRECTORY
 Verilog: Icarus Verilog (iverilog + vvp). VHDL: GHDL.
-See docs/HDL.md for manifest, explicit timing/mapping and comparison limits.
+See docs/HDL.md for manifests/comparisons; docs/HDL_DEBUG.md for observer setup and event replay.
 `;
 
 export async function main(args = process.argv.slice(2)) {
@@ -35,6 +36,10 @@ export async function main(args = process.argv.slice(2)) {
         const value = rest[i];
         if (value.startsWith("--")) {
           const key = value.slice(2);
+          if (key === "debug" && !options.debug) {
+            options.debug = true;
+            continue;
+          }
           if (
             !["out", "map"].includes(key) ||
             options[key] ||
@@ -53,19 +58,25 @@ export async function main(args = process.argv.slice(2)) {
           throw new Error("Invalid arguments. " + usage);
       };
       if (command === "doctor") {
-        requireArgs(0, []);
+        requireArgs(0, ["debug"]);
         report = {
           format: "chipsim-hdl-result",
           version: 1,
           ok: true,
-          tools: await hdlDoctor(),
+          tools: await hdlDoctor({ debug: options.debug }),
         };
+        if (options.debug && report.tools.some((tool) => !tool.available)) {
+          report.ok = false;
+          exitCode = 1;
+        }
       } else if (command === "run" || command === "import") {
-        requireArgs(1, ["out"]);
+        requireArgs(1, command === "run" ? ["out", "debug"] : ["out"]);
         if (!options.out)
           throw new Error("Choose a new output directory with --out.");
         if (command === "run")
-          report = (await runHDL(positional[0], options.out)).result;
+          report = (
+            await runHDL(positional[0], options.out, { debug: options.debug })
+          ).result;
         else {
           const wave = await readWaveform(positional[0]);
           report = await createDirectory(options.out, async (root) => {

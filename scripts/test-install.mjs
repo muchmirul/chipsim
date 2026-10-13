@@ -50,6 +50,18 @@ try {
     "docs/PROGRAMMING.md",
     "docs/EXISTING_SIMULATORS.md",
     "docs/HDL.md",
+    "docs/HDL_DEBUG.md",
+    "extensions/hdl-debug/COPYING",
+    "extensions/hdl-debug/README.md",
+    "extensions/hdl-debug/iverilog/apply.py",
+    "extensions/hdl-debug/iverilog/chipsim-debug.cc",
+    "extensions/hdl-debug/ghdl/apply.py",
+    "extensions/hdl-debug/ghdl/grt-chipsim.adb",
+    "scripts/build-hdl-debug.sh",
+    "src/hdl/debug/recording.js",
+    "src/tui/debug-render.js",
+    "examples/hdl/counter.sv",
+    "examples/hdl/counter.vhdl",
     "src/hdl/vcd.js",
     "src/hdl/run.js",
     "scripts/hdl.mjs",
@@ -99,6 +111,47 @@ try {
     { cwd, maxBuffer: 1048576 },
   );
   const binary = join(prefix, "bin/chipsim");
+  const { debugFixture } = await import("../test/fixtures/hdl-debug.mjs");
+  const recordingPath = join(cwd, "portable-debug.json");
+  await writeFile(recordingPath, JSON.stringify(debugFixture(20)));
+  for (const [columns, rows] of [
+    [80, 24],
+    [120, 40],
+  ]) {
+    const { stdout } = await run(
+      binary,
+      [
+        "--hdl-debug",
+        recordingPath,
+        "--view",
+        "debug",
+        "--at-event",
+        "3",
+        "--snapshot",
+        "--columns",
+        String(columns),
+        "--rows",
+        String(rows),
+      ],
+      {
+        cwd,
+        env: {
+          ...process.env,
+          CHIPSIM_HDL_DEBUG_TOOLS: join(cwd, "no-simulator"),
+        },
+      },
+    );
+    for (const title of ["HDL SOURCE", "RTL HARDWARE", "SIGNALS"])
+      assert.ok(stdout.includes(title + " · e3"));
+  }
+  await assert.rejects(
+    run(
+      binary,
+      ["--hdl-debug", recordingPath, "--snapshot", "--at-event", "999"],
+      { cwd },
+    ),
+    (error) => /outside the recording/.test(error.stderr),
+  );
   for (const [view, tick, expected] of [
     ["states", "32", "Current: wait · Focus: wait"],
     ["flow", "2", "CAPTURE bit 0"],

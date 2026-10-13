@@ -42,3 +42,21 @@ Prettier is a development dependency; its license is distributed with its instal
 The unchanged HD74HC77 reference (REJ03D0552-0200, Rev. 2.00, October 2005; official copy with 2010 front matter) is retained in this local development repository with all original notices. Its notice pages require prior written consent for reproduction/duplication; inclusion does not assert general redistribution permission or grant a repository-wide license to this PDF.
 
 The unchanged HD74HC138 reference (REJ03D0570-0300, Rev. 3.00, March 2009; official copy with 2010 front matter) is likewise retained locally for development and table-parser regression tests. All original copyright and reproduction/duplication notices remain; inclusion does not assert general redistribution permission.
+
+## Optional instrumented HDL simulator builds
+
+`extensions/hdl-debug/iverilog/` and `extensions/hdl-debug/ghdl/` contain
+GPL-2.0-or-later observer code and exact-context patch recipes for
+[Icarus Verilog v12_0](https://github.com/steveicarus/iverilog/tree/v12_0) and
+[GHDL v4.1.0](https://github.com/ghdl/ghdl/tree/v4.1.0). Upstream context remains
+under its original GPL terms. The GNU GPL version 2 text is included at
+[extensions/hdl-debug/COPYING](extensions/hdl-debug/COPYING). This directory's
+license does not apply a new license to vendor PDFs or unrelated ChipSim files.
+
+The npm package ships these observer sources/recipes, not upstream simulator
+binaries or complete upstream source trees. An explicitly invoked build downloads
+pinned, hash-checked archives, retains the patched source/build trees and logs,
+and copies upstream license texts into the installation prefix. See the
+[recipe provenance](extensions/hdl-debug/README.md) and [build instructions](docs/HDL_DEBUG.md).
+The original paired `examples/hdl/counter.sv` and `counter.vhdl` test designs and
+fault manifests are CC0-1.0, as stated in their source headers.

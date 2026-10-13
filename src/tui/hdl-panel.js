@@ -29,13 +29,19 @@ export class HdlPanel {
           label: "Compare current trace with VCD / trace JSON",
           value: "compare",
         },
+        { label: "Run with debug recording", value: "debug-run" },
+        { label: "Open debug recording / debug session", value: "debug-open" },
       ],
       (choice) => {
         if (choice === "import")
           return app.prompt("VCD / waveform JSON path", "", (path) =>
             app.task(() => app.state.loadWaveformFile(pathText(path))),
           );
-        if (choice === "run")
+        if (choice === "debug-open")
+          return app.prompt("Debug recording / session JSON path", "", (path) =>
+            app.task(() => app.state.loadDebugFile(pathText(path))),
+          );
+        if (choice === "run" || choice === "debug-run")
           return app.prompt("HDL project manifest JSON", "", (project) =>
             app.prompt("New run output directory", "hdl-run", (out) =>
               app.task(async () => {
@@ -43,6 +49,7 @@ export class HdlPanel {
                 try {
                   this.running = runHDL(pathText(project), pathText(out), {
                     signal: this.abort.signal,
+                    debug: choice === "debug-run",
                     onProgress: (stage) => {
                       app.state.setMessage(
                         "HDL " + stage + " · Ctrl-C cancels/exits",
@@ -50,15 +57,21 @@ export class HdlPanel {
                       app.draw();
                     },
                   });
-                  const { result, waveform } = await this.running;
+                  const { result, waveform, recording } = await this.running;
                   if (!result.ok)
                     throw new Error(
                       "HDL failed: " +
                         result.error +
                         " · " +
-                        result.artifacts.diagnostics,
+                        result.artifacts.diagnostics +
+                        (result.artifacts.debug
+                          ? " · partial recording: " + result.artifacts.debug
+                          : ""),
                     );
-                  if (!app.closed) app.state.installWaveform(waveform);
+                  if (!app.closed) {
+                    if (recording) app.state.installDebugRecording(recording);
+                    else app.state.installWaveform(waveform);
+                  }
                 } finally {
                   this.abort = null;
                   this.running = null;
