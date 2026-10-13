@@ -9,8 +9,11 @@ all three panes together, including while seeking backward.
 ## Install the optional capture tools
 
 Opening a recording or a portable session needs only Node.js 22.13+ and ChipSim.
-Capturing requires the two pinned, instrumented simulators; ordinary system
-Icarus/GHDL installations continue to serve ordinary waveform runs.
+Capturing uses the pinned, instrumented simulator for the project's language.
+HDL runs capture debug events by default; ordinary system Icarus/GHDL serve
+explicit waveform-only runs (`--no-debug`, or managed `options.debug: false`).
+Missing observer tools are reported as a setup failure with diagnostics and a
+partial recording; no tool installation or silent waveform fallback occurs.
 
 On Debian/Ubuntu, the build prerequisites are `build-essential`, `gnat`,
 `autoconf`, `gperf`, `flex`, `bison`, `curl`, `python3`, and the usual tar/coreutils.
@@ -36,17 +39,20 @@ run compilers, or execute embedded source. See the
 ## Record, open and inspect
 
 ```sh
-chipsim hdl run examples/hdl/counter-verilog.project.json --debug --out tmp/counter-verilog
-chipsim hdl run examples/hdl/counter-vhdl.project.json --debug --out tmp/counter-vhdl
+chipsim hdl run examples/hdl/counter-verilog.project.json --out tmp/counter-verilog
+chipsim hdl run examples/hdl/counter-vhdl.project.json --out tmp/counter-vhdl
 chipsim --hdl-debug tmp/counter-verilog/debug.json
 chipsim --hdl-debug tmp/counter-vhdl/debug.json --snapshot --view debug --at-event 40 --columns 120 --rows 40
 ```
 
 Use unused output directories each time. In an uninstalled checkout, replace
-`chipsim` with `node scripts/chipsim.mjs`. **H → Run with debug recording** performs
+`chipsim` with `node scripts/chipsim.mjs`. **H → Run Verilog / VHDL project** performs
 the same capture inside the TUI; **H → Open debug recording / debug session** opens
 an existing artifact. `d` also accepts both formats. `--at-event` is an event
 index, while `--at` remains the ordinary model/waveform cursor option.
+`chipsim --hdl PROJECT --hdl-out NEW_DIRECTORY` captures and opens the combined
+debug view by default; add `--no-debug` to run/open waveform only. `--debug`
+remains a compatible explicit capture flag on `hdl run`.
 
 A run copies source/includes/assets before compiling. `debug.json` embeds original
 UTF-8 source snapshots with SHA-256 fingerprints, project options, tool identity,

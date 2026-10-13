@@ -5,6 +5,31 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-14 — Source, hardware and signals are the default HDL simulation
+
+**Context:** A normal HDL simulation opened only timestamp waveforms, hiding
+Verilog/VHDL source and elaborated hardware behind a separate debug-run action.
+**Use/behavior:** `hdl run`, `--hdl PROJECT --hdl-out NEW_DIRECTORY`, native HDL
+run tools and managed `hdl` tasks now capture observer events by default. The
+interactive launch and H → Run Verilog / VHDL project open the synchronized
+source/RTL/signals view. Headless runs return `artifacts.debug` and its TUI
+command. `--debug` remains compatible. `--no-debug`, native `debug: false`,
+managed `options.debug: false` and H → Run waveform only preserve stock-backend
+waveform simulation. Managed planning/doctor resolve the observer tool identity
+and reject unavailable observers rather than claiming stock tools can capture.
+**Limits/preservation:** Capture needs explicitly installed pinned observers;
+missing tools give setup/opt-out advice, never auto-install or silently fall
+back. Standalone failed captures preserve diagnostics and partial recordings;
+failed interactive runs preserve the current experiment. Imported VCD remains
+waveform-only; it cannot recover source/process events. Replay remains recorded
+event inspection, not arbitrary statement or CPU-instruction stepping.
+**Implementation/checks:** `src/hdl/run.js`, HDL and launch CLIs, `hdl-panel.js`,
+managed adapters and native argument mapping. `test/hdl-defaults.test.js` checks
+opt-out/duplicate flags, missing-tool artifacts and real default CLI/combined
+launch/managed artifacts; stock-waveform and real debug/PTY suites retain both
+modes, linked panes, cancellation and failure preservation. Topic and input
+recipes document observer setup and explicit opt-out.
+
 ## 2026-10-13 — Optional input recipes and a runnable RTL starter
 
 **Context:** Agents need to know what to feed ChipSim and how to prepare missing

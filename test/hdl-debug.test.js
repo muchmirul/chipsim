@@ -155,12 +155,9 @@ test(
         const ordinary = await runHDL(
           project,
           join(root, language + "-ordinary"),
+          { debug: false },
         );
-        const captured = await runHDL(
-          project,
-          join(root, language + "-debug"),
-          { debug: true },
-        );
+        const captured = await runHDL(project, join(root, language + "-debug"));
         assert.equal(ordinary.result.ok, true, ordinary.result.error);
         assert.equal(captured.result.ok, true, captured.result.error);
         assert.deepEqual(

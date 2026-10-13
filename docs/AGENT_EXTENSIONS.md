@@ -6,7 +6,9 @@ The extension also exposes the [versioned design workbench](DESIGN.md):
 Use an explicit project path on each call. `chipsim_design_run` returns an
 accepted background job; only `chipsim_job_cancel` cancels it. IDs and target
 names remain literals, while path arguments resolve in the current call's cwd.
-HDL tools accept boolean `debug`; snapshots accept `hdlDebug`, `atEvent`, and
+HDL run tools capture debug by default (observer tools required); boolean
+`debug: false` explicitly requests waveform-only execution via `--no-debug`.
+HDL doctor retains its explicit `debug` probe. Snapshots accept `hdlDebug`, `atEvent`, and
 `design`, plus project/pipeline/artifacts/checks/debug views. `/chipsim PROJECT`
 recognizes either prepared document projects or `chipsim.design.json` projects.
 

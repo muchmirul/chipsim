@@ -56,8 +56,11 @@ my-chip/
 The **first three files** suffice for a standalone HDL run. DUT and testbench
 may share one source file, but separate files are easier to reuse. The last two
 add managed jobs, input snapshots and artifact/check history. The example needs
-Node.js 22.13+ and Icarus Verilog (`iverilog`, `vvp`); it needs no Python, PDF,
-firmware, PDK, formal tool or physical-design installation.
+Node.js 22.13+ and the [Icarus observer tools](HDL_DEBUG.md) for default debug
+capture; it needs no PDF, firmware, PDK, formal tool or physical-design installation.
+For stock Icarus (`iverilog`, `vvp`) waveform-only runs, use `--no-debug` on
+`hdl run`, or set the managed task's `options.debug` to `false`. Missing observer
+tools never silently downgrade a debug run.
 
 From a checkout, copy the example into a new directory:
 
@@ -75,11 +78,11 @@ user's requested behavior; the counter is an illustrative example, not an
 implementation of every requested chip. Keep a small specification of intended
 interfaces, clock/reset and behavior, with unresolved choices identified.
 
-Alternatively, run just the source manifest, then open the returned waveform:
+Alternatively, run just the source manifest, then open its linked debug recording:
 
 ```sh
 chipsim hdl run ../my-chip/sim.project.json --out ../my-chip-first-run
-chipsim --vcd ../my-chip-first-run/waveform.json
+chipsim --hdl-debug ../my-chip-first-run/debug.json
 ```
 
 `design init NEW_PROJECT` creates only the two design manifests. The agent must

@@ -270,7 +270,7 @@ export async function readProject(file) {
 export async function runHDL(
   file,
   destination,
-  { signal, onProgress = () => {}, debug = false, owners } = {},
+  { signal, onProgress = () => {}, debug = true, owners } = {},
 ) {
   if (!signal) {
     const controller = new AbortController();

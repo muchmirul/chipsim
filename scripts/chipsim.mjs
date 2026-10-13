@@ -27,8 +27,9 @@ export async function main(args = process.argv.slice(2)) {
   --vcd trace.vcd|waveform.json Read-only HDL waveform replay
   --hdl-debug RUN/debug.json   Synchronized source / RTL / signal event replay
   --at-event INDEX             Initial event cursor for a debug recording
-  --hdl project.json          Run a Verilog/VHDL project before opening
+  --hdl project.json          Run HDL with source / RTL / signal debug by default
   --hdl-out NEW_DIRECTORY     Required with --hdl; preserve run artifacts
+  --no-debug                  With --hdl: ordinary waveform-only simulation
   --design PROJECT           Open the versioned project workbench; 0 returns to Project\n  --dwfv /path/to/dwfv        Optional external viewer command
   --watch PROJECT             Monitor agent activity and completed runs\n  --workspace .chipsim        Persistent local workspace directory\n  --program experiment.chip   Load a source experiment; 9 opens line debugger\n  --params parameters.json    Parameter overrides\n  --inputs events.json        Timed input stimulus\n  --ticks 100                 Duration for document models\n  --snapshot                  Print one terminal frame without a TTY\n  --at 0 --columns 120 --rows 40  Snapshot dimensions and cursor\n  --view wave|inspect|log|sources|model|registers|stimulus|activity|program|states|flow|compare|debug|project|pipeline|artifacts|checks\n  --no-color                  Disable colored text\n  --help                      Show this help\n\nInside the TUI: ? help · m models · p params · i pins · d import · c create · q quit.\nVisuals: g states · v bit flow · Y capture reference · D compare.\nOptional waveform viewer: V opens the exported trace in installed dwfv.\n`;
   if (args.includes("--help") || args.includes("-h")) {
@@ -77,7 +78,7 @@ export async function main(args = process.argv.slice(2)) {
     const key = args[i].slice(2);
     if (
       !args[i].startsWith("--") ||
-      (!values.has(key) && !["snapshot", "no-color"].includes(key))
+      (!values.has(key) && !["snapshot", "no-color", "no-debug"].includes(key))
     )
       throw new Error("Unknown option " + args[i]);
     if (values.has(key)) {
@@ -105,6 +106,8 @@ export async function main(args = process.argv.slice(2)) {
     throw new Error("Choose --vcd, --hdl, or --hdl-debug.");
   if (!!options.hdl !== !!options["hdl-out"])
     throw new Error("--hdl requires --hdl-out NEW_DIRECTORY.");
+  if (options["no-debug"] && !options.hdl)
+    throw new Error("--no-debug requires --hdl.");
   const state = new TuiState({ workspace: options.workspace || ".chipsim" });
   await state.initialize();
   let designPanel;
@@ -120,7 +123,11 @@ export async function main(args = process.argv.slice(2)) {
   if (options["hdl-debug"]) await state.loadDebugFile(options["hdl-debug"]);
   if (options.hdl) {
     const { runHDL } = await import("../src/hdl/run.js");
-    const { result, waveform } = await runHDL(options.hdl, options["hdl-out"]);
+    const { result, waveform, recording } = await runHDL(
+      options.hdl,
+      options["hdl-out"],
+      { debug: !options["no-debug"] },
+    );
     if (!result.ok)
       throw new Error(
         "HDL run failed: " +
@@ -128,7 +135,8 @@ export async function main(args = process.argv.slice(2)) {
           "; diagnostics: " +
           result.artifacts.diagnostics,
       );
-    state.installWaveform(waveform);
+    if (recording) state.installDebugRecording(recording);
+    else state.installWaveform(waveform);
   }
   let monitor;
   if (options.watch) {

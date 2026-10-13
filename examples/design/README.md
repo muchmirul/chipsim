@@ -1,20 +1,24 @@
 # Artifact graph integration fixtures
 
 `minimal` is a five-file counter project with a self-checking Verilog testbench.
-It needs only Icarus (`iverilog`/`vvp`) for simulation. Copy it to a new directory
-and adapt the RTL/tests. `chipsim design guide rtl` discovers its installed path;
+Default simulation needs the [Icarus observer tools](../../docs/HDL_DEBUG.md)
+and produces linked source/RTL/signal recordings. For stock Icarus
+(`iverilog`/`vvp`) waveform-only execution, set the HDL task's `options.debug`
+to `false`. Copy it to a new directory and adapt the RTL/tests. `chipsim design guide rtl` discovers its installed path;
 the [input guide](../../docs/DESIGN_INPUTS.md) explains each file and optional
 next stages. No preexisting waveform, firmware or PDK is required.
 
 `peripheral` is a two-word scratch register design with independent reset,
-write, hold and readback tests. Icarus runs it without additional EDA tools:
+write, hold and readback tests. Default simulation uses the same Icarus
+observer tools (or explicit `options.debug: false` for stock waveform-only):
 
 ```sh
 chipsim design run --project examples/design/peripheral --target simulation --wait
 chipsim --design examples/design/peripheral
 ```
 
-The `debugging` target needs the pinned ChipSim observer build. `generation`
+The `debugging` target explicitly requires a debug artifact; the normal
+`simulation` target also captures one by default. `generation`
 needs PeakRDL and FuseSoC. `verification` adds Verilator/cocotb, Yosys, SBY with
 Z3, and EQY. The RDL generator is exercised separately from the hand-authored
 peripheral; no equivalence between those implementations is claimed.

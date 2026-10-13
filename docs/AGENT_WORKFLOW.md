@@ -321,8 +321,11 @@ For HDL experiments, use `chipsim hdl doctor|import|run|compare` and [HDL.md](HD
 ## HDL event recordings for terminal review
 
 Build the optional observer toolchain explicitly as described in [HDL_DEBUG.md](HDL_DEBUG.md).
-Then use `chipsim hdl doctor --debug` and `chipsim hdl run PROJECT --debug --out
-NEW_DIRECTORY`. The command retains one versioned JSON result and normal exit
+Then use `chipsim hdl doctor --debug` and `chipsim hdl run PROJECT --out
+NEW_DIRECTORY`. HDL runs capture debug events by default; use `--no-debug` for
+stock-backend waveform-only simulation. Managed `hdl` tasks share this default
+and accept `options.debug: false`. Missing observers are an explicit setup
+failure, not an automatic downgrade. The command retains one versioned JSON result and normal exit
 status; `artifacts.debug` and `tui` identify the review artifact/launch command.
 A failed run can still have an inspectable partial recording. Do not call it a
 successful capture or replace the current experiment automatically.

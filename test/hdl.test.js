@@ -250,7 +250,7 @@ test("TUI loads, navigates, exports and restores external traces atomically at b
   assert.match(s.menu.title, /HDL/);
   assert.deepEqual(
     s.menu.items.map((item) => item.value),
-    ["import", "run", "compare", "debug-run", "debug-open"],
+    ["import", "run", "compare", "wave-run", "debug-open"],
   );
 });
 
@@ -337,7 +337,7 @@ test(
         root,
         `examples/hdl/adder-${language}.project.json`,
       );
-      const run = await runHDL(manifest, join(dir, language));
+      const run = await runHDL(manifest, join(dir, language), { debug: false });
       assert.equal(run.result.ok, true, JSON.stringify(run.result));
       assert.ok(run.result.stages.every((s) => s.ok));
       await assert.rejects(
@@ -505,7 +505,7 @@ test(
       }),
     );
     await writeFile(join(dir, "tb.v"), "invalid syntax");
-    const bad = await runHDL(project, join(dir, "bad"));
+    const bad = await runHDL(project, join(dir, "bad"), { debug: false });
     assert.equal(bad.result.ok, false);
     assert.match(
       await readFile(bad.result.artifacts.diagnostics, "utf8"),
@@ -515,7 +515,7 @@ test(
       join(dir, "tb.v"),
       '`timescale 1ns/1ps\nmodule tb; reg x=0; initial begin $dumpfile("trace.vcd"); $dumpvars(0,tb); #1; x=1; #1; $fatal(1,"intentional assertion failure"); end endmodule',
     );
-    const fault = await runHDL(project, join(dir, "fault"));
+    const fault = await runHDL(project, join(dir, "fault"), { debug: false });
     assert.equal(fault.result.ok, false);
     assert.ok(fault.waveform);
     assert.match(fault.result.error, /HDL run failed|assertion failure/);
@@ -534,7 +534,9 @@ test(
       }),
     );
     await writeFile(join(dir, "tb.vhdl"), "invalid syntax");
-    const vhdlBad = await runHDL(project, join(dir, "vhdl-bad"));
+    const vhdlBad = await runHDL(project, join(dir, "vhdl-bad"), {
+      debug: false,
+    });
     assert.equal(vhdlBad.result.ok, false);
     assert.equal(vhdlBad.result.stages[0].stage, "analyze");
     assert.ok(vhdlBad.result.stages[0].stderr);
@@ -546,7 +548,9 @@ begin process begin wait for 1 ns; x <= '1'; wait for 1 ns;
 assert false report "intentional assertion failure" severity failure; wait;
 end process; end;`,
     );
-    const vhdlFault = await runHDL(project, join(dir, "vhdl-fault"));
+    const vhdlFault = await runHDL(project, join(dir, "vhdl-fault"), {
+      debug: false,
+    });
     assert.equal(vhdlFault.result.ok, false);
     assert.ok(vhdlFault.waveform);
     assert.match(vhdlFault.result.error, /intentional assertion failure/);

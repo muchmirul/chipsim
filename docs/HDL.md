@@ -11,10 +11,13 @@ ChipSim's terminal workbench can inspect external HDL traces, run **Verilog/Syst
 
 ## Event debugging with linked source and hardware
 
-`chipsim hdl run PROJECT --debug --out NEW_DIRECTORY` captures ordered process
-activations, signal updates and backend scheduling metadata using the optional
-pinned observer builds. Open `debug.json` with `chipsim --hdl-debug FILE`, or use
-H → Run with debug recording / Open debug recording. **I** links source, RTL
+`chipsim hdl run PROJECT --out NEW_DIRECTORY` captures ordered process
+activations, signal updates and backend scheduling metadata by default using the
+pinned observer builds. `--debug` remains accepted; `--no-debug` opts into an
+ordinary waveform-only run with stock simulators. Missing observers fail with
+setup advice, never silently downgrade the recording. Managed `hdl` tasks use
+the same default; set `options.debug` to `false` to opt out. Open `debug.json` with `chipsim --hdl-debug FILE`, or use
+H → Run Verilog / VHDL project / Open debug recording. **I** links source, RTL
 hardware and waveforms at one after-event cursor; **9/2/1** expand those views.
 `chipsim hdl doctor --debug` checks both observer installations.
 See [HDL_DEBUG.md](HDL_DEBUG.md) for installation, controls, schema, fault
@@ -23,12 +26,12 @@ a VCD file alone cannot supply process/delta/source/RTL event debugging.
 
 ## Start with the supplied open-source designs
 
-Install Icarus Verilog (`iverilog` and `vvp`) and GHDL on PATH. On Debian/Ubuntu, the packages are `iverilog` and `ghdl`. No additional npm runtime packages are needed; importing an already produced waveform needs neither simulator.
+For waveform-only simulation, install Icarus Verilog (`iverilog` and `vvp`) and GHDL on PATH. On Debian/Ubuntu, the packages are `iverilog` and `ghdl`. No additional npm runtime packages are needed; importing an already produced waveform needs neither simulator.
 
 ```sh
 chipsim hdl doctor
-chipsim hdl run examples/hdl/adder-verilog.project.json --out tmp/verilog-run
-chipsim hdl run examples/hdl/adder-vhdl.project.json --out tmp/vhdl-run
+chipsim hdl run examples/hdl/adder-verilog.project.json --no-debug --out tmp/verilog-run
+chipsim hdl run examples/hdl/adder-vhdl.project.json --no-debug --out tmp/vhdl-run
 chipsim --vcd tmp/verilog-run/waveform.json
 chipsim hdl compare tmp/verilog-run/trace.vcd tmp/vhdl-run/trace.vcd --map examples/hdl/adder-compare.json --out tmp/compared
 ```
@@ -79,7 +82,10 @@ Runs copy declared sources/assets and include directories into a fresh run folde
 Alternatively, run and open directly:
 
 ```sh
+# Default: capture debug events and open source / hardware / signals together.
 chipsim --hdl examples/hdl/adder-verilog.project.json --hdl-out tmp/new-run
+# Waveform-only alternative, using stock backends:
+chipsim --hdl examples/hdl/adder-verilog.project.json --hdl-out tmp/new-wave-run --no-debug
 ```
 
 ## Map signals and time explicitly

@@ -331,6 +331,11 @@ try {
       errorOnExist: true,
       force: false,
     });
+    // This gate checks stock backends; debug capture is covered separately.
+    const starterConfigPath = join(starter, "chipsim.design.json");
+    const starterConfig = JSON.parse(await readFile(starterConfigPath, "utf8"));
+    starterConfig.tasks.simulate.options.debug = false;
+    await writeFile(starterConfigPath, JSON.stringify(starterConfig));
     const simulated = JSON.parse(
       (
         await run(
@@ -362,6 +367,7 @@ try {
               "hdl",
               "run",
               join(installed, `examples/hdl/adder-${language}.project.json`),
+              "--no-debug",
               "--out",
               join(cwd, "installed hdl " + language),
             ],

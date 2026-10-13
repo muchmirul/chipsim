@@ -60,7 +60,7 @@ export async function debugTools() {
     }
     return { root, ...results };
   } catch (error) {
-    const reason = `Debug capture toolchain unavailable: ${error.message}. Build with scripts/build-hdl-debug.sh; see docs/HDL_DEBUG.md.`;
+    const reason = `Debug capture toolchain unavailable: ${error.message}. Build with scripts/build-hdl-debug.sh; see docs/HDL_DEBUG.md. For waveform-only simulation use --no-debug (managed tasks: options.debug=false).`;
     return {
       root,
       verilog: { available: false, reason },

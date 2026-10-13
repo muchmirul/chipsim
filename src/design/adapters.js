@@ -37,9 +37,10 @@ export const adapters = {
               ["vvp", ["-V"]],
             ]
           : [["ghdl", ["--version"]]];
-      if (!task.options.debug) return names;
+      if (task.options.debug === false) return names;
       const chain = (await debugTools())[p.language];
-      return names.map(([cmd, args]) => [chain.commands?.[cmd] || cmd, args]);
+      if (!chain.available) throw new Error(chain.reason);
+      return names.map(([cmd, args]) => [chain.commands[cmd], args]);
     },
   },
   model: {
@@ -175,7 +176,7 @@ export async function adapterResources(task, root) {
   });
 }
 export async function adapterIdentity(task) {
-  if (task.adapter !== "hdl" || !task.options?.debug) return {};
+  if (task.adapter !== "hdl" || task.options?.debug === false) return {};
   const toolchain = await debugTools(),
     entries = [];
   for (const language of ["verilog", "vhdl"])
@@ -474,7 +475,7 @@ export async function executeAdapter(task, context) {
     if (adapter === "hdl")
       r = (
         await runHDL(path(o.project), path("out"), {
-          debug: !!o.debug,
+          debug: o.debug !== false,
           signal,
           owners,
         })

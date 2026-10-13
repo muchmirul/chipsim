@@ -11,11 +11,11 @@ an installed KLayout and restores the terminal afterward.
 
 The TUI is ChipSim's only interactive interface. `npm start` runs it directly; no frontend build is required. Node.js 22.13+ is required; PDF extraction additionally requires Poppler. `node scripts/chipsim.mjs --help` lists launch options.
 
-**H** opens the HDL workbench: import VCD/waveform JSON, run a Verilog/VHDL project, or compare mapped signals with another waveform/exported model trace. `--vcd FILE` opens a recorded trace directly; `--hdl PROJECT --hdl-out NEW_DIRECTORY` runs and opens a project. HDL views use timestamp sample indices and show exact simulator time at the cursor. Replay is read-only; `S` saves a waveform session and `x` exports with its simulator timescale. See [HDL](HDL.md) for manifests, maps, backend setup, examples and limits.
+**H** opens the HDL workbench: import VCD/waveform JSON, run a Verilog/VHDL project, or compare mapped signals with another waveform/exported model trace. `--vcd FILE` opens a recorded trace directly; `--hdl PROJECT --hdl-out NEW_DIRECTORY` captures debug events and opens source, RTL hardware and signals together by default. Observer tools are required; add `--no-debug` or choose **H → Run waveform only** for stock-backend waveform simulation. HDL views use timestamp sample indices and show exact simulator time at the cursor. Replay is read-only; `S` saves a waveform session and `x` exports with its simulator timescale. See [HDL](HDL.md) for manifests, maps, backend setup, examples and limits.
 
 ## Synchronized HDL debug view
 
-**H → Run with debug recording** captures an explicit HDL project; **H → Open
+**H → Run Verilog / VHDL project** captures debug events for an explicit HDL project by default; **H → Open
 debug recording / debug session** or `chipsim --hdl-debug FILE` opens its data.
 **I** displays original HDL/process source, elaborated RTL hardware and signals
 at one `(runId,eventIndex)` after-event snapshot. Same-time events stay separate.

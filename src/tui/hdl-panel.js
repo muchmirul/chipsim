@@ -24,12 +24,15 @@ export class HdlPanel {
       "HDL · SIGNAL WORKBENCH",
       [
         { label: "Import VCD / waveform JSON", value: "import" },
-        { label: "Run Verilog / VHDL project", value: "run" },
+        {
+          label: "Run Verilog / VHDL project · source / RTL / signals",
+          value: "run",
+        },
         {
           label: "Compare current trace with VCD / trace JSON",
           value: "compare",
         },
-        { label: "Run with debug recording", value: "debug-run" },
+        { label: "Run waveform only · no debug recording", value: "wave-run" },
         { label: "Open debug recording / debug session", value: "debug-open" },
       ],
       (choice) => {
@@ -41,7 +44,7 @@ export class HdlPanel {
           return app.prompt("Debug recording / session JSON path", "", (path) =>
             app.task(() => app.state.loadDebugFile(pathText(path))),
           );
-        if (choice === "run" || choice === "debug-run")
+        if (choice === "run" || choice === "wave-run")
           return app.prompt("HDL project manifest JSON", "", (project) =>
             app.prompt("New run output directory", "hdl-run", (out) =>
               app.task(async () => {
@@ -49,7 +52,7 @@ export class HdlPanel {
                 try {
                   this.running = runHDL(pathText(project), pathText(out), {
                     signal: this.abort.signal,
-                    debug: choice === "debug-run",
+                    debug: choice === "run",
                     onProgress: (stage) => {
                       app.state.setMessage(
                         "HDL " + stage + " · Ctrl-C cancels/exits",

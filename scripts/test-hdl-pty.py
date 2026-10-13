@@ -10,7 +10,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-hdl-pty-') as directory:
     work = Path(directory)
     vhdl = json.loads(subprocess.check_output([
         NODE, 'scripts/chipsim.mjs', 'hdl', 'run',
-        'examples/hdl/adder-vhdl.project.json', '--out', str(work/'vhdl')
+        'examples/hdl/adder-vhdl.project.json', '--no-debug', '--out', str(work/'vhdl')
     ], cwd=ROOT, text=True))
     assert vhdl['ok'], vhdl
     recorded = work/'recorded.vcd'
@@ -49,7 +49,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-hdl-pty-') as directory:
         send(str(map_path)+'\r'); wait('HDL COMPARISON')
     def run(project, out):
         send('H'); wait('HDL · SIGNAL WORKBENCH')
-        send('j\r'); wait('HDL project manifest JSON')
+        send('jjj\r'); wait('HDL project manifest JSON')
         send(str(project)+'\r'); wait('New run output directory')
         send(str(out)+'\r'); wait(json.loads(project.read_text())['name']); wait('HDL waveform loaded')
     try:
@@ -95,7 +95,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-hdl-pty-') as directory:
         (work/'bad.v').write_text('invalid syntax')
         bad.write_text(json.dumps({'format': 'chipsim-hdl-project', 'version': 1, 'language': 'verilog', 'sources': ['bad.v'], 'top': 'tb'}))
         send('H'); wait('HDL · SIGNAL WORKBENCH')
-        send('j\r'); wait('HDL project manifest JSON')
+        send('jjj\r'); wait('HDL project manifest JSON')
         send(str(bad)+'\r'); wait('New run output directory')
         send(str(work/'failed')+'\r'); wait('HDL failed:')
         assert 'Open-source VHDL adder' in frame()
@@ -106,7 +106,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-hdl-pty-') as directory:
         infinite = work/'infinite.project.json'
         infinite.write_text(json.dumps({'format': 'chipsim-hdl-project', 'version': 1, 'language': 'verilog', 'sources': ['infinite.v'], 'top': 'tb'}))
         send('H'); wait('HDL · SIGNAL WORKBENCH')
-        send('j\r'); wait('HDL project manifest JSON')
+        send('jjj\r'); wait('HDL project manifest JSON')
         send(str(infinite)+'\r'); wait('New run output directory')
         send(str(work/'cancelled')+'\r'); wait('HDL simulate')
         send('q'); proc.wait(timeout=5)

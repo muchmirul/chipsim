@@ -8,7 +8,7 @@ ANSI = re.compile(r'\x1b\[[0-?]*[ -/]*[@-~]')
 with tempfile.TemporaryDirectory(prefix='chipsim-debug-pty-') as directory:
     work = Path(directory)
     recording = json.loads(subprocess.check_output([NODE, 'scripts/chipsim.mjs', 'hdl', 'run',
-        'examples/hdl/counter-verilog.project.json', '--debug', '--out', str(work/'recording')], cwd=ROOT, text=True))
+        'examples/hdl/counter-verilog.project.json', '--out', str(work/'recording')], cwd=ROOT, text=True))
     assert recording['ok'], recording
     master, slave = pty.openpty()
     fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack('HHHH', 40, 120, 0, 0))
@@ -41,7 +41,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-debug-pty-') as directory:
             assert f'{name} · e{index}' in text, text
     def run(project, output):
         send('H');wait('HDL · SIGNAL WORKBENCH')
-        send('jjj\r');wait('HDL project manifest JSON')
+        send('j\r');wait('HDL project manifest JSON')
         send(str(project)+'\r');wait('New run output directory')
         send(str(output)+'\r')
     try:

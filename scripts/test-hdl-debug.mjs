@@ -2,7 +2,12 @@
 import { spawnSync } from "node:child_process";
 const result = spawnSync(
   process.execPath,
-  ["--test", "test/hdl-debug.test.js", "test/hdl-debug-backends.test.js"],
+  [
+    "--test",
+    "test/hdl-debug.test.js",
+    "test/hdl-debug-backends.test.js",
+    "test/hdl-defaults.test.js",
+  ],
   {
     cwd: new URL("..", import.meta.url),
     stdio: "inherit",

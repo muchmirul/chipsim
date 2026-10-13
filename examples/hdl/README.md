@@ -4,11 +4,12 @@ The unmodified `upstream/adder.sv` and `upstream/adder.vhdl` are cocotb examples
 
 Both testbenches exercise every pair of four-bit inputs (256 cases), independently assert the five-bit sum, and record a clock, edge counter, mixed `10XZ` word and NAND probes. Inputs change every 5 ns. Source signals have different names in the two simulators; the supplied mapping makes these names explicit.
 
-From the repository checkout, with Icarus Verilog and GHDL on PATH:
+For an explicit waveform-only run from the checkout, with stock Icarus Verilog
+and GHDL on PATH (default runs instead require observer tools):
 
 ```sh
-node scripts/chipsim.mjs hdl run examples/hdl/adder-verilog.project.json --out tmp/hdl-verilog
-node scripts/chipsim.mjs hdl run examples/hdl/adder-vhdl.project.json --out tmp/hdl-vhdl
+node scripts/chipsim.mjs hdl run examples/hdl/adder-verilog.project.json --no-debug --out tmp/hdl-verilog
+node scripts/chipsim.mjs hdl run examples/hdl/adder-vhdl.project.json --no-debug --out tmp/hdl-vhdl
 node scripts/chipsim.mjs --vcd tmp/hdl-verilog/trace.vcd
 node scripts/chipsim.mjs hdl compare tmp/hdl-verilog/trace.vcd tmp/hdl-vhdl/trace.vcd --map examples/hdl/adder-compare.json --out tmp/hdl-comparison
 ```
@@ -41,8 +42,8 @@ nanosecond after each rising edge. Signed/wide/unknown probes exercise inspectio
 With the [optional instrumented backends](../../docs/HDL_DEBUG.md) installed:
 
 ```sh
-chipsim hdl run examples/hdl/counter-verilog.project.json --debug --out tmp/counter-v
-chipsim hdl run examples/hdl/counter-vhdl.project.json --debug --out tmp/counter-h
+chipsim hdl run examples/hdl/counter-verilog.project.json --out tmp/counter-v
+chipsim hdl run examples/hdl/counter-vhdl.project.json --out tmp/counter-h
 chipsim --hdl-debug tmp/counter-v/debug.json
 ```
 

@@ -117,7 +117,7 @@ export const toolCommands = [
     options: ["out", "debug"],
     required: ["project", "out"],
     description:
-      "Explicitly execute a reviewed local HDL project manifest using installed Icarus/GHDL in a NEW directory. Keep diagnostics and partial traces on failure.",
+      "Execute a reviewed local HDL project in a NEW directory. Source/RTL/signal debug capture is the default and requires observer tools; debug:false selects waveform only. Keep diagnostics and partial traces on failure.",
   },
   {
     family: "hdl",
@@ -342,6 +342,8 @@ export function toolArguments(spec, params, cwd) {
     if (params[key] !== undefined) {
       if (booleanFields.has(key)) {
         if (params[key]) args.push("--" + key);
+        else if (family === "hdl" && spec.command === "run" && key === "debug")
+          args.push("--no-debug");
         continue;
       }
       const value =

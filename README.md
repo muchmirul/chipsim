@@ -23,6 +23,11 @@ Start with `chipsim design run --project examples/design/peripheral --target sim
 then `chipsim --design examples/design/peripheral`. Icarus/GHDL workflows share
 the graph with optional FuseSoC, PeakRDL, Verilator/cocotb, SBY/EQY, ORFS,
 firmware, Renode and OpenROAD-MCP adapters. EDA dependencies remain external.
+HDL simulation defaults to **debug capture with linked source, RTL hardware and
+signals**. `chipsim --hdl PROJECT --hdl-out NEW_DIRECTORY` opens that combined
+view. Install the [observer tools](docs/HDL_DEBUG.md) for capture, or opt into
+waveform-only simulation with `--no-debug` (managed tasks: `options.debug: false`).
+Importing a VCD remains waveform-only; it cannot recover source events.
 Agents can use `chipsim design commands` for structured discovery and
 `chipsim design status --project PROJECT` for current checks and next commands,
 through the CLI or `chipsim_command`. ORFS timing/DRC/LVS reports and finite

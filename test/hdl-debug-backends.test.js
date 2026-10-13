@@ -47,7 +47,9 @@ test(
     const root = await workspace(t);
     for (const language of ["verilog", "vhdl"]) {
       const path = `examples/hdl/counter-${language}.project.json`;
-      const normal = await runHDL(path, join(root, language + "-normal"));
+      const normal = await runHDL(path, join(root, language + "-normal"), {
+        debug: false,
+      });
       const debug = await runHDL(path, join(root, language + "-debug"), {
         debug: true,
       });

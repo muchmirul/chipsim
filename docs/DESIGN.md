@@ -150,7 +150,7 @@ Pinned tool executable hashes and reported versions are captured automatically.
 
 | Adapter | Options / inputs | Outputs / checks |
 | --- | --- | --- |
-| `hdl` | `project`, optional `debug`; Icarus/GHDL project and HDL | Existing `out/` recordings, VCD, diagnostics; `simulation` |
+| `hdl` | `project`, optional `debug` (default true; false selects stock waveform-only); observer Icarus/GHDL project and HDL | Existing `out/` debug recordings, VCD, diagnostics; `simulation` |
 | `model` | `model`, `project`, optional `params`, `inputs`, `ticks` | Existing traces/session; source and model acceptance checks |
 | `program` | `program`, `model`, optional prepared `project`, `ticks`, `steps` | `.chip` source, traces, program debug and session |
 | `document` | `manual` PDF | Prepared project under `out/`; `preparation` |

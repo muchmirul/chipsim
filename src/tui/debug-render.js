@@ -264,7 +264,7 @@ export function debugRows(state, height, pane) {
     return [
       row("SYNCHRONIZED HDL DEBUG", "selected"),
       row(""),
-      row("H → Run with debug recording / Open debug recording"),
+      row("H → Run Verilog / VHDL project / Open debug recording"),
       row("All three panes share one run and one event cursor."),
       row(""),
       row(
