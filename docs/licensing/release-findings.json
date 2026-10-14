@@ -6,8 +6,12 @@
     {
       "id": "vendor-pdf-redistribution",
       "status": "resolved",
-      "paths": ["docs/references/"],
-      "evidence": ["docs/licensing/reference-documents.json"],
+      "paths": [
+        "docs/references/"
+      ],
+      "evidence": [
+        "docs/licensing/reference-documents.json"
+      ],
       "reason": "32 vendor PDFs have no established general redistribution grant; permission or exclusion from a public distribution is required.",
       "resolution": "All vendor PDFs and document-rich screenshots are excluded from the source distribution. Prose citations were replaced with short factual technical/API/register anchors. Only original ChipSim implementation, functional facts, metadata and properly licensed upstream software remain. Private source verification keeps original hashes and page checks.",
       "resolution_evidence": [
@@ -21,8 +25,12 @@
     {
       "id": "raspberry-pi-document-scope",
       "status": "resolved",
-      "paths": ["docs/references/rp2040/"],
-      "evidence": ["docs/licensing/reference-documents.json"],
+      "paths": [
+        "docs/references/rp2040/"
+      ],
+      "evidence": [
+        "docs/licensing/reference-documents.json"
+      ],
       "reason": "Two PDFs declare CC-BY-ND-4.0 alongside Raspberry-Pi-product-only resource-use language. Preserve attribution/unchanged bytes and review the intended release scope before claiming unrestricted redistribution.",
       "resolution": "All vendor PDFs and document-rich screenshots are excluded from the source distribution. Prose citations were replaced with short factual technical/API/register anchors. Only original ChipSim implementation, functional facts, metadata and properly licensed upstream software remain. Private source verification keeps original hashes and page checks.",
       "resolution_evidence": [
@@ -44,7 +52,9 @@
         "test/",
         "docs/"
       ],
-      "evidence": ["docs/LICENSING.md"],
+      "evidence": [
+        "docs/LICENSING.md"
+      ],
       "reason": "Vendor quotations, tables and screenshot text outside PDFs retain separate rights; no blanket permission/legal-exception assessment is recorded.",
       "resolution": "All vendor PDFs and document-rich screenshots are excluded from the source distribution. Prose citations were replaced with short factual technical/API/register anchors. Only original ChipSim implementation, functional facts, metadata and properly licensed upstream software remain. Private source verification keeps original hashes and page checks.",
       "resolution_evidence": [
@@ -57,10 +67,19 @@
     },
     {
       "id": "public-history-and-release-scope",
-      "status": "open",
-      "paths": [".git/"],
-      "evidence": ["docs/LICENSING.md"],
-      "reason": "Vendor PDF blobs exist in Git history; exact refs/archive to publish must be reviewed or sanitized. A current-tree deletion or .gitignore alone does not remove earlier blobs."
+      "status": "resolved",
+      "paths": [
+        ".git/"
+      ],
+      "evidence": [
+        "docs/LICENSING.md"
+      ],
+      "reason": "Vendor PDF blobs exist in Git history; exact refs/archive to publish must be reviewed or sanitized. A current-tree deletion or .gitignore alone does not remove earlier blobs.",
+      "resolution": "All reachable commits were rewritten to exclude every historical PDF, prior screenshot PNG and captured frame file, and identified long vendor-prose citations. The filtered object graph was inspected for forbidden paths, PDF signatures and replaced phrases. Four original PIO teaching captures were then restored. Only sanitized main is published; original backup refs are not uploaded. Unreachable GitHub caches are outside this resolution.",
+      "resolution_evidence": [
+        "docs/licensing/CLEANUP.md",
+        "docs/LICENSING.md"
+      ]
     }
   ]
 }

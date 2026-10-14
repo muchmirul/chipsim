@@ -1,0 +1,623 @@
+{
+  "format": "chipsim-readme-terminal-captures",
+  "version": 1,
+  "description": "Unedited rows from src/tui/render.js, using real validated models and isolated temporary workspaces. PNG rendering only assigns fonts and terminal colors.",
+  "frames": [
+    {
+      "id": "waveforms",
+      "columns": 110,
+      "height": 36,
+      "model": "pio",
+      "tick": 18,
+      "recipe": "chipsim --model pio; seek tick 18; = fit trace",
+      "rows": [
+        {
+          "text": "CHIPSIM  RP2040 PIO   · behavioral · normalized ticks                                                         ",
+          "style": "title"
+        },
+        {
+          "text": "[WAVE] 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 18/59  state send  format hex  zoom 1.36  paused                                                         ",
+          "style": "selected"
+        },
+        {
+          "text": "                       0             10            21            31            41            52            62 ",
+          "style": "dim"
+        },
+        {
+          "text": "› DATA                 ──────────╎┐         ╎┌─┃───────╎┐   ╎┌───────────────────────────────────────────     ",
+          "style": "selected"
+        },
+        {
+          "text": "                                 ≋│         ≋│ ┃       ≋│   ≋│                                                ",
+          "style": "selected"
+        },
+        {
+          "text": "                                 ╎└─────────╎┘ ┃       ╎└───╎┘                                                ",
+          "style": "selected"
+        },
+        {
+          "text": "  CLK                    ╎┌─╎┐ ╎┌╎┐ ╎┌─╎┐╎┌─╎┐ ┃┌─╎┐╎┌─╎┐ ╎┌╎┐ ╎┌─╎┐                                          ",
+          "style": "wave"
+        },
+        {
+          "text": "                         ≋│ ≋│ ≋│≋│ ≋│ ≋│≋│ ≋│ ≋│ ≋│≋│ ≋│ ≋│≋│ ≋│ ≋│                                          ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ──╎┘ ╎└─╎┘╎└─╎┘ ╎└╎┘ ╎└─┃┘ ╎└╎┘ ╎└─╎┘╎└─╎┘ ╎└─────────────────────────────────────     ",
+          "style": "wave"
+        },
+        {
+          "text": "  ACK                                          ┃                      ╎┌─────────────────────────────────     ",
+          "style": "wave"
+        },
+        {
+          "text": "                                               ┃                      ≋│                                      ",
+          "style": "wave"
+        },
+        {
+          "text": "                       ────────────────────────┃──────────────────────╎┘                                      ",
+          "style": "wave"
+        },
+        {
+          "text": "Selected: data = 0x1   · j/k signal · h/l tick · w/e/b edges                                                  ",
+          "style": "dim"
+        },
+        {
+          "text": "… zoom for label · ≋ multiple values/column · x unavailable · Enter details                                   ",
+          "style": "dim"
+        },
+        {
+          "text": "─ REGISTERS · * changed ──────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "  data=0x1                          * clock=0x1                           ack=0x0                             ",
+          "style": ""
+        },
+        {
+          "text": "* samples=0x00000005                * decoded=0x00000013                  bitIndex=0x00000004                 ",
+          "style": ""
+        },
+        {
+          "text": "* line=0x00000003                     drift=0x00000000                    osr=0x00000005                      ",
+          "style": ""
+        },
+        {
+          "text": "  x=0x00000003                        y=0x00000008                      * delay=0x00000000                    ",
+          "style": ""
+        },
+        {
+          "text": "  tx=0x00000000                       start=0x00000000                                                        ",
+          "style": ""
+        },
+        {
+          "text": "SET / side-set raises CLK.                                                                                    ",
+          "style": "event"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Ready · ? help                                                                                                ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · H HDL · d import · x export · c create                               ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "parameters",
+      "columns": 110,
+      "height": 36,
+      "model": "pio",
+      "tick": 18,
+      "recipe": "Same PIO experiment; p opens parameters",
+      "rows": [
+        {
+          "text": "CHIPSIM  RP2040 PIO   · behavioral · normalized ticks                                                         ",
+          "style": "title"
+        },
+        {
+          "text": "[WAVE] 1  inspect 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 18/59  state send  format hex  zoom 1.36  paused                                                         ",
+          "style": "selected"
+        },
+        {
+          "text": "─ PARAMETERS · RP2040 PIO ────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "› Payload = 179                                                                                               ",
+          "style": "selected"
+        },
+        {
+          "text": "  Frame bits = 8                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "  Clock half-period = 2                                                                                       ",
+          "style": ""
+        },
+        {
+          "text": "  ACK = present                                                                                               ",
+          "style": ""
+        },
+        {
+          "text": "  (advanced) Resource constraint = false                                                                      ",
+          "style": ""
+        },
+        {
+          "text": "  (advanced) ACK budget = 8                                                                                   ",
+          "style": ""
+        },
+        {
+          "text": "  (advanced) ACK arrival delay = 3                                                                            ",
+          "style": ""
+        },
+        {
+          "text": "j/k or arrows · Enter select · Esc cancel                                                                     ",
+          "style": "dim"
+        },
+        {
+          "text": "                       ────────────────────────┃──────────────────────╎┘                                      ",
+          "style": "wave"
+        },
+        {
+          "text": "Selected: data = 0x1   · j/k signal · h/l tick · w/e/b edges                                                  ",
+          "style": "dim"
+        },
+        {
+          "text": "… zoom for label · ≋ multiple values/column · x unavailable · Enter details                                   ",
+          "style": "dim"
+        },
+        {
+          "text": "─ REGISTERS · * changed ──────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "  data=0x1                          * clock=0x1                           ack=0x0                             ",
+          "style": ""
+        },
+        {
+          "text": "* samples=0x00000005                * decoded=0x00000013                  bitIndex=0x00000004                 ",
+          "style": ""
+        },
+        {
+          "text": "* line=0x00000003                     drift=0x00000000                    osr=0x00000005                      ",
+          "style": ""
+        },
+        {
+          "text": "  x=0x00000003                        y=0x00000008                      * delay=0x00000000                    ",
+          "style": ""
+        },
+        {
+          "text": "  tx=0x00000000                       start=0x00000000                                                        ",
+          "style": ""
+        },
+        {
+          "text": "SET / side-set raises CLK.                                                                                    ",
+          "style": "event"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Ready · ? help                                                                                                ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · H HDL · d import · x export · c create                               ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "blocks",
+      "columns": 110,
+      "height": 36,
+      "model": "pio",
+      "tick": 2,
+      "recipe": "PIO tick 2; 2 opens hardware blocks",
+      "rows": [
+        {
+          "text": "CHIPSIM  RP2040 PIO   · behavioral · normalized ticks                                                         ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  [INSPECT] 2  log 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 2/59  state send  format hex  zoom 1.36  paused                                                          ",
+          "style": "selected"
+        },
+        {
+          "text": "Blocks 1–8/8 · j/k scroll                                                                                     ",
+          "style": "dim"
+        },
+        {
+          "text": "┌ Host / DMA                        ┌ Instruction memory                ┌ TX FIFO                             ",
+          "style": "wave"
+        },
+        {
+          "text": "│ host / DMA                        │ short program                     │ 0/4 TX words                        ",
+          "style": ""
+        },
+        {
+          "text": "└─────────────────────────────────  └─────────────────────────────────  └─────────────────────────────────    ",
+          "style": "dim"
+        },
+        {
+          "text": "┌ ACTIVE PC + control logic         ┌ Scratch X / Y                     ┌ ACTIVE Clock divider                ",
+          "style": "wave"
+        },
+        {
+          "text": "│ recipe line 4                     │ X=7; Y=8                          │ H=2 (abstract)                      ",
+          "style": ""
+        },
+        {
+          "text": "└─────────────────────────────────  └─────────────────────────────────  └─────────────────────────────────    ",
+          "style": "dim"
+        },
+        {
+          "text": "┌ OSR / shift logic                 ┌ ACTIVE Pin mapping / GPIO                                               ",
+          "style": "wave"
+        },
+        {
+          "text": "│ 0x00000059                        │ D=1 C=1 A=0                                                             ",
+          "style": ""
+        },
+        {
+          "text": "└─────────────────────────────────  └─────────────────────────────────                                        ",
+          "style": "dim"
+        },
+        {
+          "text": "Connections: host → imem · host → fifo · imem → pc · fifo → osr · xy → pc · divider → pc · pc → osr · osr → p…",
+          "style": "dim"
+        },
+        {
+          "text": "─ REGISTERS ──────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "  data=0x1                          * clock=0x1                           ack=0x0                             ",
+          "style": ""
+        },
+        {
+          "text": "* samples=0x00000001                * decoded=0x00000001                  bitIndex=0x00000000                 ",
+          "style": ""
+        },
+        {
+          "text": "* line=0x00000003                     drift=0x00000000                    osr=0x00000059                      ",
+          "style": ""
+        },
+        {
+          "text": "  x=0x00000007                        y=0x00000008                      * delay=0x00000000                    ",
+          "style": ""
+        },
+        {
+          "text": "  tx=0x00000000                       start=0x00000000                                                        ",
+          "style": ""
+        },
+        {
+          "text": "SET / side-set raises CLK.                                                                                    ",
+          "style": "event"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Ready · ? help                                                                                                ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · H HDL · d import · x export · c create                               ",
+          "style": "dim"
+        }
+      ]
+    },
+    {
+      "id": "events",
+      "columns": 110,
+      "height": 36,
+      "model": "pio",
+      "tick": 2,
+      "recipe": "PIO tick 2; 3 opens event log, changes-only default",
+      "rows": [
+        {
+          "text": "CHIPSIM  RP2040 PIO   · behavioral · normalized ticks                                                         ",
+          "style": "title"
+        },
+        {
+          "text": "wave 1  inspect 2  [LOG] 3  sources 4  model 5  registers 6  stimulus 7  activity 8  program 9                ",
+          "style": "dim"
+        },
+        {
+          "text": "tick 2/59  state send  format hex  zoom 1.36  paused                                                          ",
+          "style": "selected"
+        },
+        {
+          "text": "Tick    State           Event / register changes                                                              ",
+          "style": "dim"
+        },
+        {
+          "text": "     0  send            PULL loads OSR; OUT presents bit 0. | data: —→0x01 · clock: —→0x00 · ack: —→0x00 · sa…",
+          "style": ""
+        },
+        {
+          "text": "     1  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "›    2  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x00→0x01 · decoded: 0x00→0x…",
+          "style": "selected"
+        },
+        {
+          "text": "     3  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "     4  send            Loop branch, OUT and low CLK phase. | clock: 0x01→0x00 · bitIndex: 0x00→0x01 · line: …",
+          "style": ""
+        },
+        {
+          "text": "     5  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "     6  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x01→0x02 · decoded: 0x01→0x…",
+          "style": ""
+        },
+        {
+          "text": "     7  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "     8  send            Loop branch, OUT and low CLK phase. | data: 0x01→0x00 · clock: 0x01→0x00 · bitIndex: …",
+          "style": ""
+        },
+        {
+          "text": "     9  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    10  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x02→0x03 · line: 0x02→0x03 …",
+          "style": ""
+        },
+        {
+          "text": "    11  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    12  send            Loop branch, OUT and low CLK phase. | clock: 0x01→0x00 · bitIndex: 0x02→0x03 · line: …",
+          "style": ""
+        },
+        {
+          "text": "    13  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    14  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x03→0x04 · line: 0x02→0x03 …",
+          "style": ""
+        },
+        {
+          "text": "    15  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    16  send            Loop branch, OUT and low CLK phase. | data: 0x00→0x01 · clock: 0x01→0x00 · bitIndex: …",
+          "style": ""
+        },
+        {
+          "text": "    17  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    18  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x04→0x05 · decoded: 0x03→0x…",
+          "style": ""
+        },
+        {
+          "text": "    19  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    20  send            Loop branch, OUT and low CLK phase. | clock: 0x01→0x00 · bitIndex: 0x04→0x05 · line: …",
+          "style": ""
+        },
+        {
+          "text": "    21  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    22  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x05→0x06 · decoded: 0x13→0x…",
+          "style": ""
+        },
+        {
+          "text": "    23  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    24  send            Loop branch, OUT and low CLK phase. | data: 0x01→0x00 · clock: 0x01→0x00 · bitIndex: …",
+          "style": ""
+        },
+        {
+          "text": "    25  send            Instruction-controlled hold interval. | delay: 0x00→0x01                              ",
+          "style": ""
+        },
+        {
+          "text": "    26  send            SET / side-set raises CLK. | clock: 0x00→0x01 · samples: 0x06→0x07 · line: 0x02→0x03 …",
+          "style": ""
+        },
+        {
+          "text": "j/k choose · Enter seek/details · C changes · 36 rows · filter (none)                                         ",
+          "style": "dim"
+        },
+        {
+          "text": "                                                                                                              ",
+          "style": ""
+        },
+        {
+          "text": "─ COMMANDS ───────────────────────────────────────────────────────────────────────────────────────────────────",
+          "style": "dim"
+        },
+        {
+          "text": "Ready · ? help                                                                                                ",
+          "style": "status"
+        },
+        {
+          "text": "q quit · ? help · 1–9 views · m models · H HDL · d import · x export · c create                               ",
+          "style": "dim"
+        }
+      ]
+    }
+  ]
+}
