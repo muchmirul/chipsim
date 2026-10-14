@@ -6,15 +6,15 @@ GPIO output/enable word transactions and one static PCNT channel. No firmware, I
 
 **Datasheet**
 
-- [ESP32-C6 Series Datasheet](datasheet.pdf) — v1.5; 31 March 2026; 86 PDF pages. Document ID: `esp32-c6-datasheet`.
+- [ESP32-C6 Series Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-c6_datasheet_en.pdf) — v1.5; 31 March 2026; 86 PDF pages. Document ID: `esp32-c6-datasheet`.
 
 **Reference manual**
 
-- [ESP32-C6 Technical Reference Manual](espressif-esp32-c6-trm.pdf) — Version 1.2, 20 March 2026; 1394 PDF pages. Document ID: `esp32-c6-espressif-esp32-c6-trm`.
+- [ESP32-C6 Technical Reference Manual](https://www.espressif.com/sites/default/files/documentation/esp32-c6_technical_reference_manual_en.pdf) — Version 1.2, 20 March 2026; 1394 PDF pages. Document ID: `esp32-c6-espressif-esp32-c6-trm`.
 
 **Programming guide**
 
-- [ESP-IDF Programming Guide 5.2 ESP32-C6](esp-idf-programming-guide.pdf) — ESP-IDF v5.2; 15 February 2024; 2929 PDF pages. Document ID: `esp32-c6-esp-idf-programming-guide`.
+- [ESP-IDF Programming Guide 5.2 ESP32-C6](https://docs.espressif.com/projects/esp-idf/en/v5.2/esp32c6/esp-idf-en-v5.2-esp32c6.pdf) — ESP-IDF v5.2; 15 February 2024; 2929 PDF pages. Document ID: `esp32-c6-esp-idf-programming-guide`.
 
 ## Programming and debugging
 

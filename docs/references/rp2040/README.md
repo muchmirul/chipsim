@@ -6,15 +6,15 @@ One original semantic PIO transfer example; no custom native instruction loader 
 
 **Datasheet**
 
-- [RP2040 Datasheet](rp2040-datasheet.pdf) — Build 2025-02-20; 3184e62-clean; 642 PDF pages. Document ID: `rp2040-rp2040-datasheet`.
+- [RP2040 Datasheet](https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf) — Build 2025-02-20; 3184e62-clean; 642 PDF pages. Document ID: `rp2040-rp2040-datasheet`.
 
 **Reference manual**
 
-- [RP2040 Datasheet](rp2040-datasheet.pdf) — Build 2025-02-20; 3184e62-clean; 642 PDF pages. Document ID: `rp2040-rp2040-datasheet`.
+- [RP2040 Datasheet](https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf) — Build 2025-02-20; 3184e62-clean; 642 PDF pages. Document ID: `rp2040-rp2040-datasheet`.
 
 **Programming guide**
 
-- [Raspberry Pi Pico C/C++ SDK](pico-c-sdk.pdf) — Build 2026-09-10; ea68919-clean; 828 PDF pages. Document ID: `rp2040-pico-c-sdk`.
+- [Raspberry Pi Pico C/C++ SDK](https://datasheets.raspberrypi.com/pico/raspberry-pi-pico-c-sdk.pdf) — Build 2026-09-10; ea68919-clean; 828 PDF pages. Document ID: `rp2040-pico-c-sdk`.
 
 ## Programming and debugging
 

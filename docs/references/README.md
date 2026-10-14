@@ -1,6 +1,12 @@
 # Chip reference library
 
-PDFs are grouped by chip or family. [manifest.json](manifest.json) pins download bytes and provenance; [catalog.json](catalog.json) maps datasheet, functional reference and programming-guide roles to current models. The library contains 34 PDFs for 19 chip/family folders. A document does not imply whole-chip simulation.
+Reference metadata is grouped by chip or family. [manifest.json](manifest.json) pins download bytes and provenance; [catalog.json](catalog.json) maps datasheet, functional reference and programming-guide roles to current models. The catalog describes 34 private references for 19 chip/family folders; no PDFs are distributed. A document does not imply whole-chip simulation.
+
+These are third-party documents with publisher-specific terms. The
+[per-document licensing review](../licensing/reference-documents.json) identifies
+notice pages and unresolved redistribution decisions for every pinned PDF.
+Follow [private reference setup](../LOCAL_REFERENCES.md). Public downloads and unchanged bytes do not establish permission to mirror them;
+see [publication actions](../LICENSING.md#vendor-documents-publication-actions).
 
 | Chip / family                                          | Current simulation                                                                                                 | Native programming                                                                                   | Missing downloads                  |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ---------------------------------- |

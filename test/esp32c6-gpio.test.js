@@ -1,11 +1,12 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([]);
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { EventEmitter } from "node:events";
 import { execFileSync } from "node:child_process";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import {
   compileDocument,
   compileDocumentProfiles,
@@ -20,7 +21,8 @@ const root = new URL("../", import.meta.url).pathname;
 const path = join(root, "docs/references/esp32-c6/espressif-esp32-c6-trm.pdf");
 const documentPromise = extractPDFFile(path);
 const modelPromise = documentPromise.then(
-  (document) => compileDocument(document, { profileId: "esp32c6-gpio" }).spec,
+  (document) =>
+    document && compileDocument(document, { profileId: "esp32c6-gpio" }).spec,
 );
 const event = (tick, signal, value) => ({ tick, signal, value });
 const enter = (app) => app.key("\r", { name: "return" });

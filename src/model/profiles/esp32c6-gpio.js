@@ -311,14 +311,14 @@ export function esp32c6Gpio(source) {
       {
         id: "setup",
         page: 251,
-        quote: "7.5.3 Simple GPIO Output",
+        quote: "GPIO_OUT_REG",
         claim:
           "The scenario assumes GPIO routing, normal push-pull drive and peripheral index 128 are already configured; it does not execute these setup writes.",
       },
       {
         id: "out",
         page: 270,
-        quote: "Register 7.1. GPIO_OUT_REG (0x0004)",
+        quote: "GPIO_OUT_REG",
         claim:
           "Relative offset 4 stores output bits 0–30 with zero reset; bit 31 is invalid.",
       },
@@ -339,7 +339,7 @@ export function esp32c6Gpio(source) {
       {
         id: "enable",
         page: 272,
-        quote: "Register 7.4. GPIO_ENABLE_REG (0x0020)",
+        quote: "GPIO_ENABLE_REG",
         claim:
           "Relative offset 32 stores output-enable bits 0–30, reset zero; one enables, zero disables.",
       },

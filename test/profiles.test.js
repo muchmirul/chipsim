@@ -1,5 +1,6 @@
 import { modelsForDocument } from "../src/documents/recognize.js";
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([]);
 import assert from "node:assert/strict";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -9,7 +10,7 @@ import {
   profileForDocument,
   documentProfiles,
 } from "../src/model/profiles/index.js";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { simulateModel } from "../src/model/engine.js";
 import { TuiState } from "../src/tui/state.js";
 const manualPath = new URL(
@@ -18,7 +19,7 @@ const manualPath = new URL(
 ).pathname;
 const documentPromise = extractPDFFile(manualPath);
 const modelPromise = documentPromise.then(
-  (document) => compileDocument(document).spec,
+  (document) => document && compileDocument(document).spec,
 );
 const event = (tick, signal, value) => ({ tick, signal, value });
 

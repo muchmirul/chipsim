@@ -5,6 +5,94 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-14 — Public source cleanup and private reference inputs
+
+**Context:** Publisher manuals, source-rich screenshots and prose citations
+prevented a clear public source distribution. A current-tree deletion alone
+would leave the same content in reachable Git history and old package payloads.
+**Use/behavior:** The public repo/package excludes all 34 vendor PDFs and
+extracted manual caches. Reference metadata, publisher URLs, page counts and
+fingerprints remain. `CHIPSIM_REFERENCE_ROOT` selects a private directory with
+the catalog's relative paths for guide checks, built-in source loading, agent
+context and design resources. Context reports presence separately from verified
+source identity. Example/profile citations now use short factual technical/API
+anchors on the original pages. Four original PIO screenshots replace manual-rich
+captures; the capture utility no longer imports publisher documents.
+**Limits/preservation:** Exact-source hashes, page checks, model behavior and
+independent oracles remain. No auto-download, fabricated manual, provider or
+runtime dependency is introduced. Explicit source paths and alternate roots
+remain explicit. Private originals and the user's existing checkout are kept.
+Reachable public history is rewritten; old clones must not be merged/pushed
+back. GitHub cached/unreachable views are a separate platform limitation.
+**Implementation/checks:** `src/documents/references.js` and its four clients;
+`test/references.test.js` covers absent originals, wrong fingerprints, presence
+versus verification, explicit-root precedence and invalid paths. Public tests
+mark private-original cases skipped rather than claiming source acceptance.
+`test:references` validates all private hashes before temporary ignored links,
+runs the full suite/verification and removes only its own links. Public install
+tests assert PDF/cache/workspace exclusion, source-free snapshots and truthful
+missing-reference behavior; private install acceptance uses external originals.
+
+## 2026-10-14 — License scopes, integration credits and publication findings
+
+**Context:** Preparing an open-source release required distinguishing original
+MIT code from copied HDL, GPL simulator patches, external tools and vendor PDFs.
+Existing vendor notices did not cover the full integration surface or make the
+publication blockers discoverable.
+**Use/behavior:** `docs/LICENSING.md`, root acknowledgments and the software/PDF
+inventories record primary license evidence, every current integration boundary,
+all 34 document fingerprints and notice pages. The existing MIT holder/license
+is retained and npm metadata now declares MIT for original ChipSim code. CC0 and
+CC BY-ND texts accompany the file-specific exceptions. `npm run test:licenses`
+checks inventory coverage, copied-source/PDF hashes, required notices and package
+metadata. `-- --release` reports open document/collateral/history findings with a
+nonzero exit; `npm run verify` includes only the normal inventory check.
+**Limits/preservation:** No PDF bytes, model provenance, repository history,
+visibility or publication settings are changed. The full current tree/archive
+is not cleared for redistribution: 32 PDFs lack an established general grant,
+two Raspberry Pi PDFs need scoped review, and copied excerpts/screenshots and
+publishable history need review. External tool/PDK/runtime installations are not
+a transitive distribution SBOM. A passing inventory check is not permission.
+**Implementation/checks:** `scripts/verify-licenses.mjs`, `docs/licensing/` and
+package metadata; install tests require the legal documents/texts in the archive.
+Pinned upstream files are checked independently of API license classifications.
+
+## 2026-10-14 — Observer attribution and dated upstream modification notices
+
+**Context:** GPL observer recipes retained original source headers but did not
+add prominent dated notices to each upstream file they modified.
+**Use/behavior:** Explicit observer builds now prefix edited upstream source/build
+files with a 2026-10-14 ChipSim change notice and retain their original notices.
+Observer sources/recipes carry SPDX/copyright scope; `extensions/hdl-debug/NOTICE`
+credits Stephen Williams, Tristan Gingold and their projects. The build installs
+that attribution beside the upstream GPL texts. KLayout helper/test scripts
+explicitly state MIT under upstream's independently licensed script exception.
+**Limits/preservation:** Changes are comments/notices; observation hooks and
+simulator behavior are unchanged. Binary redistribution still requires delivery
+of complete corresponding source and build scripts, not just local retention.
+No broader GHDL runtime exception is granted to new observer code.
+**Implementation/checks:** Both `apply.py` recipes, observer headers and
+`build-hdl-debug.sh`; exact hash-verified v12_0/v4.1.0 archives are used to check
+recipe application, changed-file marking and retention of original notices.
+The observer backend and packaging suites cover the existing capture interface.
+
+## 2026-10-14 — Exclude local example workspaces from source packages
+
+**Context:** The explicit `examples/` npm allowlist included ignored nested
+`.chipsim` workspaces after examples were run in place. The archive contained
+local job logs, generated RTL, static libraries and firmware binaries, outside
+the intended source/license inventory.
+**Use/behavior:** `npm pack` now applies `examples/.npmignore` to exclude nested
+`.chipsim`, `.chipsim-agent`, `node_modules`, Python bytecode and cache folders.
+Runnable example inputs remain packaged; local workspaces stay on disk.
+**Limits/preservation:** This does not omit or alter pinned vendor PDFs, clear
+their redistribution terms, delete local experiments or change Git history.
+Explicitly distributing generated runs/binaries still requires their own review.
+**Implementation/checks:** `examples/.npmignore`; `test:install` creates nested
+private-artifact sentinels plus an included sibling, checks every package path
+for excluded directory segments, then runs the installed CLI outside the repo.
+The archive dry run verifies that no generated workspace/binary payload remains.
+
 ## 2026-10-14 — Source, hardware and signals are the default HDL simulation
 
 **Context:** A normal HDL simulation opened only timestamp waveforms, hiding

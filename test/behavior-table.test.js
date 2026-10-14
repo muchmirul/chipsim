@@ -1,10 +1,17 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([
+  "developer-entered FSM covers prior outputs, reports exact rows, and uses independently checked reset/enable/hold behavior across all five-step sequences",
+  "held columns, output bit ordering, boundary tables, and agreeing overlaps remain explicit",
+  "missing coverage, contradictory retained states, implicit priority, ambiguous identifiers, unsupported syntax, and oversized domains reject authoring",
+  "bounded local rule-file loading preserves rows and does not execute imported text",
+  "TUI creation retries invalid rule/source prompts, preserves the working model until success, and persists portable experiments with readable state/rule provenance",
+]);
 import assert from "node:assert/strict";
 import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { EventEmitter } from "node:events";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { buildBehaviorTable } from "../src/model/behavior-table/build.js";
 import { readBehaviorTable } from "../src/model/behavior-table/read.js";
 import { simulateModel } from "../src/model/engine.js";
@@ -92,7 +99,8 @@ test("developer-entered FSM covers prior outputs, reports exact rows, and uses i
 
 test("an original NAND datasheet backs manually entered rows without treating them as automatically extracted rules", async () => {
   const document = await extractPDFFile(
-    new URL("../docs/references/74hc00/nexperia-74hc00.pdf", import.meta.url).pathname,
+    new URL("../docs/references/74hc00/nexperia-74hc00.pdf", import.meta.url)
+      .pathname,
   );
   const { spec, checks } = buildBehaviorTable(document, {
     name: "Reviewed single NAND table",
@@ -104,7 +112,7 @@ test("an original NAND datasheet backs manually entered rows without treating th
       "utf8",
     ),
     page: 3,
-    quote: "Quad 2-input NAND gate",
+    quote: "74HC00; 74HCT00",
     claim:
       "The page identifies NAND logic; entered rows correspond to the manually reviewed function table on this page.",
     assumptions:
@@ -131,8 +139,10 @@ test("an original NAND datasheet backs manually entered rows without treating th
 
 test("explicit clock-history states model rising capture and retain through held/falling clocks, independently of pin names", async () => {
   const document = await extractPDFFile(
-      new URL("../docs/references/sn74ahc273-q1/ti-sn74ahc273-q1.pdf", import.meta.url)
-        .pathname,
+      new URL(
+        "../docs/references/sn74ahc273-q1/ti-sn74ahc273-q1.pdf",
+        import.meta.url,
+      ).pathname,
     ),
     rules = await readFile(
       new URL("../examples/flip-flop.rules.txt", import.meta.url),

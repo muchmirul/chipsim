@@ -1,10 +1,11 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([]);
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { EventEmitter } from "node:events";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { hasTableLayout } from "../src/documents/layout.js";
 import { analyzeDocument } from "../src/model/from-document.js";
 import { instancesFor } from "../src/model/tables/pins.js";
@@ -13,8 +14,10 @@ import { buildScenario } from "../src/model/templates.js";
 import { TuiState } from "../src/tui/state.js";
 import { TerminalApp } from "../src/tui/app.js";
 import { screenText, render, displayWidth } from "../src/tui/render.js";
-const path = new URL("../docs/references/74hc157/nexperia-74hc157.pdf", import.meta.url)
-  .pathname;
+const path = new URL(
+  "../docs/references/74hc157/nexperia-74hc157.pdf",
+  import.meta.url,
+).pathname;
 const document = extractPDFFile(path);
 async function setup(t) {
   const workspace = await mkdtemp(join(tmpdir(), "chipsim-shared-pins-"));

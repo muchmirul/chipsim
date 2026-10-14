@@ -6,15 +6,15 @@ One-bank completed-byte GPIO/interrupt model; no physical I2C serialization.
 
 **Datasheet**
 
-- [TCA9534 Low Voltage 8-Bit I2C and SMBUS Low-Power I/O Expander with Interrupt Output and Configuration Registers](ti-tca9534.pdf) — SCPS197D, revised October 2017; complete official download with 2026 notices/package addendum; 42 PDF pages. Document ID: `tca9534-ti-tca9534`.
+- [TCA9534 Low Voltage 8-Bit I2C and SMBUS Low-Power I/O Expander with Interrupt Output and Configuration Registers](https://www.ti.com/lit/ds/symlink/tca9534.pdf) — SCPS197D, revised October 2017; complete official download with 2026 notices/package addendum; 42 PDF pages. Document ID: `tca9534-ti-tca9534`.
 
 **Reference manual**
 
-- [TCA9534 Low Voltage 8-Bit I2C and SMBUS Low-Power I/O Expander with Interrupt Output and Configuration Registers](ti-tca9534.pdf) — SCPS197D, revised October 2017; complete official download with 2026 notices/package addendum; 42 PDF pages. Document ID: `tca9534-ti-tca9534`.
+- [TCA9534 Low Voltage 8-Bit I2C and SMBUS Low-Power I/O Expander with Interrupt Output and Configuration Registers](https://www.ti.com/lit/ds/symlink/tca9534.pdf) — SCPS197D, revised October 2017; complete official download with 2026 notices/package addendum; 42 PDF pages. Document ID: `tca9534-ti-tca9534`.
 
 **Programming guide**
 
-- [TCA9534 Low Voltage 8-Bit I2C and SMBUS Low-Power I/O Expander with Interrupt Output and Configuration Registers](ti-tca9534.pdf) — SCPS197D, revised October 2017; complete official download with 2026 notices/package addendum; 42 PDF pages. Document ID: `tca9534-ti-tca9534`.
+- [TCA9534 Low Voltage 8-Bit I2C and SMBUS Low-Power I/O Expander with Interrupt Output and Configuration Registers](https://www.ti.com/lit/ds/symlink/tca9534.pdf) — SCPS197D, revised October 2017; complete official download with 2026 notices/package addendum; 42 PDF pages. Document ID: `tca9534-ti-tca9534`.
 
 ## Programming and debugging
 

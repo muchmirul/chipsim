@@ -6,15 +6,15 @@ Data-derived supported function-table model; consult the generated model for ins
 
 **Datasheet**
 
-- [74HC377; 74HCT377 product data sheet](nexperia-74hc377.pdf) — Rev. 6, 5 August 2024; 15 PDF pages. Document ID: `74hc377-nexperia-74hc377`.
+- [74HC377; 74HCT377 product data sheet](https://assets.nexperia.com/documents/data-sheet/74HC_HCT377.pdf) — Rev. 6, 5 August 2024; 15 PDF pages. Document ID: `74hc377-nexperia-74hc377`.
 
 **Reference manual**
 
-- [74HC377; 74HCT377 product data sheet](nexperia-74hc377.pdf) — Rev. 6, 5 August 2024; 15 PDF pages. Document ID: `74hc377-nexperia-74hc377`.
+- [74HC377; 74HCT377 product data sheet](https://assets.nexperia.com/documents/data-sheet/74HC_HCT377.pdf) — Rev. 6, 5 August 2024; 15 PDF pages. Document ID: `74hc377-nexperia-74hc377`.
 
 **Programming guide**
 
-- [74HC377; 74HCT377 product data sheet](nexperia-74hc377.pdf) — Rev. 6, 5 August 2024; 15 PDF pages. Document ID: `74hc377-nexperia-74hc377`.
+- [74HC377; 74HCT377 product data sheet](https://assets.nexperia.com/documents/data-sheet/74HC_HCT377.pdf) — Rev. 6, 5 August 2024; 15 PDF pages. Document ID: `74hc377-nexperia-74hc377`.
 
 ## Programming and debugging
 

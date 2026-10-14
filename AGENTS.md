@@ -4,6 +4,14 @@ ChipSim is a local TUI hardware behavior workbench. The terminal is the only int
 
 ## Read first
 
+- `docs/LOCAL_REFERENCES.md`: public checkouts contain metadata, not vendor PDFs.
+  Keep publisher originals outside the public tree, use CHIPSIM_REFERENCE_ROOT,
+  preserve their bytes/hashes, and use the explicit private acceptance runner.
+
+- `docs/LICENSING.md`: original MIT scope, copied-source exceptions, external
+  integration licenses, vendor-document review and unresolved publication
+  findings. Preserve exact source bytes/notices and maintain acknowledgments.
+
 - `README.md`: user workflow, setup, and current limits.
 - `docs/DESIGN_INPUTS.md`: optional chip-development input recipes and missing-file preparation. Use `chipsim design guide [TOPIC]` to discover formats, minimum files and installed examples. Inspect existing work, then create/find/prepare missing prerequisites within the user's scope; generated outputs need producers, not mandatory user uploads. `.asm` needs an explicit compatible assembler task; VCD is a recorded result. These recipes are advisory and do not impose stage ordering.
 - `docs/AGENT_WORKFLOW.md`: installable headless commands, source verification, and coding-agent compatibility.
@@ -37,7 +45,7 @@ npm test
 npm run verify
 ```
 
-`npm start` and `npm run dev` launch the TUI. The default verification checks all engine/builder/terminal unit tests, real PTY interaction, and pinned vendor sources and reviewed document profiles. PDF import requires Poppler's `pdfinfo` and `pdftotext`; the PTY test requires Python 3 on POSIX.
+`npm start` and `npm run dev` launch the TUI. The default verification checks the source-free engine/builder/terminal tests and real PTY interaction. Source-backed cases are explicitly skipped without private originals; use the private acceptance runner to verify pinned vendor sources and reviewed document profiles. PDF import requires Poppler's `pdfinfo` and `pdftotext`; the PTY test requires Python 3 on POSIX.
 
 For terminal changes, inspect the affected view at 80×24 and 120×40, and run `npm run test:tui`. Run `npm run test:install` for CLI/packaging changes. `npm run verify` covers the TUI-only architecture boundary as well as engine, source and terminal behavior. Keep parameters, stimulus, source verification, and export formats shared between terminal and headless commands.
 

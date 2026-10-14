@@ -1,4 +1,7 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([
+  "reviewed GPIO core requires explicit complete addresses, names and writable defaults",
+]);
 import assert from "node:assert/strict";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -9,7 +12,7 @@ import {
   profileForDocument,
 } from "../src/model/profiles/index.js";
 import { gpioRegisterCore } from "../src/model/registers/gpio-expander.js";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { simulateModel } from "../src/model/engine.js";
 import { validateModel } from "../src/model/validate.js";
 import { TuiState } from "../src/tui/state.js";
@@ -17,11 +20,13 @@ import { TerminalApp } from "../src/tui/app.js";
 import { render, displayWidth } from "../src/tui/render.js";
 import { exportVCD } from "../src/trace/export.js";
 
-const path = new URL("../docs/references/tca9534/ti-tca9534.pdf", import.meta.url)
-  .pathname;
+const path = new URL(
+  "../docs/references/tca9534/ti-tca9534.pdf",
+  import.meta.url,
+).pathname;
 const documentPromise = extractPDFFile(path);
 const modelPromise = documentPromise.then(
-  (document) => compileDocument(document).spec,
+  (document) => document && compileDocument(document).spec,
 );
 const event = (tick, signal, value) => ({ tick, signal, value });
 const access = (tick, address, write, value, request) => [

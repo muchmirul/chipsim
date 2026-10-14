@@ -1,4 +1,13 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([
+  "TUI preserves values and cursor while changing display, and vi edge jumps are strict",
+  "all TUI views fit normal and compact terminal frames",
+  "keyboard parameter editor accepts octal, handles errors, and preserves prior configuration",
+  "TUI model workspace persists sourced models and restores shared sessions",
+  "VCD preserves an unarmed register as unknown until its value exists",
+  "snapshot CLI works without a TTY and rejects an invalid cursor",
+  "terminal cell sizing handles wide source text, combining marks, and tiny windows",
+]);
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";

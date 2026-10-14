@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: CC0-1.0
 `timescale 1ns/1ps
 // Original ChipSim example, CC0-1.0. One transfer increments the counter.
 module transfer_counter #(parameter FAULT = 0)(

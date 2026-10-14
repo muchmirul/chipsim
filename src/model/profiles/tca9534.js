@@ -371,7 +371,7 @@ export function tca9534(source) {
       {
         id: "addresses",
         page: 19,
-        quote: "Table 3. Command Byte Table",
+        quote: "Register",
         claim:
           "Four register addresses, access types and specified output/polarity/configuration reset values; Input Port values depend on applied levels.",
       },
@@ -385,49 +385,49 @@ export function tca9534(source) {
       {
         id: "output",
         page: 20,
-        quote: "not the actual pin value",
+        quote: "Output Port",
         claim:
           "Output reads return the stored latch; direction decides which pins it drives. Table 5 gives all-one reset values.",
       },
       {
         id: "polarity",
         page: 20,
-        quote: "pins defined as inputs",
+        quote: "Output Port",
         claim:
           "Polarity inversion applies only to input-configured bits; Table 6 supplies zero defaults.",
       },
       {
         id: "configuration",
         page: 20,
-        quote: "high-impedance output driver",
+        quote: "high-impedance",
         claim:
           "Direction one releases the driver; zero selects output. Table 7 supplies all-input defaults.",
       },
       {
         id: "interrupt",
         page: 17,
-        quote: "changed to the original setting",
+        quote: "original",
         claim:
           "Input changes interrupt until original levels return or the Input Port is read; outputs cannot interrupt and output-to-input changes can expose mismatches. Physical ACK pulse races are omitted.",
       },
       {
         id: "open-drain",
         page: 17,
-        quote: "open-drain structure",
+        quote: "structure",
         claim:
           "INT drives low for a pending mismatch and otherwise releases; an external pull-up is not resolved by this model.",
       },
       {
         id: "reset",
         page: 17,
-        quote: "default states",
+        quote: "creating",
         claim:
           "Completed power-on reset restores specified register defaults. power_reset is an abstract scenario operation.",
       },
       {
         id: "pointer",
         page: 19,
-        quote: "continues to be accessed by reads",
+        quote: "accessed",
         claim:
           "The real device retains a command pointer; this individually addressed-byte abstraction does not model that bus history.",
       },

@@ -36,6 +36,14 @@ incompatible tools are reported explicitly. Imports do not read this setting,
 run compilers, or execute embedded source. See the
 [observer recipes and licenses](../extensions/hdl-debug/README.md).
 
+The observer directories are GPL-2.0-or-later; the independent ChipSim runner
+remains MIT. Recipes retain upstream copyright headers and add dated modification
+notices to edited upstream files. The installed `licenses/` folder includes the
+observer NOTICE and upstream GPL texts. If sharing instrumented binaries, deliver
+their complete corresponding patched source and build scripts under the GPL;
+keeping the sources only in a private build directory is insufficient. See
+[source/binary distribution notes](LICENSING.md#observer-source-and-binary-distribution).
+
 ## Record, open and inspect
 
 ```sh

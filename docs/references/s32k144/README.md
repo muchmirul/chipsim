@@ -6,20 +6,20 @@ Shifter/timer teaching scenario; arbitrary FlexIO register configurations are no
 
 **Datasheet**
 
-- [S32K1xx Data Sheet](datasheet.pdf) — Rev. 15; 5 March 2026; 108 PDF pages. Document ID: `s32k144-datasheet`.
+- [S32K1xx Data Sheet](https://cache.nxp.com/docs/en/data-sheet/S32K1xx.pdf) — Rev. 15; 5 March 2026; 108 PDF pages. Document ID: `s32k144-datasheet`.
 
 **Reference manual**
 
-- [S32K1xx Series Reference Manual](reference-manual-rev13.pdf) — S32K1XXRM Rev. 13; April 2020 (archived vendor-community copy); 2179 PDF pages. Document ID: `s32k144-reference-manual`.
+- [S32K1xx Series Reference Manual](https://community.nxp.com/pwmxy87654/attachments/pwmxy87654/S32K/32215/1/S32K-RM.pdf) — S32K1XXRM Rev. 13; April 2020 (archived vendor-community copy); 2179 PDF pages. Document ID: `s32k144-reference-manual`.
   Public archive on NXP Community. Rev. 14.2 is listed as account-required by the current NXP product page. No new behavior is compiled from this revision.
 
 **Programming guide**
 
-- [Using FlexIO to emulate communications and timing peripherals](nxp-flexio-an12174.pdf) — AN12174, Rev. 0, June 2018; 46 PDF pages. Document ID: `s32k144-nxp-flexio-an12174`.
+- [Using FlexIO to emulate communications and timing peripherals](https://www.nxp.com/docs/en/application-note/AN12174.pdf) — AN12174, Rev. 0, June 2018; 46 PDF pages. Document ID: `s32k144-nxp-flexio-an12174`.
 
 **Application notes**
 
-- [Using FlexIO to emulate communications and timing peripherals](nxp-flexio-an12174.pdf) — AN12174, Rev. 0, June 2018; 46 PDF pages. Document ID: `s32k144-nxp-flexio-an12174`.
+- [Using FlexIO to emulate communications and timing peripherals](https://www.nxp.com/docs/en/application-note/AN12174.pdf) — AN12174, Rev. 0, June 2018; 46 PDF pages. Document ID: `s32k144-nxp-flexio-an12174`.
 
 ## Programming and debugging
 

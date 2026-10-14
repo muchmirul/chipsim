@@ -9,3 +9,8 @@ node_modules/
 .chipsim/
 .chipsim-agent/
 *.tgz
+
+# Publisher documents and extracted text stay in a private reference store.
+docs/references/**/*.pdf
+docs/references/**/*.sources.json
+docs/references/**/*.txt

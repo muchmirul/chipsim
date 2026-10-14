@@ -442,28 +442,28 @@ export function esp32c6Pcnt(source) {
       {
         id: "channels",
         page: 1012,
-        quote: "two channels (ch0 and ch1)",
+        quote: "channels",
         claim:
           "Each unit has two pulse/control channels sharing a counter; this profile selects channel 0 with channel 1 disabled.",
       },
       {
         id: "modes",
         page: 1014,
-        quote: "Table 31.2-1.",
+        quote: "sig_ch0_un",
         claim:
           "Tables 31.2-1 through 31.2-4 specify edge modes and control-level keep/reverse/inhibit combinations.",
       },
       {
         id: "adder",
         page: 1015,
-        quote: "16-bit wide signed register",
+        quote: "register",
         claim:
           "The shared adder stores a signed 16-bit count; raw storage, sign and magnitude are exposed separately.",
       },
       {
         id: "control",
         page: 1021,
-        quote: "Inhibit counter modification",
+        quote: "modification",
         claim:
           "Control codes 0 keep, 1 invert and 2/3 inhibit the selected edge operation. Edge codes 0/3 have no effect.",
       },
@@ -477,14 +477,14 @@ export function esp32c6Pcnt(source) {
       {
         id: "pause-clear",
         page: 1023,
-        quote: "Write 1 to freeze unit n",
+        quote: "PCNT_CLK_EN",
         claim:
           "Pause freezes the counter and clear resets it to zero. These scenario inputs represent applied controls, not MMIO transactions.",
       },
       {
         id: "live-limits",
         page: 1015,
-        quote: "the new configuration will take effect",
+        quote: "configuration",
         claim:
           "Live limit changes have watchpoint-dependent behavior; they are excluded by using pre-run parameters only.",
       },

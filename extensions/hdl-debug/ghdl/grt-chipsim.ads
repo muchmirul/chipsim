@@ -1,3 +1,6 @@
+-- SPDX-License-Identifier: GPL-2.0-or-later
+-- Copyright (c) 2026 Muchmirul Yusa Setiaji
+-- See ../COPYING and ../NOTICE for license and upstream attribution.
 --  ChipSim observer for GHDL 4.1.0 (mcode). GPL-2.0-or-later.
 --  Read-only hooks: no scheduled callbacks, deposits, forces or HDL rewrites.
 with Grt.Signals; use Grt.Signals;

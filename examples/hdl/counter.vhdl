@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: CC0-1.0
 -- Original ChipSim example, CC0-1.0. One transfer increments the counter.
 library ieee;
 use ieee.std_logic_1164.all;

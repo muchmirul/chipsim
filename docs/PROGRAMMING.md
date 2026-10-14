@@ -19,7 +19,7 @@ The same language works across model types because it describes experiments rath
 Import the exact ESP32-C6 TRM and the reviewed GPIO profile, then load the supplied program:
 
 ```sh
-chipsim --document docs/references/esp32-c6/espressif-esp32-c6-trm.pdf \
+chipsim --document "$CHIPSIM_REFERENCE_ROOT/docs/references/esp32-c6/espressif-esp32-c6-trm.pdf" \
   --model esp32c6-gpio --program examples/esp32c6-gpio.chip
 ```
 
@@ -99,7 +99,7 @@ For a prepared project using another manual, `guide manual PAGE "quote"` explici
 Prepare the project once, then author a source file and run:
 
 ```sh
-chipsim agent prepare docs/references/esp32-c6/espressif-esp32-c6-trm.pdf --out chip-work
+chipsim agent prepare "$CHIPSIM_REFERENCE_ROOT/docs/references/esp32-c6/espressif-esp32-c6-trm.pdf" --out chip-work
 chipsim agent program-check examples/esp32c6-gpio.chip \
   --model chip-work/models/esp32c6-gpio.model.json --project chip-work
 chipsim agent program-run examples/esp32c6-gpio.chip \

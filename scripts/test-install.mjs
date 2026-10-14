@@ -11,7 +11,29 @@ import { pathToFileURL } from "node:url";
 const run = promisify(execFile);
 const root = new URL("../", import.meta.url).pathname;
 const temporary = await mkdtemp(join(tmpdir(), "chipsim-install-"));
+const packageFixture = await mkdtemp(
+  join(root, "examples", "package-contents-test-"),
+);
 try {
+  // Prove nested ignore rules apply beneath the explicit examples/ allowlist.
+  // A normal sibling must be included, so exclusion cannot pass by skipping
+  // the fixture's entire parent directory.
+  await writeFile(
+    join(packageFixture, "source-marker.txt"),
+    "packaging fixture\n",
+  );
+  for (const name of [
+    ".chipsim",
+    ".chipsim-agent",
+    "node_modules",
+    "__pycache__",
+  ]) {
+    await mkdir(join(packageFixture, "nested", name), { recursive: true });
+    await writeFile(
+      join(packageFixture, "nested", name, "private-artifact.bin"),
+      "not distributable\n",
+    );
+  }
   const prefix = join(temporary, "installed"),
     cwd = join(temporary, "external project");
   await mkdir(cwd);
@@ -21,7 +43,29 @@ try {
     { cwd: root, maxBuffer: 8 * 1048576 },
   );
   const [pack] = JSON.parse(packed.stdout);
+  assert.ok(
+    !pack.files.some((file) => /\.pdf$/i.test(file.path)),
+    "Vendor PDFs must never be packaged",
+  );
+  assert.ok(
+    !pack.files.some((file) => /\.sources\.json$/i.test(file.path)),
+    "Extracted manuals must never be packaged",
+  );
+  assert.ok(
+    pack.files.some((file) => file.path.endsWith("/source-marker.txt")),
+  );
   for (const path of [
+    "LICENSE",
+    "ACKNOWLEDGMENTS.md",
+    "THIRD_PARTY_NOTICES.md",
+    "LICENSES/CC0-1.0.txt",
+    "LICENSES/CC-BY-ND-4.0.txt",
+    "docs/LICENSING.md",
+    "docs/licensing/software.json",
+    "docs/licensing/reference-documents.json",
+    "docs/licensing/release-findings.json",
+    "extensions/hdl-debug/NOTICE",
+    "scripts/verify-licenses.mjs",
     "src/agent/commands.js",
     "extensions/chipsim.ts",
     "src/integrations/extension.js",
@@ -86,7 +130,6 @@ try {
     "examples/programs/tca9534-output.chip",
     "examples/programs/hc00-nand.chip",
     "AGENTS.md",
-    "docs/references/esp32-c6/espressif-esp32-c6-trm.pdf",
   ])
     assert.ok(
       pack.files.some((file) => file.path === path),
@@ -94,7 +137,9 @@ try {
     );
   assert.ok(
     !pack.files.some((file) =>
-      /^(?:node_modules|\.chipsim|tmp|test-results|\.git)\//.test(file.path),
+      /(?:^|\/)(?:node_modules|\.chipsim|\.chipsim-agent|__pycache__|tmp|test-results|\.git)\//.test(
+        file.path,
+      ),
     ),
   );
   assert.ok(
@@ -383,155 +428,158 @@ try {
   assert.equal(chipContext.decision.nativeExecution.available, false);
   assert.ok(chipContext.models.some((model) => model.id === "esp32c6-gpio"));
   for (const document of chipContext.documents) {
-    assert.ok(document.path.startsWith(installed + "/"));
-    assert.equal(
-      (await readFile(document.path)).subarray(0, 5).toString(),
-      "%PDF-",
-    );
+    assert.match(document.sourceUrl, /^https:\/\//);
+    assert.equal(typeof document.available, "boolean");
+    assert.ok(document.path.endsWith(".pdf"));
   }
-  const pioContext = (await cli(["context", "pio"])).programmingContext;
-  const pioExample = pioContext.examples.find(
-    (example) => example.modelId === "pio",
-  );
-  assert.ok(pioExample.path.startsWith(installed + "/"));
-  await cli(["program-check", pioExample.path, "--model", "pio"]);
-  const programmed = await cli([
-    "program-run",
-    pioExample.path,
-    "--model",
-    "pio",
-    "--out",
-    join(cwd, "programmed pio"),
-  ]);
-  const debug = JSON.parse(
-    await readFile(programmed.artifacts["debug.json"], "utf8"),
-  );
-  assert.equal(debug.status, "halted");
-  const programmedTrace = JSON.parse(
-    await readFile(programmed.artifacts["trace.json"], "utf8"),
-  );
-  assert.equal(programmedTrace.trace.at(-1).registers.decoded, 179);
-  const project = join(cwd, "agent work");
-  const prepared = await cli([
-    "prepare",
-    join(installed, "docs/references/74hc00/nexperia-74hc00.pdf"),
-    "--out",
-    project,
-  ]);
-  assert.ok(prepared.models.length);
-  const projectContext = (await cli(["context", project])).programmingContext;
-  assert.equal(projectContext.chips[0].id, "74hc00");
-  assert.ok(projectContext.models.length);
-  assert.match(
-    await readFile(join(project, "AGENTS.md"), "utf8"),
-    /PROGRAMMING_CONTEXT/,
-  );
-  assert.match(
-    await readFile(join(project, "AGENTS.md"), "utf8"),
-    /docs\/CHANGELOG\.md/,
-  );
-  assert.match(
-    await readFile(join(project, "AGENTS.md"), "utf8"),
-    /only\s+interactive frontend is the TUI/,
-  );
-  for (const file of [
-    "CHANGELOG.md",
-    "TUI.md",
-    "DEVELOPMENT.md",
-    "VISUALIZATION.md",
-    "DESIGN_INPUTS.md",
-  ])
+  const hasPrivateReferences = !!process.env.CHIPSIM_REFERENCE_ROOT;
+  if (hasPrivateReferences) {
+    const pioContext = (await cli(["context", "pio"])).programmingContext;
+    const pioExample = pioContext.examples.find(
+      (example) => example.modelId === "pio",
+    );
+    assert.ok(pioExample.path.startsWith(installed + "/"));
+    await cli(["program-check", pioExample.path, "--model", "pio"]);
+    const programmed = await cli([
+      "program-run",
+      pioExample.path,
+      "--model",
+      "pio",
+      "--out",
+      join(cwd, "programmed pio"),
+    ]);
+    const debug = JSON.parse(
+      await readFile(programmed.artifacts["debug.json"], "utf8"),
+    );
+    assert.equal(debug.status, "halted");
+    const programmedTrace = JSON.parse(
+      await readFile(programmed.artifacts["trace.json"], "utf8"),
+    );
+    assert.equal(programmedTrace.trace.at(-1).registers.decoded, 179);
+    const project = join(cwd, "agent work");
+    const prepared = await cli([
+      "prepare",
+      join(
+        process.env.CHIPSIM_REFERENCE_ROOT,
+        "docs/references/74hc00/nexperia-74hc00.pdf",
+      ),
+      "--out",
+      project,
+    ]);
+    assert.ok(prepared.models.length);
+    const projectContext = (await cli(["context", project])).programmingContext;
+    assert.equal(projectContext.chips[0].id, "74hc00");
+    assert.ok(projectContext.models.length);
+    assert.match(
+      await readFile(join(project, "AGENTS.md"), "utf8"),
+      /PROGRAMMING_CONTEXT/,
+    );
+    assert.match(
+      await readFile(join(project, "AGENTS.md"), "utf8"),
+      /docs\/CHANGELOG\.md/,
+    );
+    assert.match(
+      await readFile(join(project, "AGENTS.md"), "utf8"),
+      /only\s+interactive frontend is the TUI/,
+    );
+    for (const file of [
+      "CHANGELOG.md",
+      "TUI.md",
+      "DEVELOPMENT.md",
+      "VISUALIZATION.md",
+      "DESIGN_INPUTS.md",
+    ])
+      assert.equal(
+        await readFile(join(project, "docs", file), "utf8"),
+        await readFile(join(installed, "docs", file), "utf8"),
+      );
     assert.equal(
-      await readFile(join(project, "docs", file), "utf8"),
-      await readFile(join(installed, "docs", file), "utf8"),
+      JSON.parse(
+        await readFile(join(project, "programming-context.json"), "utf8"),
+      ).format,
+      "chipsim-programming-context",
     );
-  assert.equal(
-    JSON.parse(
-      await readFile(join(project, "programming-context.json"), "utf8"),
-    ).format,
-    "chipsim-programming-context",
-  );
-  const model = join(project, prepared.models[0].file);
-  const logicExample = projectContext.examples[0];
-  assert.equal(logicExample.id, "hc00-nand");
-  const logicProgram = await cli([
-    "program-run",
-    logicExample.path,
-    "--model",
-    model,
-    "--project",
-    project,
-    "--out",
-    join(cwd, "programmed nand"),
-  ]);
-  const logicTrace = JSON.parse(
-    await readFile(logicProgram.artifacts["trace.json"], "utf8"),
-  );
-  assert.deepEqual(
-    logicTrace.trace.map(({ signals }) => signals.pin_1y),
-    [1, 1, 0, 1, 1],
-  );
-  await cli(["search", project, "function"]);
-  await cli(["page", project, "1"]);
-  await cli([
-    "note",
-    project,
-    "Reviewing this experiment from an installed agent tool",
-  ]);
-  await cli(["check", model, "--project", project]);
-  const result = await cli([
-    "run",
-    model,
-    "--project",
-    project,
-    "--out",
-    join(cwd, "experiment"),
-  ]);
-  assert.ok(
-    (await cli(["activity", project])).events.some(
-      (event) => event.command === "run" && event.status === "succeeded",
-    ),
-  );
-  for (const [columns, rows] of [
-    [80, 24],
-    [120, 40],
-  ]) {
-    const frame = await run(
-      binary,
-      [
-        ...result.tui.slice(1),
-        "--snapshot",
-        "--columns",
-        String(columns),
-        "--rows",
-        String(rows),
-      ],
-      { cwd, maxBuffer: 1048576 },
+    const model = join(project, prepared.models[0].file);
+    const logicExample = projectContext.examples[0];
+    assert.equal(logicExample.id, "hc00-nand");
+    const logicProgram = await cli([
+      "program-run",
+      logicExample.path,
+      "--model",
+      model,
+      "--project",
+      project,
+      "--out",
+      join(cwd, "programmed nand"),
+    ]);
+    const logicTrace = JSON.parse(
+      await readFile(logicProgram.artifacts["trace.json"], "utf8"),
     );
-    assert.match(frame.stdout, /CHIPSIM/);
-    assert.match(frame.stdout, /HC00/i);
-    assert.equal(frame.stderr, "");
-    const monitored = await run(
-      binary,
-      [
-        "--watch",
-        project,
-        "--view",
-        "activity",
-        "--snapshot",
-        "--columns",
-        String(columns),
-        "--rows",
-        String(rows),
-      ],
-      { cwd, maxBuffer: 1048576 },
+    assert.deepEqual(
+      logicTrace.trace.map(({ signals }) => signals.pin_1y),
+      [1, 1, 0, 1, 1],
     );
-    assert.match(monitored.stdout, /Agent activity/);
-    assert.match(monitored.stdout, /WATCH LIVE/);
-    assert.match(monitored.stdout, /HC00/i);
-    assert.equal(monitored.stderr, "");
-  }
-  const python = `import json, subprocess, sys
+    await cli(["search", project, "function"]);
+    await cli(["page", project, "1"]);
+    await cli([
+      "note",
+      project,
+      "Reviewing this experiment from an installed agent tool",
+    ]);
+    await cli(["check", model, "--project", project]);
+    const result = await cli([
+      "run",
+      model,
+      "--project",
+      project,
+      "--out",
+      join(cwd, "experiment"),
+    ]);
+    assert.ok(
+      (await cli(["activity", project])).events.some(
+        (event) => event.command === "run" && event.status === "succeeded",
+      ),
+    );
+    for (const [columns, rows] of [
+      [80, 24],
+      [120, 40],
+    ]) {
+      const frame = await run(
+        binary,
+        [
+          ...result.tui.slice(1),
+          "--snapshot",
+          "--columns",
+          String(columns),
+          "--rows",
+          String(rows),
+        ],
+        { cwd, maxBuffer: 1048576 },
+      );
+      assert.match(frame.stdout, /CHIPSIM/);
+      assert.match(frame.stdout, /HC00/i);
+      assert.equal(frame.stderr, "");
+      const monitored = await run(
+        binary,
+        [
+          "--watch",
+          project,
+          "--view",
+          "activity",
+          "--snapshot",
+          "--columns",
+          String(columns),
+          "--rows",
+          String(rows),
+        ],
+        { cwd, maxBuffer: 1048576 },
+      );
+      assert.match(monitored.stdout, /Agent activity/);
+      assert.match(monitored.stdout, /WATCH LIVE/);
+      assert.match(monitored.stdout, /HC00/i);
+      assert.equal(monitored.stderr, "");
+    }
+    const python = `import json, subprocess, sys
 binary, model, project = sys.argv[1:]
 for args, expected in [(["check", model, "--project", project], 0), (["check", model], 2)]:
     result = subprocess.run([binary, "agent", *args], capture_output=True, text=True, check=False)
@@ -541,15 +589,29 @@ for args, expected in [(["check", model, "--project", project], 0), (["check", m
     assert result.stderr == "", result.stderr
 print("Python subprocess: success and structured error verified")
 `;
-  const pythonResult = await run(
-    "python3",
-    ["-c", python, binary, model, project],
-    { cwd },
-  );
-  process.stdout.write(pythonResult.stdout);
+    const pythonResult = await run(
+      "python3",
+      ["-c", python, binary, model, project],
+      { cwd },
+    );
+    process.stdout.write(pythonResult.stdout);
+  } else {
+    console.log(
+      "Private vendor acceptance not run; set CHIPSIM_REFERENCE_ROOT for that separate gate.",
+    );
+    await assert.rejects(
+      cli([
+        "program-check",
+        join(installed, "examples/programs/pio-transfer.chip"),
+        "--model",
+        "pio",
+      ]),
+    );
+  }
   console.log(
-    `Installed ${pack.filename} offline; Node/Python JSON commands, real PDF/model/run, agent activity/watch and 80×24/120×40 TUI snapshots passed outside checkout.`,
+    `Installed ${pack.filename} offline; Node/Python JSON commands, source-free discovery/snapshots/HDL and package exclusions passed outside checkout; vendor acceptance ${hasPrivateReferences ? "passed with private originals" : "not run"}.`,
   );
 } finally {
+  await rm(packageFixture, { recursive: true, force: true });
   await rm(temporary, { recursive: true, force: true });
 }

@@ -6,15 +6,15 @@ Direct R30/R31 semantic transfer example; not a full PRU ISA or AM335x emulator.
 
 **Datasheet**
 
-- [AM335x Sitara Processors Datasheet](datasheet.pdf) — SPRS717L; revised March 2020; 264 PDF pages. Document ID: `am335x-datasheet`.
+- [AM335x Sitara Processors Datasheet](https://www.ti.com/lit/ds/symlink/am3358.pdf) — SPRS717L; revised March 2020; 264 PDF pages. Document ID: `am335x-datasheet`.
 
 **Reference manual**
 
-- [AM335x and AMIC110 Sitara Processors Technical Reference Manual](ti-am335x-trm-spruh73q.pdf) — SPRUH73Q; revised December 2019; 5118 PDF pages. Document ID: `am335x-ti-am335x-trm-spruh73q`.
+- [AM335x and AMIC110 Sitara Processors Technical Reference Manual](https://www.ti.com/lit/ug/spruh73q/spruh73q.pdf) — SPRUH73Q; revised December 2019; 5118 PDF pages. Document ID: `am335x-ti-am335x-trm-spruh73q`.
 
 **Programming guide**
 
-- [PRU Assembly Instruction User Guide](pru-programming-guide.pdf) — SPRUIJ2; April 2018; 50 PDF pages. Document ID: `am335x-pru-programming-guide`.
+- [PRU Assembly Instruction User Guide](https://www.ti.com/lit/ug/spruij2/spruij2.pdf) — SPRUIJ2; April 2018; 50 PDF pages. Document ID: `am335x-pru-programming-guide`.
 
 ## Programming and debugging
 

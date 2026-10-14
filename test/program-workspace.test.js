@@ -1,4 +1,5 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([]);
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -7,7 +8,7 @@ import { EventEmitter } from "node:events";
 import { TuiState } from "../src/tui/state.js";
 import { TerminalApp } from "../src/tui/app.js";
 import { render, screenText, displayWidth } from "../src/tui/render.js";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { compileDocument } from "../src/model/profiles/index.js";
 import { ProgramDebugger } from "../src/program/engine.js";
 import { parseProgram } from "../src/program/parse.js";

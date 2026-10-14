@@ -13,6 +13,7 @@ import { execute } from "./process.js";
 import { parseXunit } from "./xunit.js";
 import { physicalChecks, physicalReportFile } from "./physical.js";
 import { mcpResult } from "./mcp-result.js";
+import { referencePath } from "../documents/references.js";
 
 const native = new Set([
   "hdl",
@@ -171,7 +172,7 @@ export async function adapterResources(task, root) {
     if (!doc) throw new Error("Unknown programming guide " + id);
     return {
       path: "_chipsim_resources/" + doc.path,
-      origin: fileURLToPath(new URL("../../" + doc.path, import.meta.url)),
+      origin: referencePath(doc),
     };
   });
 }

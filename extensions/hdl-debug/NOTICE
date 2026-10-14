@@ -1,0 +1,45 @@
+ChipSim optional HDL simulator observers
+
+ChipSim observer sources and patch recipes in iverilog/ and ghdl/:
+Copyright (c) 2026 Muchmirul Yusa Setiaji
+SPDX-License-Identifier: GPL-2.0-or-later
+See COPYING for the GNU General Public License version 2.
+
+The recipes contain exact-context upstream fragments and generate modified
+upstream source files. Those fragments retain the upstream copyright and GPL
+terms. This notice supplements, and does not replace, the original notices in
+the complete pinned source archives:
+
+Icarus Verilog v12_0, Stephen Williams and contributors
+https://github.com/steveicarus/iverilog/tree/v12_0
+Affected compiler/runtime context includes:
+  tgt-vvp/vvp.c, tgt-vvp/vvp_process.c, vvp/compile.cc, vvp/schedule.cc,
+  vvp/vthread.cc: Copyright (c) 2001-2021 Stephen Williams (steve@icarus.com)
+  vvp/vthread.h, vvp/vpi_tasks.cc:
+    Copyright (c) 2001-2020 Stephen Williams (steve@icarus.com)
+The original GPL-2.0-or-later notices and build-file notices remain in the
+patched tree. See the full archive for additional contributors/components.
+
+GHDL v4.1.0, Tristan Gingold and contributors
+https://github.com/ghdl/ghdl/tree/v4.1.0
+Affected source context includes:
+  src/simul/simul-vhdl_compile.adb: Copyright (C) 2022 Tristan Gingold
+  src/vhdl/vhdl-canon.adb:
+    Copyright (C) 2002, 2003, 2004, 2005, 2008 Tristan Gingold
+  src/grt/grt-processes.adb, grt-signals.adb, grt-lib.adb, grt-main.adb:
+    Copyright (C) 2002 - 2014 Tristan Gingold
+The original GPL-2.0-or-later notices, including the special runtime linking
+exception where present, remain in the patched tree. No new claim to that
+exception is made for ChipSim's observer files.
+
+Modification notice: the recipes add read-only ChipSim observation hooks,
+process/connectivity metadata and dedicated JSONL output. On 2026-10-14 the
+recipes/source distribution received explicit SPDX/copyright/attribution
+headers and dated notices for every modified upstream file. This is not an
+unmodified upstream simulator release and does not imply upstream endorsement.
+
+Source archive URLs and SHA-256 hashes are in README.md. No simulator binaries
+or complete upstream trees are bundled in the ChipSim npm archive. Anyone
+distributing instrumented binaries must comply with the applicable GPL source
+distribution requirements for those binaries, not merely retain a private
+build directory. See ../../docs/LICENSING.md.

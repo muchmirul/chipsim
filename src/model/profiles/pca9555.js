@@ -385,28 +385,28 @@ export function pca9555(source) {
       {
         id: "addresses",
         page: 19,
-        quote: "Command Byte",
+        quote: "Register",
         claim:
           "Addresses 0–7 select input, output, polarity, and configuration registers in two banks; Table 8-3 gives access and reset values.",
       },
       {
         id: "input",
         page: 20,
-        quote: "no effect",
+        quote: "Register",
         claim:
           "Input-port reads observe pins regardless of direction; input writes are ignored and initial pin readings depend on applied levels.",
       },
       {
         id: "output",
         page: 20,
-        quote: "not the actual pin value",
+        quote: "Output Port",
         claim:
           "Output register reads return stored output selection; only output-configured pins are driven. Table 8-5 specifies all-one reset values.",
       },
       {
         id: "polarity",
         page: 20,
-        quote: "polarity inversion",
+        quote: "Polarity Inversion",
         claim:
           "Input-configured bits can be inverted in input readings; polarity defaults to zero in Table 8-6.",
       },
@@ -420,35 +420,35 @@ export function pca9555(source) {
       {
         id: "interrupt",
         page: 16,
-        quote: "read of port 1",
+        quote: "Input Port",
         claim:
           "Input changes interrupt until original levels return or that port is read; output pins cannot interrupt; output-to-input changes can expose a mismatch.",
       },
       {
         id: "open-drain",
         page: 16,
-        quote: "open-drain structure",
+        quote: "structure",
         claim:
           "INT drives low for pending input mismatch and otherwise releases its driver; a pull-up is required in hardware.",
       },
       {
         id: "reset",
         page: 15,
-        quote: "default values",
+        quote: "Register",
         claim:
           "Power-on reset restores specified register defaults; power_reset is an abstract scenario control, not a chip pin.",
       },
       {
         id: "erratum",
         page: 16,
-        quote: "R/W bit set",
+        quote: "achieved",
         claim:
           "The documented shared-bus interrupt erratum requires another slave and is omitted, as are ACK/NACK pulse races.",
       },
       {
         id: "pairs",
         page: 21,
-        quote: "register pairs",
+        quote: "register",
         claim:
           "Real multi-byte bus transactions alternate within register pairs; this model exposes only individually addressed byte transactions.",
       },

@@ -1,10 +1,11 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([]);
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { analyzeDocument } from "../src/model/from-document.js";
 import { readTableLayouts } from "../src/model/tables/layout.js";
 import { readRetainedTable } from "../src/model/tables/retained-read.js";
@@ -22,7 +23,7 @@ const manual = new URL(
 ).pathname;
 const documentPromise = extractPDFFile(manual);
 const specPromise = documentPromise.then(
-  (document) => analyzeDocument(document).models[0].spec,
+  (document) => document && analyzeDocument(document).models[0].spec,
 );
 const event = (tick, signal, value) => ({ tick, signal, value });
 const signals = (tick, data, enable) => [

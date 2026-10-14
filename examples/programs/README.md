@@ -37,7 +37,7 @@ chipsim --model pio-first/session.json --view program
 For a document model, prepare its exact functional reference and use the returned model path. For example:
 
 ```sh
-chipsim agent prepare docs/references/tca9534/ti-tca9534.pdf --out tca-work
+chipsim agent prepare "$CHIPSIM_REFERENCE_ROOT/docs/references/tca9534/ti-tca9534.pdf" --out tca-work
 chipsim agent context tca-work --model tca9534
 chipsim agent program-check examples/programs/tca9534-output.chip --model tca-work/models/tca9534.model.json --project tca-work
 chipsim agent program-run examples/programs/tca9534-output.chip --model tca-work/models/tca9534.model.json --project tca-work --out tca-work/runs/first
@@ -49,7 +49,7 @@ Every output directory must be new. In Program (`9`), `N` steps, `C` continues, 
 Function-table examples name the model generated from the exact pinned PDF revision. Prepare that PDF first; current context supplies its generated model ID, declared pins and applicable example. For example:
 
 ```sh
-chipsim agent prepare docs/references/74hc00/nexperia-74hc00.pdf --out nand-work
+chipsim agent prepare "$CHIPSIM_REFERENCE_ROOT/docs/references/74hc00/nexperia-74hc00.pdf" --out nand-work
 chipsim agent context nand-work
 chipsim --document nand-work/manual.pdf --program nand-work/examples/hc00-nand.chip --view program
 ```

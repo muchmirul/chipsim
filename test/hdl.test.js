@@ -18,6 +18,7 @@ import { exportJSON, exportVCD, exportCSV } from "../src/trace/export.js";
 import { formatPayload } from "../src/core/values.js";
 import { timeLabel } from "../src/hdl/time.js";
 import { searchBits } from "../src/hdl/values.js";
+import { referencesAvailable } from "./reference-fixtures.js";
 
 const exec = promisify(execFile),
   root = resolve(import.meta.dirname, "..");
@@ -387,35 +388,51 @@ test(
     );
     assert.equal(comparison.match, true);
     assert.equal(comparison.samples, 256);
-    // Compare actual sourced ChipSim logic, not only the arithmetic oracle.
-    const { extractPDFFile } = await import("../src/documents/extract-node.js");
-    const { analyzeDocument } = await import("../src/model/from-document.js");
-    const { registerModel } = await import("../src/models/index.js");
-    const doc = await extractPDFFile(
-      join(root, "docs/references/74hc00/nexperia-74hc00.pdf"),
-    );
-    const spec = analyzeDocument(doc).models[0].spec;
-    const model = registerModel(spec, [doc]);
-    const inputs = Array.from({ length: 256 }, (_, tick) => [
-      { tick, signal: "pin_1a", value: Math.floor(tick / 16) & 1 },
-      { tick, signal: "pin_1b", value: tick & 1 },
-    ]).flat();
-    const trace = model.simulate({}, { inputs, ticks: 255 });
-    const exported = JSON.parse(exportJSON(model, trace, {}, inputs));
-    assert.equal(
-      compareBehavior(results[0].waveform, exported, {
-        mode: "sampled",
-        rightTick: "5ns",
-        sampleEvery: "5ns",
-        from: "0ns",
-        to: "1275ns",
-        signals: [
-          { left: "adder_tb.nand_a", right: "signal.pin_1a", role: "input" },
-          { left: "adder_tb.nand_b", right: "signal.pin_1b", role: "input" },
-          { left: "adder_tb.nand_probe", right: "signal.pin_1y" },
-        ],
-      }).match,
-      true,
+    await t.test(
+      "private original-source NAND comparison",
+      { skip: !referencesAvailable },
+      async () => {
+        // Compare actual sourced ChipSim logic, not only the arithmetic oracle.
+        const { extractPDFFile } =
+          await import("../src/documents/extract-node.js");
+        const { analyzeDocument } =
+          await import("../src/model/from-document.js");
+        const { registerModel } = await import("../src/models/index.js");
+        const doc = await extractPDFFile(
+          join(root, "docs/references/74hc00/nexperia-74hc00.pdf"),
+        );
+        const spec = analyzeDocument(doc).models[0].spec;
+        const model = registerModel(spec, [doc]);
+        const inputs = Array.from({ length: 256 }, (_, tick) => [
+          { tick, signal: "pin_1a", value: Math.floor(tick / 16) & 1 },
+          { tick, signal: "pin_1b", value: tick & 1 },
+        ]).flat();
+        const trace = model.simulate({}, { inputs, ticks: 255 });
+        const exported = JSON.parse(exportJSON(model, trace, {}, inputs));
+        assert.equal(
+          compareBehavior(results[0].waveform, exported, {
+            mode: "sampled",
+            rightTick: "5ns",
+            sampleEvery: "5ns",
+            from: "0ns",
+            to: "1275ns",
+            signals: [
+              {
+                left: "adder_tb.nand_a",
+                right: "signal.pin_1a",
+                role: "input",
+              },
+              {
+                left: "adder_tb.nand_b",
+                right: "signal.pin_1b",
+                role: "input",
+              },
+              { left: "adder_tb.nand_probe", right: "signal.pin_1y" },
+            ],
+          }).match,
+          true,
+        );
+      },
     );
     // Public CLI: one JSON result, mismatch status, import and TUI rendering.
     const cli = join(root, "scripts/chipsim.mjs");

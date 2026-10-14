@@ -8,6 +8,7 @@ import { readBounded } from "../agent/io.js";
 import { ProgramError } from "./parse.js";
 import manifest from "../../docs/references/manifest.json" with { type: "json" };
 import catalog from "../../docs/references/catalog.json" with { type: "json" };
+import { referencePath } from "../documents/references.js";
 
 export const packageRoot = resolve(import.meta.dirname, "../..");
 const normalize = (text) => text.replace(/\s+/g, " ").trim();
@@ -62,7 +63,7 @@ export async function verifyProgramGuides(
             reference.line,
             "Unknown or inapplicable programming guide " + reference.document,
           );
-        path = resolve(root, document.path);
+        path = referencePath(document, { root });
       }
       if (reference.page > document.pages)
         throw new ProgramError(

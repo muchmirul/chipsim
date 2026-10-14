@@ -1,11 +1,12 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([]);
 import assert from "node:assert/strict";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 import { EventEmitter } from "node:events";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { analyzeDocument } from "../src/model/from-document.js";
 import { readTableLayouts } from "../src/model/tables/layout.js";
 import { readSequentialTable } from "../src/model/tables/sequential-read.js";
@@ -15,13 +16,15 @@ import { TuiState } from "../src/tui/state.js";
 import { TerminalApp } from "../src/tui/app.js";
 import { render, screenText, displayWidth } from "../src/tui/render.js";
 const path = (part) =>
-  new URL(`../docs/references/74hc${part}/nexperia-74hc${part}.pdf`, import.meta.url)
-    .pathname;
+  new URL(
+    `../docs/references/74hc${part}/nexperia-74hc${part}.pdf`,
+    import.meta.url,
+  ).pathname;
 const documents = Promise.all(
   ["377", "273"].map((part) => extractPDFFile(path(part))),
 );
 const compiled = documents.then((docs) =>
-  docs.map((doc) => analyzeDocument(doc).models[0].spec),
+  docs.map((doc) => doc && analyzeDocument(doc).models[0].spec),
 );
 const event = (tick, signal, value) => ({
   tick,

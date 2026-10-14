@@ -6,15 +6,15 @@ Data-derived supported function-table model; consult the generated model for ins
 
 **Datasheet**
 
-- [HD74HC77 Datasheet](renesas-hd74hc77.pdf) — REJ03D0552-0200, Rev. 2.00, 6 October 2005; includes 2010 cover/notices; 9 PDF pages. Document ID: `hd74hc77-renesas-hd74hc77`.
+- [HD74HC77 Datasheet](https://www.renesas.com/en/document/dst/hd74hc77-datasheet) — REJ03D0552-0200, Rev. 2.00, 6 October 2005; includes 2010 cover/notices; 9 PDF pages. Document ID: `hd74hc77-renesas-hd74hc77`.
 
 **Reference manual**
 
-- [HD74HC77 Datasheet](renesas-hd74hc77.pdf) — REJ03D0552-0200, Rev. 2.00, 6 October 2005; includes 2010 cover/notices; 9 PDF pages. Document ID: `hd74hc77-renesas-hd74hc77`.
+- [HD74HC77 Datasheet](https://www.renesas.com/en/document/dst/hd74hc77-datasheet) — REJ03D0552-0200, Rev. 2.00, 6 October 2005; includes 2010 cover/notices; 9 PDF pages. Document ID: `hd74hc77-renesas-hd74hc77`.
 
 **Programming guide**
 
-- [HD74HC77 Datasheet](renesas-hd74hc77.pdf) — REJ03D0552-0200, Rev. 2.00, 6 October 2005; includes 2010 cover/notices; 9 PDF pages. Document ID: `hd74hc77-renesas-hd74hc77`.
+- [HD74HC77 Datasheet](https://www.renesas.com/en/document/dst/hd74hc77-datasheet) — REJ03D0552-0200, Rev. 2.00, 6 October 2005; includes 2010 cover/notices; 9 PDF pages. Document ID: `hd74hc77-renesas-hd74hc77`.
 
 ## Programming and debugging
 

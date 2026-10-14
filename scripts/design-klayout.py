@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Muchmirul Yusa Setiaji
+# Independently licensed KLayout script; see ../LICENSE or the repository LICENSE.
 """Read native verification databases during an explicit managed tool run.
 
 KLayout: -b -r design-klayout.py -rd request=FILE -rd result=FILE

@@ -6,15 +6,15 @@ Data-derived supported function-table model; consult the generated model for ins
 
 **Datasheet**
 
-- [HD74HC138 Datasheet](renesas-hd74hc138.pdf) — REJ03D0570-0300, Rev. 3.00, 25 March 2009; includes 2010 cover/notices; 10 PDF pages. Document ID: `hd74hc138-renesas-hd74hc138`.
+- [HD74HC138 Datasheet](https://www.renesas.com/en/document/dst/hd74hc138-datasheet) — REJ03D0570-0300, Rev. 3.00, 25 March 2009; includes 2010 cover/notices; 10 PDF pages. Document ID: `hd74hc138-renesas-hd74hc138`.
 
 **Reference manual**
 
-- [HD74HC138 Datasheet](renesas-hd74hc138.pdf) — REJ03D0570-0300, Rev. 3.00, 25 March 2009; includes 2010 cover/notices; 10 PDF pages. Document ID: `hd74hc138-renesas-hd74hc138`.
+- [HD74HC138 Datasheet](https://www.renesas.com/en/document/dst/hd74hc138-datasheet) — REJ03D0570-0300, Rev. 3.00, 25 March 2009; includes 2010 cover/notices; 10 PDF pages. Document ID: `hd74hc138-renesas-hd74hc138`.
 
 **Programming guide**
 
-- [HD74HC138 Datasheet](renesas-hd74hc138.pdf) — REJ03D0570-0300, Rev. 3.00, 25 March 2009; includes 2010 cover/notices; 10 PDF pages. Document ID: `hd74hc138-renesas-hd74hc138`.
+- [HD74HC138 Datasheet](https://www.renesas.com/en/document/dst/hd74hc138-datasheet) — REJ03D0570-0300, Rev. 3.00, 25 March 2009; includes 2010 cover/notices; 10 PDF pages. Document ID: `hd74hc138-renesas-hd74hc138`.
 
 ## Programming and debugging
 

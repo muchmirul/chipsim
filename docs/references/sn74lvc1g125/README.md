@@ -6,15 +6,15 @@ Data-derived supported function-table model; consult the generated model for ins
 
 **Datasheet**
 
-- [SN74LVC1G125 Single Bus Buffer Gate With 3-State Output](ti-sn74lvc1g125.pdf) — SCES223U, revised August 2026; 52 PDF pages. Document ID: `sn74lvc1g125-ti-sn74lvc1g125`.
+- [SN74LVC1G125 Single Bus Buffer Gate With 3-State Output](https://www.ti.com/lit/ds/symlink/sn74lvc1g125.pdf) — SCES223U, revised August 2026; 52 PDF pages. Document ID: `sn74lvc1g125-ti-sn74lvc1g125`.
 
 **Reference manual**
 
-- [SN74LVC1G125 Single Bus Buffer Gate With 3-State Output](ti-sn74lvc1g125.pdf) — SCES223U, revised August 2026; 52 PDF pages. Document ID: `sn74lvc1g125-ti-sn74lvc1g125`.
+- [SN74LVC1G125 Single Bus Buffer Gate With 3-State Output](https://www.ti.com/lit/ds/symlink/sn74lvc1g125.pdf) — SCES223U, revised August 2026; 52 PDF pages. Document ID: `sn74lvc1g125-ti-sn74lvc1g125`.
 
 **Programming guide**
 
-- [SN74LVC1G125 Single Bus Buffer Gate With 3-State Output](ti-sn74lvc1g125.pdf) — SCES223U, revised August 2026; 52 PDF pages. Document ID: `sn74lvc1g125-ti-sn74lvc1g125`.
+- [SN74LVC1G125 Single Bus Buffer Gate With 3-State Output](https://www.ti.com/lit/ds/symlink/sn74lvc1g125.pdf) — SCES223U, revised August 2026; 52 PDF pages. Document ID: `sn74lvc1g125-ti-sn74lvc1g125`.
 
 ## Programming and debugging
 

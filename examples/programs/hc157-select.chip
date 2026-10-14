@@ -1,6 +1,6 @@
 # Shared select/enable, separate data paths; no electrical or timing behavior.
 model table-74a09a3b77c0-p3-t3
-guide 74hc157-nexperia-74hc157 3 "enable input (active LOW)"
+guide 74hc157-nexperia-74hc157 3 "enable input"
 drive pin_1i0 1
 expect signal.pin_1y == 1
 drive pin_2i1 1

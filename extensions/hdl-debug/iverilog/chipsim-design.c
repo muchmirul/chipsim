@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (c) 2026 Muchmirul Yusa Setiaji
+// See ../COPYING and ../NOTICE for license and upstream attribution.
 /* ChipSim elaboration observer, Icarus Verilog v12_0. GPL-2.0-or-later. */
 #include "ivl_target.h"
 #include <stdio.h>

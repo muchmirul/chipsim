@@ -1,10 +1,14 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([
+  "a complete 32-row tri-state table compiles within expression bounds and evaluates every input",
+  "Z cannot be coerced by arithmetic, bitwise, logical, ordering, or branching operators",
+]);
 import assert from "node:assert/strict";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { analyzeDocument } from "../src/model/from-document.js";
 import { simulateModel, evaluate } from "../src/model/engine.js";
 import { validateModel, ModelError } from "../src/model/validate.js";
@@ -20,7 +24,9 @@ const path = new URL(
   import.meta.url,
 ).pathname;
 const document = extractPDFFile(path);
-const compiled = document.then((doc) => analyzeDocument(doc).models[0].spec);
+const compiled = document.then(
+  (doc) => doc && analyzeDocument(doc).models[0].spec,
+);
 const events = (tick, value) => [
   { tick, signal: "pin_oe", value: (value >> 1) & 1 },
   { tick, signal: "pin_a", value: value & 1 },

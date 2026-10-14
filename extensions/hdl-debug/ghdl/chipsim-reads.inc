@@ -1,3 +1,6 @@
+-- SPDX-License-Identifier: GPL-2.0-or-later
+-- Copyright (c) 2026 Muchmirul Yusa Setiaji
+-- See ../COPYING and ../NOTICE for license and upstream attribution.
    --  Use the compiler's signal-read analysis on the elaborated process.
    --  This is static connectivity, not a claim that a read happened at runtime.
    procedure Chipsim_Process_Reads (I : Process_Index_Type)

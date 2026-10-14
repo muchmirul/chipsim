@@ -6,15 +6,15 @@ Reviewed shift/storage-register profile; no analog/timing model.
 
 **Datasheet**
 
-- [74HC595; 74HCT595 product data sheet](nexperia-74hc595.pdf) — Rev. 12, 20 March 2024; 21 PDF pages. Document ID: `74hc595-nexperia-74hc595`.
+- [74HC595; 74HCT595 product data sheet](https://assets.nexperia.com/documents/data-sheet/74HC_HCT595.pdf) — Rev. 12, 20 March 2024; 21 PDF pages. Document ID: `74hc595-nexperia-74hc595`.
 
 **Reference manual**
 
-- [74HC595; 74HCT595 product data sheet](nexperia-74hc595.pdf) — Rev. 12, 20 March 2024; 21 PDF pages. Document ID: `74hc595-nexperia-74hc595`.
+- [74HC595; 74HCT595 product data sheet](https://assets.nexperia.com/documents/data-sheet/74HC_HCT595.pdf) — Rev. 12, 20 March 2024; 21 PDF pages. Document ID: `74hc595-nexperia-74hc595`.
 
 **Programming guide**
 
-- [74HC595; 74HCT595 product data sheet](nexperia-74hc595.pdf) — Rev. 12, 20 March 2024; 21 PDF pages. Document ID: `74hc595-nexperia-74hc595`.
+- [74HC595; 74HCT595 product data sheet](https://assets.nexperia.com/documents/data-sheet/74HC_HCT595.pdf) — Rev. 12, 20 March 2024; 21 PDF pages. Document ID: `74hc595-nexperia-74hc595`.
 
 ## Programming and debugging
 

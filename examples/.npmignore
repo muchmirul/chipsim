@@ -1,0 +1,7 @@
+# The root files allowlist includes examples/. Keep generated/private local
+# workspaces out of packages even when examples have been run in place.
+.chipsim/
+.chipsim-agent/
+node_modules/
+__pycache__/
+*.pyc

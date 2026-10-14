@@ -1,4 +1,10 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([
+  "step details expose complete transaction, changes and original page evidence without changing an experiment",
+  "read results follow adapter acceptance and rejected or held requests cannot masquerade as reads",
+  "evidence opens the exact loaded source/page and unavailable citations preserve the detail view",
+  "details keep unavailable, zero and Z distinct, preserve scheduled input order, and wrap hostile long text safely",
+]);
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -63,7 +69,7 @@ test("step details expose complete transaction, changes and original page eviden
     assert.ok(render(s).every((row) => displayWidth(row.text) === columns));
     assert.match(screenText(s), /STEP 10/);
     app.key("$", { name: "end" });
-    assert.match(screenText(s), /corresponding bit in GPIO_OUT_REG/);
+    assert.match(screenText(s), /GPIO_OUT_REG/);
     app.key("0");
   }
   app.key("F");

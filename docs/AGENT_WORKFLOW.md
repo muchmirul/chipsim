@@ -75,9 +75,10 @@ export PATH="$HOME/.local/bin:$PATH"
 
 For a portable package, run `npm pack --ignore-scripts --pack-destination /path/to/output`
 in the repository and install the resulting `.tgz` with the same npm options.
-The package includes the reference PDFs, source modules, models, and documentation;
-it has no npm runtime dependencies or lifecycle install scripts. Keep vendor
-notices with the PDFs. Packaging does not grant additional redistribution rights.
+The package includes source modules, models, catalog metadata, documentation and
+license notices; it contains no vendor PDFs, extracted manuals or npm runtime
+dependencies/lifecycle install scripts. Use [private reference setup](LOCAL_REFERENCES.md)
+for PDF-based work. The existing source hash/page checks remain mandatory.
 
 Without installing, use `node /absolute/path/to/chipsim/scripts/chipsim.mjs agent …`
 or `npm run --silent agent -- …` from the repository. Ordinary `npm run` adds npm
@@ -140,7 +141,7 @@ chip-work/
 
 Read the programming context and `analysis.json` before creating a model. An exact reviewed profile or a
 supported complete function table can yield a model immediately. For example,
-the bundled ESP32-C6 TRM v1.2 yields `esp32c6-pcnt` and `esp32c6-gpio`. Unknown
+a privately supplied ESP32-C6 TRM v1.2 yields `esp32c6-pcnt` and `esp32c6-gpio`. Unknown
 manuals still produce searchable projects, but may contain no executable models.
 Structural register inventories do not imply register side effects or timing.
 

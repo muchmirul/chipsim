@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Muchmirul Yusa Setiaji
+# Independently licensed KLayout script; see ../LICENSE or the repository LICENSE.
 """Native KLayout report-reader acceptance. Run with klayout -b -r FILE,
 or Python with the optional klayout package. Missing KLayout is an error.
 """

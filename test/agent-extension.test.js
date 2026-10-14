@@ -1,4 +1,15 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([
+  "native tool mappings cover every agent command and preserve literal text and zero offsets",
+  "tool calls use their current cwd independently and forward cancellation",
+  "general commands keep arguments literal, enforce bounds and forward cwd/cancellation",
+  "one general tool drives discovery, durable jobs, evidence, checks and snapshots",
+  "HDL tools preserve comparison mismatches as errors with result details",
+  "process bridge bounds output/time, aborts, and rejects invalid envelopes and missing Node",
+  "POSIX cancellation also kills an owned descendant that ignores SIGTERM",
+  "snapshot CLI errors retain stderr in the error visible to the agent",
+  "TUI slash command handles Pi/Prime modes and restores host after child failure",
+]);
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, writeFile, rm, access } from "node:fs/promises";
 import { tmpdir } from "node:os";

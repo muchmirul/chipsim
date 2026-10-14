@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (c) 2026 Muchmirul Yusa Setiaji
+# See ../COPYING and ../NOTICE for license and upstream attribution.
+# Upstream patch context remains copyright Tristan Gingold (GHDL v4.1.0).
 """Apply the observer to the unmodified GHDL v4.1.0 source release."""
 from pathlib import Path
 import shutil
@@ -69,6 +73,7 @@ edit("src/grt/grt-main.adb", "      Grt.Hooks.Call_Finish_Hooks;",
      "      Grt.Chipsim.Finish;\n      Grt.Hooks.Call_Finish_Hooks;")
 
 for path, text in pending.items():
-    path.write_text(text)
+    notice = "-- Modified by ChipSim (Muchmirul Yusa Setiaji), 2026-10-14: read-only observer hooks; upstream notices retained.\n"
+    path.write_text(notice + text)
 for name in ("grt-chipsim.ads", "grt-chipsim.adb"):
     shutil.copyfile(here / name, root / "src/grt" / name)

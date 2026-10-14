@@ -6,15 +6,15 @@ Two-bank completed-byte GPIO/interrupt model; no physical I2C serialization.
 
 **Datasheet**
 
-- [PCA9555 Remote 16-bit I2C and SMBus I/O Expander with Interrupt Output and Configuration Registers](ti-pca9555.pdf) — SCPS131J, revised March 2021; 49 PDF pages. Document ID: `pca9555-ti-pca9555`.
+- [PCA9555 Remote 16-bit I2C and SMBus I/O Expander with Interrupt Output and Configuration Registers](https://www.ti.com/lit/ds/symlink/pca9555.pdf) — SCPS131J, revised March 2021; 49 PDF pages. Document ID: `pca9555-ti-pca9555`.
 
 **Reference manual**
 
-- [PCA9555 Remote 16-bit I2C and SMBus I/O Expander with Interrupt Output and Configuration Registers](ti-pca9555.pdf) — SCPS131J, revised March 2021; 49 PDF pages. Document ID: `pca9555-ti-pca9555`.
+- [PCA9555 Remote 16-bit I2C and SMBus I/O Expander with Interrupt Output and Configuration Registers](https://www.ti.com/lit/ds/symlink/pca9555.pdf) — SCPS131J, revised March 2021; 49 PDF pages. Document ID: `pca9555-ti-pca9555`.
 
 **Programming guide**
 
-- [PCA9555 Remote 16-bit I2C and SMBus I/O Expander with Interrupt Output and Configuration Registers](ti-pca9555.pdf) — SCPS131J, revised March 2021; 49 PDF pages. Document ID: `pca9555-ti-pca9555`.
+- [PCA9555 Remote 16-bit I2C and SMBus I/O Expander with Interrupt Output and Configuration Registers](https://www.ti.com/lit/ds/symlink/pca9555.pdf) — SCPS131J, revised March 2021; 49 PDF pages. Document ID: `pca9555-ti-pca9555`.
 
 ## Programming and debugging
 

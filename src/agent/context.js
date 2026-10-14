@@ -9,6 +9,7 @@ import { documentProfiles } from "../model/profiles/index.js";
 import { validateModel } from "../model/validate.js";
 import { runChecks } from "../model/engine.js";
 import { AgentError, readJSON } from "./io.js";
+import { referencePath, referenceAvailable } from "../documents/references.js";
 
 const packageRoot = resolve(import.meta.dirname, "../..");
 const normalized = (value) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -166,7 +167,8 @@ export function buildProgrammingContext({
       revision: document.revision,
       sha256: document.sha256,
       pages: document.pages,
-      path: resolve(packageRoot, document.path),
+      path: referencePath(document),
+      available: referenceAvailable(document),
       sourceUrl: document.source_url,
       roles: [
         ...new Set(
@@ -188,7 +190,7 @@ export function buildProgrammingContext({
         "Pinned catalog metadata; program loading checks original PDF bytes and cited page.",
       provenance:
         document.provenance ||
-        "Vendor PDF downloaded from the recorded publisher URL; original bytes retained.",
+        "Catalog metadata only. Obtain the exact original PDF privately from the recorded publisher URL; no document bytes are distributed.",
     };
   });
   if (
@@ -574,7 +576,7 @@ export async function programmingContext(
       "chipsim",
       "agent",
       "prepare",
-      resolve(packageRoot, source.path),
+      referencePath(source),
       "--out",
       "chip-work",
     ];

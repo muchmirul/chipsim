@@ -1,4 +1,10 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([
+  "register rows require explicit bounded unique names, addresses, modes, reset values and masks",
+  "all write bytes follow mask/mode semantics with protected bits and no cross-address writes",
+  "mixed 32-bit operations independently verify event priority, masks, read-before-clear, errors and resets",
+  "word-width extremes and full register bound remain valid within model/check limits",
+]);
 import assert from "node:assert/strict";
 import { readFile, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -13,7 +19,7 @@ import { TerminalApp } from "../src/tui/app.js";
 import { textRows } from "../src/tui/authoring.js";
 import { render, displayWidth } from "../src/tui/render.js";
 import { exportJSON, exportCSV, exportVCD } from "../src/trace/export.js";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 const excerpt = "Explicit register storage and access rules for this test.";
 const document = {
   sha256: "a".repeat(64),

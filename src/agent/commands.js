@@ -214,6 +214,8 @@ export async function agentCommand(args) {
             "AGENT_WORKFLOW.md",
             "AGENT_EXTENSIONS.md",
             "DESIGN_INPUTS.md",
+            "LOCAL_REFERENCES.md",
+            "LICENSING.md",
             "DESIGN.md",
             "HDL.md",
             "MODEL_FORMAT.md",

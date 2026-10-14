@@ -6,20 +6,20 @@ Match/capture channel teaching example; no eTPU microcode execution.
 
 **Datasheet**
 
-- [MPC5554 Microcontroller Data Sheet](mpc5554-datasheet.pdf) — MPC5554 Rev. 4; May 2012; 58 PDF pages. Document ID: `etpu-mpc5554-datasheet`.
+- [MPC5554 Microcontroller Data Sheet](https://cache.nxp.com/docs/en/data-sheet/MPC5554.pdf) — MPC5554 Rev. 4; May 2012; 58 PDF pages. Document ID: `etpu-mpc5554-datasheet`.
 
 **Programming guide**
 
-- [Understanding the eTPU Channel Hardware](nxp-etpu-channel-hardware-an2933.pdf) — AN2933, Rev. 0, December 2004; 40 PDF pages. Document ID: `etpu-nxp-etpu-channel-hardware-an2933`.
-- [The Essentials of Enhanced Time Processing Unit](nxp-etpu-essentials-an2353.pdf) — AN2353, Rev. 1, August 2004; 12 PDF pages. Document ID: `etpu-nxp-etpu-essentials-an2353`.
-- [Programming the eTPU](programming-guide-an2848.pdf) — AN2848 Rev. 1; August 2008; 14 PDF pages. Document ID: `etpu-programming-guide`.
+- [Understanding the eTPU Channel Hardware](https://www.nxp.com/docs/en/user-guide/AN2933.pdf) — AN2933, Rev. 0, December 2004; 40 PDF pages. Document ID: `etpu-nxp-etpu-channel-hardware-an2933`.
+- [The Essentials of Enhanced Time Processing Unit](https://www.nxp.com/docs/en/user-guide/AN2353.pdf) — AN2353, Rev. 1, August 2004; 12 PDF pages. Document ID: `etpu-nxp-etpu-essentials-an2353`.
+- [Programming the eTPU](https://cache.nxp.com/docs/en/application-note/AN2848.pdf) — AN2848 Rev. 1; August 2008; 14 PDF pages. Document ID: `etpu-programming-guide`.
   Official NXP cache download; public AN2848 listed on the eTPU Archive page.
 
 **Application notes**
 
-- [Understanding the eTPU Channel Hardware](nxp-etpu-channel-hardware-an2933.pdf) — AN2933, Rev. 0, December 2004; 40 PDF pages. Document ID: `etpu-nxp-etpu-channel-hardware-an2933`.
-- [The Essentials of Enhanced Time Processing Unit](nxp-etpu-essentials-an2353.pdf) — AN2353, Rev. 1, August 2004; 12 PDF pages. Document ID: `etpu-nxp-etpu-essentials-an2353`.
-- [Programming the eTPU](programming-guide-an2848.pdf) — AN2848 Rev. 1; August 2008; 14 PDF pages. Document ID: `etpu-programming-guide`.
+- [Understanding the eTPU Channel Hardware](https://www.nxp.com/docs/en/user-guide/AN2933.pdf) — AN2933, Rev. 0, December 2004; 40 PDF pages. Document ID: `etpu-nxp-etpu-channel-hardware-an2933`.
+- [The Essentials of Enhanced Time Processing Unit](https://www.nxp.com/docs/en/user-guide/AN2353.pdf) — AN2353, Rev. 1, August 2004; 12 PDF pages. Document ID: `etpu-nxp-etpu-essentials-an2353`.
+- [Programming the eTPU](https://cache.nxp.com/docs/en/application-note/AN2848.pdf) — AN2848 Rev. 1; August 2008; 14 PDF pages. Document ID: `etpu-programming-guide`.
   Official NXP cache download; public AN2848 listed on the eTPU Archive page.
 
 ## Programming and debugging

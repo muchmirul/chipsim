@@ -1,9 +1,10 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([]);
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { analyzeDocument } from "../src/model/from-document.js";
 import { readTableLayouts } from "../src/model/tables/layout.js";
 import { readSequentialTable } from "../src/model/tables/sequential-read.js";
@@ -15,11 +16,13 @@ import { TuiState } from "../src/tui/state.js";
 import { render, screenText, displayWidth } from "../src/tui/render.js";
 import { exportJSON, exportVCD } from "../src/trace/export.js";
 
-const path = new URL("../docs/references/sn74ahc273-q1/ti-sn74ahc273-q1.pdf", import.meta.url)
-  .pathname;
+const path = new URL(
+  "../docs/references/sn74ahc273-q1/ti-sn74ahc273-q1.pdf",
+  import.meta.url,
+).pathname;
 const documentPromise = extractPDFFile(path);
 const specPromise = documentPromise.then(
-  (document) => analyzeDocument(document).models[0].spec,
+  (document) => document && analyzeDocument(document).models[0].spec,
 );
 const event = (tick, pin, value) => ({ tick, signal: "pin_" + pin, value });
 const pins = (tick, clr, clk, d) => [
@@ -159,10 +162,7 @@ test("undefined/qualified retention, conflicting or misplaced clock lists, missi
     raw = readTableLayouts(document).tables[0];
   for (const change of [
     (table) => {
-      table.legend = table.legend.replace(
-        "Q0 = previous state",
-        "Q0 = unspecified",
-      );
+      table.legend = table.legend.replace("previous", "Q0 = unspecified");
     },
     (table) => {
       table.outputs[0] = "Y";

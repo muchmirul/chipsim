@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (c) 2026 Muchmirul Yusa Setiaji
+# See ../COPYING and ../NOTICE for license and upstream attribution.
+# Upstream patch context remains copyright Stephen Williams (Icarus Verilog v12_0).
 """Apply the read-only observer to an unmodified Icarus Verilog v12_0 tree."""
 from pathlib import Path
 import shutil
@@ -73,7 +77,9 @@ edit("vvp/vpi_tasks.cc", "\t    vpi_mode_flag = VPI_MODE_CALLTF;",
      "\t    vpi_mode_flag = VPI_MODE_CALLTF;\n            chipsim_report(ref);")
 
 for path, text in pending.items():
-    path.write_text(text)
+    notice = "Modified by ChipSim (Muchmirul Yusa Setiaji), 2026-10-14: read-only observer hooks; upstream notices retained."
+    prefix = "# " + notice + "\n" if path.name.endswith(".in") else "/* " + notice + " */\n"
+    path.write_text(prefix + text)
 for name in ("chipsim-debug.h", "chipsim-debug.cc"):
     shutil.copyfile(here / name, root / "vvp" / name)
 shutil.copyfile(here / "chipsim-design.c", root / "tgt-vvp/chipsim-design.c")

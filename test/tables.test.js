@@ -1,10 +1,15 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([
+  "table content changes the compiled logic rather than selecting a model by chip name",
+  "unsupported, incomplete, conflicting, and undefined tables never receive invented behavior",
+  "layout reconstruction sorts reading order and safely decodes XML text",
+]);
 import assert from "node:assert/strict";
 import { mkdtemp, rm, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { positionedLines, popplerLines } from "../src/documents/layout.js";
 import { analyzeDocument } from "../src/model/from-document.js";
 import { readFunctionTables } from "../src/model/tables/read.js";

@@ -2,6 +2,7 @@
   "name": "chipsim",
   "version": "0.3.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "TUI hardware behavior workbench with headless tools for coding agents",
   "keywords": [
@@ -22,6 +23,8 @@
     "models/",
     "examples/",
     "AGENTS.md",
+    "ACKNOWLEDGMENTS.md",
+    "LICENSES/",
     "THIRD_PARTY_NOTICES.md"
   ],
   "engines": {
@@ -31,12 +34,14 @@
     "start": "node scripts/chipsim.mjs",
     "dev": "node scripts/chipsim.mjs",
     "test": "node --test test/*.test.js",
+    "test:licenses": "node scripts/verify-licenses.mjs",
+    "test:references": "node scripts/test-references.mjs",
     "verify": "node scripts/verify.mjs",
     "extract": "node scripts/extract.mjs",
     "model": "node scripts/model.mjs",
     "format": "prettier --write src extensions scripts test models examples package.json '*.md' 'docs/*.md'",
     "tui": "node scripts/chipsim.mjs",
-    "test:tui": "python3 scripts/test-tui-pty.py && python3 scripts/test-agent-extension-pty.py",
+    "test:tui": "node scripts/test-tui.mjs",
     "test:hdl": "node scripts/test-hdl.mjs",
     "test:hdl-debug": "node scripts/test-hdl-debug.mjs",
     "test:eda": "node scripts/test-eda.mjs",

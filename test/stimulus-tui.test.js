@@ -1,4 +1,7 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([
+  "stimulus view fits 80×24 and 120×40 with all 32-bit numeric formats, and CLI shares the view catalog",
+]);
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";

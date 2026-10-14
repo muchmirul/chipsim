@@ -75,6 +75,8 @@ export async function prepareProject(pdf, output) {
       "HDL_DEBUG.md",
       "DESIGN.md",
       "DESIGN_INPUTS.md",
+      "LOCAL_REFERENCES.md",
+      "LICENSING.md",
     ])
       await copyFile(join(packageRoot, "docs", file), join(root, "docs", file));
     await mkdir(join(root, "examples"));

@@ -1,4 +1,7 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([
+  "every catalog chip exposes truthful programming guidance, document pointers and native-backend limits",
+]);
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, writeFile, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -35,8 +38,11 @@ test("every catalog chip exposes truthful programming guidance, document pointer
       context.documents.some((d) => d.roles.includes("programmingGuide")),
       chip.id,
     );
-    for (const document of context.documents)
-      assert.ok((await stat(document.path)).isFile());
+    for (const document of context.documents) {
+      assert.equal(typeof document.available, "boolean");
+      if (document.available) assert.ok((await stat(document.path)).isFile());
+      else assert.match(document.sourceUrl, /^https:\/\//);
+    }
     for (const example of context.examples) {
       assert.ok(context.models.some((model) => model.id === example.modelId));
       assert.ok((await stat(example.path)).isFile());

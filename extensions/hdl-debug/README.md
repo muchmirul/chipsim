@@ -2,7 +2,7 @@
 
 These adapters target **Icarus Verilog v12_0** and **GHDL v4.1.0 mcode**.
 The observer sources and patch recipes in `iverilog/` and `ghdl/` are
-GPL-2.0-or-later; see [COPYING](COPYING). The recipes contain small upstream
+GPL-2.0-or-later; see [COPYING](COPYING) and [NOTICE](NOTICE). The recipes contain small upstream
 context fragments under the respective upstream GPL terms. The simulators,
 compiler toolchains, generated executables and full upstream sources are not
 bundled in the ChipSim npm package.
@@ -21,8 +21,12 @@ and writes a fingerprint manifest for the resulting binaries:
 version is rejected. `manifest.mjs` records binary fingerprints after building.
 Icarus includes its compiler and VVP target as well as the driver and runtime;
 GHDL uses its mcode executable. `chipsim hdl doctor --debug` verifies the manifest.
-The install prefix includes the upstream license texts under `licenses/`.
-Keep the patched source/build directory alongside locally redistributed binaries.
+The install prefix includes the upstream license texts and observer attribution
+under `licenses/`. Each edited upstream file receives a dated ChipSim modification
+notice; its original copyright/license headers remain intact.
+When distributing binaries, deliver the exact corresponding patched sources and
+build/installation scripts under the GPL source requirements. Retaining a private
+build directory is insufficient. See [publication notes](../../docs/LICENSING.md).
 
 The Icarus target exports elaborated scopes, declarations, process IDs and static
 connections. VVP exports scheduled process activations and read-only VPI value

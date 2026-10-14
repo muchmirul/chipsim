@@ -1,4 +1,5 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([]);
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -8,7 +9,7 @@ import {
   compileDocument,
   profileForDocument,
 } from "../src/model/profiles/index.js";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { simulateModel, runChecks } from "../src/model/engine.js";
 import { validateModel } from "../src/model/validate.js";
 import { registerAccessInputs } from "../src/model/register-access.js";
@@ -18,11 +19,13 @@ import { render, displayWidth, screenText } from "../src/tui/render.js";
 import { exportVCD } from "../src/trace/export.js";
 import { op, assign } from "../src/model/builders/shared.js";
 
-const path = new URL("../docs/references/pca9555/ti-pca9555.pdf", import.meta.url)
-  .pathname;
+const path = new URL(
+  "../docs/references/pca9555/ti-pca9555.pdf",
+  import.meta.url,
+).pathname;
 const docPromise = extractPDFFile(path);
 const specPromise = docPromise.then(
-  (document) => compileDocument(document).spec,
+  (document) => document && compileDocument(document).spec,
 );
 const event = (tick, signal, value) => ({ tick, signal, value });
 const access = (tick, address, write, value, request) => [

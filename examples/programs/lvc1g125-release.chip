@@ -1,6 +1,6 @@
 # Z means the logical driver is released; no external voltage/pull-up inferred.
 model table-1098d46e4565-p11-t71
-guide sn74lvc1g125-ti-sn74lvc1g125 11 "Z = High Impedance State"
+guide sn74lvc1g125-ti-sn74lvc1g125 11 "Impedance"
 expect signal.pin_y == 0
 drive pin_a 1
 expect signal.pin_y == 1

@@ -32,5 +32,6 @@ make install >> "$debug_build/ghdl-build.log" 2>&1
 mkdir "$debug_prefix/licenses"
 cp "$debug_build/iverilog-12_0/COPYING" "$debug_prefix/licenses/iverilog-COPYING"
 cp "$debug_build/ghdl-4.1.0/COPYING.md" "$debug_prefix/licenses/ghdl-COPYING.md"
+cp "$recipe_root/extensions/hdl-debug/NOTICE" "$debug_prefix/licenses/chipsim-observers-NOTICE"
 node "$recipe_root/extensions/hdl-debug/manifest.mjs" "$debug_prefix"
 echo "Instrumented tools installed in $debug_prefix. Set CHIPSIM_HDL_DEBUG_TOOLS to this directory. Build sources and logs are in $debug_build."

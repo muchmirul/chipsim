@@ -6,15 +6,15 @@ Data-derived supported function-table model; consult the generated model for ins
 
 **Datasheet**
 
-- [SN74AHC273-Q1 Automotive Octal D-Type Flip-Flops with Clear](ti-sn74ahc273-q1.pdf) — SLVSJA7A, revised June 2026; 30 PDF pages. Document ID: `sn74ahc273-q1-ti-sn74ahc273-q1`.
+- [SN74AHC273-Q1 Automotive Octal D-Type Flip-Flops with Clear](https://www.ti.com/lit/ds/symlink/sn74ahc273-q1.pdf) — SLVSJA7A, revised June 2026; 30 PDF pages. Document ID: `sn74ahc273-q1-ti-sn74ahc273-q1`.
 
 **Reference manual**
 
-- [SN74AHC273-Q1 Automotive Octal D-Type Flip-Flops with Clear](ti-sn74ahc273-q1.pdf) — SLVSJA7A, revised June 2026; 30 PDF pages. Document ID: `sn74ahc273-q1-ti-sn74ahc273-q1`.
+- [SN74AHC273-Q1 Automotive Octal D-Type Flip-Flops with Clear](https://www.ti.com/lit/ds/symlink/sn74ahc273-q1.pdf) — SLVSJA7A, revised June 2026; 30 PDF pages. Document ID: `sn74ahc273-q1-ti-sn74ahc273-q1`.
 
 **Programming guide**
 
-- [SN74AHC273-Q1 Automotive Octal D-Type Flip-Flops with Clear](ti-sn74ahc273-q1.pdf) — SLVSJA7A, revised June 2026; 30 PDF pages. Document ID: `sn74ahc273-q1-ti-sn74ahc273-q1`.
+- [SN74AHC273-Q1 Automotive Octal D-Type Flip-Flops with Clear](https://www.ti.com/lit/ds/symlink/sn74ahc273-q1.pdf) — SLVSJA7A, revised June 2026; 30 PDF pages. Document ID: `sn74ahc273-q1-ti-sn74ahc273-q1`.
 
 ## Programming and debugging
 

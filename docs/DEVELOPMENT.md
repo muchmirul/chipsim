@@ -1,5 +1,20 @@
 # Developing ChipSim
 
+Vendor PDFs and extracted manuals are private inputs, excluded from public Git
+and npm distributions. The default tests/verification run without them and mark
+private-source cases skipped. For the complete original-source suite, use
+`CHIPSIM_REFERENCE_ROOT=/absolute/private/root npm run test:references -- --verify`.
+See [private reference setup](LOCAL_REFERENCES.md); do not replace source checks
+with generated vendor PDFs or claim that skipped cases passed.
+
+Before adding dependencies, copying code or committing vendor material, read
+[Licensing](LICENSING.md) and preserve file-specific copyright/license notices.
+Update `docs/licensing/software.json`, the document review and acknowledgments
+when relevant. `npm run test:licenses` checks local inventory coverage, pinned
+bytes, notices and package metadata; `npm run verify` includes it. The separate
+`npm run test:licenses -- --release` check fails while publication findings are
+open. A passing inventory check does not prove redistribution permission.
+
 `src/design/` owns immutable storage, dependency planning, adapters, durable jobs,
 evidence queries and the headless CLI. `scripts/design-worker.mjs` is the detached
 worker; `src/tui/design-panel.js` uses the same services as native agent tools.

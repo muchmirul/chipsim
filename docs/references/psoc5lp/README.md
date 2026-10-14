@@ -6,15 +6,15 @@ Composed UDB teaching network; no fitter, routing compiler or Cortex-M3 firmware
 
 **Datasheet**
 
-- [PSoC 5LP CY8C58LP Family Datasheet](datasheet.pdf) — 001-84932 Rev. *O; 11 December 2024; 140 PDF pages. Document ID: `psoc5lp-datasheet`.
+- [PSoC 5LP CY8C58LP Family Datasheet](https://www.infineon.com/assets/row/public/documents/30/49/infineon-psoc-5lp-cy8c58lp-datasheet-datasheet-en.pdf) — 001-84932 Rev. *O; 11 December 2024; 140 PDF pages. Document ID: `psoc5lp-datasheet`.
 
 **Reference manual**
 
-- [PSoC 5LP Architecture TRM](infineon-psoc5lp-architecture-trm.pdf) — 001-78426 Rev. *G; 428 PDF pages. Document ID: `psoc5lp-infineon-psoc5lp-architecture-trm`.
+- [PSoC 5LP Architecture TRM](https://www.infineon.com/assets/row/public/documents/30/57/infineon-psoc5lp-architecture-trm-additionaltechnicalinformation-en.pdf) — 001-78426 Rev. *G; 428 PDF pages. Document ID: `psoc5lp-infineon-psoc5lp-architecture-trm`.
 
 **Programming guide**
 
-- [PSoC Creator User Guide](creator-programming-guide.pdf) — 001-93417 Rev. *N; 587 PDF pages. Document ID: `psoc5lp-creator-programming-guide`.
+- [PSoC Creator User Guide](https://www.infineon.com/assets/row/public/documents/cross-divisions/44/infineon-psoc-creator-user-guide-usermanual-en.pdf) — 001-93417 Rev. *N; 587 PDF pages. Document ID: `psoc5lp-creator-programming-guide`.
 
 ## Programming and debugging
 

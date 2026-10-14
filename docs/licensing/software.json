@@ -1,0 +1,709 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-10-14",
+  "scope": "Direct integrations, known tool helpers, bundled code, runtime/development/documentation tools and explicitly researched simulators. External installations and configurable commands/solvers/cores/PDKs are not a transitive binary-distribution SBOM. Licenses were read from linked primary sources; hashes fingerprint retrieved evidence, not installed binaries. Unpinned main/master evidence describes the review date only.",
+  "components": [
+    {
+      "id": "pi",
+      "name": "Pi",
+      "license": "MIT",
+      "relationship": "host-extension",
+      "bundled_upstream_code": false,
+      "locations": ["src/integrations/extension.js", "extensions/chipsim.ts"],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://github.com/earendil-works/pi/blob/main/LICENSE",
+          "sha256": "0457f5bcec3b3b211605dfb5d1a49042fd638f3686a410fe099c24a25af13c48"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Mario Zechner and Pi contributors; external native extension host."
+    },
+    {
+      "id": "prime-agent",
+      "name": "prime-agent",
+      "license": "MIT",
+      "relationship": "host-extension",
+      "bundled_upstream_code": false,
+      "locations": ["src/integrations/extension.js", "extensions/chipsim.ts"],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://github.com/PrimeIntellect-ai/prime-agent/blob/main/LICENSE",
+          "sha256": "e0d1bf8d137e6d56e98ee968402b0b7f324c5c85ea505e4fd7b6b78615bc4e7a"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Prime Intellect Ltd.; license also credits Mario Zechner. External native extension host."
+    },
+    {
+      "id": "dwfv",
+      "name": "dwfv",
+      "license": "MIT",
+      "relationship": "external-viewer",
+      "bundled_upstream_code": false,
+      "locations": ["src/tui/app.js", "scripts/verify-dwfv.mjs"],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://github.com/psurply/dwfv/blob/main/LICENSE",
+          "sha256": "7827cb95512dc6bb75271901875f6501db319afe9dfb5dbf3d6b460036784923"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Pierre Surply; optional VCD handoff and navigation reference. Reviewed revision fe89ba62d8ddcf95f8476d6b8a8c5714f1a64b6f, version 0.5.0."
+    },
+    {
+      "id": "iverilog",
+      "name": "Icarus Verilog",
+      "license": "GPL-2.0-or-later",
+      "relationship": "external-tool-and-patch-context",
+      "bundled_upstream_code": true,
+      "locations": ["src/hdl/run.js", "extensions/hdl-debug/iverilog"],
+      "adapters": ["hdl", "cocotb"],
+      "evidence": [
+        {
+          "url": "https://github.com/steveicarus/iverilog/blob/master/COPYING",
+          "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+        },
+        {
+          "url": "https://github.com/steveicarus/iverilog/tree/v12_0",
+          "note": "Source headers read from the exact hash-verified archive in extensions/hdl-debug/README.md; GPL v2 or later is explicit, not inferred from the generic GPL text."
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Stephen Williams and Icarus contributors. Observer targets v12_0; individual library files may have other terms."
+    },
+    {
+      "id": "ghdl",
+      "name": "GHDL",
+      "license": "GPL-2.0-or-later",
+      "relationship": "external-tool-and-patch-context",
+      "bundled_upstream_code": true,
+      "locations": ["src/hdl/run.js", "extensions/hdl-debug/ghdl"],
+      "adapters": ["hdl"],
+      "evidence": [
+        {
+          "url": "https://github.com/ghdl/ghdl/blob/master/COPYING.md",
+          "sha256": "aef8b4222b79d0dbf6bf17cfff71c90a6a6bb8917a4162abe417b469ed22da2e"
+        },
+        {
+          "url": "https://github.com/ghdl/ghdl/tree/v4.1.0",
+          "note": "Source headers read from the exact hash-verified archive in extensions/hdl-debug/README.md; GPL v2 or later is explicit, not inferred from the generic GPL text."
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Tristan Gingold and GHDL contributors. Observer targets v4.1.0; retain runtime linking exceptions where present."
+    },
+    {
+      "id": "fusesoc",
+      "name": "FuseSoC",
+      "license": "BSD-2-Clause",
+      "relationship": "external-tool",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["fusesoc"],
+      "evidence": [
+        {
+          "url": "https://github.com/olofk/fusesoc/blob/main/LICENSE",
+          "sha256": "bb94792802f1327befaa98cb006ad9f18e442d4479b4d896e409266e5d4de73f"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Olof Kindgren and FuseSoC contributors; resolved cores have separate licenses."
+    },
+    {
+      "id": "edalize",
+      "name": "Edalize",
+      "license": "BSD-2-Clause",
+      "relationship": "external-helper",
+      "bundled_upstream_code": false,
+      "locations": ["examples/design/peripheral"],
+      "adapters": ["fusesoc"],
+      "evidence": [
+        {
+          "url": "https://github.com/olofk/edalize/blob/main/LICENSE",
+          "sha256": "d348984bef33444bd1d68798181a26982c65c5480ff89bf62fa9418dd511fe8f"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Edalize contributors; separately installed FuseSoC backend dependency."
+    },
+    {
+      "id": "peakrdl",
+      "name": "PeakRDL",
+      "license": "LGPL-3.0-only",
+      "relationship": "external-tool",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["peakrdl"],
+      "evidence": [
+        {
+          "url": "https://github.com/SystemRDL/PeakRDL/blob/main/LICENSE",
+          "sha256": "780308191727b130d956be2a7a51e4278f5177f2220d8e3f3151d4ecdd14592c"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Alex Mykyta and contributors; CLI and separately installed exporters."
+    },
+    {
+      "id": "systemrdl",
+      "name": "SystemRDL Compiler",
+      "license": "MIT",
+      "relationship": "external-helper",
+      "bundled_upstream_code": false,
+      "locations": ["scripts/design-registers.py"],
+      "adapters": ["peakrdl"],
+      "evidence": [
+        {
+          "url": "https://github.com/SystemRDL/systemrdl-compiler/blob/main/LICENSE",
+          "sha256": "f2cfaaf5a7a7966e4c6463fed9036915f79766ea13ae0174cf57163b8b73d833"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Alex Mykyta and contributors; imported in a separate Python helper process."
+    },
+    {
+      "id": "peakrdl-regblock",
+      "name": "PeakRDL-regblock",
+      "license": "LGPL-3.0-only",
+      "relationship": "external-helper",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["peakrdl"],
+      "evidence": [
+        {
+          "url": "https://github.com/SystemRDL/PeakRDL-regblock/blob/main/LICENSE",
+          "sha256": "780308191727b130d956be2a7a51e4278f5177f2220d8e3f3151d4ecdd14592c"
+        },
+        {
+          "url": "https://peakrdl-regblock.readthedocs.io/en/latest/licensing.html",
+          "sha256": "a130e151d834b3b9192880980c3dfd54b3a7a1825eb74fc24fb510cd3040bde0"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Generator/templates LGPL v3; upstream explicitly exempts generated code. See licensing documentation."
+    },
+    {
+      "id": "peakrdl-cheader",
+      "name": "PeakRDL-cheader",
+      "license": "LGPL-3.0-only",
+      "relationship": "external-helper",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["peakrdl"],
+      "evidence": [
+        {
+          "url": "https://github.com/SystemRDL/PeakRDL-cheader/blob/main/LICENSE",
+          "sha256": "780308191727b130d956be2a7a51e4278f5177f2220d8e3f3151d4ecdd14592c"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Exporter license; inspect output notices before redistributing generated headers."
+    },
+    {
+      "id": "peakrdl-ipxact",
+      "name": "PeakRDL-ipxact",
+      "license": "LGPL-3.0-only",
+      "relationship": "external-helper",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["peakrdl"],
+      "evidence": [
+        {
+          "url": "https://github.com/SystemRDL/PeakRDL-ipxact/blob/main/LICENSE",
+          "sha256": "780308191727b130d956be2a7a51e4278f5177f2220d8e3f3151d4ecdd14592c"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Exporter license; inspect output notices before redistributing generated XML."
+    },
+    {
+      "id": "verilator",
+      "name": "Verilator",
+      "license": "LGPL-3.0-only OR Artistic-2.0",
+      "relationship": "external-tool",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["verilator", "cocotb"],
+      "evidence": [
+        {
+          "url": "https://github.com/verilator/verilator/blob/master/LICENSE",
+          "sha256": "996af0513df21f7496288951c41428a03c174e9e4a9d63665c57d670f845ccb1"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/verilator/verilator/master/README.rst",
+          "sha256": "dae4b3358e3adc77181a5dd7da6c67397e4d7271ec6290e5eac3c2304050f451"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Wilson Snyder and contributors; upstream explains separate ownership of user HDL/C++ and generated output."
+    },
+    {
+      "id": "cocotb",
+      "name": "cocotb",
+      "license": "BSD-3-Clause",
+      "relationship": "external-tool",
+      "bundled_upstream_code": true,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["cocotb"],
+      "evidence": [
+        {
+          "url": "https://github.com/cocotb/cocotb/blob/master/LICENSE",
+          "sha256": "de942dcc37409f373b9261dae1c602602c56f89120e58b0b355335234d780d07"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "cocotb contributors, Potential Ventures Ltd. and SolarFlare Communications Inc.; copied adders are separately CC0-1.0.",
+      "bundled_files": [
+        {
+          "path": "examples/hdl/upstream/adder.sv",
+          "license": "CC0-1.0",
+          "sha256": "fbae5386cde21e66530009683f5eed38d32888e0be87c14b8738711f66dd1345",
+          "revision": "f622ed090a46b919548e744725a7d1f23ea93ffe",
+          "source_url": "https://raw.githubusercontent.com/cocotb/cocotb/f622ed090a46b919548e744725a7d1f23ea93ffe/examples/adder/hdl/adder.sv"
+        },
+        {
+          "path": "examples/hdl/upstream/adder.vhdl",
+          "license": "CC0-1.0",
+          "sha256": "2fa437ae55a5e15adbd7ac27bc9dbbbabe60dfaea19f0d3b86211d72c2a0792f",
+          "revision": "f622ed090a46b919548e744725a7d1f23ea93ffe",
+          "source_url": "https://raw.githubusercontent.com/cocotb/cocotb/f622ed090a46b919548e744725a7d1f23ea93ffe/examples/adder/hdl/adder.vhdl"
+        }
+      ]
+    },
+    {
+      "id": "sby",
+      "name": "SymbiYosys (SBY)",
+      "license": "ISC",
+      "relationship": "external-tool",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["sby"],
+      "evidence": [
+        {
+          "url": "https://github.com/YosysHQ/sby/blob/main/COPYING",
+          "sha256": "6fca2f7a0a28abfb6aa97ad591d82ce3298fef9f80f0f584298b5b3cb1ed5dd2"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Claire Xenia Wolf and contributors; current upstream COPYING is ISC, not assumed GPL from Yosys tooling."
+    },
+    {
+      "id": "eqy",
+      "name": "EQY",
+      "license": "ISC",
+      "relationship": "external-tool",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["eqy"],
+      "evidence": [
+        {
+          "url": "https://github.com/YosysHQ/eqy/blob/main/COPYING",
+          "sha256": "2461a7732f6ec80eb507f7912578e8fbc46fc51ff5fac7b9203d74b9c0680cdb"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Claire Xenia Wolf, N. Engelhardt, Sandia and contributors."
+    },
+    {
+      "id": "yosys",
+      "name": "Yosys",
+      "license": "ISC",
+      "relationship": "external-tool",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["sby", "eqy", "orfs"],
+      "evidence": [
+        {
+          "url": "https://github.com/YosysHQ/yosys/blob/main/COPYING",
+          "sha256": "6998b5724d4cb3f459d1c12b6bd0cdbfa9c949ef14d0fb6d7d97d97404e5b5f3"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Claire Xenia Wolf and Yosys contributors; plugins, ABC and other dependencies retain their own terms."
+    },
+    {
+      "id": "z3",
+      "name": "Z3",
+      "license": "MIT",
+      "relationship": "external-tool",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["sby"],
+      "evidence": [
+        {
+          "url": "https://github.com/Z3Prover/z3/blob/master/LICENSE.txt",
+          "sha256": "e617cad2ab9347e3129c2b171e87909332174e17961c5c3412d0799469111337"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Microsoft and Z3 contributors; default configurable solver. Other selected solvers need their own review."
+    },
+    {
+      "id": "orfs",
+      "name": "OpenROAD-flow-scripts",
+      "license": "BSD-3-Clause",
+      "relationship": "external-tool",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["orfs"],
+      "evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/The-OpenROAD-Project/OpenROAD-flow-scripts/8ae3ae362e2e9be94ab1d27b3dd647c8328a783f/LICENSE_BUILD_RUN_SCRIPTS",
+          "sha256": "fae0db7a4c00c3125f037e5818e8cd0c8aa5c67fff2e8c558312068e9f2d1592"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "BSD applies only to build/run scripts. Tools, platform, PDK, cells, decks and IP each have separate terms. Tested flow 8ae3ae362e2e9be94ab1d27b3dd647c8328a783f; later CDL/deck 479d02aaee049b960ea302bf2043d6816341a160."
+    },
+    {
+      "id": "openroad",
+      "name": "OpenROAD",
+      "license": "BSD-3-Clause",
+      "relationship": "external-tool",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["orfs", "openroad-mcp"],
+      "evidence": [
+        {
+          "url": "https://github.com/The-OpenROAD-Project/OpenROAD/blob/master/LICENSE",
+          "sha256": "28cfc93cb2b552192bc316259d2c2a1aa5a980018cda1c5cd9b1143c9151aebb"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "The OpenROAD Authors; separately installed database/physical design tool."
+    },
+    {
+      "id": "klayout",
+      "name": "KLayout",
+      "license": "GPL-2.0-or-later",
+      "relationship": "external-tool",
+      "bundled_upstream_code": false,
+      "locations": [
+        "scripts/design-klayout.py",
+        "scripts/test-design-reports.py"
+      ],
+      "adapters": ["orfs"],
+      "evidence": [
+        {
+          "url": "https://github.com/KLayout/klayout/blob/master/LICENSE",
+          "sha256": "589ed823e9a84c56feb95ac58e7cf384626b9cbf4fda2a907bc36e103de1bad2"
+        },
+        {
+          "url": "https://www.klayout.de/license.html",
+          "note": "Official GPL-2.0-or-later statement and independent-script/module exception; current repository GPL text alone does not establish this scope."
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Matthias Koefferlein and contributors. Official license page permits independently licensed scripts and Python module clients; ChipSim scripts explicitly use MIT."
+    },
+    {
+      "id": "renode",
+      "name": "Renode",
+      "license": "MIT",
+      "relationship": "external-tool",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["renode"],
+      "evidence": [
+        {
+          "url": "https://github.com/renode/renode/blob/master/LICENSE",
+          "sha256": "f81b19ff9bc4b30fae51a59452ed227cbf35af683c50e7e5b443fd4eb04881c7"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Antmicro and contributors; dependencies/submodules retain their own licenses. Actual software-platform adapter exists; RTL bridge remains project supplied."
+    },
+    {
+      "id": "renode-verilator",
+      "name": "Renode Verilator integration",
+      "license": "MIT",
+      "relationship": "reference-only",
+      "bundled_upstream_code": false,
+      "locations": ["docs/DESIGN.md"],
+      "adapters": ["renode"],
+      "evidence": [
+        {
+          "url": "https://github.com/antmicro/renode-verilator-integration/blob/master/LICENSE",
+          "sha256": "eea7838aded53fa1e475513106e395a6d7b3f205ff522000c24b0032bda7564d"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Antmicro; possible project-supplied bridge, not copied, bundled or auto-generated by ChipSim."
+    },
+    {
+      "id": "picorv32",
+      "name": "PicoRV32",
+      "license": "ISC",
+      "relationship": "bundled-source",
+      "bundled_upstream_code": true,
+      "locations": ["examples/design/soc/picorv32.v"],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://github.com/YosysHQ/picorv32/blob/main/COPYING",
+          "sha256": "041ebc727233e5bf096dd41260cbb81014d3d29ca007a15f3b1807d4e9ff288e"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Claire Xenia Wolf / YosysHQ; unchanged pinned processor fixture, full ISC notice in file header.",
+      "bundled_files": [
+        {
+          "path": "examples/design/soc/picorv32.v",
+          "license": "ISC",
+          "sha256": "0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622",
+          "revision": "ef203c2b0a3fb793280f5114941416c425c5b461",
+          "source_url": "https://raw.githubusercontent.com/YosysHQ/picorv32/ef203c2b0a3fb793280f5114941416c425c5b461/picorv32.v"
+        }
+      ]
+    },
+    {
+      "id": "rp2040js",
+      "name": "rp2040js",
+      "license": "MIT",
+      "relationship": "reference-only",
+      "bundled_upstream_code": false,
+      "locations": ["docs/EXISTING_SIMULATORS.md"],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://github.com/wokwi/rp2040js/blob/main/LICENSE",
+          "sha256": "77d3a0da51ea87f2f9a6cb420c7a9414b9d3017ceb15182b02fce69aa94f99f8"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Uri Shaked and contributors; inspected a304c7486f329dae64be5f65baf28795d62ceb95 (1.4.0); no executable adapter or source copy."
+    },
+    {
+      "id": "pio-emulator",
+      "name": "rp2040-pio-emulator",
+      "license": "Apache-2.0",
+      "relationship": "reference-only",
+      "bundled_upstream_code": false,
+      "locations": ["docs/EXISTING_SIMULATORS.md"],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://github.com/NathanY3G/rp2040-pio-emulator/blob/main/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "NathanY3G and contributors; reference, no executable adapter or source copy."
+    },
+    {
+      "id": "rp2040pio",
+      "name": "rp2040pio",
+      "license": "GPL-2.0",
+      "relationship": "reference-only",
+      "bundled_upstream_code": false,
+      "locations": ["docs/EXISTING_SIMULATORS.md"],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://github.com/soundpaint/rp2040pio/blob/main/LICENSE",
+          "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "soundpaint and contributors; upstream GPL v2 license text, no copied source or executable adapter. No later-version inference made."
+    },
+    {
+      "id": "prettier",
+      "name": "Prettier",
+      "license": "MIT",
+      "relationship": "development-dependency",
+      "bundled_upstream_code": false,
+      "locations": ["package-lock.json"],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://github.com/prettier/prettier/blob/main/LICENSE",
+          "sha256": "b0f2417199889f1c0d28ec4e0244eacf1a15de5819d61f641dd7d8f45153ac9c"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "James Long and contributors. Locked 3.9.9, sole npm dependency, development only; installed package includes additional third-party notices."
+    },
+    {
+      "id": "pillow",
+      "name": "Pillow",
+      "license": "MIT-CMU",
+      "relationship": "documentation-tool",
+      "bundled_upstream_code": false,
+      "locations": ["scripts/render-readme-screenshots.py"],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://github.com/python-pillow/Pillow/blob/main/LICENSE",
+          "sha256": "15181e7363dca9aed78b79bebebc7fde7f1814b8bd311ea3b87ae8ccadfc185b"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Secret Labs AB, Fredrik Lundh, Alex Clark and contributors; screenshot generation only, library not bundled."
+    },
+    {
+      "id": "dejavu",
+      "name": "DejaVu Sans Mono",
+      "license": "Bitstream Vera / DejaVu public-domain changes / Arev notices",
+      "relationship": "documentation-tool",
+      "bundled_upstream_code": false,
+      "locations": ["scripts/render-readme-screenshots.py"],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://github.com/dejavu-fonts/dejavu-fonts/blob/master/LICENSE",
+          "sha256": "7a083b136e64d064794c3419751e5c7dd10d2f64c108fe5ba161eae5e5958a93"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Bitstream, DejaVu contributors and Tavmjong Bah; glyph pixels appear in PNGs, font files are not bundled."
+    },
+    {
+      "id": "typebox",
+      "name": "TypeBox",
+      "license": "MIT",
+      "relationship": "host-supplied-library",
+      "bundled_upstream_code": false,
+      "locations": ["extensions/chipsim.ts"],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/sinclairzx81/typebox/master/license",
+          "sha256": "e8a7cc256941a26ba8234f04390165243a4d42f74fd6491934140605bf7eae2d"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Haydn Paterson and contributors. Imported by the extension through the host loader; absent from standalone CLI dependencies."
+    },
+    {
+      "id": "openroad-mcp",
+      "name": "OpenROAD-MCP",
+      "license": "BSD-3-Clause",
+      "relationship": "external-tool",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["openroad-mcp"],
+      "evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/The-OpenROAD-Project/OpenROAD-MCP/main/LICENSE",
+          "sha256": "462f2e81c0f10c3c54a4d41ff284146c1f98ed997a140cb027823b6d847c391f"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "The OpenROAD Authors. Finite stdio JSON-RPC client; ChipSim does not import/copy the server or MCP SDK. Tested server identifies 1.1.0; current upstream license inspected separately."
+    },
+    {
+      "id": "sky130",
+      "name": "SkyWater SKY130 PDK",
+      "license": "Apache-2.0 (upstream PDK; inspect each selected platform file)",
+      "relationship": "external-data",
+      "bundled_upstream_code": false,
+      "locations": ["examples/design/peripheral/config.mk"],
+      "adapters": ["orfs"],
+      "evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/google/skywater-pdk/main/LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "SkyWater Technology Foundry and Google contributors. No PDK/cells/decks bundled; ORFS platform additions and individual third-party files require their own notices."
+    },
+    {
+      "id": "gcc",
+      "name": "GCC / G++ / GNAT",
+      "license": "GPL-3.0-or-later; covered runtimes have GCC-exception-3.1",
+      "relationship": "external-toolchain",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js", "scripts/build-hdl-debug.sh"],
+      "adapters": ["firmware", "verilator"],
+      "evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/gcc-mirror/gcc/master/COPYING3",
+          "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+        },
+        {
+          "url": "https://www.gnu.org/licenses/gcc-exception-3.1.en.html",
+          "sha256": "a47776dba6f6b807c6847e26721407e66dff11467352cf0423509d8c69038eff"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "GNU compiler contributors. Independent input code is not relicensed by compilation; distributed runtime libraries may carry additional obligations."
+    },
+    {
+      "id": "binutils",
+      "name": "GNU Binutils (objcopy)",
+      "license": "GPL-3.0-or-later (tool; component exceptions may differ)",
+      "relationship": "external-toolchain",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/adapters.js"],
+      "adapters": ["firmware"],
+      "evidence": [
+        {
+          "url": "https://sourceware.org/git/?p=binutils-gdb.git;a=blob_plain;f=COPYING3;hb=HEAD",
+          "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "GNU Binutils contributors. Selected compiler/objcopy are configurable; inspect actual toolchain and linked libraries for firmware distribution."
+    },
+    {
+      "id": "node",
+      "name": "Node.js",
+      "license": "MIT with bundled third-party licenses",
+      "relationship": "external-runtime",
+      "bundled_upstream_code": false,
+      "locations": ["package.json"],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/nodejs/node/v22.13.0/LICENSE",
+          "sha256": "9d72cce9b104ecb67feb8af38618511685190ae5a119cc0488ecae66b221000d"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Node.js contributors and OpenJS Foundation; not bundled. Version 22.13.0 license inspected as minimum supported runtime."
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "license": "PSF-2.0 and historical/third-party notices",
+      "relationship": "external-runtime",
+      "bundled_upstream_code": false,
+      "locations": [
+        "scripts/design-registers.py",
+        "scripts/build-hdl-debug.sh",
+        "scripts/test-tui-pty.py"
+      ],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://docs.python.org/3/license.html",
+          "sha256": "160ee7006b3e8613b8e6e89a46c08cedf60c5593404d0ee1d227fe99052a53ea"
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Python Software Foundation and contributors; not bundled."
+    },
+    {
+      "id": "poppler",
+      "name": "Poppler",
+      "license": "GPL-2.0-only OR GPL-3.0-only (core; contributions also have individual notices)",
+      "relationship": "external-tool",
+      "bundled_upstream_code": false,
+      "locations": ["src/documents/extract-node.js"],
+      "adapters": ["document", "model", "program"],
+      "evidence": [
+        {
+          "url": "https://poppler.freedesktop.org/",
+          "note": "Upstream project/source; installed poppler-utils copyright also inspected at /usr/share/doc/poppler-utils/copyright, core licensing section."
+        }
+      ],
+      "reviewed_on": "2026-10-14",
+      "notes": "Poppler contributors; pdfinfo/pdftotext are separate processes. Do not label the complete core GPL-2.0-or-later without accounting for its GPL v2 or v3 constraint."
+    }
+  ]
+}

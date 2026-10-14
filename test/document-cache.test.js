@@ -1,4 +1,5 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([]);
 import assert from "node:assert/strict";
 import { mkdtemp, rm, readFile, copyFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -9,7 +10,7 @@ import {
   needsDocumentRefresh,
   replaceExtraction,
 } from "../src/documents/cache.js";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { readRegisterTables } from "../src/model/register-tables/read.js";
 import { analyzeDocument } from "../src/model/from-document.js";
 import { TuiState } from "../src/tui/state.js";

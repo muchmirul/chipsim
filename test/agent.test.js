@@ -1,4 +1,12 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([
+  "an unfamiliar PDF accepts an authored model and hands the exact experiment to the TUI",
+  "agent check reports invalid models, missing sources, bad citations and independently failed acceptance cases",
+  "forged extraction text cannot satisfy provenance and changed PDF bytes reject source reads",
+  "runtime faults retain inspectable artifacts but return a failing status",
+  "agent doctor preserves the protocol version and reports unavailable dependencies without a TTY",
+  "agent CLI gives one JSON result without a TTY and rejects ambiguous or unbounded arguments",
+]);
 import assert from "node:assert/strict";
 import {
   mkdtemp,

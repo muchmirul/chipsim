@@ -7,6 +7,7 @@ import {
 import { normalizeParameters, validateInputs } from "../model/engine.js";
 import { registerAccessInputs } from "../model/register-access.js";
 import { extractPDFFile } from "../documents/extract-node.js";
+import { referencePath } from "../documents/references.js";
 import { needsDocumentRefresh, replaceExtraction } from "../documents/cache.js";
 import { modelsForDocument, searchDocument } from "../documents/recognize.js";
 import { readFile, readdir } from "node:fs/promises";
@@ -318,13 +319,14 @@ export class TuiState {
         item.path?.startsWith("docs/references/"),
       );
     if (!source) throw new Error("Import a reference PDF with d first.");
-    const extracted = await extractPDFFile(resolve(this.root, source.path), {
-      onProgress,
-    });
+    const extracted = await extractPDFFile(
+      referencePath(source, { root: this.root }),
+      {
+        onProgress,
+      },
+    );
     if (extracted.sha256 !== source.sha256)
-      throw new Error(
-        "Bundled reference fingerprint does not match the model.",
-      );
+      throw new Error("Local reference fingerprint does not match the model.");
     const existing = this.documents.find(
       (document) => document.sha256 === extracted.sha256,
     );

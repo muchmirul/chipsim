@@ -1,0 +1,5 @@
+# Catalog metadata and original ChipSim notes are distributable; vendor bytes
+# and extracted copies are private inputs, including during reference tests.
+*.pdf
+*.sources.json
+*.txt

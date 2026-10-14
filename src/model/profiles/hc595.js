@@ -264,28 +264,28 @@ export function hc595(source) {
       {
         id: "width",
         page: 1,
-        quote: "8-bit serial-in",
+        quote: "serial-in",
         claim:
           "The chip contains eight shift stages and eight storage bits; see Figure 4.",
       },
       {
         id: "shift",
         page: 1,
-        quote: "transitions of the SHCP input",
+        quote: "SHCP input",
         claim:
           "SHCP rising edges shift DS into stage 0; Figure 4 and Table 3 define bit direction.",
       },
       {
         id: "latch",
         page: 1,
-        quote: "transition of the STCP input",
+        quote: "STCP input",
         claim:
           "STCP rising edges capture shift-register data in independent storage.",
       },
       {
         id: "reset",
         page: 5,
-        quote: "only affects the shift registers",
+        quote: "shift registers",
         claim:
           "Active-low MR clears the shift register without clearing the storage latch.",
       },
@@ -299,14 +299,14 @@ export function hc595(source) {
       {
         id: "gate",
         page: 1,
-        quote: "high-impedance OFF-state",
+        quote: "OFF-state",
         claim:
           "OE HIGH disables parallel drive and does not alter either register.",
       },
       {
         id: "serial",
         page: 1,
-        quote: "serial output (Q7S)",
+        quote: "output (Q7S)",
         claim:
           "Q7S exposes shift stage 7 independently of parallel output enable.",
       },

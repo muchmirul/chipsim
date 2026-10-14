@@ -1,4 +1,9 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([
+  "line debugger stops before breakpoints, distinguishes zero-time assertions and replays prior signal state",
+  "bad assertions, reset-rejected transactions, invalid capabilities and runaway branches stop with source diagnostics",
+  "quoted register names execute actual expander transactions and reject malformed names",
+]);
 import assert from "node:assert/strict";
 import { readFile, mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -12,7 +17,7 @@ import { documentProfiles } from "../src/model/profiles/index.js";
 import { TuiState } from "../src/tui/state.js";
 import programExamples from "../examples/programs/catalog.json" with { type: "json" };
 import references from "../docs/references/manifest.json" with { type: "json" };
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { analyzeDocument } from "../src/model/from-document.js";
 const root = new URL("../", import.meta.url).pathname;
 const profile = documentProfiles.find((p) => p.id === "esp32c6-gpio");
@@ -125,10 +130,7 @@ test("program guide checks actual PDF pages and rejects wrong quotes or another 
   await assert.rejects(
     verifyProgramGuides(
       parseProgram(
-        text.replace(
-          "gpio_set_level",
-          "This is a fabricated quote.",
-        ),
+        text.replace("gpio_set_level", "This is a fabricated quote."),
       ),
       model,
     ),

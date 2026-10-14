@@ -2,6 +2,12 @@
 
 **Turn a hardware question into a repeatable, inspectable experiment.** ChipSim is a TUI-only local workbench for exploring digital behavior from chip datasheets and reference manuals. You can drive inputs, try register sequences, step through a program, and inspect signals alongside the documentation that supports the model.
 
+Original ChipSim code is [MIT licensed](LICENSE). [Acknowledgments](ACKNOWLEDGMENTS.md)
+and [licensing notes](docs/LICENSING.md) document the file-specific exceptions.
+Vendor manuals are private user-supplied inputs; the public repo/package contains
+catalog metadata and source links, not document bytes. See
+[private reference setup](docs/LOCAL_REFERENCES.md) for source-backed workflows.
+
 For a hardware or firmware developer, it helps answer questions such as: “Does clearing this bit change the output latch?”, “Which clock edge captures the data?”, or “What happens when the FIFO fills?” Save the experiment and trace to make the answer reviewable before testing the real device.
 
 Start with [installation](#1-install-and-open-your-first-experiment), follow the [manual walkthrough](#2-follow-a-manual-to-simulation-workflow), or jump to [agent mode](#3-use-agent-mode-with-a-coding-agent). The [inspection guide](#4-inspect-change-and-review-experiments), [builders](#5-build-behavior-that-is-not-already-covered) and [exports](#6-save-share-and-use-waveform-tools) show the features in use.
@@ -44,7 +50,7 @@ OpenROAD-MCP database inspection feed the same artifact graph. See the
 | An unfamiliar reference manual      | Searchable source project, model format, verification commands and coding-agent instructions                      | A developer or external agent must author behavior when no supported model exists |
 | Verilog / VHDL source and testbench | Icarus/GHDL runs, synchronized source/RTL/signals debugger, VCD inspection and mapped comparison                  | Recorded digital results; explicit timing assumptions for model comparisons       |
 
-The library includes **34 original vendor PDFs across 19 chip/family folders**, with source URLs, revisions, fingerprints and programming references. Start with the [chip and reference library](docs/references/README.md) and [example programs](examples/programs/README.md). The full account-gated NXP eTPU reference manual is not bundled; the catalog records the available public documents and gaps.
+The catalog describes **34 vendor references across 19 chip/family folders**, with source URLs, revisions, fingerprints and programming roles. No vendor PDFs are distributed. Start with the [chip and reference library](docs/references/README.md) and [example programs](examples/programs/README.md). The full account-gated NXP eTPU reference manual is not bundled; the catalog records the available public documents and gaps.
 
 ## 1. Install and open your first experiment
 
@@ -104,12 +110,12 @@ TUI review → adjust experiment → save session / export JSON, CSV, VCD
 
 In the terminal workflow, Poppler reads metadata and extracts existing text with `pdftotext`. ChipSim keeps one-based PDF page numbers, including front matter, and obtains word positions with `-bbox-layout` for selected function/register-table candidates. This supports structured table review; it is not image recognition or automatic understanding of every diagram. See [function-table extraction](docs/FUNCTION_TABLES.md) and [register inventories](docs/REGISTER_BANKS.md).
 
-### Step A — Prepare the supplied ESP32-C6 manual
+### Step A — Prepare a privately supplied ESP32-C6 manual
 
-Run the following from the repository checkout. Choose a new output directory; preparation preserves existing directories.
+First obtain the exact references privately and set `CHIPSIM_REFERENCE_ROOT` as described in [private reference setup](docs/LOCAL_REFERENCES.md). Run the following from the repository checkout. Choose a new output directory; preparation preserves existing directories.
 
 ```sh
-chipsim agent prepare docs/references/esp32-c6/espressif-esp32-c6-trm.pdf \
+chipsim agent prepare "$CHIPSIM_REFERENCE_ROOT/docs/references/esp32-c6/espressif-esp32-c6-trm.pdf" \
   --out ../chip-work
 chipsim agent context ../chip-work --model esp32c6-gpio
 chipsim agent search ../chip-work "GPIO_OUT_REG" --limit 5
@@ -120,7 +126,6 @@ Preparation copies the PDF, extracts sources, records its fingerprint and create
 
 `context` tells you the chip's programming target, available simulation capabilities, exact register/input names, guide PDFs and limits. Read it before writing a program; chip families do not share an interchangeable firmware format.
 
-![ESP32-C6 source view on original PDF page 251 describing simple GPIO output](docs/screenshots/sources.png)
 
 _Sources (`4`) keeps the manual beside the experiment. `/` searches text, `n/N` cycles matching pages, `h/l` changes pages and `j/k` scrolls. Page 251 describes simple output and recommended set/clear operations; page 271 gives their register definitions. PDF page numbers may differ from printed page labels._
 
@@ -140,7 +145,6 @@ Loading source does not execute its statements. In **Program (`9`)**, press `N` 
 
 Before time advances, the signal pane shows initial values and says there is no waveform history yet. Use `N` or `C` in Program to generate the trace, then `1` to inspect waveforms. Sources (`4`) selects a matching reference for the model; unrelated PDFs remain available for explicit browsing.
 
-![GPIO source experiment paused before its clear instruction, with the logical driver high](docs/screenshots/program.png)
 
 _The program is stopped before line 9 at tick 5. The trace shows the driver starting released (`Z`), becoming low after enable, then high after set. `N` executes the clear and produces low; `J` replays one executed statement backward. Source steps and signal ticks are related but not identical: an assertion can execute without advancing time._
 
@@ -253,7 +257,6 @@ Open a second terminal:
 chipsim --watch /absolute/path/to/chip-work
 ```
 
-![Live agent activity with program checks, source verification and a completed GPIO run](docs/screenshots/agent-activity.png)
 
 _Activity (`8`) shows actual source lookups, model-file changes, check/run progress and results. A complete successful run loads after verification; incomplete edits and failed runs leave the current trace intact. Switch to `1`, `6` or `9` to inspect the published experiment._
 
@@ -308,11 +311,9 @@ _Log (`3`) gives the sequence behind the waveform. `/` filters; `C` toggles chan
 
 Models with a register interface support `u` for named reads/writes. Addresses are interpreted according to that model; the GPIO example uses relative offsets. Write-only set/clear aliases do not acquire invented readback values.
 
-![GPIO values showing the selected driver, output latch and enabled bit after a set write](docs/screenshots/registers.png)
 
 _Registers (`6`) lists current values and changes at the cursor. After enabling GPIO0 and writing OUT_W1TS=1, the logical driver and retained latch are high. `/` filters fields; `F` cycles numeric presentation._
 
-![Complete accepted GPIO set transaction with changed values, input events and a manual quotation](docs/screenshots/step-details.png)
 
 _Enter opens a complete step: accepted write, adapter status, before/after values, input events and actual source evidence. Press `s` to open an available step citation in Sources. An ignored or rejected read is not presented as a new read result._
 
@@ -320,19 +321,16 @@ _Enter opens a complete step: accepted write, adapter status, before/after value
 
 Use `i` to drive a pin at the cursor or schedule it from **Stimulus (`7`)**. Input values hold until their next event. Enter edits/moves/removes the selected event; `a` loads a JSON sequence, restores demonstration events or clears explicit events. JSON numbers use decimal syntax; terminal input accepts all four numeric bases.
 
-![Stimulus timeline showing the request changes for two addressed GPIO transactions](docs/screenshots/stimulus.png)
 
 _The timeline exposes the actual inputs behind an experiment. This filtered view shows the request-token changes generated by the two register writes. Use `u` to insert a complete transaction rather than manually assembling bus fields. `U` undoes and `R` redoes a stimulus edit; `S` saves the resulting experiment. Undo history itself is temporary._
 
 ### Source-linked model selection and scope
 
-![Simulations menu offering the GPIO and PCNT models associated with one ESP32-C6 manual](docs/screenshots/source-models.png)
 
 _From Sources, `o` selects simulations associated with that PDF and shows their scope. “Find supported simulations in saved PDF” rechecks the saved source for supported models. One manual can supply several independent peripheral models; opening it does not create a whole-SoC simulator._
 
 Model (`5`) explains scope, assumptions, parameters, source hashes, evidence and implementation states. Review it before relying on an output. `M` exports a document model; `B` exports the current document's source bundle.
 
-![74HC00 model view preserving its original function-table symbols and instance mapping](docs/screenshots/function-table.png)
 
 _For supported logic tables, the model retains original rows and validated instance mapping. The 74HC00 example derives NAND outputs from the source table. Sequential examples expose retention/clock history and explicit initial-state choices. Ambiguous or unsupported tables are rejected rather than completed by guesses._
 
@@ -340,7 +338,6 @@ _For supported logic tables, the model retains original rows and validated insta
 
 The Program view shown in the walkthrough supports line stepping, breakpoints, continue, backward replay, locals and assertions. `.chip` uses `drive`, `write`, `read`, `wait`, `expect` and bounded branching; operations depend on the chosen model. A pin-only logic chip has no addressed register interface.
 
-![Verified ESP-IDF programming-guide quotation, original PDF path and SHA-256](docs/screenshots/guides.png)
 
 _`G` in Program displays guide evidence that was checked against the original PDF. Guide IDs and paths come from chip context. A program must declare an applicable guide; for an unfamiliar prepared manual, its programming section can be referenced with `guide manual PAGE "quote"`. These references support review, not native firmware execution._
 
@@ -348,31 +345,25 @@ _`G` in Program displays guide evidence that was checked against the original PD
 
 Import a manual with `d`, then press `c`. Choose a builder, configure the experiment and provide the source page, quote, claim and assumptions. Source verification and generated consistency cases run before installation. Add independent cases when fidelity to a real peripheral matters.
 
-![Create menu offering counter, FIFO, shift transfer, behavior table and register bank builders](docs/screenshots/builders.png)
 
 _Guided builders reduce repetitive model authoring. Their configurable behavior is explicit; a relevant quote does not mean every selected rule was inferred from that document._
 
 ### Counter, FIFO and shift transfer
 
-![Selected eight-bit counter experiment at its first compare toggle](docs/screenshots/counter.png)
 
 _Counter/timer: explore enable, reset, count direction, compare/reload or halt. This selected eight-bit scenario toggles at period 8. It uses an RP2040 excerpt as context, with developer-selected rules; it is not the complete RP2040 timer._
 
-![Selected four-word FIFO experiment with occupancy four and stored words](docs/screenshots/fifo.png)
 
 _FIFO: inspect stored words, read/write pointers, occupancy, overflow, underflow and simultaneous requests. At tick 4, this selected four-word, eight-bit FIFO is full. Its ordering rules are the builder's declared assumptions._
 
-![Selected eight-bit shift transfer with serial data, clock and sampled receiver state](docs/screenshots/shifter.png)
 
 _Shift transfer: vary word width, bit order, payload and clock half-period; observe serial bits and receiver decoding. The builder does not infer a complete SPI controller, bus timing or chip-select protocol._
 
 ### Explicit register banks and structural drafts
 
-![Scratch register bank showing a 32-bit DEADBEEF write and accepted readback](docs/screenshots/register-bank.png)
 
 _Register bank: enter explicit `NAME ADDRESS MODE RESET MASK` rows, with read/write, read-only, write-one-to-clear/set and read-to-clear modes. This eight-word storage experiment writes and reads `0xDEADBEEF` using documented RP2040 scratch offsets. Its synthetic reset is a scenario choice, not the chip's soft-reset behavior._
 
-![TCA9534 register inventory chooser offering a source-derived row draft](docs/screenshots/register-draft.png)
 
 _Supported structural register tables can prefill a review draft with addresses, labels and known defaults. Missing resets and masks remain unresolved. You must review and supply them before building; a structural inventory does not infer GPIO, interrupt or other peripheral behavior. See [register-bank authoring](docs/REGISTER_BANKS.md)._
 
@@ -380,13 +371,11 @@ _Supported structural register tables can prefill a review draft with addresses,
 
 Behavior table lets you enter named states and complete rows such as `idle 01 -> armed / 1`. Input `X` is a wildcard; output `=` explicitly retains a value. Missing holds, reset rules, clock edges and row priority are not inferred. Load rows from an `@file` for easier editing.
 
-![Trace comparison between an entered NAND rule and a deliberately forced-high draft](docs/screenshots/behavior-review.png)
 
 _Press `E` to revise an entered table and compare a draft against the same parameters, stimulus and duration. This deliberate what-if draft forces NAND Y high; the differences show where it disagrees with the working model. It is not vendor behavior and is not installed by preview. Compatible saved revisions retain backups. See [behavior-table rules and revision workflow](docs/BEHAVIOR_TABLES.md)._
 
 ## 6. Save, share and use waveform tools
 
-![Trace export menu with CSV, provenance-bearing JSON and VCD choices](docs/screenshots/exports.png)
 
 _`x` exports the complete executed trace as CSV, JSON or VCD. `S` saves a replayable session. VCD is a waveform interchange file; it contains signal changes, not the executable model or programming source. JSON retains model provenance and experiment configuration._
 
@@ -394,7 +383,6 @@ Model-generated VCD uses a nominal `1ns` timescale for viewer compatibility; eac
 
 ### Debug HDL source, RTL hardware and signals together
 
-![ChipSim TUI with HDL source, elaborated hardware and signals at event 66](docs/screenshots/hdl-debug.png)
 
 _The counter process activates at 25 ns. All three panes show event 66, before the deferred count update._
 

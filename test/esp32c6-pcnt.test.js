@@ -1,9 +1,10 @@
-import test from "node:test";
+import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
+const test = referenceTest([]);
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { extractPDFFile } from "../src/documents/extract-node.js";
+const extractPDFFile = extractReferencePDF;
 import { analyzeDocument } from "../src/model/from-document.js";
 import { compileDocument } from "../src/model/profiles/index.js";
 import { simulateModel } from "../src/model/engine.js";
@@ -18,7 +19,8 @@ const path = new URL(
 const documentPromise = extractPDFFile(path);
 const event = (tick, signal, value) => ({ tick, signal, value });
 const modelPromise = documentPromise.then(
-  (document) => compileDocument(document, { profileId: "esp32c6-pcnt" }).spec,
+  (document) =>
+    document && compileDocument(document, { profileId: "esp32c6-pcnt" }).spec,
 );
 
 test("the supplied ESP32-C6 manual includes reviewed PCNT scope with real page evidence", async () => {
