@@ -63,3 +63,20 @@ and terminal checks passed. Source-free verification also exercised synthetic
 PDFs, both terminal sizes and native coding-agent handoffs. These results verify
 the implementation and distribution scope; they do not establish publisher
 redistribution permission or hardware fidelity.
+
+## GitHub publication check
+
+A fresh clone verified the entire sanitized history and contained only four
+binary blobs, all original PIO screenshots. Its full reachable object graph
+contained no PDF signatures or removed long prose citations. The GitHub API
+reported no additional branches, tags, releases, pull requests, forks or Actions
+artifacts containing another published copy. The fresh clone passed source-free
+verification (136 tests passed, 123 explicitly skipped), installed-package
+acceptance, both terminal sizes, coding-agent handoffs and the release license
+gate.
+
+A post-push HTTP HEAD probe confirmed that the current-main PDF URL returned
+404, while a URL containing the pre-rewrite commit ID still returned 200. This
+is an observed GitHub cache/unreachable-object exposure, not a cleaned branch
+reference. It remains outside the Git history rewrite. No server-side erasure
+is claimed, and no repository deletion or Support request was performed.
