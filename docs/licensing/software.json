@@ -704,6 +704,27 @@
       ],
       "reviewed_on": "2026-10-14",
       "notes": "Poppler contributors; pdfinfo/pdftotext are separate processes. Do not label the complete core GPL-2.0-or-later without accounting for its GPL v2 or v3 constraint."
+    },
+    {
+      "id": "openevolve",
+      "name": "OpenEvolve",
+      "license": "Apache-2.0",
+      "relationship": "optional-external-optimizer",
+      "bundled_upstream_code": false,
+      "locations": [
+        "examples/evolution/run.py",
+        "examples/evolution/search.py",
+        "examples/evolution/evaluator.py"
+      ],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://github.com/algorithmicsuperintelligence/openevolve/blob/main/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ],
+      "reviewed_on": "2026-10-18",
+      "notes": "Asankhaya Sharma and OpenEvolve contributors. Separately installed evolutionary optimizer invoked through its public Python API in a supervised external process. Original ChipSim bridge only; no upstream implementation copied, bundled or installed."
     }
   ]
 }

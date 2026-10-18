@@ -76,6 +76,7 @@ export class TuiState {
     this.sourceHitIndex = 0;
     this.nameSearch = "";
     this.activity = null;
+    this.work = null;
     this.activityIndex = 0;
     this.activityFollow = true;
     this.activityFilter = "";

@@ -5,6 +5,65 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-18 — Live agent task and evolution dashboard
+
+**Context:** Prepared-PDF activity monitoring and the design job list did not
+show an external agent's objective, candidate lineage or progress across worker
+projects. Users needed to follow ordinary agent work and evolution while keeping
+a selected simulation available for debugging.
+**Use/behavior:** `chipsim --agent PROJECT` opens a live dashboard in Activity
+(`8`), and `--design` attaches the same view. `agent work-start`, `work-event`,
+and `work-status` publish/read explicit task or evolution sessions in any existing
+directory. Native tools expose these commands and `/chipsim --agent PROJECT`
+uses the usual host terminal handoff. Candidate metrics/actions are labeled
+agent-reported. Linked job/run/artifact evidence remains explicit and verified
+when opened; polling does not replace the active debug recording or cursor.
+Starting a repeated candidate attempt clears current metrics/evidence but keeps
+its history. Opening external evidence preserves the active design's saved cursor.
+**Limits/preservation:** This is local monitoring, not an embedded agent or
+capture of private reasoning. Unreported external actions remain invisible.
+Existing `--watch` behavior is unchanged. Session completion does not cancel
+jobs. Bounded journal reads/publications reject oversized input without deleting
+history. No provider setup, network transport or web UI is added.
+**Implementation/checks:** `src/agent/work.js`, `src/tui/work-panel.js`, shared
+CLI/native extension wiring, focused journal/dashboard/extension tests, packed
+installation and actual PTY checks at 80×24 and 120×40. See
+[AGENT_WORK.md](AGENT_WORK.md).
+
+## 2026-10-18 — External evolutionary RTL evaluation example
+
+**Context:** An optimizer needs real tool feedback and reviewable candidate
+artifacts, not a fabricated score or disconnected text progress.
+**Use/behavior:** `examples/evolution/` provides an optional external OpenEvolve
+bridge and provider-free evaluation of individual counter RTL candidates. Fixed
+stimulus and an independent waveform scorer produce functional results through
+managed ChipSim jobs; journal events link the actual runs/artifacts. Scoring
+reports are selected by run and trusted task producer, not just a filename.
+The external optimizer runs in a separate process so cancellation cannot turn
+its best-so-far result into a completed search. Debug capture
+is explicit for selected candidates, allowing combined source/RTL/signals review.
+**Limits/preservation:** The example measures bounded functional behavior, not
+physical area/power/timing or proof. Known candidates exercise integration, not
+an LLM evolutionary search. OpenEvolve/model configuration remains external and
+is never automatically installed. Existing execution permissions are unchanged;
+use OS isolation for untrusted RTL and evaluator scripts.
+**Implementation/checks:** `examples/evolution/`, offline evaluator regression
+and real available Icarus runs; no paid-provider call is part of the default tests.
+
+## 2026-10-18 — Exclude live journals from design directory inputs
+
+**Context:** A task capturing a whole project could otherwise include progress
+journal writes, invalidating its inputs/cache whenever an agent reported work.
+**Use/behavior:** Recursive directory capture and dependency inventories exclude
+`.chipsim-agent` alongside the existing internal directories. RTL/test/config
+changes still affect fingerprints. Explicit evidence remains in its own store.
+**Limits/preservation:** No existing evidence is deleted or modified. This changes
+recursive input/dependency fingerprints where journals were previously captured;
+recompute affected locks explicitly. Declared individual source inputs are not
+silently rewritten.
+**Implementation/checks:** `src/design/store.js`, `src/design/project.js`, and a
+regression proving journal updates do not change inventory while RTL edits do.
+
 ## 2026-10-14 — Public source cleanup and private reference inputs
 
 **Context:** Publisher manuals, source-rich screenshots and prose citations

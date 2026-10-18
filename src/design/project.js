@@ -317,7 +317,7 @@ export async function runtimeIdentity() {
 export async function dependencyIdentity(path) {
   const root = await realpath(path);
   const records = [];
-  const excluded = new Set([".git", ".chipsim"]);
+  const excluded = new Set([".git", ".chipsim", ".chipsim-agent"]);
   async function visit(entry) {
     const full = join(root, entry);
     const info = await lstat(full);

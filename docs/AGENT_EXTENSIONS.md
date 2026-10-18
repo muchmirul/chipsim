@@ -71,6 +71,20 @@ before starting either agent to override. PDF work needs Poppler; HDL runs need
 the chosen installed simulator. The extension reports missing dependencies and
 never installs them.
 
+## Show an agent task live
+
+Open `/chipsim --agent PROJECT` (or use the returned separate-terminal command).
+Use `chipsim_work_start({project: "PROJECT", goal: "USER OBJECTIVE", mode: "task"})`
+to create a session, then publish JSON event files with
+`chipsim_work_event({project: "PROJECT", session: "SESSION_UUID", event: "event.json"})`.
+`chipsim_work_status` reads candidates and recent actions. Use mode `evolution`
+for a search controller; link real job/run/artifact IDs for debugger review.
+These actions report work, not private reasoning or verified proof. See
+[AGENT_WORK.md](AGENT_WORK.md) for event examples and the OpenEvolve bridge.
+The snapshot tool accepts `chipsim_snapshot({agent:"PROJECT"})`. The general
+tool can also render a frame with
+`chipsim_command({args:["--agent","PROJECT","--snapshot"]})`.
+
 ## Try an experiment
 
 Paste into either agent:

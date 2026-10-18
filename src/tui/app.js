@@ -106,6 +106,7 @@ export class TerminalApp {
     this.closed = true;
     clearInterval(this.timer);
     this.monitor?.close();
+    this.workPanel?.close();
     const pendingHdl = this.hdlPanel.close();
     const pendingRun = this.designPanel
       ? Promise.all([pendingHdl, this.designPanel.close()])
@@ -841,7 +842,9 @@ export class TerminalApp {
         return;
       }
       if (k === "?") s.help = true;
-      else if (this.designPanel?.handle(k, key, this)) {
+      else if (this.workPanel?.handle(k, key, this)) {
+        /* explicit reported work never reloads the inspected recording */
+      } else if (this.designPanel?.handle(k, key, this)) {
         /* project/artifact controls share the same service as agents */
       } else if (k === "H") this.hdlPanel.menu();
       else if (this.debugPanel.handle(k, key)) {

@@ -118,6 +118,7 @@ for (const directory of ["models", "examples"])
 for (const file of [
   "AGENTS.md",
   "docs/AGENT_WORKFLOW.md",
+  "docs/AGENT_WORK.md",
   "docs/AGENT_EXTENSIONS.md",
   "docs/AGENT_PROJECT.md",
   "README.md",
@@ -153,23 +154,8 @@ if (process.platform === "win32") {
   console.log("PTY verification requires POSIX; skipped on Windows.");
 } else {
   execFileSync(
-    "python3",
-    [
-      new URL(
-        haveReferences
-          ? "scripts/test-tui-pty.py"
-          : "scripts/test-sourcefree-pty.py",
-        root,
-      ).pathname,
-    ],
-    {
-      stdio: "inherit",
-      cwd: root,
-    },
-  );
-  execFileSync(
-    "python3",
-    [new URL("scripts/test-agent-extension-pty.py", root).pathname],
+    process.execPath,
+    [new URL("scripts/test-tui.mjs", root).pathname],
     {
       stdio: "inherit",
       cwd: root,

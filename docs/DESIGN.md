@@ -78,7 +78,7 @@ available for diagnosis even when publication itself fails.
 Both manifests use version 1. Paths in filesets, inputs, bindings and output
 declarations are relative to the design manifest directory; traversal and
 symbolic links are rejected. Directory inputs are recursively captured, excluding
-`.git`, `.chipsim`, and `node_modules`. Preserve HDL order in the HDL manifest.
+`.git`, `.chipsim`, `.chipsim-agent`, and `node_modules`. Preserve HDL order in the HDL manifest.
 
 ```json
 {
@@ -140,7 +140,7 @@ values become part of the evidence; do not place credentials in them.
 Each external dependency records `path`, `sha256`, and optional `tasks` IDs. Its
 digest is the canonical SHA-256 of the sorted recursive `{path,sha256,bytes}`
 inventory. Internal symbolic links are recorded as `{path,link}`; their targets
-must remain within the inventoried directory. `.git` and `.chipsim` are excluded.
+must remain within the inventoried directory. `.git`, `.chipsim`, and `.chipsim-agent` are excluded.
 Use `chipsim design lock --project PROJECT --path DIRECTORY` to
 calculate a dependency entry without modifying the lock file. Dependencies such
 as ORFS and the PDK remain separately installed; a mismatch rejects execution.

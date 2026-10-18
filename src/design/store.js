@@ -98,7 +98,10 @@ export async function files(root, entries = ["."]) {
       throw new Error("Evidence inputs/outputs cannot be symlinks: " + path);
     if (stat.isDirectory()) {
       for (const name of (await readdir(full)).sort()) {
-        if ([".git", ".chipsim", "node_modules"].includes(name)) continue;
+        if (
+          [".git", ".chipsim", ".chipsim-agent", "node_modules"].includes(name)
+        )
+          continue;
         await visit(join(path, name));
       }
     } else if (stat.isFile()) {

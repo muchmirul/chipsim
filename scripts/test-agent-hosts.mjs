@@ -32,7 +32,7 @@ try {
     assert.deepEqual(loaded.errors, [], host.name + " native load errors");
     assert.equal(loaded.extensions.length, 1);
     const native = loaded.extensions[0];
-    assert.equal(native.tools.size, 34);
+    assert.equal(native.tools.size, 37);
     assert.ok(native.commands.has("chipsim"));
     if (host.name === "prime" && !process.stdin.isTTY) {
       const messages = [];
@@ -55,6 +55,13 @@ try {
         { cwd },
       );
     };
+    const work = await call("chipsim_work_start", {
+      project: cwd,
+      goal: "Native host work visibility",
+    });
+    assert.ok(work.details.session.id);
+    const activity = await call("chipsim_snapshot", { agent: cwd });
+    assert.match(activity.content[0].text, /Native host work visibility/);
     const context = (await call("chipsim_context", { target: "pio" })).details
       .programmingContext;
     assert.equal(
@@ -91,7 +98,7 @@ try {
       /CHIPSIM/,
     );
     console.log(
-      `${host.name}: native loader registered 34 tools and /chipsim; general command, PIO execution (decoded 179) and saved-session rendering passed.`,
+      `${host.name}: native loader registered 37 tools and /chipsim; general command, PIO execution (decoded 179) and saved-session rendering passed.`,
     );
   }
 } finally {

@@ -9,6 +9,7 @@ const privateFixtures = manifest.documents.every((source) =>
 for (const name of [
   privateFixtures ? "test-tui-pty.py" : "test-sourcefree-pty.py",
   "test-agent-extension-pty.py",
+  "test-agent-work-pty.py",
 ]) {
   const result = spawnSync(
     "python3",

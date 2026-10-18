@@ -13,7 +13,7 @@ and the [GitHub cleanup record](licensing/CLEANUP.md).
 
 ## Scope and evidence
 
-The [software inventory](licensing/software.json) records 38 directly integrated
+The [software inventory](licensing/software.json) records 39 directly integrated
 or researched tools/libraries, source relationships, primary license links and
 reviewed evidence hashes. The [reference inventory](licensing/reference-documents.json)
 records all 34 private-original titles, publishers, revisions, URLs, SHA-256 hashes

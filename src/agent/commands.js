@@ -14,6 +14,13 @@ import { loadAgentProgram, runAgentProgram } from "./program.js";
 import { programmingContext } from "./context.js";
 import { AgentError, integer, readBounded } from "./io.js";
 import { recordActivity, readActivity, digest } from "./activity.js";
+import {
+  startWork,
+  appendWorkEvent,
+  workStatus,
+  readWorkEvent,
+  workLimits,
+} from "./work.js";
 import metadata from "../../package.json" with { type: "json" };
 import { designGuidance } from "../design/guide.js";
 
@@ -26,6 +33,18 @@ const commands = {
   },
   note: { positionals: ["project", "message"], options: {} },
   activity: { positionals: ["project"], options: { limit: "optional" } },
+  "work-start": {
+    positionals: ["project"],
+    options: { goal: "required", mode: "optional" },
+  },
+  "work-event": {
+    positionals: ["project", "session"],
+    options: { event: "required" },
+  },
+  "work-status": {
+    positionals: ["project"],
+    options: { session: "optional", limit: "optional" },
+  },
   "program-check": {
     positionals: ["program.chip"],
     options: { model: "required", project: "optional" },
@@ -209,10 +228,37 @@ export async function agentCommand(args) {
         toolVersion: metadata.version,
         commands,
         designGuidance: designGuidance(),
+        work: {
+          modes: ["task", "evolution"],
+          eventKinds: [
+            "plan",
+            "edit",
+            "tool",
+            "candidate",
+            "evaluation",
+            "selection",
+            "summary",
+          ],
+          eventStatuses: [
+            "running",
+            "completed",
+            "failed",
+            "inconclusive",
+            "cancelled",
+            "passed",
+          ],
+          limits: workLimits,
+          reporting: "agent-reported",
+          evidence:
+            "Requires a job UUID, run SHA-256 or artifact SHA-256; optional project resolves relative to the work project. References are unverified until explicitly inspected.",
+          retention:
+            "Immutable records; capacity errors preserve existing sessions/events. No automatic deletion.",
+        },
         documentation: Object.fromEntries(
           [
             "AGENT_WORKFLOW.md",
             "AGENT_EXTENSIONS.md",
+            "AGENT_WORK.md",
             "DESIGN_INPUTS.md",
             "LOCAL_REFERENCES.md",
             "LICENSING.md",
@@ -234,6 +280,8 @@ export async function agentCommand(args) {
         notes: [
           "For chip development, use chipsim design guide for optional input recipes. Inspect existing work, then create/find/prepare missing RTL, testbenches, manifests or toolchain inputs before execution; never fabricate generated evidence.",
           "No embedded model provider; author models with your existing coding agent.",
+          "work-start/work-event/work-status use any existing local project directory; no PDF or design manifest is required. Open chipsim --agent PROJECT to inspect reported work.",
+          "Work events are explicit public progress, not private reasoning or complete editor/tool capture. Metrics and statuses are agent-reported, never verified proof; only terminal summary events end a session.",
           "Before programming: chipsim agent context CHIP_ID or PROJECT. Select a model, review capabilities and guides, then choose supported experiment or a separate native backend.",
           "PDF pages are one-based, including front matter. Each project contains one manual.",
           "prepare and run require new output directories; existing files are never replaced.",
@@ -298,6 +346,31 @@ export async function agentCommand(args) {
         total: events.length,
         events: events.slice(-limit),
       };
+    } else if (command === "work-start") {
+      result = {
+        project: resolve(positional[0]),
+        session: await startWork(positional[0], options),
+      };
+    } else if (command === "work-event") {
+      result = {
+        project: resolve(positional[0]),
+        sessionId: positional[1],
+        event: await appendWorkEvent(
+          positional[0],
+          positional[1],
+          await readWorkEvent(options.event),
+        ),
+      };
+    } else if (command === "work-status") {
+      result = await workStatus(positional[0], {
+        session: options.session,
+        limit: integer(
+          options.limit ?? 50,
+          "limit",
+          1,
+          workLimits.returnedEvents,
+        ),
+      });
     } else if (command === "prepare")
       result = await prepareProject(positional[0], options.out);
     else if (command === "check")

@@ -95,6 +95,30 @@ export const toolCommands = [
       "Read recent recorded ChipSim activity for a prepared project.",
   },
   {
+    command: "work-start",
+    positionals: ["project"],
+    options: ["goal", "mode"],
+    required: ["project", "goal"],
+    description:
+      "Start a visible agent task or evolution session in any existing project directory. Publish concise actions/results, not private reasoning; open /chipsim --agent PROJECT for live review.",
+  },
+  {
+    command: "work-event",
+    positionals: ["project", "session"],
+    options: ["event"],
+    required: ["project", "session", "event"],
+    description:
+      "Publish a structured action, candidate, evaluation or summary JSON file to a live agent session. Reported scores are not verified hardware evidence; link actual job/run/artifact IDs.",
+  },
+  {
+    command: "work-status",
+    positionals: ["project"],
+    options: ["session", "limit"],
+    required: ["project"],
+    description:
+      "Read a live agent session, candidate history and recent reported actions without executing tools.",
+  },
+  {
     family: "hdl",
     command: "doctor",
     options: ["debug"],
@@ -288,6 +312,10 @@ const fieldDescriptions = {
   steps: "Positive program statement limit (at most 10000).",
   program: "Local .chip experiment source path.",
   message: "Explicit milestone text, not private reasoning.",
+  goal: "User-visible task objective; literal text, not a shell command.",
+  mode: "Session mode: task or evolution.",
+  session: "Agent work session UUID returned by work-start.",
+  event: "Path to a bounded structured work-event JSON file.",
   waveform: "Recorded VCD or ChipSim waveform JSON path.",
   left: "Left VCD/trace JSON path.",
   right: "Right VCD/trace JSON path.",
@@ -295,7 +323,16 @@ const fieldDescriptions = {
 };
 const numericFields = new Set(["page", "limit", "offset", "ticks", "steps"]);
 const booleanFields = new Set(["debug", "no-reuse"]);
-const literalFields = new Set(["target", "id", "leftRun", "rightRun", "run"]);
+const literalFields = new Set([
+  "target",
+  "id",
+  "leftRun",
+  "rightRun",
+  "run",
+  "goal",
+  "mode",
+  "session",
+]);
 
 // One general entry point shares the existing CLI parsers and result contracts.
 // Arguments stay literal; interactive terminal ownership belongs to /chipsim.
@@ -387,9 +424,10 @@ export function tuiArguments(input, cwd) {
       : existsSync(join(cwd, "chipsim.project.json"))
         ? ["--watch", cwd]
         : [];
-  const match = /^(--session|--model|--vcd|--hdl-debug|--design)\s+(.+)$/s.exec(
-    text,
-  );
+  const match =
+    /^(--session|--model|--vcd|--hdl-debug|--design|--agent)\s+(.+)$/s.exec(
+      text,
+    );
   if (match) {
     const value = unquote(match[2].trim());
     if (
@@ -404,7 +442,7 @@ export function tuiArguments(input, cwd) {
   }
   if (text.startsWith("--"))
     throw new Error(
-      "Use /chipsim [PROJECT | --session FILE | --model ID | --vcd FILE].",
+      "Use /chipsim [PROJECT | --agent PROJECT | --session FILE | --model ID | --vcd FILE].",
     );
   const project = resolve(cwd, unquote(text));
   if (existsSync(join(project, "chipsim.design.json")))
@@ -546,6 +584,11 @@ export function registerChipSim(
         design: Type.Optional(
           Type.String({ description: "Versioned design project directory." }),
         ),
+        agent: Type.Optional(
+          Type.String({
+            description: "Project directory for the live agent-work dashboard.",
+          }),
+        ),
         columns: Type.Optional(Type.Integer({ minimum: 20, maximum: 500 })),
         rows: Type.Optional(Type.Integer({ minimum: 20, maximum: 500 })),
       },
@@ -553,12 +596,16 @@ export function registerChipSim(
     ),
     async execute(_id, params, signal, _update, ctx) {
       if (
-        [params.model, params.waveform, params.hdlDebug, params.design].filter(
-          Boolean,
-        ).length > 1
+        [
+          params.model,
+          params.waveform,
+          params.hdlDebug,
+          params.design,
+          params.agent,
+        ].filter(Boolean).length > 1
       )
         throw new Error(
-          "Choose model or waveform, or one HDL debug recording or design project.",
+          "Choose model, waveform, HDL debug recording, design project, or agent-work project.",
         );
       const args = ["--snapshot", "--no-color"];
       for (const key of [
@@ -567,6 +614,7 @@ export function registerChipSim(
         "hdlDebug",
         "atEvent",
         "design",
+        "agent",
         "view",
         "at",
         "columns",
@@ -587,17 +635,21 @@ export function registerChipSim(
       });
       return {
         content: [{ type: "text", text: result.text }],
-        details: { view: params.view || "wave" },
+        details: {
+          view:
+            params.view ||
+            (params.agent ? "activity" : params.design ? "project" : "wave"),
+        },
       };
     },
   });
   agent.registerCommand("chipsim", {
     description:
-      "Open ChipSim TUI or show a separate-terminal launch command: [PROJECT | --session FILE | --model ID | --vcd FILE].",
+      "Open ChipSim TUI or show a separate-terminal launch command: [PROJECT | --agent PROJECT | --session FILE | --model ID | --vcd FILE].",
     async handler(args, ctx) {
       if (args.trim() === "--help") {
         ctx.ui.notify(
-          "/chipsim [PROJECT | --session FILE | --model ID | --vcd FILE] · Pi/in-process: q returns to the agent; prime-agent daemon: separate-terminal command. Use chipsim_context first, then check/run tools.",
+          "/chipsim [PROJECT | --agent PROJECT | --session FILE | --model ID | --vcd FILE] · Pi/in-process: q returns to the agent; prime-agent daemon: separate-terminal command. Use chipsim_context first, then check/run tools.",
           "info",
         );
         return;

@@ -17,6 +17,51 @@ import { atomic, json } from "../design/store.js";
 import { parseVCD } from "../hdl/vcd.js";
 import { clean, wrapText } from "./text.js";
 
+function captureDesignCursor(state) {
+  const d = state.design,
+    inspected = d?.inspectedRecording;
+  if (
+    !inspected ||
+    d.selectedArtifact !== inspected.artifact ||
+    state.model !== inspected.model ||
+    state.trace !== inspected.trace
+  )
+    return;
+  d.cursor = {
+    kind: state.hdlDebug
+      ? "hdl-event"
+      : state.model.waveform
+        ? "waveform-sample"
+        : "model-tick",
+    index: state.tick,
+    object: state.signal?.id,
+  };
+}
+
+// Open only verified recorded data. The evidence store may belong to another
+// project, so this does not change the active design panel or its selections.
+export async function openRecordedArtifact(state, store, id) {
+  const data = await inspectArtifact(store, id),
+    a = data.artifact;
+  if (!a) return { data, opened: false };
+  const payload = store.blobPath(a.payload.sha256);
+  captureDesignCursor(state);
+  if (a.kind === "hdl-debug") await state.loadDebugFile(payload);
+  else if (a.kind === "waveform") await state.loadWaveformFile(payload);
+  else if (a.kind === "waveform-vcd")
+    state.installWaveform(
+      parseVCD(await readFile(payload, "utf8"), {
+        name: a.path,
+        sha256: a.payload.sha256,
+      }),
+    );
+  else if (a.kind === "model-session") {
+    await state.loadSession(await json(payload), { persist: false });
+    state.view = "wave";
+  } else return { data, opened: false };
+  return { data, opened: true };
+}
+
 export const designViews = ["project", "pipeline", "artifacts", "checks"];
 const row = (text, style = "") => ({ text: clean(text), style });
 export function designItems(state) {
@@ -176,16 +221,7 @@ export class DesignPanel {
   }
   async save() {
     const d = this.state.design;
-    if (d.selectedArtifact)
-      d.cursor = {
-        kind: this.state.hdlDebug
-          ? "hdl-event"
-          : this.state.model.waveform
-            ? "waveform-sample"
-            : "model-tick",
-        index: this.state.tick,
-        object: this.state.signal?.id,
-      };
+    captureDesignCursor(this.state);
     await atomic(join(this.store.root, "sessions", "tui.json"), {
       format: "chipsim-inspection-session",
       version: 1,
@@ -209,27 +245,18 @@ export class DesignPanel {
     this.state.design.scroll = 0;
   }
   async inspect(id, app) {
-    const data = await inspectArtifact(this.store, id),
+    const { data, opened } = await openRecordedArtifact(
+        this.state,
+        this.store,
+        id,
+      ),
       a = data.artifact;
     if (!a) {
       this.detail(data.record.format, data.record, id);
       return;
     }
-    const state = this.state,
-      payload = this.store.blobPath(a.payload.sha256);
-    if (a.kind === "hdl-debug") await state.loadDebugFile(payload);
-    else if (a.kind === "waveform") await state.loadWaveformFile(payload);
-    else if (a.kind === "waveform-vcd")
-      state.installWaveform(
-        parseVCD(await readFile(payload, "utf8"), {
-          name: a.path,
-          sha256: a.payload.sha256,
-        }),
-      );
-    else if (a.kind === "model-session") {
-      await state.loadSession(await json(payload), { persist: false });
-      state.view = "wave";
-    } else if (a.kind === "layout") {
+    const state = this.state;
+    if (!opened && a.kind === "layout") {
       app.external = true;
       app.input.setRawMode(false);
       app.input.pause();
@@ -256,7 +283,7 @@ export class DesignPanel {
         app.output.write("\x1b[?1049h\x1b[?25l");
         app.draw();
       }
-    } else {
+    } else if (!opened) {
       this.detail(a.path, data, id);
       return;
     }
@@ -269,6 +296,11 @@ export class DesignPanel {
       if (selected >= 0) state.selected = selected;
     }
     state.design.selectedArtifact = id;
+    state.design.inspectedRecording = opened
+      ? { artifact: id, model: state.model, trace: state.trace }
+      : null;
+    state.design.cursor = null;
+    captureDesignCursor(state);
     state.design.detail = null;
   }
   async related(id, app) {
@@ -330,7 +362,12 @@ export class DesignPanel {
       s.view = "project";
       return true;
     }
-    if (!d || ![...designViews, "activity"].includes(s.view)) return false;
+    if (
+      !d ||
+      (s.work && s.view === "activity") ||
+      ![...designViews, "activity"].includes(s.view)
+    )
+      return false;
     if (d.detail) {
       if (key.name === "escape") d.detail = null;
       else if (["j", "down"].includes(k)) d.scroll++;

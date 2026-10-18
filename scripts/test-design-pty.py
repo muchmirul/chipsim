@@ -45,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix="chipsim-design-pty-") as directory:
         send("\t"); wait("ARTIFACTS · versioned")
         send("\r"); wait("Inspect payload")
         send("jj\r"); wait('"artifact"')
-        send("\x1b"); wait("ARTIFACTS · versioned")
+        send("\x1b"); wait("j/k select · Enter actions")
         send("\t"); wait("CHECKS · versioned"); wait("READY")
         fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 24, 80, 0, 0))
         proc.send_signal(signal.SIGWINCH)

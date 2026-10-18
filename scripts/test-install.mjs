@@ -77,6 +77,17 @@ try {
     "scripts/design-klayout.py",
     "docs/AGENT_EXTENSIONS.md",
     "src/agent/activity.js",
+    "src/agent/work.js",
+    "src/tui/work-panel.js",
+    "docs/AGENT_WORK.md",
+    "examples/evolution/README.md",
+    "examples/evolution/run.py",
+    "examples/evolution/search.py",
+    "examples/evolution/evaluator.py",
+    "examples/evolution/counter.sv",
+    "examples/evolution/correct-counter.sv",
+    "examples/evolution/trusted/counter_tb.sv",
+    "examples/evolution/trusted/score.py",
     "src/agent/context.js",
     "src/agent/program.js",
     "src/program/engine.js",
@@ -289,6 +300,53 @@ try {
     return parsed;
   };
   const help = await cli(["help"]);
+  const work = await cli([
+    "work-start",
+    cwd,
+    "--goal",
+    "Installed agent work",
+    "--mode",
+    "evolution",
+  ]);
+  const eventPath = join(cwd, "work-event.json");
+  await writeFile(
+    eventPath,
+    JSON.stringify({
+      kind: "candidate",
+      candidate: "counter-1",
+      status: "running",
+      message: "Implementing counter",
+    }),
+  );
+  await cli(["work-event", cwd, work.session.id, "--event", eventPath]);
+  const workStatus = await cli([
+    "work-status",
+    cwd,
+    "--session",
+    work.session.id,
+  ]);
+  assert.equal(workStatus.candidates[0].id, "counter-1");
+  for (const [columns, rows] of [
+    [80, 24],
+    [120, 40],
+  ]) {
+    const frame = await run(
+      binary,
+      [
+        "--agent",
+        cwd,
+        "--snapshot",
+        "--columns",
+        String(columns),
+        "--rows",
+        String(rows),
+      ],
+      { cwd },
+    );
+    assert.match(frame.stdout, /Installed agent work/);
+    assert.match(frame.stdout, /counter-1/);
+    assert.equal(frame.stderr, "");
+  }
   assert.deepEqual(help.designGuidance.command, ["design", "guide"]);
   assert.match(
     await readFile(help.documentation["DESIGN_INPUTS.md"], "utf8"),
@@ -300,6 +358,12 @@ try {
   );
   assert.equal((await cli(["doctor"])).pdfTools.length, 2);
   const installed = join(prefix, "lib/node_modules/chipsim");
+  const evolutionHelp = await run(
+    "python3",
+    [join(installed, "examples/evolution/run.py"), "--help"],
+    { cwd },
+  );
+  assert.match(evolutionHelp.stdout, /evaluate,evolve/);
   const metadata = JSON.parse(
     await readFile(join(installed, "package.json"), "utf8"),
   );
@@ -488,6 +552,7 @@ try {
       "DEVELOPMENT.md",
       "VISUALIZATION.md",
       "DESIGN_INPUTS.md",
+      "AGENT_WORK.md",
     ])
       assert.equal(
         await readFile(join(project, "docs", file), "utf8"),

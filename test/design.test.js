@@ -15,7 +15,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { Store, identity, json } from "../src/design/store.js";
+import { Store, identity, json, files } from "../src/design/store.js";
 import { planDesign, dependencyIdentity } from "../src/design/project.js";
 import {
   startJob,
@@ -111,6 +111,22 @@ async function until(check) {
   }
   throw new Error("Timed out");
 }
+
+test("live agent journals do not change captured directory inputs or dependency locks", async (t) => {
+  const f = await fixture(t);
+  const before = await dependencyIdentity(f.root);
+  await mkdir(join(f.root, ".chipsim-agent", "work"), { recursive: true });
+  await writeFile(
+    join(f.root, ".chipsim-agent", "work", "progress.json"),
+    '{"message":"evaluating"}',
+  );
+  assert.equal(await dependencyIdentity(f.root), before);
+  assert.ok(
+    !(await files(f.root)).some((name) => name.startsWith(".chipsim-agent/")),
+  );
+  await writeFile(join(f.root, "source.txt"), "changed RTL");
+  assert.notEqual(await dependencyIdentity(f.root), before);
+});
 
 test("snapshots execute captured dirty files, reuse unchanged tasks, and detect relevant edits", async (t) => {
   const f = await fixture(t, { delay: 400 });

@@ -22,7 +22,7 @@ with tempfile.TemporaryDirectory(prefix='chipsim-program-pty-') as workspace:
         global captured
         end = time.monotonic() + timeout
         while time.monotonic() < end:
-            if text in frame(): return frame()
+            if text in frame() and captured.endswith('\x1b[J'): return frame()
             if select.select([master], [], [], .05)[0]:
                 try: chunk = os.read(master, 65536)
                 except OSError: break

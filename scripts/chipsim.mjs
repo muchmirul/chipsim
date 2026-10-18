@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { documentProfiles } from "../src/model/profiles/index.js";
 import { readFile } from "node:fs/promises";
-import { realpathSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { TuiState } from "../src/tui/state.js";
@@ -30,6 +30,7 @@ export async function main(args = process.argv.slice(2)) {
   --hdl project.json          Run HDL with source / RTL / signal debug by default
   --hdl-out NEW_DIRECTORY     Required with --hdl; preserve run artifacts
   --no-debug                  With --hdl: ordinary waveform-only simulation
+  --agent PROJECT            Live agent goals, candidates, events and debug evidence
   --design PROJECT           Open the versioned project workbench; 0 returns to Project\n  --dwfv /path/to/dwfv        Optional external viewer command
   --watch PROJECT             Monitor agent activity and completed runs\n  --workspace .chipsim        Persistent local workspace directory\n  --program experiment.chip   Load a source experiment; 9 opens line debugger\n  --params parameters.json    Parameter overrides\n  --inputs events.json        Timed input stimulus\n  --ticks 100                 Duration for document models\n  --snapshot                  Print one terminal frame without a TTY\n  --at 0 --columns 120 --rows 40  Snapshot dimensions and cursor\n  --view wave|inspect|log|sources|model|registers|stimulus|activity|program|states|flow|compare|debug|project|pipeline|artifacts|checks\n  --no-color                  Disable colored text\n  --help                      Show this help\n\nInside the TUI: ? help · m models · p params · i pins · d import · c create · q quit.\nVisuals: g states · v bit flow · Y capture reference · D compare.\nOptional waveform viewer: V opens the exported trace in installed dwfv.\n`;
   if (args.includes("--help") || args.includes("-h")) {
@@ -73,6 +74,7 @@ export async function main(args = process.argv.slice(2)) {
     "hdl-debug",
     "at-event",
     "design",
+    "agent",
   ]);
   for (let i = 0; i < args.length; i++) {
     const key = args[i].slice(2);
@@ -93,9 +95,16 @@ export async function main(args = process.argv.slice(2)) {
     );
   if (
     (options.vcd || options.hdl || options["hdl-debug"]) &&
-    ["model", "document", "watch", "program", "params", "inputs", "ticks"].some(
-      (key) => options[key],
-    )
+    [
+      "model",
+      "document",
+      "watch",
+      "agent",
+      "program",
+      "params",
+      "inputs",
+      "ticks",
+    ].some((key) => options[key])
   )
     throw new Error(
       "HDL waveform launches use their recorded configuration; open other experiments separately.",
@@ -110,14 +119,29 @@ export async function main(args = process.argv.slice(2)) {
     throw new Error("--no-debug requires --hdl.");
   const state = new TuiState({ workspace: options.workspace || ".chipsim" });
   await state.initialize();
-  let designPanel;
-  if (options.design) {
+  if (options.agent && (options.design || options.watch))
+    throw new Error("Choose --agent, --design, or --watch.");
+  let designPanel, workPanel;
+  const designProject =
+    options.design ||
+    (options.agent && existsSync(resolve(options.agent, "chipsim.design.json"))
+      ? options.agent
+      : null);
+  if (designProject) {
     if (options.watch || options.hdl)
       throw new Error(
         "Open --design separately from --watch or --hdl; start project jobs from Pipeline.",
       );
     const { DesignPanel } = await import("../src/tui/design-panel.js");
-    designPanel = await new DesignPanel(state, options.design).initialize();
+    designPanel = await new DesignPanel(state, designProject).initialize();
+  }
+  if (options.agent || options.design) {
+    const { WorkPanel } = await import("../src/tui/work-panel.js");
+    workPanel = await new WorkPanel(
+      state,
+      options.agent || options.design,
+    ).initialize();
+    if (options.agent) state.view = "activity";
   }
   if (options.vcd) await state.loadWaveformFile(options.vcd);
   if (options["hdl-debug"]) await state.loadDebugFile(options["hdl-debug"]);
@@ -222,6 +246,11 @@ export async function main(args = process.argv.slice(2)) {
     designPanel.onChange = () => app.draw();
     designPanel.external = () => app.external;
   }
+  if (workPanel) {
+    app.workPanel = workPanel;
+    workPanel.onChange = () => app.draw();
+    workPanel.external = () => app.external;
+  }
   if (monitor) {
     app.monitor = monitor;
     monitor.onChange = () => app.draw();
@@ -239,6 +268,7 @@ export async function main(args = process.argv.slice(2)) {
   app.start();
   monitor?.start();
   designPanel?.start();
+  workPanel?.start();
 }
 if (
   process.argv[1] &&

@@ -50,6 +50,17 @@ for newer behavior. `context` refreshes model capabilities, not copied docs.
 `examples/timer.model.json` is a complete syntax example with illustrative
 assumptions and its own original source. Do not relabel it as this chip's behavior.
 
+## Make work visible
+
+When the user wants live progress, start `chipsim agent work-start . --goal
+"USER OBJECTIVE" --mode task` (or `evolution`) and retain its session ID.
+Publish concise plan/edit/tool/evaluation/summary events with
+`chipsim agent work-event . SESSION_ID --event event.json`. Link actual design
+job/run/artifact IDs for debug review; never fabricate evidence or weaken tests
+for a better score. See `docs/AGENT_WORK.md`. The user opens `chipsim --agent .`
+in another terminal. It shows reported actions, not private reasoning, and does
+not install edited candidates automatically. Finish the session explicitly.
+
 ## Choose what to program
 
 1. Establish whether the task requests a **behavioral experiment**, **RTL** or

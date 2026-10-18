@@ -43,6 +43,15 @@ Read `AGENTS.md` before changing simulation behavior or adding a model. The TUI 
 
 ## Architecture
 
+`src/agent/work.js` owns the local agent-work session/event contract and bounded
+journal reads. `src/tui/work-panel.js` reads that journal for the live dashboard
+and follows explicit links through existing design evidence APIs. Population
+search remains external; `examples/evolution/` demonstrates the evaluator bridge.
+Keep agent-reported metrics separate from verified evidence, preserve the active
+debug recording during polling, and stop timers on terminal exit. No model
+provider, hidden agent execution, automatic edited-RTL loading or web frontend
+belongs in this layer. See [AGENT_WORK.md](AGENT_WORK.md).
+
 `src/visualization/` derives graphs, bit-flow observations and general experiment
 comparisons from shared traces. Engine transition indices and evaluated reads
 must preserve ordered actions, lazy selection, self-transition semantics,

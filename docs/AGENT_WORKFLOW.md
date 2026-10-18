@@ -184,6 +184,16 @@ for stimulus. JSON numbers use decimal syntax; the TUI accepts decimal, hex,
 binary and octal entry. Integer CLI options such as `--ticks` also accept explicit
 `0x`, `0b`, and `0o` prefixes. Changing a display base never changes the experiment.
 
+## Live agent tasks and evolution
+
+Use `chipsim --agent PROJECT` for agent goals, explicit actions and candidate
+history in any existing directory, including RTL projects without PDFs. Agents
+publish structured `work-start`, `work-event` and `work-status` commands; the
+native tools have the corresponding `chipsim_work_*` names. See
+[AGENT_WORK.md](AGENT_WORK.md) for the contract, evidence/debug workflow and
+[OpenEvolve example](../examples/evolution/README.md). Reported metrics are not
+proof, and polling never replaces the inspected recording automatically.
+
 ## Live monitoring
 
 Run `chipsim --watch ./chip-work` in a separate terminal before or while the

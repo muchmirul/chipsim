@@ -5,6 +5,7 @@ import { detailRows } from "./trace-detail.js";
 import { views } from "./views.js";
 import { modelsForDocument } from "../documents/recognize.js";
 import { activityRows } from "./activity-panel.js";
+import { workRows } from "./work-panel.js";
 import { programRows } from "./program-panel.js";
 import { timeLabel } from "../hdl/time.js";
 import { stateRows, flowRows, comparisonRows } from "./visual-render.js";
@@ -608,6 +609,14 @@ const help = [
     "Agent monitor",
     "--watch PROJECT · 8 activity · W pause reload · G follow newest",
   ],
+  [
+    "Agent work",
+    "--agent PROJECT · 8 dashboard · s sessions · c candidates · e events",
+  ],
+  [
+    "Work evidence",
+    "Enter full detail · o verified evidence · L live job logs · g goal",
+  ],
   ["Visuals", "g states · v bit flow · Y capture reference · D comparison"],
   ["General", "? help · Esc close overlay · q/Ctrl-C quit"],
 ];
@@ -688,9 +697,21 @@ export function render(state) {
       "selected",
     ),
   ];
-  const monitoring = state.activity && state.view !== "activity";
+  const monitoring =
+    (state.work || state.activity) && state.view !== "activity";
   const available = rows - (monitoring ? 8 : 7);
-  if (
+  if (state.work && state.view === "activity") {
+    lines[0] = row("CHIPSIM · Agent work · live local reports", "title");
+    lines[1] = row(
+      "8 Agent work · Tab views · s sessions · c candidates · e events",
+      "dim",
+    );
+    lines[2] = row(
+      "Reported progress is not verified proof · open evidence explicitly",
+      "selected",
+    );
+    lines.push(...workRows(state, available));
+  } else if (
     designViews.includes(state.view) ||
     (state.design && state.view === "activity")
   ) {
@@ -764,15 +785,22 @@ export function render(state) {
   if (monitoring)
     lines.push(
       row(
-        "AGENT · " +
-          (state.activity.events.at(-1)
-            ? state.activity.events.at(-1).command +
-              " " +
-              state.activity.events.at(-1).status +
-              " · "
-            : "") +
-          (state.activity.events.at(-1)?.message || "Waiting for activity") +
-          " · 8 details",
+        state.work
+          ? "AGENT-REPORTED · " +
+              (state.work.session?.status || "waiting") +
+              " · " +
+              (state.work.events.at(-1)?.message || "No work events") +
+              " · 8 details"
+          : "AGENT · " +
+              (state.activity.events.at(-1)
+                ? state.activity.events.at(-1).command +
+                  " " +
+                  state.activity.events.at(-1).status +
+                  " · "
+                : "") +
+              (state.activity.events.at(-1)?.message ||
+                "Waiting for activity") +
+              " · 8 details",
         "dim",
       ),
     );
@@ -780,20 +808,28 @@ export function render(state) {
     section(
       state.busy
         ? "WORKING"
-        : state.activity
-          ? `COMMANDS · WATCH ${state.activity.enabled ? "LIVE" : "PAUSED"}`
-          : "COMMANDS",
+        : state.work
+          ? "COMMANDS · LIVE REPORTED WORK"
+          : state.activity
+            ? `COMMANDS · WATCH ${state.activity.enabled ? "LIVE" : "PAUSED"}`
+            : "COMMANDS",
       columns,
     ),
     row(state.message, state.error ? "error" : "status"),
     row(
-      (state.hdlDebug &&
-      ["debug", "wave", "inspect", "program"].includes(state.view)
-        ? "q quit · ? help · h/l event · Space replay · F2 pane · F3 expand · K stops · C next · Enter detail"
-        : ["states", "flow", "compare"].includes(state.view)
-          ? "q quit · ? help · g states · v flow · Y capture · D compare · Enter details"
-          : "q quit · ? help · 1–9 views · m models · H HDL · d import · x export") +
-        (state.hdlDebug ? "" : state.activity ? " · W watch" : " · c create"),
+      (state.work && state.view === "activity"
+        ? "q quit · s sessions · Enter detail · o evidence · L logs · Tab other views"
+        : state.hdlDebug &&
+            ["debug", "wave", "inspect", "program"].includes(state.view)
+          ? "q quit · ? help · h/l event · Space replay · F2 pane · F3 expand · K stops · C next · Enter detail"
+          : ["states", "flow", "compare"].includes(state.view)
+            ? "q quit · ? help · g states · v flow · Y capture · D compare · Enter details"
+            : "q quit · ? help · 1–9 views · m models · H HDL · d import · x export") +
+        (state.hdlDebug || (state.work && state.view === "activity")
+          ? ""
+          : state.activity
+            ? " · W watch"
+            : " · c create"),
       "dim",
     ),
   );

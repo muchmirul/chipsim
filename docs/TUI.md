@@ -1,5 +1,12 @@
 # Terminal workbench
 
+`chipsim --agent PROJECT` opens the [live agent-work dashboard](AGENT_WORK.md)
+for explicit goals, actions and evolving candidates, without a PDF or embedded
+model provider. `--design` also includes this dashboard at `8`. Use `s` for
+sessions, `c/e` for candidates/events, Enter for details, `o` for linked evidence
+and `L` for live managed-job logs. Polling preserves the recording you inspect;
+opening another recording is always explicit. Reported scores are not proof.
+
 `chipsim --design PROJECT` opens the [artifact workbench](DESIGN.md). Use Tab
 for Project, Pipeline, Artifacts and Checks; `0` returns to Project. Enter opens
 actions/links, `o` inspects a payload, `r` accepts a target, `X` cancels a selected

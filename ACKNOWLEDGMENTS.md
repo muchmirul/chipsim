@@ -27,6 +27,11 @@ use, integration or research; they do not imply endorsement.
 | [Prettier](https://github.com/prettier/prettier), James Long and contributors                                                                                                                                                                                        | Development formatting.                                                                                       |
 | [Pillow](https://github.com/python-pillow/Pillow), Secret Labs, Fredrik Lundh, Alex Clark and contributors; [DejaVu fonts](https://dejavu-fonts.github.io/), Bitstream, Tavmjong Bah and contributors                                                                | Documentation screenshot rendering. Font and library binaries are not bundled.                                |
 
+[OpenEvolve](https://github.com/algorithmicsuperintelligence/openevolve), by
+Asankhaya Sharma and contributors, provides the optional external evolutionary
+optimizer for the [counter evaluation example](examples/evolution/README.md).
+It is separately installed under Apache-2.0; no upstream code is copied here.
+
 Raspberry Pi, Arm, Synopsys, Texas Instruments, Nexperia, Renesas Electronics,
 Cypress / Infineon, Freescale / NXP, Espressif and XMOS provide the hardware
 documentation used for source verification and bounded behavioral models.

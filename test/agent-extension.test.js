@@ -1,6 +1,7 @@
 import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
 const test = referenceTest([
   "native tool mappings cover every agent command and preserve literal text and zero offsets",
+  "agent work tools preserve goals/session identifiers and explicit dashboard launch",
   "tool calls use their current cwd independently and forward cancellation",
   "general commands keep arguments literal, enforce bounds and forward cwd/cancellation",
   "one general tool drives discovery, durable jobs, evidence, checks and snapshots",
@@ -92,12 +93,63 @@ test("native tool mappings cover every agent command and preserve literal text a
     ),
     ["agent", "search", "--offset", "0", "--", ".", "--out $(touch NEVER)"],
   );
-  assert.equal(registry().tools.size, 34);
+  assert.equal(registry().tools.size, 37);
   assert.equal(
     nodeCommand({ CHIPSIM_NODE: "/opt/node" }, { bun: "1" }),
     "/opt/node",
   );
   assert.equal(nodeCommand({}, { bun: "1" }), "node");
+});
+
+test("agent work tools preserve goals/session identifiers and explicit dashboard launch", async (t) => {
+  const cwd = await temporary(t);
+  const start = toolCommands.find((s) => s.command === "work-start");
+  assert.deepEqual(
+    toolArguments(
+      start,
+      { project: ".", goal: "Reduce area; keep behavior", mode: "evolution" },
+      cwd,
+    ),
+    [
+      "agent",
+      "work-start",
+      "--goal",
+      "Reduce area; keep behavior",
+      "--mode",
+      "evolution",
+      "--",
+      ".",
+    ],
+  );
+  const event = toolCommands.find((s) => s.command === "work-event");
+  assert.deepEqual(
+    toolArguments(
+      event,
+      { project: ".", session: "session-id", event: "event.json" },
+      cwd,
+    ),
+    [
+      "agent",
+      "work-event",
+      "--event",
+      join(cwd, "event.json"),
+      "--",
+      ".",
+      "session-id",
+    ],
+  );
+  assert.deepEqual(tuiArguments("--agent .", cwd), ["--agent", cwd]);
+  const { tools } = registry();
+  const started = await invoke(
+    tools,
+    "chipsim_work_start",
+    { project: ".", goal: "Visible implementation", mode: "task" },
+    cwd,
+  );
+  assert.ok(started.details.session.id);
+  const frame = await invoke(tools, "chipsim_snapshot", { agent: "." }, cwd);
+  assert.match(frame.content[0].text, /Visible implementation/);
+  assert.equal(frame.details.view, "activity");
 });
 
 test("tool calls use their current cwd independently and forward cancellation", async () => {
@@ -378,7 +430,7 @@ test("built-in program and terminal snapshot are controllable without an interac
   assert.match(snapshot.content[0].text, /CHIPSIM/);
   await assert.rejects(
     invoke(tools, "chipsim_snapshot", { model: "pio", waveform: "x.vcd" }, cwd),
-    /Choose model or waveform/,
+    /Choose model, waveform/,
   );
 });
 

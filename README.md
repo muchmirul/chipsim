@@ -11,6 +11,7 @@ Start with Verilog/VHDL, a supplied architecture experiment, a supported datashe
 - **Durable local jobs:** reconnect to status/logs, cancel explicitly, or retry the original snapshot after the initiating terminal or agent closes.
 - **Connected verification:** simulation, cocotb tests, formal/equivalence results and configured timing/DRC/LVS evidence feed target-readiness checks. Build success alone is insufficient.
 - **Agent control and input recipes:** native Pi/prime-agent tools and the general CLI controller discover capabilities, prepare missing inputs, run jobs and inspect results.
+- **Live agent work:** follow reported goals, actions, candidate history and linked evidence for ordinary tasks or external evolution without replacing the recording under review.
 - **Private source verification:** the catalog records 34 vendor documents, but no PDFs are distributed. Exact hashes, original PDF pages and acceptance cases remain required for source-backed workflows.
 
 ![PIO transfer waveforms, registers and current event](docs/screenshots/waveforms.png)
@@ -93,20 +94,21 @@ Targets need a nonempty required-check policy. Readiness evaluates current input
 
 ## Integrations
 
-| Integration                      | Role and retained evidence                                                                                         |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Icarus Verilog / GHDL            | HDL execution; VCD/waveform results and optional observer-backed event recordings                                  |
-| FuseSoC / Edalize                | Core resolution and setup-only EDAM/backend generation; dependencies must be declared and locked                   |
-| PeakRDL / SystemRDL              | Register SystemVerilog, C headers, IP-XACT and normalized register metadata                                        |
-| Verilator / cocotb               | Compiled HDL simulation and Python regressions; cocotb xUnit supplies per-test checks                              |
-| Yosys, SymbiYosys (SBY), EQY     | Formal and equivalence flows; scoped statuses, proof logs and available counterexamples                            |
-| OpenROAD-flow-scripts / OpenROAD | Physical-flow native netlists, SDC, ODB, DEF, SPEF, GDS and configured timing metrics                              |
-| KLayout                          | Native DRC/LVS database reading and external layout inspection                                                     |
-| Cross GCC / objcopy, PicoRV32    | Firmware ELF/map/BIN/byte-HEX generation; supplied RV32I fixture checks MMIO results in RTL simulation             |
-| Renode                           | Explicit software-platform execution; RTL co-simulation requires a project-supplied compiled bridge                |
-| OpenROAD-MCP                     | Finite stdio database-inspection sessions; exact JSONL transcripts, normalized outcomes and generated native files |
-| Pi / prime-agent                 | Native tools for design, jobs, artifacts, checks, model/program runs and terminal snapshots                        |
-| Poppler / dwfv                   | Local PDF text/geometry extraction; optional external terminal waveform viewing                                    |
+| Integration                      | Role and retained evidence                                                                                           |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Icarus Verilog / GHDL            | HDL execution; VCD/waveform results and optional observer-backed event recordings                                    |
+| FuseSoC / Edalize                | Core resolution and setup-only EDAM/backend generation; dependencies must be declared and locked                     |
+| PeakRDL / SystemRDL              | Register SystemVerilog, C headers, IP-XACT and normalized register metadata                                          |
+| Verilator / cocotb               | Compiled HDL simulation and Python regressions; cocotb xUnit supplies per-test checks                                |
+| Yosys, SymbiYosys (SBY), EQY     | Formal and equivalence flows; scoped statuses, proof logs and available counterexamples                              |
+| OpenROAD-flow-scripts / OpenROAD | Physical-flow native netlists, SDC, ODB, DEF, SPEF, GDS and configured timing metrics                                |
+| KLayout                          | Native DRC/LVS database reading and external layout inspection                                                       |
+| Cross GCC / objcopy, PicoRV32    | Firmware ELF/map/BIN/byte-HEX generation; supplied RV32I fixture checks MMIO results in RTL simulation               |
+| Renode                           | Explicit software-platform execution; RTL co-simulation requires a project-supplied compiled bridge                  |
+| OpenROAD-MCP                     | Finite stdio database-inspection sessions; exact JSONL transcripts, normalized outcomes and generated native files   |
+| Pi / prime-agent                 | Native tools for design, jobs, artifacts, checks, model/program runs and terminal snapshots                          |
+| OpenEvolve                       | Optional external optimizer; counter evaluation example links managed runs, functional scores and candidate evidence |
+| Poppler / dwfv                   | Local PDF text/geometry extraction; optional external terminal waveform viewing                                      |
 
 These are explicit integration boundaries, not bundled toolchains or automatic installation. Tool profiles select executables and arguments; external flows, PDKs and libraries require appropriate dependency locks. An explicit `command` adapter supports project-specific local tools. See [adapter inputs/outputs](docs/DESIGN.md#adapters-and-native-files) and [integration fixtures](examples/design/README.md).
 
@@ -157,6 +159,33 @@ chipsim_command({
 `design commands` exposes validated arguments and integration formats. `design guide` supplies optional recipes for RTL, testbenches, waveforms, firmware, registers, formal, physical and model inputs; it writes nothing and executes no tools. `design status` returns current checks, readiness and suggested commands without running tool probes. Native design/job/artifact/check tools use the same CLI semantics and current call's working directory.
 
 In Pi, `/chipsim --model pio` borrows the terminal and `q` returns to the agent. Prime-agent's default daemon provides a separate-terminal command; `chipsim_snapshot` returns text. See [native extension setup](docs/AGENT_EXTENSIONS.md).
+
+### Live agent work and evolution
+
+Open the work dashboard for any existing project directory; no PDF is required:
+
+```sh
+chipsim agent work-start /path/to/project --goal "Implement and verify the counter" --mode task
+chipsim --agent /path/to/project
+```
+
+The external agent publishes explicit actions/results with `agent work-event`;
+`agent work-status` reads them. Use `--mode evolution` for candidate search.
+Activity (`8`) shows sessions, events, candidate lineage and metrics; `o` opens
+linked evidence and `L` shows managed-job logs. `--design PROJECT` also attaches
+this view. Reports are **agent-reported**, not captured private reasoning or
+hardware proof. Background polling preserves the selected recording and cursor.
+See [live work commands and controls](docs/AGENT_WORK.md).
+
+The [OpenEvolve counter example](examples/evolution/README.md) evaluates RTL
+through real managed jobs and a fixed independent waveform scorer. It works
+without a provider for individual candidates; actual evolutionary search needs
+separately installed OpenEvolve and user-configured models. The score measures
+bounded functional behavior, not area, power or timing. Use the example's
+`--debug` option with installed observers for linked source/RTL/signals review.
+No optimizer or provider is installed automatically.
+
+### Prepared-document monitoring
 
 For document work, prepare the original and explicitly ask the agent to read `AGENTS.md`, `PROGRAMMING_CONTEXT.md` and current context. Search/page output is bounded; follow `nextOffset`. Agent commands return one JSON object and meaningful exit status: check `ok` and `diagnostics`. Python tools can call the same executable with `subprocess.run`.
 
