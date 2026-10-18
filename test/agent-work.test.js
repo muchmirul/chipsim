@@ -475,6 +475,15 @@ test("work CLI discovers commands, validates bounded JSON files and emits one ve
   const help = await agentCommand(["help"]);
   assert.equal(help.result.commands["work-start"].options.goal, "required");
   assert.equal(help.result.work.reporting, "agent-reported");
+  for (const path of [
+    help.result.documentation["AGENT_CONTROL.md"],
+    help.result.documentation["AGENT_WORK.md"],
+    help.result.examples.evolution.guide,
+    help.result.examples.evolution.runner,
+  ]) {
+    assert.ok(path.startsWith(new URL("../", import.meta.url).pathname));
+    assert.ok((await readFile(path)).length > 100);
+  }
   for (const text of [
     "{",
     "null",

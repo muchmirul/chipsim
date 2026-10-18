@@ -168,6 +168,15 @@ test("agent prepare handles the supplied ESP32-C6 manual and bounded, paginated 
 
 test("an unfamiliar PDF accepts an authored model and hands the exact experiment to the TUI", async (t) => {
   const { path, project, model } = await authoredFixture(t);
+  for (const file of ["AGENT_CONTROL.md", "AGENT_WORK.md"])
+    assert.equal(
+      await readFile(join(project, "docs", file), "utf8"),
+      await readFile(join(root, "docs", file), "utf8"),
+    );
+  assert.equal(
+    await readFile(join(project, "AGENTS.md"), "utf8"),
+    await readFile(join(root, "docs/AGENT_PROJECT.md"), "utf8"),
+  );
   const params = join(path, "params.json");
   await save(params, {}); // Deliberately partial: exports must include defaults.
   const output = join(path, "run one");

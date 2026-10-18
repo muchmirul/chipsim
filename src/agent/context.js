@@ -243,10 +243,10 @@ export function buildProgrammingContext({
           "eTPU microcode",
         ],
         reason:
-          "Native compiler/CPU/instruction-engine adapters are not installed in ChipSim. A vendor programming guide describes hardware capabilities, not an implemented backend.",
+          "This programming context describes .chip model experiments, not native firmware execution. The separate design workbench can invoke configured external firmware, HDL and software-platform adapters; availability and target compatibility require explicit discovery and checks.",
       },
       whenNativeCodeIsRequested:
-        "Identify the exact chip/core, required toolchain and backend first. Report the missing backend; do not silently substitute an experiment script or claim to have executed firmware.",
+        "Identify the exact chip/core, toolchain and execution backend. Use chipsim design commands and chipsim design guide firmware, then inspect the project's manifests and probe required tools explicitly. Report missing or incompatible tools; do not silently substitute a .chip experiment or claim firmware execution from compilation alone.",
       whenChipIsUnknown:
         "Read the actual manual and define/verify a bounded model before programming. Do not guess an ISA, chip ID, addresses, pin mapping or register behavior from a filename.",
       modelSelection:
@@ -313,6 +313,10 @@ export function buildProgrammingContext({
     })),
     documentation: Object.fromEntries(
       [
+        "AGENT_CONTROL.md",
+        "AGENT_WORK.md",
+        "DESIGN_INPUTS.md",
+        "DESIGN.md",
         "PROGRAMMING.md",
         "MODEL_FORMAT.md",
         "AGENT_WORKFLOW.md",
@@ -348,7 +352,7 @@ export function programmingContextMarkdown(context) {
     );
   lines.push(
     "",
-    `Supported artifact: **${context.decision.supportedArtifact}**. Native C/C++, assembly and binaries are not currently executable in ChipSim.`,
+    `Supported artifact in this context: **${context.decision.supportedArtifact}**. Native firmware requires a separate, explicitly configured design-workbench toolchain and execution backend.`,
     "",
     context.decision.whenNativeCodeIsRequested,
     "",
@@ -404,6 +408,12 @@ export function programmingContextMarkdown(context) {
     for (const gap of chip.missingDocuments)
       lines.push(`- Missing ${gap.title}: ${gap.reason} ${gap.source_url}`);
   lines.push(
+    "",
+    "## Agent control and live progress",
+    "",
+    `Read the installed agent-control guide: ${context.documentation["AGENT_CONTROL.md"]}. Prepared projects also carry docs/AGENT_CONTROL.md and docs/AGENT_WORK.md.`,
+    "Use chipsim agent help for current command/documentation and external evolution-example paths. Saved context is not an inventory of installed EDA tools.",
+    "For requested live progress, retain a work-start session ID and publish concrete actions and actual evidence with work-event. --agent displays those reports; it does not run an agent or replace the recording being inspected. Closing a session does not cancel a managed job.",
     "",
     "## Procedure",
     "",

@@ -9,7 +9,7 @@ export const toolCommands = [
   {
     command: "help",
     description:
-      "Read ChipSim's command contract and installed documentation paths.",
+      "Start here: discover ChipSim command contracts, the installed AGENT_CONTROL.md operating guide, work-reporting limits and external evolution example paths. Read the guide before choosing task, design or prepared-document workflows.",
   },
   {
     command: "doctor",
@@ -21,7 +21,7 @@ export const toolCommands = [
     options: ["project", "model"],
     required: ["target"],
     description:
-      "Get actual chip/model inputs, registers, guides and backend limits. Call chipsim_context before writing any experiment or firmware.",
+      "Get actual model inputs, registers and source guides for a catalog chip/model ID or prepared PDF project, not an arbitrary RTL directory. Call before .chip programming; external RTL/firmware uses design commands/guide and explicitly configured tools.",
   },
   {
     command: "prepare",
@@ -537,7 +537,7 @@ export function registerChipSim(
     name: "chipsim_snapshot",
     label: "ChipSim terminal snapshot",
     description:
-      "Render a saved session/model or recorded waveform as a terminal text frame. Choose wave, inspect, log, sources, model, registers, stimulus, activity, program, states, flow or compare. No interactive TUI is started.",
+      "Render a terminal frame from one model/session, waveform, HDL debug recording, design project or agent-work project. Use agent for reported live work, design for project/checks, or hdlDebug with atEvent for recorded debugging. Rendering does not execute jobs, publish events, or press TUI keys.",
     parameters: Type.Object(
       {
         model: Type.Optional(

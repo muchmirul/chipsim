@@ -118,6 +118,7 @@ for (const directory of ["models", "examples"])
 for (const file of [
   "AGENTS.md",
   "docs/AGENT_WORKFLOW.md",
+  "docs/AGENT_CONTROL.md",
   "docs/AGENT_WORK.md",
   "docs/AGENT_EXTENSIONS.md",
   "docs/AGENT_PROJECT.md",

@@ -12,10 +12,14 @@ HDL doctor retains its explicit `debug` probe. Snapshots accept `hdlDebug`, `atE
 `design`, plus project/pipeline/artifacts/checks/debug views. `/chipsim PROJECT`
 recognizes either prepared document projects or `chipsim.design.json` projects.
 
-
 ChipSim is a native extension for both agents. Named tools control the same
 local CLI that provides source verification, simulation, activity monitoring
-and saved TUI sessions. The agent's existing file tools author model JSON,
+and saved TUI sessions. Start with `chipsim_help` and read its installed
+`documentation["AGENT_CONTROL.md"]` for the complete task-to-result procedure.
+The help reply's `examples.evolution.guide` and `examples.evolution.runner`
+locate the external example even from an unrelated or prepared project. CLI
+and native tool paths may differ if two versions are installed; check before
+changing registration. The agent's existing file tools author model JSON,
 stimulus and `.chip` programs. ChipSim does not provide an LLM or run another agent.
 
 ## Why this method
@@ -83,7 +87,36 @@ These actions report work, not private reasoning or verified proof. See
 [AGENT_WORK.md](AGENT_WORK.md) for event examples and the OpenEvolve bridge.
 The snapshot tool accepts `chipsim_snapshot({agent:"PROJECT"})`. The general
 tool can also render a frame with
-`chipsim_command({args:["--agent","PROJECT","--snapshot"]})`.
+`chipsim_command({args:["--agent","PROJECT","--snapshot"]})`. A snapshot is one
+read, not a live subscription or a remote keyboard. It does not create events,
+run evaluations or switch the user's interactive view.
+
+For an ordinary task:
+
+1. Call `chipsim_help`, read the control guide, and inspect the actual project.
+2. Call `chipsim_work_start({project:"PROJECT",goal:"USER OBJECTIVE",mode:"task"})`.
+   Retain the returned `details.session.id`; `details` contains the CLI result.
+3. Write a JSON file with the host's file tool, for example
+   `{"kind":"plan","message":"Inspect the RTL and run independent checks."}`.
+   Call `chipsim_work_event` with its path and the retained session ID.
+4. Perform the actual approved edit/run separately. Link the returned job ID and
+   evidence project in subsequent events. Inspect logs, checks and verified
+   artifacts before reporting measured success.
+5. Read `chipsim_work_status({project:"PROJECT",session:"SESSION_UUID",limit:30})`
+   and use `chipsim_snapshot` when a text frame helps. Give the user the TUI launch
+   command for interactive inspection.
+6. Publish an honest `summary` with `completed`, `failed` or `cancelled` only at
+   task end. Explicitly cancel any jobs that must stop; session closure and host
+   call cancellation do not cancel accepted jobs.
+
+Use literal returned identifiers, not the placeholders above. `work_event.event`
+is a file **path**, not an inline JSON object. The writer accepts only documented
+fields; it does not verify linked records on publication. Recover after a lost
+response by querying the saved session before repeating a write, because duplicate
+events are not deduplicated. Closed sessions cannot be reopened; restart in a new
+session. Re-evaluation of a stable candidate starts with `candidate` + `running`
+to clear previous current metrics/evidence. See the exact schema and errors in
+[AGENT_WORK.md](AGENT_WORK.md); tool descriptions are not a replacement for it.
 
 ## Try an experiment
 
@@ -119,17 +152,36 @@ no hidden selected project that can leak across concurrent calls or project chan
 one tool for discovery, planning, execution, jobs, evidence and terminal snapshots:
 
 ```javascript
-chipsim_command({args: ["help"]})
-chipsim_command({args: ["design", "help"]})
-chipsim_command({args: ["design", "commands"]})
-chipsim_command({args: ["design", "guide", "rtl"]})
-chipsim_command({args: ["design", "status", "--project", ".", "--target", "simulation"]})
-chipsim_command({args: ["design", "run", "--project", ".", "--target", "simulation"]})
-chipsim_command({args: ["job", "status", "JOB_ID", "--project", "."]})
-chipsim_command({args: ["job", "status", "JOB_ID", "--project", ".", "--wait", "--timeout-ms", "1000"]})
-chipsim_command({args: ["artifact", "list", "--project", ".", "--limit", "20"]})
-chipsim_command({args: ["checks", "--project", ".", "--target", "simulation"]})
-chipsim_command({args: ["--design", ".", "--snapshot", "--view", "checks"]})
+chipsim_command({ args: ["help"] });
+chipsim_command({ args: ["design", "help"] });
+chipsim_command({ args: ["design", "commands"] });
+chipsim_command({ args: ["design", "guide", "rtl"] });
+chipsim_command({
+  args: ["design", "status", "--project", ".", "--target", "simulation"],
+});
+chipsim_command({
+  args: ["design", "run", "--project", ".", "--target", "simulation"],
+});
+chipsim_command({ args: ["job", "status", "JOB_ID", "--project", "."] });
+chipsim_command({
+  args: [
+    "job",
+    "status",
+    "JOB_ID",
+    "--project",
+    ".",
+    "--wait",
+    "--timeout-ms",
+    "1000",
+  ],
+});
+chipsim_command({
+  args: ["artifact", "list", "--project", ".", "--limit", "20"],
+});
+chipsim_command({
+  args: ["checks", "--project", ".", "--target", "simulation"],
+});
+chipsim_command({ args: ["--design", ".", "--snapshot", "--view", "checks"] });
 ```
 
 Omitted or empty `args` opens help. Pass arguments after the executable name as
@@ -158,32 +210,45 @@ next argument arrays without executing tool probes. For a brief wait, use
 `--wait --timeout-ms 1000` (maximum 60000); a timeout returns the still-running
 job. For incremental logs, retain the returned byte `cursor` even at current EOF.
 
-| Tool                    | Required fields           | Optional fields / purpose                              |
-| ----------------------- | ------------------------- | ------------------------------------------------------ |
-| `chipsim_command`       | none                      | Literal CLI `args` array; defaults to help              |
-| `chipsim_help`          | none                      | Contract and installed documentation paths             |
-| `chipsim_doctor`        | none                      | Node and Poppler availability                          |
-| `chipsim_context`       | `target`                  | `project`, `model`; call before programming            |
-| `chipsim_prepare`       | `manual`, `out`           | New source project                                     |
-| `chipsim_search`        | `project`, `query`        | `offset`, `limit`; follow `nextOffset`                 |
-| `chipsim_page`          | `project`, `page`         | `offset`, `limit`; one-based PDF pages                 |
-| `chipsim_check`         | `model`, `project`        | Fresh source/schema/acceptance checks                  |
-| `chipsim_run`           | `model`, `project`, `out` | `params`, `inputs` JSON paths; `ticks`                 |
-| `chipsim_program_check` | `program`, `model`        | `project`; assertions execute later                    |
-| `chipsim_program_run`   | `program`, `model`, `out` | `project`, `ticks`, `steps`                            |
-| `chipsim_note`          | `project`, `message`      | Explicit activity milestone                            |
-| `chipsim_activity`      | `project`                 | `limit`                                                |
-| `chipsim_hdl_doctor`    | none                      | Installed HDL tools                                    |
-| `chipsim_hdl_import`    | `waveform`, `out`         | Import recorded digital data                           |
-| `chipsim_hdl_run`       | `project`, `out`          | Explicitly execute an HDL manifest                     |
-| `chipsim_hdl_compare`   | `left`, `right`, `map`    | Optional new `out`; explicit mappings                  |
-| `chipsim_snapshot`      | none                      | `model` or `waveform`, `view`, `at`, `columns`, `rows` |
+| Tool                    | Required fields               | Optional fields / purpose                                                                             |
+| ----------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `chipsim_command`       | none                          | Literal CLI `args` array; defaults to help                                                            |
+| `chipsim_help`          | none                          | Contract and installed documentation paths                                                            |
+| `chipsim_doctor`        | none                          | Node and Poppler availability                                                                         |
+| `chipsim_context`       | `target`                      | `project`, `model`; catalog/model or prepared PDF project, not arbitrary RTL directory                |
+| `chipsim_prepare`       | `manual`, `out`               | New source project                                                                                    |
+| `chipsim_search`        | `project`, `query`            | `offset`, `limit`; follow `nextOffset`                                                                |
+| `chipsim_page`          | `project`, `page`             | `offset`, `limit`; one-based PDF pages                                                                |
+| `chipsim_check`         | `model`, `project`            | Fresh source/schema/acceptance checks                                                                 |
+| `chipsim_run`           | `model`, `project`, `out`     | `params`, `inputs` JSON paths; `ticks`                                                                |
+| `chipsim_program_check` | `program`, `model`            | `project`; assertions execute later                                                                   |
+| `chipsim_program_run`   | `program`, `model`, `out`     | `project`, `ticks`, `steps`                                                                           |
+| `chipsim_note`          | `project`, `message`          | Explicit activity milestone                                                                           |
+| `chipsim_activity`      | `project`                     | `limit`                                                                                               |
+| `chipsim_work_start`    | `project`, `goal`             | `mode`: `task` (default) or `evolution`; save returned session ID                                     |
+| `chipsim_work_event`    | `project`, `session`, `event` | `event` is a bounded JSON file path; explicit report only                                             |
+| `chipsim_work_status`   | `project`                     | `session`, `limit` (1–200); newest-created session if omitted                                         |
+| `chipsim_hdl_doctor`    | none                          | Installed HDL tools                                                                                   |
+| `chipsim_hdl_import`    | `waveform`, `out`             | Import recorded digital data                                                                          |
+| `chipsim_hdl_run`       | `project`, `out`              | Explicitly execute an HDL manifest                                                                    |
+| `chipsim_hdl_compare`   | `left`, `right`, `map`        | Optional new `out`; explicit mappings                                                                 |
+| `chipsim_snapshot`      | none                          | One of `model`, `waveform`, `hdlDebug`, `design`, `agent`; `view`, `at`, `atEvent`, `columns`, `rows` |
 
-Snapshot `model` accepts a built-in ID, model JSON or saved session JSON;
-`waveform` accepts VCD/waveform JSON. Choose one. Views: `wave`, `inspect`, `log`,
-`sources`, `model`, `registers`, `stimulus`, `activity`, `program`, `states`,
-`flow`, `compare`. Output is a terminal text frame. Document-backed loading
-still requires original sources wherever the existing loader requires them.
+Choose at most one snapshot source: `model` is a built-in ID, model JSON or saved
+session; `waveform` is VCD/waveform JSON; `hdlDebug` is a recorded debug file or
+portable session; `design`/`agent` are project directories. `agent` opens Activity
+and `design` opens Project by default; `hdlDebug` uses the recorded debug views.
+Views: `wave`, `inspect`, `log`, `sources`, `model`, `registers`, `stimulus`,
+`activity`, `program`, `states`, `flow`, `compare`, `debug`, `project`, `pipeline`,
+`artifacts`, `checks`. Use a view applicable to the chosen source. `atEvent` selects
+an HDL recording event; `at` selects a tick/sample. Document-backed loading still
+requires original sources wherever the existing loader requires them.
+
+For combined debug review, inspect and verify the actual artifact first, then use
+its returned payload path:
+`chipsim_snapshot({hdlDebug:"PAYLOAD_PATH",view:"debug",atEvent:40,columns:120,rows:40})`.
+Choose an event that exists. `/chipsim --hdl-debug PAYLOAD_PATH` opens the same
+recording interactively. Snapshots return text, not hardware proof.
 
 Results carry CLI JSON as text and host result details. Failures throw an error
 containing the CLI result, diagnostics and any fault artifact paths. An HDL

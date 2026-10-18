@@ -256,6 +256,7 @@ export async function agentCommand(args) {
         },
         documentation: Object.fromEntries(
           [
+            "AGENT_CONTROL.md",
             "AGENT_WORKFLOW.md",
             "AGENT_EXTENSIONS.md",
             "AGENT_WORK.md",
@@ -269,6 +270,12 @@ export async function agentCommand(args) {
             "EXISTING_SIMULATORS.md",
           ].map((name) => [name, join(packageRoot, "docs", name)]),
         ),
+        examples: {
+          evolution: {
+            guide: join(packageRoot, "examples/evolution/README.md"),
+            runner: join(packageRoot, "examples/evolution/run.py"),
+          },
+        },
         protocol: {
           stdout: "One JSON result; no ANSI, prompts, or progress text",
           exitCodes: {

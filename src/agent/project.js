@@ -63,6 +63,7 @@ export async function prepareProject(pdf, output) {
     await mkdir(join(root, "docs"));
     for (const file of [
       "MODEL_FORMAT.md",
+      "AGENT_CONTROL.md",
       "AGENT_WORKFLOW.md",
       "AGENT_EXTENSIONS.md",
       "AGENT_WORK.md",

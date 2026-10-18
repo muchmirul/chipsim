@@ -74,6 +74,8 @@ test("every catalog chip exposes truthful programming guidance, document pointer
     pio.models[0].inputs.map((s) => s.id),
     ["ack"],
   );
+  for (const guide of ["AGENT_CONTROL.md", "AGENT_WORK.md", "DESIGN.md"])
+    assert.ok((await stat(pio.documentation[guide])).isFile());
   assert.ok(
     pio.models[0].observedRegisters.some(
       (register) => register.target === "reg.osr",

@@ -162,6 +162,11 @@ In Pi, `/chipsim --model pio` borrows the terminal and `q` returns to the agent.
 
 ### Live agent work and evolution
 
+For a coding agent, start with the [agent control guide](docs/AGENT_CONTROL.md).
+It maps a user task to command discovery, execution, evidence review, progress,
+recovery and handoff. `chipsim agent help` supplies the installed guide and
+external example paths. Prepared projects receive the guide through `prepare`.
+
 Open the work dashboard for any existing project directory; no PDF is required:
 
 ```sh

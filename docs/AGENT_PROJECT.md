@@ -18,7 +18,6 @@ and suggested next commands. Poll accepted jobs with `job status ID --project
 PATH --wait --timeout-ms 1000`. A timeout leaves the job running; only explicit
 `job cancel` cancels it. Save log `cursor` for the next poll even at current EOF.
 
-
 This folder is a local ChipSim project prepared from one PDF. ChipSim's only
 interactive frontend is the TUI. Use terminal playback and inspection for
 demonstrations; do not create browser or HTML simulation frontends. Headless
@@ -50,16 +49,47 @@ for newer behavior. `context` refreshes model capabilities, not copied docs.
 `examples/timer.model.json` is a complete syntax example with illustrative
 assumptions and its own original source. Do not relabel it as this chip's behavior.
 
-## Make work visible
+## Make work visible and control execution
 
-When the user wants live progress, start `chipsim agent work-start . --goal
-"USER OBJECTIVE" --mode task` (or `evolution`) and retain its session ID.
-Publish concise plan/edit/tool/evaluation/summary events with
-`chipsim agent work-event . SESSION_ID --event event.json`. Link actual design
-job/run/artifact IDs for debug review; never fabricate evidence or weaken tests
-for a better score. See `docs/AGENT_WORK.md`. The user opens `chipsim --agent .`
-in another terminal. It shows reported actions, not private reasoning, and does
-not install edited candidates automatically. Finish the session explicitly.
+Read `docs/AGENT_CONTROL.md` for the complete operating procedure and
+`docs/AGENT_WORK.md` for event fields, lifecycle, limits and recovery. Use
+`chipsim agent help` to find the current installed guides and
+`examples.evolution.guide` / `examples.evolution.runner`. Evolution example files
+are installed with ChipSim, not copied into this prepared project.
+
+For requested live progress:
+
+1. Inspect the task, current files, acceptance checks and allowed resources. Use
+   this project's programming context for model experiments; use `design
+commands`, `design guide` and actual manifests for external RTL/firmware tools.
+2. Start `chipsim agent work-start . --goal "USER OBJECTIVE" --mode task`
+   (`evolution` for search). Save the returned `session.id`. Resume an existing
+   session only by its explicit UUID after checking it is still running.
+3. Give the user `chipsim --agent .` (or `/chipsim --agent .` in a supported host).
+   Publish concise actions/results through `work-event . SESSION --event FILE`.
+   Commands, editor edits and optimizer actions outside this journal do not
+   appear automatically. Never record private reasoning, credentials or secrets.
+4. Execute the real check/run or managed design job separately. Link actual
+   job/run/artifact IDs with the correct evidence project. Distinguish a reported
+   score, verified stored bytes, passing checks and current target readiness.
+   Opening evidence is explicit; polling must not replace the user's recording.
+5. On failure, retain diagnostics and partial evidence; do not weaken tests.
+   Poll accepted jobs with their ID, read incremental logs using the returned
+   cursor, and use `job cancel` when stopping them. A terminal work summary does
+   not cancel a job. Only publish completed/failed/cancelled summary when the
+   actual task outcome is known; a closed session cannot accept more events.
+
+Choose one viewer launch mode: `--agent` for explicit agent/evolution reports,
+`--design` for the versioned workbench (including work Activity), or `--watch`
+for prepared-model activity and verified completed-run reload. They are not the
+same monitoring behavior. Source verification remains mandatory in every mode.
+
+Search requires an agreed objective, independently justified fixed evaluator,
+mutable-RTL boundary, bounded resource budget and isolated evaluation projects.
+OpenEvolve/model setup stays external; get user approval for provider calls,
+costs or private-data sharing. See the installed evolution guide. The counter
+example's functional score is neither formal proof nor PPA; handwritten fixture
+comparisons are not evidence of an LLM search.
 
 ## Choose what to program
 

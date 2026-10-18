@@ -79,6 +79,7 @@ try {
     "src/agent/activity.js",
     "src/agent/work.js",
     "src/tui/work-panel.js",
+    "docs/AGENT_CONTROL.md",
     "docs/AGENT_WORK.md",
     "examples/evolution/README.md",
     "examples/evolution/run.py",
@@ -358,6 +359,21 @@ try {
   );
   assert.equal((await cli(["doctor"])).pdfTools.length, 2);
   const installed = join(prefix, "lib/node_modules/chipsim");
+  assert.equal(
+    help.documentation["AGENT_CONTROL.md"],
+    join(installed, "docs/AGENT_CONTROL.md"),
+  );
+  assert.equal(
+    help.examples.evolution.guide,
+    join(installed, "examples/evolution/README.md"),
+  );
+  assert.equal(
+    help.examples.evolution.runner,
+    join(installed, "examples/evolution/run.py"),
+  );
+  assert.ok(
+    (await readFile(help.documentation["AGENT_CONTROL.md"])).length > 100,
+  );
   const evolutionHelp = await run(
     "python3",
     [join(installed, "examples/evolution/run.py"), "--help"],
@@ -552,6 +568,7 @@ try {
       "DEVELOPMENT.md",
       "VISUALIZATION.md",
       "DESIGN_INPUTS.md",
+      "AGENT_CONTROL.md",
       "AGENT_WORK.md",
     ])
       assert.equal(

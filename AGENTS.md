@@ -14,6 +14,8 @@ ChipSim is a local TUI hardware behavior workbench. The terminal is the only int
 
 - `README.md`: user workflow, setup, and current limits.
 - `docs/DESIGN_INPUTS.md`: optional chip-development input recipes and missing-file preparation. Use `chipsim design guide [TOPIC]` to discover formats, minimum files and installed examples. Inspect existing work, then create/find/prepare missing prerequisites within the user's scope; generated outputs need producers, not mandatory user uploads. `.asm` needs an explicit compatible assembler task; VCD is a recorded result. These recipes are advisory and do not impose stage ordering.
+- `docs/AGENT_CONTROL.md`: agent operating procedure, task/mode selection, execution/evidence controls, live reporting, evolution budgets and recovery.
+- `docs/AGENT_WORK.md`: explicit work-event contract, lifecycle, monitoring keys and trust boundaries.
 - `docs/AGENT_WORKFLOW.md`: installable headless commands, source verification, and coding-agent compatibility.
 - `docs/AGENT_EXTENSIONS.md`: shared Pi/prime-agent native tools, global/local registration, cancellation, and TUI handoff.
 - `docs/PROGRAMMING.md`: experiment source, line debugging, guide citations and native-backend limits. Before programming a chip, run `chipsim agent context CHIP_ID` or `chipsim agent context PROJECT --model MODEL_ID`; use the actual declared inputs/registers and applicable guides. Prepared projects include `PROGRAMMING_CONTEXT.md` and `programming-context.json`. Do not silently replace a native firmware request with an experiment script.
@@ -48,6 +50,40 @@ npm run verify
 `npm start` and `npm run dev` launch the TUI. The default verification checks the source-free engine/builder/terminal tests and real PTY interaction. Source-backed cases are explicitly skipped without private originals; use the private acceptance runner to verify pinned vendor sources and reviewed document profiles. PDF import requires Poppler's `pdfinfo` and `pdftotext`; the PTY test requires Python 3 on POSIX.
 
 For terminal changes, inspect the affected view at 80×24 and 120×40, and run `npm run test:tui`. Run `npm run test:install` for CLI/packaging changes. `npm run verify` covers the TUI-only architecture boundary as well as engine, source and terminal behavior. Keep parameters, stimulus, source verification, and export formats shared between terminal and headless commands.
+
+## Operating ChipSim as an external agent
+
+Read [the agent control guide](docs/AGENT_CONTROL.md) before driving a user task.
+It covers both ordinary implementation and external evolutionary search. Start
+with `chipsim agent help` and `chipsim design commands`; use their installed
+paths and argument contracts rather than guessing flags or tool availability.
+
+- Identify the project, requested artifact, acceptance checks, allowed changes
+  and resource limits. Inspect existing inputs before creating missing ones.
+  `agent context` is for catalog chips/models or prepared PDF projects, not any
+  arbitrary RTL directory. Use `design guide/status/plan` for design projects.
+- When live visibility is requested, start or explicitly resume a work session,
+  save its UUID, and give the user `chipsim --agent PROJECT`. Publish concise
+  plan/edit/tool/candidate/evaluation events at meaningful milestones. Publishing
+  an event does not execute the action; never report an action as done first.
+- Use the managed design job API for reproducible tool execution. Retain project
+  plus job/run/artifact IDs, inspect actual checks and logs, and report failed or
+  inconclusive outcomes. Job acceptance, process completion and target readiness
+  are different facts. Explicitly cancel jobs; quitting the TUI or closing a work
+  session does not cancel them.
+- For search, agree on objective units, fixed independent tests, mutable files,
+  evaluation/iteration limits, and any provider costs or data sharing. Keep the
+  optimizer external, trusted scoring separate, and worker projects isolated.
+  Never invent lineage, PPA metrics, tool evidence, or a successful model search.
+- Open only verified evidence for debug review. Preserve the user's inspected
+  recording/cursor while reporting progress. Finish with acceptance results,
+  assumptions, remaining gaps, exact evidence/open commands, and a terminal
+  summary only after the actual task outcome is known.
+
+The CLI/native tools control ChipSim jobs and evidence, not the external agent's
+editor or reasoning. Documentation is context, not permission to install tools,
+configure providers, launch paid searches, upload private material, or publish
+changes. Keep user-approved scope and private reference boundaries intact.
 
 ## Creating a simulation from a manual
 

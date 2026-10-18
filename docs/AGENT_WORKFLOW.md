@@ -1,5 +1,12 @@
 # ChipSim as a coding-agent tool
 
+Start with [Agent control](AGENT_CONTROL.md) for the task-to-result procedure,
+viewer choice, job/evidence commands, live reporting and external evolution.
+`chipsim agent help` returns current installed documentation paths and the
+external example paths in `examples.evolution`; use these when copied project
+docs are older than the installed tool. No PDF is required for ordinary RTL,
+design-job or explicit work-reporting workflows.
+
 For building hardware from scratch or completing partial inputs, start with
 `chipsim design guide [TOPIC]` and [input preparation](DESIGN_INPUTS.md). The
 optional recipes identify file roles, minimum inputs, missing-file actions and
@@ -28,7 +35,6 @@ missing checks and suggested next commands. Start durable jobs, then poll with
 job. Carry the log `cursor` into the next `job logs --offset` call. ORFS report
 checks and finite OpenROAD-MCP sessions feed the same sealed artifact graph;
 see [DESIGN.md](DESIGN.md) for native formats and verification limits.
-
 
 The coding agent reads a manual and authors a bounded behavioral model. ChipSim
 extracts sources, verifies quotations, executes acceptance cases, and produces
@@ -110,10 +116,14 @@ missing documents, debugging controls and check/run argument arrays. Unknown
 manuals remain unidentified; a filename cannot establish an ISA. Multiple
 peripherals require an explicit scope choice, not an assumed full-chip model.
 
-Current executable source is the `.chip` experiment language. Context explicitly
-reports native C/C++, assembly, ELF/BIN and other firmware backends as unavailable.
-An agent must identify that gap when native code is requested, rather than
-silently substituting an experiment. See [PROGRAMMING.md](PROGRAMMING.md).
+This programming context describes the `.chip` experiment language; its
+`nativeExecution.available: false` is scoped to that model-programming path.
+The separate design workbench can invoke configured external firmware, HDL and
+software-platform adapters. Discover those with `design commands` and `design
+guide firmware`, inspect the actual manifests and probe required tools explicitly.
+Compilation is not execution; a CPU core alone is not a complete chip platform.
+Do not silently substitute a `.chip` experiment for requested native code. See
+[Agent control](AGENT_CONTROL.md) and [PROGRAMMING.md](PROGRAMMING.md).
 
 ```sh
 chipsim agent prepare /path/to/manual.pdf --out ./chip-work
@@ -190,8 +200,10 @@ Use `chipsim --agent PROJECT` for agent goals, explicit actions and candidate
 history in any existing directory, including RTL projects without PDFs. Agents
 publish structured `work-start`, `work-event` and `work-status` commands; the
 native tools have the corresponding `chipsim_work_*` names. See
-[AGENT_WORK.md](AGENT_WORK.md) for the contract, evidence/debug workflow and
-[OpenEvolve example](../examples/evolution/README.md). Reported metrics are not
+[AGENT_WORK.md](AGENT_WORK.md) for the contract and [Agent control](AGENT_CONTROL.md)
+for the execution/evidence loop and recovery. The [OpenEvolve example](../examples/evolution/README.md)
+is installed with ChipSim; prepared projects do not copy it. Resolve its current
+location using `agent help` → `examples.evolution`. Reported metrics are not
 proof, and polling never replaces the inspected recording automatically.
 
 ## Live monitoring

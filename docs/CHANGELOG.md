@@ -5,6 +5,29 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-18 — Complete operating context for external agents
+
+**Context:** Agents could discover individual commands but had to combine
+separate guides to control a task, report progress and review evolutionary results.
+Prepared project instructions were brief, and model-programming context described
+native-backend limits too broadly for the separate design workbench.
+**Use/behavior:** `docs/AGENT_CONTROL.md` provides the task-to-result procedure,
+mode selection, job/evidence control, search preflight, failure recovery and final
+handoff. Root and prepared-project `AGENTS.md` route agents to it. `agent help`
+exposes the installed guide and absolute evolution guide/runner paths; `prepare`
+copies the control guide. Programming context links the operating guides and
+scopes its native-execution limit to `.chip` experiments, without claiming that
+external tools or target-compatible firmware backends are installed.
+**Limits/preservation:** These are instructions and additive discovery metadata,
+not new execution capabilities or authorization. Explicit events do not control
+an external agent; model/provider installation and paid/private-data operations
+still require user approval. No resource, journal or polling constants change.
+Old prepared projects keep their copied docs until explicitly regenerated; current
+installed guides remain discoverable. Public distribution/private-source boundaries
+and all evidence/check gates remain unchanged.
+**Implementation/checks:** Agent help/context, prepared guide copying, native tool
+documentation, synthetic-PDF project tests and installed-package discovery checks.
+
 ## 2026-10-18 — Live agent task and evolution dashboard
 
 **Context:** Prepared-PDF activity monitoring and the design job list did not
