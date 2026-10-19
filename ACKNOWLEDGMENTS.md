@@ -29,7 +29,7 @@ use, integration or research; they do not imply endorsement.
 
 [OpenEvolve](https://github.com/algorithmicsuperintelligence/openevolve), by
 Asankhaya Sharma and contributors, provides the optional external evolutionary
-optimizer for the [counter evaluation example](examples/evolution/README.md).
+optimizer for the [counter evaluation example](examples/evolutionary-example/README.md).
 It is separately installed under Apache-2.0; no upstream code is copied here.
 
 Raspberry Pi, Arm, Synopsys, Texas Instruments, Nexperia, Renesas Electronics,

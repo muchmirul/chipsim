@@ -5,6 +5,49 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-19 — Explain how goal-driven hardware evolution produced each result
+
+**Context:** Result tables alone did not explain how a hardware goal becomes an
+editable RTL candidate, a trusted fitness measurement and a selected design.
+**Use/behavior:** Each of the three scenario folders now includes
+`EVOLUTION_EXAMPLE.md`, linked from its README and the collection guide. The
+walkthroughs show the exact goal/ports, faulty baseline, repaired RTL, conceptual
+hardware, real manual-mode queue edits, evaluation/selection and fresh finalist
+checks. Counter's two sibling variations are distinguished from the single
+variation in each new scenario. **Limits/preservation:** Explanations distinguish
+agent-authored edits and manual fixtures from optimizer orchestration, measured
+functional behavior from formal/PPA claims, and RTL from fabrication-ready layout.
+They explain the additional independently measured constraints/tools needed for
+broader chip goals. No runtime behavior, scoring inputs or resource limits change.
+**Implementation/checks:** Documentation and packaged-file coverage; source/result
+cross-checks, relative links, formatting and installed package discovery checks.
+
+## 2026-10-19 — Group three goal-driven RTL evolution examples
+
+**Context:** A counter alone did not show how the agent/OpenEvolve/ChipSim pattern
+applies to other goals. **Use/behavior:** `examples/evolutionary-example` now groups
+counter, saturating-adder and priority-encoder subfolders. The shared runner accepts
+`--example NAME` (counter by default); selection fixes its goal, interface, copied
+harness, scorer and expected observation count. Each has a faulty baseline and
+manual acceptance fixture. Adder tests cover all 256 unsigned 4-bit input pairs;
+encoder tests cover all 256 masks, including empty and competing requests.
+**Demonstrations:** Separate real OpenEvolve 0.4.0 manual-mode runs improved adder
+136/256 → 256/256 and encoder 9/256 → 256/256, each with one agent-authored
+generation-1 variation and a fresh passing finalist. Prompts/checkpoints, run
+verification, trusted bytes and independent rescoring were checked. Agent prior
+fixture knowledge is disclosed. A time-zero encoder stimulus initialization issue
+was fixed before the completed frozen-harness run.
+**Limits/preservation:** Manual fixtures are not optimizer-produced discoveries.
+Counter's earlier agent-assisted demonstration remains separately described.
+No PPA/formal claim, provider setup, automatic install or global registration
+change. Old `examples/evolution` commands must use the new collection path;
+installed help and packaging checks resolve it. Isolation/trusted producer checks,
+explicit lineage, cancellation and fresh finalist evaluation remain shared.
+**Implementation/checks:** A fixed example catalog drives the existing bridge;
+trusted waveform scorers reject missing/changed stimulus and incomplete duration.
+Source-free scorer tests and opt-in real Icarus managed evaluations cover all three;
+installation checks cover packaged discovery and offline Python help.
+
 ## 2026-10-19 — Document agent-assisted OpenEvolve integration mode
 
 **Context:** The README described individual candidate evaluation and external
@@ -75,7 +118,7 @@ installation and actual PTY checks at 80×24 and 120×40. See
 
 **Context:** An optimizer needs real tool feedback and reviewable candidate
 artifacts, not a fabricated score or disconnected text progress.
-**Use/behavior:** `examples/evolution/` provides an optional external OpenEvolve
+**Use/behavior:** `examples/evolutionary-example/` provides an optional external OpenEvolve
 bridge and provider-free evaluation of individual counter RTL candidates. Fixed
 stimulus and an independent waveform scorer produce functional results through
 managed ChipSim jobs; journal events link the actual runs/artifacts. Scoring
@@ -88,7 +131,7 @@ physical area/power/timing or proof. Known candidates exercise integration, not
 an LLM evolutionary search. OpenEvolve/model configuration remains external and
 is never automatically installed. Existing execution permissions are unchanged;
 use OS isolation for untrusted RTL and evaluator scripts.
-**Implementation/checks:** `examples/evolution/`, offline evaluator regression
+**Implementation/checks:** `examples/evolutionary-example/`, offline evaluator regression
 and real available Icarus runs; no paid-provider call is part of the default tests.
 
 ## 2026-10-18 — Exclude live journals from design directory inputs

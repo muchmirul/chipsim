@@ -1,0 +1,45 @@
+{
+  "kind": "recorded real OpenEvolve 0.4.0 agent-assisted manual-mode demonstration",
+  "date": "2026-10-19",
+  "example": "priority-encoder",
+  "iterations": 1,
+  "variation_generation": 1,
+  "goal": "Repair priority_encoder(request[7:0], valid, index[2:0]). Preserve its interface and synthesizable combinational SystemVerilog. valid=(request!=0). index is the highest asserted bit number, or zero for empty input. Change only implementation inside EVOLVE-BLOCK, never trusted files/tools. Respond using requested SEARCH/REPLACE diff.",
+  "selected_source": "evolved.sv",
+  "selected_source_sha256": "30ed5a7a6975d2adbee27e5eb28ac9fb297c4a88ab0b982c1bde59cf84de50ad",
+  "baseline_metrics": {
+    "combined_score": 0.03515625,
+    "checks_passed": 9,
+    "checks_total": 256
+  },
+  "finalist_metrics": {
+    "combined_score": 1.0,
+    "checks_passed": 256,
+    "checks_total": 256
+  },
+  "session": "1ed5f5b2-363a-4519-aba3-f5b3d7bc797c",
+  "finalist_evidence": {
+    "project": "/home/dev/chipsim-evolution-proof/collection-20261019/priority-encoder-verified/evaluations/1ed5f5b2-363a-4519-aba3-f5b3d7bc797c/7caba8b6-ec78-4dd2-9aa0-62841d9c3376",
+    "job": "85f814a0-dcb6-4453-a9d5-0b9fd82f9fe8",
+    "run": "7388eb28d0f64fe7fcbf555af4d4b25c6a4971922ca89c5b7d37e3e52a695e39",
+    "artifact": "5ca761eb7036343cf799da9e67bcd80ba3b209b28111dc2234f0c227c1124478"
+  },
+  "trusted_sha256": {
+    "score.py": "20c6e15f0d9c09cc5fa76c1d33e8ab98dd7fa498282c8c4fed7cea1d661d7e72",
+    "priority_encoder_tb.sv": "0903ee20554284482422fcf9253f554c9648776a4ed53d88419453317ec25ee3"
+  },
+  "queue_prompt_sha256": "e75f157c1119441b1826727cd43e7fb38e6abf45411963c8c7828d5390300b83",
+  "queue_answer_sha256": "f0e4ee2614a8228404cf1bc3c8e0c3ea190bd55cb247f5babb3cb625a5bea6f4",
+  "validation": {
+    "all_three_managed_run_closures_verified": true,
+    "trusted_copied_bytes_match": true,
+    "independent_waveform_rescoring_matches": true
+  },
+  "limits": [
+    "Agent knew objective and manual fixture; not blind discovery.",
+    "Not unattended provider-backed search; no separate provider API used.",
+    "Fixed sampled functional behavior only; no PPA or formal proof.",
+    "Evidence paths identify original machine-local recordings, not files shipped in this repository."
+  ],
+  "source_note": "evolved.sv preserves exact optimizer-selected bytes, including the original baseline comment; the passing result describes its changed implementation."
+}

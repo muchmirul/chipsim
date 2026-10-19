@@ -1,6 +1,68 @@
-# External OpenEvolve → ChipSim example
+# Evolutionary examples: agent + OpenEvolve + ChipSim
 
-This example repairs a deliberately incomplete 4-bit counter. `counter.sv`
+Three original RTL teaching examples share one evaluator/search bridge. Choose
+`--example NAME` to fix the goal, interface, trusted harness and scorer; only the
+candidate RTL is mutable. This folder was previously `examples/evolution`.
+Commands and installed agent-help paths now use `examples/evolutionary-example`.
+
+| Example                                        | Measurable goal                               | Fixed checks          | Starting defect    |
+| ---------------------------------------------- | --------------------------------------------- | --------------------- | ------------------ |
+| [Counter](counter/README.md) (default)         | Reset, increment when enabled, otherwise hold | 80 sampled cycles     | Ignores enable     |
+| [Saturating adder](saturating-adder/README.md) | Unsigned `min(a+b,15)`                        | All 256 input pairs   | Wraps on overflow  |
+| [Priority encoder](priority-encoder/README.md) | Highest asserted request bit, plus valid      | All 256 request masks | Chooses lowest bit |
+
+Each subfolder contains a deliberately faulty baseline, a **manually authored
+acceptance fixture**, and trusted stimulus/scoring. Passing a supplied fixture
+is not evidence of evolutionary search. Separate real OpenEvolve 0.4.0
+agent-assisted manual-mode runs were also completed for all three goals:
+
+| Example          | Baseline | Agent variation          | Selected RTL, fresh check |
+| ---------------- | -------- | ------------------------ | ------------------------- |
+| Counter          | 11/80    | 80/80 (two alternatives) | 80/80                     |
+| Saturating adder | 136/256  | 256/256                  | 256/256                   |
+| Priority encoder | 9/256    | 256/256                  | 256/256                   |
+
+For the two newer examples, OpenEvolve managed one generation-1 variation each;
+an existing coding agent answered the real queue prompts. Run/artifact integrity,
+trusted copied bytes and independent waveform rescoring were checked. The agent
+already knew the goals and manual fixtures: these are integration demonstrations,
+not blind discovery or unattended provider-backed search. The fixtures are not
+renamed search output. See each scenario guide for details and goal-specific
+`manual-mode.yaml` (adder/encoder). Full local recordings are not bundled.
+All goals and interfaces are illustrative assumptions, not vendor specifications.
+
+Use the shared runner for any example:
+
+```sh
+mkdir -p /tmp/adder-work
+python3 examples/evolutionary-example/run.py evaluate \
+  --example saturating-adder --project /tmp/adder-work
+# Expected exit 1: intentionally faulty baseline.
+python3 examples/evolutionary-example/run.py evaluate \
+  --example saturating-adder --project /tmp/adder-work \
+  --candidate examples/evolutionary-example/saturating-adder/correct-saturating-adder.sv
+# Expected exit 0: manual fixture passes, not a search.
+```
+
+For an actual search use `evolve --example NAME --config YOUR_CONFIG` instead.
+Use that example's goal and interface in the OpenEvolve system prompt; the counter
+prompt below must not be reused unchanged for an adder or encoder. The runner
+records the selected goal and independently re-evaluates the selected RTL. No
+provider, responder or dependency is installed automatically.
+
+## How evolution works for hardware goals
+
+Each scenario has an explanation beside its RTL, including its goal, before/after
+implementation, conceptual hardware, actual variation/evaluation/selection steps,
+measured results and the boundary between RTL repair and physical chip design:
+
+- [Counter evolution explanation](counter/EVOLUTION_EXAMPLE.md)
+- [Saturating-adder evolution explanation](saturating-adder/EVOLUTION_EXAMPLE.md)
+- [Priority-encoder evolution explanation](priority-encoder/EVOLUTION_EXAMPLE.md)
+
+## Counter walkthrough
+
+This example repairs a deliberately incomplete 4-bit counter. `counter/counter.sv`
 ignores `enable`. The objective is **functional correctness**, not circuit area,
 power, delay, synthesis quality, or whole-design equivalence. OpenEvolve remains
 an optional external optimizer; ChipSim neither runs a built-in search engine
@@ -13,15 +75,15 @@ No Python packages are needed for evaluation. From the checkout:
 
 ```sh
 mkdir -p /tmp/counter-work
-python3 examples/evolution/run.py evaluate --project /tmp/counter-work
+python3 examples/evolutionary-example/run.py evaluate --project /tmp/counter-work
 # Expected exit 1: the deliberately incomplete baseline fails some checks.
-python3 examples/evolution/run.py evaluate --project /tmp/counter-work \
-  --candidate examples/evolution/correct-counter.sv
+python3 examples/evolutionary-example/run.py evaluate --project /tmp/counter-work \
+  --candidate examples/evolutionary-example/counter/correct-counter.sv
 # Expected exit 0: a manually supplied known-correct regression candidate.
 node scripts/chipsim.mjs --agent /tmp/counter-work
 ```
 
-In an installed package, use the actual `examples/evolution/run.py` path. The
+In an installed package, use the actual `examples/evolutionary-example/run.py` path. The
 script resolves the packaged Node CLI relative to itself; `--chipsim /path/to/chipsim`
 selects a different installed executable. The work directory must already exist;
 no PDF or initial design manifest is needed. Each invocation starts a work session
@@ -59,7 +121,7 @@ credentials. Unlike offline evaluation, this command may send RTL and feedback
 to the provider configured in your YAML and may incur charges.
 
 ```sh
-/path/to/your/venv/bin/python examples/evolution/run.py evolve \
+/path/to/your/venv/bin/python examples/evolutionary-example/run.py evolve \
   --project /tmp/counter-work --config /path/to/your-openevolve.yaml \
   --iterations 5 --timeout 60
 ```
@@ -69,7 +131,7 @@ synchronous rising-edge reset (priority over enable), increment modulo 16 when
 enabled, otherwise hold; edit only the counter implementation; produce
 synthesizable SystemVerilog, not testbench or evaluator code. It must configure
 `llm.models` using your separately installed OpenEvolve's documented schema.
-The checked-in `correct-counter.sv` is a manual acceptance fixture, **not** an
+The checked-in `counter/correct-counter.sv` is a manual acceptance fixture, **not** an
 LLM-generated candidate or evidence that a search was performed.
 
 `run.py` supervises `search.py` in a separate process. That worker calls the public
@@ -156,7 +218,7 @@ evaluator:
 ```
 
 ```sh
-/path/to/your/venv/bin/python examples/evolution/run.py evolve \
+/path/to/your/venv/bin/python examples/evolutionary-example/run.py evolve \
   --project /path/to/fresh-work --config /path/to/agent-assisted.yaml \
   --iterations 2 --timeout 60
 ```
@@ -191,16 +253,20 @@ Only the candidate RTL is offered to the optimizer. Every evaluation creates a
 fresh directory and copies that RTL plus the trusted harness and scorer into it.
 The generated design has two real tasks:
 
-1. `simulate`: managed Icarus simulation of the fixed 80-cycle harness; captures
+1. `simulate`: managed Icarus simulation of the selected fixed harness (80 cycles
+   for the counter, 256 input combinations for the adder/encoder); captures
    VCD, normalized waveform, sources, diagnostics, and optional debug events.
 2. `score`: separate managed Python command, bound to the published waveform,
-   computes expectations independently from the specified counter recurrence.
-   It checks clock/reset/enable stimulus and samples `count` one nanosecond after
-   each rising edge. Reset, disabled hold, increment and wrapping are exercised.
+   computes expectations independently from the selected contract. For the
+   counter, it checks clock/reset/enable and samples `count` one nanosecond after
+   each rising edge, exercising reset, hold, increment and wrapping. For the
+   combinational examples it checks every input combination and samples outputs
+   six nanoseconds after stimulus changes.
    Unknown bits fail; missing signals, changed stimulus or incomplete duration
    cannot earn a partial passing report. It publishes `out/metrics.json`.
 
-`combined_score = checks_passed / 80`, dimensionless, maximized by OpenEvolve.
+`combined_score = checks_passed / checks_total`, dimensionless, maximized by
+OpenEvolve. The counter has 80 checks; the adder and encoder each have 256.
 Readiness requires simulation, outputs, scorer execution, and `combined_score == 1`.
 A failed baseline can therefore have a completed process job but fail readiness.
 A compile error or incomplete evaluation receives score zero **as an optimizer
@@ -208,7 +274,7 @@ penalty**, not a measured zero-check result; no `checks_passed` is then reported
 Work events remain labeled **agent-reported**. Hash verification establishes byte
 integrity, not that reported claims are proof or that a candidate is safe.
 
-`trusted/counter_tb.sv` and `trusted/score.py` are outside the evolving program.
+`counter/trusted/counter_tb.sv` and `counter/trusted/score.py` are outside the evolving program.
 Their copied bytes, tool identities and all inputs are captured in managed
 snapshots. The scoring report is itself an artifact linked to the input waveform. The adapter
 accepts metrics only from the `score` task's attempt in the exact current run/job;

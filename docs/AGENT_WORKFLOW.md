@@ -201,7 +201,7 @@ history in any existing directory, including RTL projects without PDFs. Agents
 publish structured `work-start`, `work-event` and `work-status` commands; the
 native tools have the corresponding `chipsim_work_*` names. See
 [AGENT_WORK.md](AGENT_WORK.md) for the contract and [Agent control](AGENT_CONTROL.md)
-for the execution/evidence loop and recovery. The [OpenEvolve example](../examples/evolution/README.md)
+for the execution/evidence loop and recovery. The [OpenEvolve example](../examples/evolutionary-example/README.md)
 is installed with ChipSim; prepared projects do not copy it. Resolve its current
 location using `agent help` → `examples.evolution`. Reported metrics are not
 proof, and polling never replaces the inspected recording automatically.

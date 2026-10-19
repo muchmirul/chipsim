@@ -38,7 +38,6 @@ and truncation independently of transport success. Regression coverage is in
 checks native readers, and `npm run test:physical -- --mcp` tests connected
 ORFS/KLayout/OpenROAD-MCP installations with required tools and locks.
 
-
 Read `AGENTS.md` before changing simulation behavior or adding a model. The TUI is the only interactive interface. Headless commands share its engine, source checks and trace formats so coding agents can prepare reproducible experiments for terminal inspection. No frontend build is required.
 
 ## Architecture
@@ -46,7 +45,7 @@ Read `AGENTS.md` before changing simulation behavior or adding a model. The TUI 
 `src/agent/work.js` owns the local agent-work session/event contract and bounded
 journal reads. `src/tui/work-panel.js` reads that journal for the live dashboard
 and follows explicit links through existing design evidence APIs. Population
-search remains external; `examples/evolution/` demonstrates the evaluator bridge.
+search remains external; `examples/evolutionary-example/` demonstrates the evaluator bridge.
 Keep agent-reported metrics separate from verified evidence, preserve the active
 debug recording during polling, and stop timers on terminal exit. No model
 provider, hidden agent execution, automatic edited-RTL loading or web frontend

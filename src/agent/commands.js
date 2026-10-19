@@ -272,8 +272,22 @@ export async function agentCommand(args) {
         ),
         examples: {
           evolution: {
-            guide: join(packageRoot, "examples/evolution/README.md"),
-            runner: join(packageRoot, "examples/evolution/run.py"),
+            guide: join(packageRoot, "examples/evolutionary-example/README.md"),
+            runner: join(packageRoot, "examples/evolutionary-example/run.py"),
+            scenarios: {
+              counter: join(
+                packageRoot,
+                "examples/evolutionary-example/counter/README.md",
+              ),
+              "saturating-adder": join(
+                packageRoot,
+                "examples/evolutionary-example/saturating-adder/README.md",
+              ),
+              "priority-encoder": join(
+                packageRoot,
+                "examples/evolutionary-example/priority-encoder/README.md",
+              ),
+            },
           },
         },
         protocol: {

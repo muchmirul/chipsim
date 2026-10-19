@@ -8,7 +8,7 @@ import signal
 import subprocess
 import sys
 
-from evaluator import Bridge, HERE, write_json
+from evaluator import Bridge, EXAMPLES, HERE, write_json
 
 
 def main():
@@ -16,7 +16,9 @@ def main():
     parser.add_argument("mode", choices=["evaluate", "evolve"])
     parser.add_argument("--project", required=True, type=Path,
                         help="existing directory for live work and isolated evaluations")
-    parser.add_argument("--candidate", type=Path, default=HERE / "counter.sv")
+    parser.add_argument("--example", choices=EXAMPLES, default="counter",
+                        help="fixed goal, interface, harness and scorer (default: counter)")
+    parser.add_argument("--candidate", type=Path, help="RTL source; default selected example baseline")
     parser.add_argument("--session", help="append evaluations to an existing work session")
     parser.add_argument("--parent", help="known parent candidate ID; never inferred")
     parser.add_argument("--generation", type=int, help="known generation; never inferred")
@@ -36,7 +38,9 @@ def main():
     project = args.project.resolve(strict=True)
     if not project.is_dir():
         parser.error("project must be an existing directory")
-    config = {"project": str(project), "session": args.session,
+    example = EXAMPLES[args.example]
+    candidate = args.candidate or HERE / args.example / example["source"]
+    config = {"project": str(project), "session": args.session, "example": args.example,
               "chipsim": [args.chipsim] if args.chipsim else [
                   "node", str(HERE.parents[1] / "scripts" / "chipsim.mjs")],
               "timeout": args.timeout, "debug": args.debug}
@@ -44,7 +48,7 @@ def main():
     owned = args.session is None
     if owned:
         config["session"] = bridge.cli("agent", "work-start", project, "--goal",
-            "Improve incomplete 4-bit counter correctness against 80 fixed observations; no PPA objective",
+            example["goal"],
             "--mode", "evolution")["session"]["id"]
         bridge = Bridge(config)
     config_path = bridge.directory / "adapter.json"
@@ -78,7 +82,7 @@ def main():
         signal.signal(sig, interrupt)
     try:
         if args.mode == "evaluate":
-            result = bridge.evaluate(args.candidate, parent=args.parent, generation=args.generation)
+            result = bridge.evaluate(candidate, parent=args.parent, generation=args.generation)
             if owned:
                 bridge.finish("completed" if result["status"] == "passed" else "failed",
                               "Manual candidate evaluation finished; no search was performed")
@@ -88,7 +92,7 @@ def main():
         # supervisor retains SIGINT/SIGTERM ownership through final evaluation.
         search = subprocess.Popen([
             sys.executable, str(HERE / "search.py"), str(config_path),
-            str(args.config.resolve(strict=True)), str(args.candidate.resolve(strict=True)),
+            str(args.config.resolve(strict=True)), str(candidate.resolve(strict=True)),
             str(args.iterations)], stdout=sys.stderr, stderr=sys.stderr,
             start_new_session=True)
         if search.wait() != 0:

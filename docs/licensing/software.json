@@ -712,9 +712,9 @@
       "relationship": "optional-external-optimizer",
       "bundled_upstream_code": false,
       "locations": [
-        "examples/evolution/run.py",
-        "examples/evolution/search.py",
-        "examples/evolution/evaluator.py"
+        "examples/evolutionary-example/run.py",
+        "examples/evolutionary-example/search.py",
+        "examples/evolutionary-example/evaluator.py"
       ],
       "adapters": [],
       "evidence": [

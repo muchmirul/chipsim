@@ -1,0 +1,28 @@
+max_iterations: 1
+checkpoint_interval: 1
+random_seed: 42
+diff_based_evolution: true
+llm:
+  manual_mode: true
+  models:
+    - name: existing-agent-session
+      weight: 1.0
+  retries: 0
+  timeout: 120
+  max_tokens: 1800
+prompt:
+  system_message:
+    Repair priority_encoder(request[7:0], valid, index[2:0]). Preserve
+    its interface and synthesizable combinational SystemVerilog. valid=(request!=0).
+    index is the highest asserted bit number, or zero for empty input. Change only
+    implementation inside EVOLVE-BLOCK, never trusted files/tools. Respond using requested
+    SEARCH/REPLACE diff.
+database:
+  num_islands: 1
+  population_size: 8
+  archive_size: 4
+evaluator:
+  parallel_evaluations: 1
+  max_retries: 0
+  cascade_evaluation: false
+  use_llm_feedback: false

@@ -7,7 +7,7 @@ import { spawnSync, spawn } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 import { workStatus } from "../src/agent/work.js";
 
-const example = resolve("examples/evolution");
+const example = resolve("examples/evolutionary-example");
 const python = process.env.PYTHON || "python3";
 function run(args, timeout = 30000) {
   const result = spawnSync(python, args, {
@@ -62,7 +62,11 @@ test("evolution trusted waveform scorer checks observations, completeness, stimu
     const target = join(directory, "metrics.json");
     const evaluate = async (wave) => {
       await writeFile(source, JSON.stringify(wave));
-      return run([join(example, "trusted/score.py"), source, target]);
+      return run([
+        join(example, "counter", "trusted/score.py"),
+        source,
+        target,
+      ]);
     };
     assert.equal((await evaluate(waveform())).status, 0);
     let metrics = JSON.parse(await readFile(target, "utf8"));
@@ -151,7 +155,7 @@ def run_evolution(**kwargs):
             "--config",
             config,
             "--candidate",
-            join(example, "counter.sv"),
+            join(example, "counter", "counter.sv"),
           ],
           {
             env: {
@@ -240,12 +244,12 @@ test(
       return { execution, result: JSON.parse(execution.stdout) };
     };
     try {
-      const baseline = evaluate(join(example, "counter.sv"));
+      const baseline = evaluate(join(example, "counter", "counter.sv"));
       assert.equal(baseline.execution.status, 1, baseline.execution.stderr);
       assert.equal(baseline.result.status, "failed");
       assert.ok(baseline.result.metrics.combined_score > 0);
       assert.ok(baseline.result.metrics.combined_score < 1);
-      const correct = evaluate(join(example, "correct-counter.sv"));
+      const correct = evaluate(join(example, "counter", "correct-counter.sv"));
       assert.equal(
         correct.execution.status,
         0,
@@ -274,11 +278,14 @@ test(
       for (const name of ["counter_tb.sv", "score.py"]) {
         assert.equal(
           await readFile(join(correct.result.evidence.project, name), "utf8"),
-          await readFile(join(example, "trusted", name), "utf8"),
+          await readFile(join(example, "counter", "trusted", name), "utf8"),
         );
       }
       const aliasFile = join(directory, "alias.sv");
-      const baselineCode = await readFile(join(example, "counter.sv"), "utf8");
+      const baselineCode = await readFile(
+        join(example, "counter", "counter.sv"),
+        "utf8",
+      );
       await writeFile(
         aliasFile,
         baselineCode.replace(
@@ -346,3 +353,188 @@ test(
     }
   },
 );
+
+function combinationalWaveform(name) {
+  const adder = name === "saturating-adder";
+  const top = adder ? "saturating_adder_tb" : "priority_encoder_tb";
+  const widths = adder
+    ? { a: 4, b: 4, sum: 4 }
+    : { request: 8, valid: 1, index: 3 };
+  const events = [];
+  for (let cycle = 0; cycle < 256; cycle++) {
+    const a = Math.floor(cycle / 16),
+      b = cycle % 16;
+    // Independent enumeration: highest asserted bit, rather than RTL loop ordering.
+    const index = cycle === 0 ? 0 : Math.floor(Math.log2(cycle));
+    const values = adder
+      ? { a, b, sum: a + b > 15 ? 15 : a + b }
+      : { request: cycle, valid: Number(cycle !== 0), index };
+    events.push({
+      time: String(cycle * 10000),
+      changes: Object.fromEntries(
+        Object.entries(values).map(([key, value]) => [
+          `${top}.${key}`,
+          value.toString(2).padStart(widths[key], "0"),
+        ]),
+      ),
+    });
+  }
+  events.push({ time: "2560000", changes: {} });
+  return {
+    format: "chipsim-waveform",
+    version: 1,
+    timescale: { magnitude: "1", unit: "ps" },
+    signals: Object.entries(widths).map(([id, width]) => ({
+      id: `${top}.${id}`,
+      width,
+    })),
+    events,
+  };
+}
+
+for (const name of ["saturating-adder", "priority-encoder"]) {
+  test(`${name} trusted oracle checks all inputs, unknown outputs and fixed stimulus`, async () => {
+    const directory = await mkdtemp(
+      join(tmpdir(), "chipsim-evolution-oracle-"),
+    );
+    try {
+      const source = join(directory, "waveform.json"),
+        target = join(directory, "metrics.json");
+      const evaluate = async (wave) => {
+        await writeFile(source, JSON.stringify(wave));
+        return run([join(example, name, "trusted/score.py"), source, target]);
+      };
+      assert.equal((await evaluate(combinationalWaveform(name))).status, 0);
+      assert.equal(
+        JSON.parse(await readFile(target, "utf8")).checks_passed,
+        256,
+      );
+      const unknown = combinationalWaveform(name);
+      const output =
+        name === "saturating-adder"
+          ? "saturating_adder_tb.sum"
+          : "priority_encoder_tb.index";
+      unknown.events[23].changes[output] =
+        name === "saturating-adder" ? "XXXX" : "XXX";
+      assert.equal((await evaluate(unknown)).status, 0);
+      assert.equal(
+        JSON.parse(await readFile(target, "utf8")).checks_passed,
+        255,
+      );
+      const wrong = combinationalWaveform(name);
+      wrong.events[0].changes[output] =
+        name === "saturating-adder" ? "1111" : "111";
+      assert.equal((await evaluate(wrong)).status, 0);
+      assert.equal(
+        JSON.parse(await readFile(target, "utf8")).checks_passed,
+        255,
+      );
+      const early = combinationalWaveform(name);
+      early.events.pop();
+      assert.notEqual((await evaluate(early)).status, 0);
+      const stimulus = combinationalWaveform(name);
+      const input =
+        name === "saturating-adder"
+          ? "saturating_adder_tb.a"
+          : "priority_encoder_tb.request";
+      stimulus.events[0].changes[input] =
+        name === "saturating-adder" ? "1111" : "11111111";
+      assert.notEqual((await evaluate(stimulus)).status, 0);
+      const missing = combinationalWaveform(name);
+      missing.signals.pop();
+      assert.notEqual((await evaluate(missing)).status, 0);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+}
+
+for (const [name, baselinePassed] of [
+  ["saturating-adder", 136],
+  ["priority-encoder", 9],
+]) {
+  test(
+    `${name} real managed baseline and manual fixture retain verified evidence`,
+    {
+      skip:
+        process.env.CHIPSIM_TEST_EVOLUTION !== "1"
+          ? "set CHIPSIM_TEST_EVOLUTION=1; requires stock Icarus"
+          : false,
+      timeout: 180000,
+    },
+    async () => {
+      const directory = await mkdtemp(
+        join(tmpdir(), `chipsim-${name}-native-`),
+      );
+      try {
+        const evaluate = (candidate) => {
+          const execution = run(
+            [
+              join(example, "run.py"),
+              "evaluate",
+              "--example",
+              name,
+              "--project",
+              directory,
+              ...(candidate ? ["--candidate", candidate] : []),
+            ],
+            90000,
+          );
+          assert.ok(
+            execution.stdout.trim().startsWith("{"),
+            execution.stderr + execution.stdout,
+          );
+          return { execution, result: JSON.parse(execution.stdout) };
+        };
+        const baseline = evaluate();
+        assert.equal(baseline.execution.status, 1, baseline.execution.stderr);
+        assert.equal(baseline.result.metrics.checks_passed, baselinePassed);
+        const correct = evaluate(join(example, name, `correct-${name}.sv`));
+        assert.equal(
+          correct.execution.status,
+          0,
+          correct.execution.stderr + correct.execution.stdout,
+        );
+        assert.equal(correct.result.status, "passed");
+        assert.equal(correct.result.metrics.checks_total, 256);
+        assert.equal(correct.result.metrics.checks_passed, 256);
+        assert.equal(correct.result.metrics.combined_score, 1);
+        assert.notEqual(
+          correct.result.evidence.project,
+          baseline.result.evidence.project,
+        );
+        assert.match(correct.result.evidence.run, /^[a-f0-9]{64}$/);
+        const verify = spawnSync(
+          process.execPath,
+          [
+            "scripts/chipsim.mjs",
+            "artifact",
+            "verify",
+            correct.result.evidence.run,
+            "--project",
+            correct.result.evidence.project,
+          ],
+          { encoding: "utf8" },
+        );
+        assert.equal(verify.status, 0, verify.stdout + verify.stderr);
+        assert.equal(
+          await readFile(
+            join(correct.result.evidence.project, "score.py"),
+            "utf8",
+          ),
+          await readFile(join(example, name, "trusted/score.py"), "utf8"),
+        );
+        const status = await workStatus(directory, {
+          session: correct.result.session,
+        });
+        assert.equal(status.session.status, "completed");
+        assert.match(
+          status.session.goal,
+          name === "saturating-adder" ? /saturating/ : /highest/,
+        );
+      } finally {
+        await rm(directory, { recursive: true, force: true });
+      }
+    },
+  );
+}

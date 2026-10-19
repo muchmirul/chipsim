@@ -44,7 +44,7 @@ and their own dependencies retain their license notices.
 
 ## Optional external evolutionary optimizer
 
-The original adapter in `examples/evolution/` calls separately installed
+The original adapter in `examples/evolutionary-example/` calls separately installed
 [OpenEvolve](https://github.com/algorithmicsuperintelligence/openevolve), by
 Asankhaya Sharma and contributors, under its [Apache-2.0 license](https://github.com/algorithmicsuperintelligence/openevolve/blob/main/LICENSE).
 No OpenEvolve implementation is copied, bundled or automatically installed.

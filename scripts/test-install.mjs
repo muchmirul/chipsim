@@ -81,14 +81,34 @@ try {
     "src/tui/work-panel.js",
     "docs/AGENT_CONTROL.md",
     "docs/AGENT_WORK.md",
-    "examples/evolution/README.md",
-    "examples/evolution/run.py",
-    "examples/evolution/search.py",
-    "examples/evolution/evaluator.py",
-    "examples/evolution/counter.sv",
-    "examples/evolution/correct-counter.sv",
-    "examples/evolution/trusted/counter_tb.sv",
-    "examples/evolution/trusted/score.py",
+    "examples/evolutionary-example/README.md",
+    "examples/evolutionary-example/run.py",
+    "examples/evolutionary-example/search.py",
+    "examples/evolutionary-example/evaluator.py",
+    "examples/evolutionary-example/counter/README.md",
+    "examples/evolutionary-example/counter/EVOLUTION_EXAMPLE.md",
+    "examples/evolutionary-example/saturating-adder/README.md",
+    "examples/evolutionary-example/saturating-adder/EVOLUTION_EXAMPLE.md",
+    "examples/evolutionary-example/saturating-adder/manual-mode.yaml",
+    "examples/evolutionary-example/saturating-adder/evolved.sv",
+    "examples/evolutionary-example/saturating-adder/demonstration.json",
+    "examples/evolutionary-example/saturating-adder/saturating-adder.sv",
+    "examples/evolutionary-example/saturating-adder/correct-saturating-adder.sv",
+    "examples/evolutionary-example/saturating-adder/trusted/saturating_adder_tb.sv",
+    "examples/evolutionary-example/saturating-adder/trusted/score.py",
+    "examples/evolutionary-example/priority-encoder/README.md",
+    "examples/evolutionary-example/priority-encoder/EVOLUTION_EXAMPLE.md",
+    "examples/evolutionary-example/priority-encoder/manual-mode.yaml",
+    "examples/evolutionary-example/priority-encoder/evolved.sv",
+    "examples/evolutionary-example/priority-encoder/demonstration.json",
+    "examples/evolutionary-example/priority-encoder/priority-encoder.sv",
+    "examples/evolutionary-example/priority-encoder/correct-priority-encoder.sv",
+    "examples/evolutionary-example/priority-encoder/trusted/priority_encoder_tb.sv",
+    "examples/evolutionary-example/priority-encoder/trusted/score.py",
+    "examples/evolutionary-example/counter/counter.sv",
+    "examples/evolutionary-example/counter/correct-counter.sv",
+    "examples/evolutionary-example/counter/trusted/counter_tb.sv",
+    "examples/evolutionary-example/counter/trusted/score.py",
     "src/agent/context.js",
     "src/agent/program.js",
     "src/program/engine.js",
@@ -365,21 +385,32 @@ try {
   );
   assert.equal(
     help.examples.evolution.guide,
-    join(installed, "examples/evolution/README.md"),
+    join(installed, "examples/evolutionary-example/README.md"),
   );
   assert.equal(
     help.examples.evolution.runner,
-    join(installed, "examples/evolution/run.py"),
+    join(installed, "examples/evolutionary-example/run.py"),
   );
   assert.ok(
     (await readFile(help.documentation["AGENT_CONTROL.md"])).length > 100,
   );
   const evolutionHelp = await run(
     "python3",
-    [join(installed, "examples/evolution/run.py"), "--help"],
+    [join(installed, "examples/evolutionary-example/run.py"), "--help"],
     { cwd },
   );
   assert.match(evolutionHelp.stdout, /evaluate,evolve/);
+  assert.match(evolutionHelp.stdout, /saturating-adder/);
+  assert.match(evolutionHelp.stdout, /priority-encoder/);
+  for (const name of ["counter", "saturating-adder", "priority-encoder"]) {
+    assert.equal(
+      help.examples.evolution.scenarios[name],
+      join(installed, "examples/evolutionary-example", name, "README.md"),
+    );
+    assert.ok(
+      (await readFile(help.examples.evolution.scenarios[name])).length > 100,
+    );
+  }
   const metadata = JSON.parse(
     await readFile(join(installed, "package.json"), "utf8"),
   );

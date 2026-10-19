@@ -184,6 +184,16 @@ See [live work commands and controls](docs/AGENT_WORK.md).
 
 ### OpenEvolve integration: agent-assisted RTL evolution
 
+The [evolutionary examples collection](examples/evolutionary-example/README.md)
+groups the enabled counter, unsigned saturating adder and highest-bit priority
+encoder. All three support trusted fixed-test evaluation and the external search
+bridge. Real agent-assisted OpenEvolve runs reached **80/80**, **256/256** and
+**256/256** respectively, including fresh selected-candidate checks. The supplied
+manual fixtures are labeled separately from those recorded search results.
+
+For the goal, before/after RTL and step-by-step search mechanism, see each
+scenario's [evolution explanation](examples/evolutionary-example/README.md#how-evolution-works-for-hardware-goals).
+
 ChipSim can be the evaluator and evidence viewer for an **external OpenEvolve
 search**. OpenEvolve manages candidate edits, population/checkpoints and selection;
 ChipSim runs isolated simulation/scoring jobs and shows progress in Activity.
@@ -227,7 +237,7 @@ blind discovery: the coding agent supplied the edits and already knew the object
 and manual regression fixture. Fixed tests are not formal equivalence or
 area/power/timing measurements. No separate provider API was used for this run.
 
-See the [counter example and manual-mode setup](examples/evolution/README.md#agent-assisted-mode-verified-example)
+See the [counter example and manual-mode setup](examples/evolutionary-example/README.md#agent-assisted-mode-verified-example)
 for the runnable workflow, retained evidence and limits. Individual candidate
 evaluation needs no OpenEvolve package. Evolution requires separately installed
 OpenEvolve, with either agent/human queue responses or explicitly configured

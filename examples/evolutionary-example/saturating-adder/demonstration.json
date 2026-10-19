@@ -1,0 +1,45 @@
+{
+  "kind": "recorded real OpenEvolve 0.4.0 agent-assisted manual-mode demonstration",
+  "date": "2026-10-19",
+  "example": "saturating-adder",
+  "iterations": 1,
+  "variation_generation": 1,
+  "goal": "Repair the unsigned 4-bit saturating_adder. Preserve module name and ports a[3:0], b[3:0], sum[3:0]. Output sum=min(a+b,15). Use synthesizable combinational SystemVerilog. Change only the EVOLVE-BLOCK implementation, not the interface, testbench, scorer or tools. Respond using requested SEARCH/REPLACE diff format.",
+  "selected_source": "evolved.sv",
+  "selected_source_sha256": "1864244e5f14470db24cf721a74fd15c3c4d4a7e11c33c76fad99e1f04170191",
+  "baseline_metrics": {
+    "combined_score": 0.53125,
+    "checks_passed": 136,
+    "checks_total": 256
+  },
+  "finalist_metrics": {
+    "combined_score": 1.0,
+    "checks_passed": 256,
+    "checks_total": 256
+  },
+  "session": "74f36255-9875-4352-83ce-da3226547139",
+  "finalist_evidence": {
+    "project": "/home/dev/chipsim-evolution-proof/collection-20261019/saturating-adder/evaluations/74f36255-9875-4352-83ce-da3226547139/19818378-bd73-4b64-9103-56870eea6ea0",
+    "job": "6cd67af7-f00b-4869-9296-3915cfcd9de0",
+    "run": "8c5f6e416979158860dd4cbee10a38e043221e0d0109651f02a24239365f8053",
+    "artifact": "7c4c39dfd2e35e653b1f2f535cf8cab264124ad145c19078882d09455d71a398"
+  },
+  "trusted_sha256": {
+    "saturating_adder_tb.sv": "1254d1c33b49f74e73a97c4d3abe89d2c9c384e974efde0707cc230e1395cf02",
+    "score.py": "d9381baecc785284c6b934c21f0e810cdeb9cecf816ce4716aa252db0c382a87"
+  },
+  "queue_prompt_sha256": "2c20f76afa8c0a5b8e32a30d9269539fd8b8ea0a75a1f0d6fad616ab050209dc",
+  "queue_answer_sha256": "e12d4fb7f7cbea412bfad517881fce9ffd079cd2b671251f832a4098c5a04627",
+  "validation": {
+    "all_three_managed_run_closures_verified": true,
+    "trusted_copied_bytes_match": true,
+    "independent_waveform_rescoring_matches": true
+  },
+  "limits": [
+    "Agent knew objective and manual fixture; not blind discovery.",
+    "Not unattended provider-backed search; no separate provider API used.",
+    "Fixed sampled functional behavior only; no PPA or formal proof.",
+    "Evidence paths identify original machine-local recordings, not files shipped in this repository."
+  ],
+  "source_note": "evolved.sv preserves exact optimizer-selected bytes, including the original baseline comment; the passing result describes its changed implementation."
+}

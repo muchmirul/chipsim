@@ -11,6 +11,20 @@ import time
 import uuid
 
 HERE = Path(__file__).resolve().parent
+EXAMPLES = {
+    "counter": {
+        "source": "counter.sv", "testbench": "counter_tb.sv", "top": "counter_tb", "checks": 80,
+        "goal": "Repair enable/hold behavior of a 4-bit counter against 80 fixed observations; no PPA objective",
+    },
+    "saturating-adder": {
+        "source": "saturating-adder.sv", "testbench": "saturating_adder_tb.sv", "top": "saturating_adder_tb", "checks": 256,
+        "goal": "Implement unsigned 4-bit saturating addition min(a+b,15) across all 256 input pairs; no PPA objective",
+    },
+    "priority-encoder": {
+        "source": "priority-encoder.sv", "testbench": "priority_encoder_tb.sv", "top": "priority_encoder_tb", "checks": 256,
+        "goal": "Encode the highest asserted bit of an 8-bit request with valid and empty index zero across all 256 masks; no PPA objective",
+    },
+}
 TERMINAL = {"completed", "failed", "cancelled", "interrupted"}
 MAX_SOURCE_BYTES = 65536
 MAX_REPLY_BYTES = 2 * 1024 * 1024
@@ -30,6 +44,9 @@ def write_json(path, value):
 class Bridge:
     def __init__(self, config):
         self.config = config
+        self.example_name = config.get("example", "counter")
+        self.example = EXAMPLES[self.example_name]
+        self.example_directory = HERE / self.example_name
         self.project = Path(config["project"]).resolve(strict=True)
         self.session = config["session"]
         if self.session and str(uuid.UUID(self.session)) != self.session:
@@ -81,19 +98,21 @@ class Bridge:
 
     def copy_project(self, program, directory):
         directory.mkdir()
-        (directory / "counter.sv").write_bytes(program)
-        for name in ("counter_tb.sv", "score.py"):
-            (directory / name).write_bytes((HERE / "trusted" / name).read_bytes())
+        source = self.example["source"]
+        testbench = self.example["testbench"]
+        (directory / source).write_bytes(program)
+        for name in (testbench, "score.py"):
+            (directory / name).write_bytes((self.example_directory / "trusted" / name).read_bytes())
         timeout_ms = min(120000, int(self.config["timeout"] * 1000))
         write_json(directory / "sim.project.json", {
             "format": "chipsim-hdl-project", "version": 1,
-            "name": "Isolated counter candidate", "language": "verilog",
-            "standard": "2012", "sources": ["counter.sv", "counter_tb.sv"],
-            "top": "counter_tb", "waveform": "trace.vcd", "timeoutMs": timeout_ms})
+            "name": "Isolated " + self.example_name + " candidate", "language": "verilog",
+            "standard": "2012", "sources": [source, testbench],
+            "top": self.example["top"], "waveform": "trace.vcd", "timeoutMs": timeout_ms})
         write_json(directory / "chipsim.lock.json", {
             "format": "chipsim-lock", "version": 1, "dependencies": []})
         write_json(directory / "chipsim.design.json", {
-            "format": "chipsim-design", "version": 1, "id": "counter-candidate",
+            "format": "chipsim-design", "version": 1, "id": self.example_name + "-candidate",
             "tasks": {
                 "simulate": {
                     "adapter": "hdl", "options": {"project": "sim.project.json",
@@ -109,7 +128,7 @@ class Bridge:
                     "outputs": [{"path": "out/metrics.json", "kind": "report"}],
                     "checks": [{"name": "correctness", "path": "out/metrics.json",
                                 "field": "combined_score", "operator": "eq", "value": 1,
-                                "scope": "80 fixed sampled counter observations, not equivalence"}]}},
+                                "scope": f"{self.example['checks']} fixed {self.example_name} observations, not equivalence"}]}},
             "targets": {"evaluation": {"tasks": ["score"], "requiredChecks": [
                 "simulate:simulation", "simulate:outputs", "score:execution",
                 "score:outputs", "score:correctness"]}}})
@@ -188,13 +207,13 @@ class Bridge:
                         result = read_json(inspected["payloadPath"], 65536)
                         passed, total, score = (result.get(key) for key in (
                             "checks_passed", "checks_total", "combined_score"))
-                        if (type(passed) is not int or type(total) is not int or total != 80
+                        if (type(passed) is not int or type(total) is not int or total != self.example["checks"]
                                 or not 0 <= passed <= total or type(score) not in (int, float)
                                 or score != passed / total):
                             raise ValueError("invalid trusted scoring report")
                         metrics = {"combined_score": score, "checks_passed": passed, "checks_total": total}
                         status = "passed" if job.get("ready") and metrics["combined_score"] == 1 else "failed"
-                        detail = f"{metrics['checks_passed']}/80 fixed waveform checks passed; no PPA or equivalence claim"
+                        detail = f"{passed}/{total} fixed {self.example_name} waveform checks passed; no PPA or equivalence claim"
                 preferred = "out/debug.json" if self.config["debug"] else "out/waveform.json"
                 if artifacts.get("simulate:" + preferred):
                     evidence["artifact"] = artifacts["simulate:" + preferred]

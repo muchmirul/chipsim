@@ -256,7 +256,7 @@ job; its timeout/output limits are described in [AGENT_EXTENSIONS.md](AGENT_EXTE
 
 ## Evolution and trust boundaries
 
-The [external counter example](../examples/evolution/README.md) connects
+The [external counter example](../examples/evolutionary-example/README.md) connects
 OpenEvolve to managed ChipSim evaluations and this dashboard. In a prepared project,
 example files are not copied beside this guide: use `agent help` →
 `examples.evolution.guide` and `examples.evolution.runner` for installed paths. Its provider-free
