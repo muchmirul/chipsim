@@ -94,21 +94,21 @@ Targets need a nonempty required-check policy. Readiness evaluates current input
 
 ## Integrations
 
-| Integration                      | Role and retained evidence                                                                                           |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Icarus Verilog / GHDL            | HDL execution; VCD/waveform results and optional observer-backed event recordings                                    |
-| FuseSoC / Edalize                | Core resolution and setup-only EDAM/backend generation; dependencies must be declared and locked                     |
-| PeakRDL / SystemRDL              | Register SystemVerilog, C headers, IP-XACT and normalized register metadata                                          |
-| Verilator / cocotb               | Compiled HDL simulation and Python regressions; cocotb xUnit supplies per-test checks                                |
-| Yosys, SymbiYosys (SBY), EQY     | Formal and equivalence flows; scoped statuses, proof logs and available counterexamples                              |
-| OpenROAD-flow-scripts / OpenROAD | Physical-flow native netlists, SDC, ODB, DEF, SPEF, GDS and configured timing metrics                                |
-| KLayout                          | Native DRC/LVS database reading and external layout inspection                                                       |
-| Cross GCC / objcopy, PicoRV32    | Firmware ELF/map/BIN/byte-HEX generation; supplied RV32I fixture checks MMIO results in RTL simulation               |
-| Renode                           | Explicit software-platform execution; RTL co-simulation requires a project-supplied compiled bridge                  |
-| OpenROAD-MCP                     | Finite stdio database-inspection sessions; exact JSONL transcripts, normalized outcomes and generated native files   |
-| Pi / prime-agent                 | Native tools for design, jobs, artifacts, checks, model/program runs and terminal snapshots                          |
-| OpenEvolve                       | Optional external optimizer; counter evaluation example links managed runs, functional scores and candidate evidence |
-| Poppler / dwfv                   | Local PDF text/geometry extraction; optional external terminal waveform viewing                                      |
+| Integration                      | Role and retained evidence                                                                                                |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Icarus Verilog / GHDL            | HDL execution; VCD/waveform results and optional observer-backed event recordings                                         |
+| FuseSoC / Edalize                | Core resolution and setup-only EDAM/backend generation; dependencies must be declared and locked                          |
+| PeakRDL / SystemRDL              | Register SystemVerilog, C headers, IP-XACT and normalized register metadata                                               |
+| Verilator / cocotb               | Compiled HDL simulation and Python regressions; cocotb xUnit supplies per-test checks                                     |
+| Yosys, SymbiYosys (SBY), EQY     | Formal and equivalence flows; scoped statuses, proof logs and available counterexamples                                   |
+| OpenROAD-flow-scripts / OpenROAD | Physical-flow native netlists, SDC, ODB, DEF, SPEF, GDS and configured timing metrics                                     |
+| KLayout                          | Native DRC/LVS database reading and external layout inspection                                                            |
+| Cross GCC / objcopy, PicoRV32    | Firmware ELF/map/BIN/byte-HEX generation; supplied RV32I fixture checks MMIO results in RTL simulation                    |
+| Renode                           | Explicit software-platform execution; RTL co-simulation requires a project-supplied compiled bridge                       |
+| OpenROAD-MCP                     | Finite stdio database-inspection sessions; exact JSONL transcripts, normalized outcomes and generated native files        |
+| Pi / prime-agent                 | Native tools for design, jobs, artifacts, checks, model/program runs and terminal snapshots                               |
+| OpenEvolve                       | External RTL evolution: agent-assisted manual mode or user-configured provider; managed evaluation and candidate evidence |
+| Poppler / dwfv                   | Local PDF text/geometry extraction; optional external terminal waveform viewing                                           |
 
 These are explicit integration boundaries, not bundled toolchains or automatic installation. Tool profiles select executables and arguments; external flows, PDKs and libraries require appropriate dependency locks. An explicit `command` adapter supports project-specific local tools. See [adapter inputs/outputs](docs/DESIGN.md#adapters-and-native-files) and [integration fixtures](examples/design/README.md).
 
@@ -182,13 +182,57 @@ this view. Reports are **agent-reported**, not captured private reasoning or
 hardware proof. Background polling preserves the selected recording and cursor.
 See [live work commands and controls](docs/AGENT_WORK.md).
 
-The [OpenEvolve counter example](examples/evolution/README.md) evaluates RTL
-through real managed jobs and a fixed independent waveform scorer. It works
-without a provider for individual candidates; actual evolutionary search needs
-separately installed OpenEvolve and user-configured models. The score measures
-bounded functional behavior, not area, power or timing. Use the example's
-`--debug` option with installed observers for linked source/RTL/signals review.
-No optimizer or provider is installed automatically.
+### OpenEvolve integration: agent-assisted RTL evolution
+
+ChipSim can be the evaluator and evidence viewer for an **external OpenEvolve
+search**. OpenEvolve manages candidate edits, population/checkpoints and selection;
+ChipSim runs isolated simulation/scoring jobs and shows progress in Activity.
+The evolved output is **SystemVerilog RTL (`selected.sv`)**, not a physical layout.
+
+```text
+Baseline RTL → ChipSim score → OpenEvolve requests variations
+                                  ↓
+                       Agent or configured model proposes edits
+                                  ↓
+                       ChipSim evaluates each candidate
+                                  ↓
+                       OpenEvolve selects → fresh ChipSim verification
+```
+
+**Demonstrated counter repair (OpenEvolve 0.4.0, 2026-10-19):** the baseline
+incremented even when disabled. A coding agent answered OpenEvolve's supported
+`llm.manual_mode` file queue with two variations: gate increment with `enable`,
+or add the enable bit instead of a constant one. OpenEvolve applied the diffs,
+evaluated both and selected the enable-gated version.
+
+| Stage                                            | Fixed functional observations passed |
+| ------------------------------------------------ | ------------------------------------ |
+| Baseline                                         | 11/80                                |
+| Enable-gated candidate                           | 80/80                                |
+| Add-enable candidate                             | 80/80                                |
+| Selected candidate, fresh independent evaluation | **80/80**                            |
+
+```diff
+-    else count <= count + 4'd1;
++    else if (enable) count <= count + 4'd1;
+```
+
+Both variations were generation-1 children of the baseline, not successive
+generations. Actual run/artifact verification and independent waveform rescoring
+confirmed the results; the trusted harness/scorer stayed unchanged. An additional
+observer-enabled run also passed 80/80 for combined source/RTL/signals review.
+
+This proves **agent-assisted integration**, not unattended provider-backed or
+blind discovery: the coding agent supplied the edits and already knew the objective
+and manual regression fixture. Fixed tests are not formal equivalence or
+area/power/timing measurements. No separate provider API was used for this run.
+
+See the [counter example and manual-mode setup](examples/evolution/README.md#agent-assisted-mode-verified-example)
+for the runnable workflow, retained evidence and limits. Individual candidate
+evaluation needs no OpenEvolve package. Evolution requires separately installed
+OpenEvolve, with either agent/human queue responses or explicitly configured
+provider models. No optimizer or provider is installed automatically; provider
+calls require approved data sharing and any applicable cost budget.
 
 ### Prepared-document monitoring
 

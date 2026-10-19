@@ -95,6 +95,96 @@ and the selected `.sv` remain under `evaluations/SESSION/openevolve` and
 re-evaluated before a selection event and final summary are published. No live
 provider-backed search is claimed by the offline regression tests.
 
+## Agent-assisted mode: verified example
+
+OpenEvolve 0.4.0 also supports `llm.manual_mode`: it writes improvement prompts
+to a file queue and accepts responses from a human or existing coding agent.
+This uses the real OpenEvolve library and the same ChipSim evaluator, without
+requiring a separately configured provider endpoint. It is not unattended
+provider-backed search. Confirm this mode exists in your separately installed
+OpenEvolve version; it is an upstream capability, not a ChipSim provider.
+
+A verified run on 2026-10-19 used two agent-authored SEARCH/REPLACE responses:
+
+| Program / evaluation                                   | Observations passed |
+| ------------------------------------------------------ | ------------------- |
+| Original counter: always increment unless reset        | 11/80               |
+| Variation A: `else if (enable) count <= count + 4'd1;` | 80/80               |
+| Variation B: `else count <= count + {3'b000, enable};` | 80/80               |
+| OpenEvolve-selected A, fresh automatic evaluation      | **80/80**           |
+
+OpenEvolve checkpoints recorded both variations as generation-1 children of the
+baseline. The adapter independently evaluated selected A in a new project/job.
+All four run closures verified, independent rescoring matched, and the trusted
+harness/scorer bytes were unchanged. An extra observer-enabled evaluation of the
+selected source also passed 80/80. Candidate edits came from a coding agent, which
+already knew the objective and the manual regression fixture: this is an
+integration demonstration, not blind discovery, formal proof or a PPA benchmark.
+The output is `evaluations/SESSION/selected.sv`, original SystemVerilog RTL.
+
+To reproduce the agent-assisted workflow, save this as `agent-assisted.yaml`
+and use a fresh existing work directory:
+
+```yaml
+max_iterations: 2
+checkpoint_interval: 1
+random_seed: 42
+diff_based_evolution: true
+llm:
+  manual_mode: true
+  models:
+    - name: existing-agent-session
+      weight: 1.0
+  retries: 0
+  timeout: 120
+  max_tokens: 1800
+prompt:
+  system_message: >-
+    Repair the counter RTL. Preserve the interface and synthesizable SystemVerilog.
+    Synchronous rising-edge reset takes priority. Increment modulo 16 when enabled;
+    otherwise hold. Edit only EVOLVE-BLOCK using the requested SEARCH/REPLACE format.
+    Do not edit the testbench, scorer or tools.
+database:
+  num_islands: 1
+  population_size: 8
+  archive_size: 4
+evaluator:
+  parallel_evaluations: 1
+  max_retries: 0
+  cascade_evaluation: false
+  use_llm_feedback: false
+```
+
+```sh
+/path/to/your/venv/bin/python examples/evolution/run.py evolve \
+  --project /path/to/fresh-work --config /path/to/agent-assisted.yaml \
+  --iterations 2 --timeout 60
+```
+
+Read the actual generated prompts under
+`evaluations/SESSION/openevolve/manual_tasks_queue/TASK_UUID.json`. For each,
+write an adjacent `TASK_UUID.answer.json` containing `{"answer":"YOUR RESPONSE"}`.
+The response string contains a targeted diff in the requested format, for example:
+
+```json
+{
+  "answer": "<<<<<<< SEARCH\n    else count <= count + 4'd1;\n=======\n    else if (enable) count <= count + 4'd1;\n>>>>>>> REPLACE\n"
+}
+```
+
+An agent can read each prompt and write the answer using its normal file tools;
+ChipSim does not supply that agent. Keep real prompt/answer pairs, checkpoints,
+`evaluation.json` records and final IDs as provenance. Inspect the actual selected
+source and fresh result rather than assuming the example response will be chosen.
+The model name above is a queue label, not a provider endpoint or model identity.
+
+The 60-second option bounds each candidate evaluation, not the overall run.
+OpenEvolve's manual queue may wait indefinitely for an answer; `llm.timeout`
+does not bound that wait in the inspected version. Supply responses or explicitly
+cancel the supervisor. No queue responder, credentials or provider is installed
+or launched automatically. Provider-backed mode still requires separately approved
+model configuration, data sharing and any applicable spending limits.
+
 ## What is measured and retained
 
 Only the candidate RTL is offered to the optimizer. Every evaluation creates a

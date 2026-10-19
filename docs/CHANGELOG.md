@@ -5,6 +5,24 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-19 — Document agent-assisted OpenEvolve integration mode
+
+**Context:** The README described individual candidate evaluation and external
+provider models but did not explain the now-demonstrated agent-assisted mode.
+**Use/behavior:** The integration table and README show the real counter workflow:
+OpenEvolve queues candidate prompts, an existing agent supplies diffs, and ChipSim
+runs isolated evaluations before a fresh finalist check. The example README gives
+OpenEvolve 0.4.0 manual-mode YAML, queue response format and output locations.
+**Limits/preservation:** The measured 11/80 → 80/80 result used two generation-1
+variations and agent-authored edits with prior fixture knowledge; it is not an
+unattended/provider-backed or blind search claim. Fixed tests establish no PPA or
+formal equivalence. Queue waiting is not bounded by the candidate timeout. No
+runtime behavior, constants, trusted tests, install or provider permissions change.
+**Implementation/checks:** Documentation only. The demonstration retained real
+OpenEvolve queue/checkpoint provenance, four verified managed runs, independent
+waveform rescoring and a separate passing combined-debug recording. Local evidence
+is not bundled with the public package; reproduction produces its own records.
+
 ## 2026-10-18 — Complete operating context for external agents
 
 **Context:** Agents could discover individual commands but had to combine
