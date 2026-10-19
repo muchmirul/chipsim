@@ -184,65 +184,37 @@ See [live work commands and controls](docs/AGENT_WORK.md).
 
 ### OpenEvolve integration: agent-assisted RTL evolution
 
-The [evolutionary examples collection](examples/evolutionary-example/README.md)
-groups the enabled counter, unsigned saturating adder and highest-bit priority
-encoder. All three support trusted fixed-test evaluation and the external search
-bridge. Real agent-assisted OpenEvolve runs reached **80/80**, **256/256** and
-**256/256** respectively, including fresh selected-candidate checks. The supplied
-manual fixtures are labeled separately from those recorded search results.
+The [evolution examples](examples/evolutionary-example/README.md) use fixed tests
+for three hardware goals. OpenEvolve manages candidate edits and selection;
+ChipSim runs isolated simulation and scoring jobs. The output is
+**SystemVerilog RTL (`selected.sv`)**, not a physical layout.
 
-For the goal, before/after RTL and step-by-step search mechanism, see each
-scenario's [evolution explanation](examples/evolutionary-example/README.md#how-evolution-works-for-hardware-goals).
-
-ChipSim can be the evaluator and evidence viewer for an **external OpenEvolve
-search**. OpenEvolve manages candidate edits, population/checkpoints and selection;
-ChipSim runs isolated simulation/scoring jobs and shows progress in Activity.
-The evolved output is **SystemVerilog RTL (`selected.sv`)**, not a physical layout.
-
-```text
-Baseline RTL → ChipSim score → OpenEvolve requests variations
-                                  ↓
-                       Agent or configured model proposes edits
-                                  ↓
-                       ChipSim evaluates each candidate
-                                  ↓
-                       OpenEvolve selects → fresh ChipSim verification
+```mermaid
+flowchart TD
+    A["Agent proposes RTL edits"] --> O["OpenEvolve applies edits"]
+    O --> C["ChipSim simulates and scores"]
+    C --> S["OpenEvolve selects candidates"]
+    S -->|Next edit request| A
+    S --> F["ChipSim checks selected RTL in a fresh job"]
 ```
 
-**Demonstrated counter repair (OpenEvolve 0.4.0, 2026-10-19):** the baseline
-incremented even when disabled. A coding agent answered OpenEvolve's supported
-`llm.manual_mode` file queue with two variations: gate increment with `enable`,
-or add the enable bit instead of a constant one. OpenEvolve applied the diffs,
-evaluated both and selected the enable-gated version.
+| Example and evolution explanation                                                                   | Baseline | Selected RTL, fresh check |
+| --------------------------------------------------------------------------------------------------- | -------- | ------------------------- |
+| [Enabled counter](examples/evolutionary-example/counter/EVOLUTION_EXAMPLE.md)                       | 11/80    | **80/80**                 |
+| [Unsigned saturating adder](examples/evolutionary-example/saturating-adder/EVOLUTION_EXAMPLE.md)    | 136/256  | **256/256**               |
+| [Highest-bit priority encoder](examples/evolutionary-example/priority-encoder/EVOLUTION_EXAMPLE.md) | 9/256    | **256/256**               |
 
-| Stage                                            | Fixed functional observations passed |
-| ------------------------------------------------ | ------------------------------------ |
-| Baseline                                         | 11/80                                |
-| Enable-gated candidate                           | 80/80                                |
-| Add-enable candidate                             | 80/80                                |
-| Selected candidate, fresh independent evaluation | **80/80**                            |
+Recorded runs used OpenEvolve 0.4.0 `llm.manual_mode`: a coding agent answered
+its edit queue. The agent knew the goals and manual fixtures; this was not blind
+discovery or unattended search. No separate provider API was used.
+`correct-*.sv` files are manual fixtures, not search output. These scores measure
+fixed functional tests, not formal proof or area, power or timing.
 
-```diff
--    else count <= count + 4'd1;
-+    else if (enable) count <= count + 4'd1;
-```
-
-Both variations were generation-1 children of the baseline, not successive
-generations. Actual run/artifact verification and independent waveform rescoring
-confirmed the results; the trusted harness/scorer stayed unchanged. An additional
-observer-enabled run also passed 80/80 for combined source/RTL/signals review.
-
-This proves **agent-assisted integration**, not unattended provider-backed or
-blind discovery: the coding agent supplied the edits and already knew the objective
-and manual regression fixture. Fixed tests are not formal equivalence or
-area/power/timing measurements. No separate provider API was used for this run.
-
-See the [counter example and manual-mode setup](examples/evolutionary-example/README.md#agent-assisted-mode-verified-example)
-for the runnable workflow, retained evidence and limits. Individual candidate
-evaluation needs no OpenEvolve package. Evolution requires separately installed
-OpenEvolve, with either agent/human queue responses or explicitly configured
-provider models. No optimizer or provider is installed automatically; provider
-calls require approved data sharing and any applicable cost budget.
+See the [runnable workflow and evidence](examples/evolutionary-example/README.md#agent-assisted-mode-verified-example).
+Candidate evaluation needs no OpenEvolve package. Search needs separately
+installed OpenEvolve and queue replies or an explicitly configured provider.
+Nothing installs an optimizer or provider automatically; provider calls require
+approved data sharing and any applicable cost budget.
 
 ### Prepared-document monitoring
 

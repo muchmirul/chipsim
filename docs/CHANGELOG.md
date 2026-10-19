@@ -5,6 +5,16 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-19 — Shorter evolution guides with Mermaid diagrams
+
+**Context:** The evolution explanations were too long and used text diagrams.
+**Use/behavior:** README summaries and the three `EVOLUTION_EXAMPLE.md` guides
+now use shorter factual wording and Mermaid graphs for workflow, hardware and
+candidate lineage. Commands, measured scores, evidence links and key limits remain.
+**Limits/preservation:** Documentation only; no RTL, scoring, defaults or resource
+limits change. **Checks:** Formatting, links, source/result consistency and
+installed-package coverage.
+
 ## 2026-10-19 — Explain how goal-driven hardware evolution produced each result
 
 **Context:** Result tables alone did not explain how a hardware goal becomes an

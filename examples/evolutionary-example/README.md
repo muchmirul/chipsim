@@ -1,191 +1,74 @@
-# Evolutionary examples: agent + OpenEvolve + ChipSim
+# RTL evolution examples
 
-Three original RTL teaching examples share one evaluator/search bridge. Choose
-`--example NAME` to fix the goal, interface, trusted harness and scorer; only the
-candidate RTL is mutable. This folder was previously `examples/evolution`.
-Commands and installed agent-help paths now use `examples/evolutionary-example`.
+Three teaching examples share one evaluator and search runner. Only candidate
+RTL changes; each goal has a fixed interface, testbench and Python scorer.
+Use `--example NAME`; the default is `counter`.
 
-| Example                                        | Measurable goal                               | Fixed checks          | Starting defect    |
-| ---------------------------------------------- | --------------------------------------------- | --------------------- | ------------------ |
-| [Counter](counter/README.md) (default)         | Reset, increment when enabled, otherwise hold | 80 sampled cycles     | Ignores enable     |
-| [Saturating adder](saturating-adder/README.md) | Unsigned `min(a+b,15)`                        | All 256 input pairs   | Wraps on overflow  |
-| [Priority encoder](priority-encoder/README.md) | Highest asserted request bit, plus valid      | All 256 request masks | Chooses lowest bit |
-
-Each subfolder contains a deliberately faulty baseline, a **manually authored
-acceptance fixture**, and trusted stimulus/scoring. Passing a supplied fixture
-is not evidence of evolutionary search. Separate real OpenEvolve 0.4.0
-agent-assisted manual-mode runs were also completed for all three goals:
-
-| Example          | Baseline | Agent variation          | Selected RTL, fresh check |
-| ---------------- | -------- | ------------------------ | ------------------------- |
-| Counter          | 11/80    | 80/80 (two alternatives) | 80/80                     |
-| Saturating adder | 136/256  | 256/256                  | 256/256                   |
-| Priority encoder | 9/256    | 256/256                  | 256/256                   |
-
-For the two newer examples, OpenEvolve managed one generation-1 variation each;
-an existing coding agent answered the real queue prompts. Run/artifact integrity,
-trusted copied bytes and independent waveform rescoring were checked. The agent
-already knew the goals and manual fixtures: these are integration demonstrations,
-not blind discovery or unattended provider-backed search. The fixtures are not
-renamed search output. See each scenario guide for details and goal-specific
-`manual-mode.yaml` (adder/encoder). Full local recordings are not bundled.
-All goals and interfaces are illustrative assumptions, not vendor specifications.
-
-Use the shared runner for any example:
-
-```sh
-mkdir -p /tmp/adder-work
-python3 examples/evolutionary-example/run.py evaluate \
-  --example saturating-adder --project /tmp/adder-work
-# Expected exit 1: intentionally faulty baseline.
-python3 examples/evolutionary-example/run.py evaluate \
-  --example saturating-adder --project /tmp/adder-work \
-  --candidate examples/evolutionary-example/saturating-adder/correct-saturating-adder.sv
-# Expected exit 0: manual fixture passes, not a search.
-```
-
-For an actual search use `evolve --example NAME --config YOUR_CONFIG` instead.
-Use that example's goal and interface in the OpenEvolve system prompt; the counter
-prompt below must not be reused unchanged for an adder or encoder. The runner
-records the selected goal and independently re-evaluates the selected RTL. No
-provider, responder or dependency is installed automatically.
+| Example                                        | Goal                                          | Baseline | Selected RTL, fresh check |
+| ---------------------------------------------- | --------------------------------------------- | -------- | ------------------------- |
+| [Counter](counter/README.md)                   | Reset; increment when enabled; otherwise hold | 11/80    | 80/80                     |
+| [Saturating adder](saturating-adder/README.md) | Unsigned `min(a+b,15)`                        | 136/256  | 256/256                   |
+| [Priority encoder](priority-encoder/README.md) | Highest asserted request bit, plus valid      | 9/256    | 256/256                   |
 
 ## How evolution works for hardware goals
 
-Each scenario has an explanation beside its RTL, including its goal, before/after
-implementation, conceptual hardware, actual variation/evaluation/selection steps,
-measured results and the boundary between RTL repair and physical chip design:
+```mermaid
+flowchart TD
+    G["Hardware goal + fixed tests"] --> O["OpenEvolve queues an edit request"]
+    O --> A["Coding agent proposes an RTL edit"]
+    A --> C["ChipSim runs simulation + trusted scorer"]
+    C --> S["OpenEvolve records fitness and selects candidates"]
+    S -->|Next variation| O
+    S --> F["ChipSim tests selected RTL in a fresh job"]
+```
+
+The recorded runs used OpenEvolve 0.4.0 manual mode. A coding agent answered the
+real queue prompts: two generation-1 counter alternatives, one adder child and
+one encoder child. The agent knew the goals and manual fixtures; this was not
+blind discovery or unattended search. No separate provider API was used.
+
+Before/after RTL, hardware diagrams and recorded lineage:
 
 - [Counter evolution explanation](counter/EVOLUTION_EXAMPLE.md)
 - [Saturating-adder evolution explanation](saturating-adder/EVOLUTION_EXAMPLE.md)
 - [Priority-encoder evolution explanation](priority-encoder/EVOLUTION_EXAMPLE.md)
 
-## Counter walkthrough
+`correct-*.sv` files are manual acceptance fixtures, not search output.
+Adder and encoder `evolved.sv` files contain the exact selected bytes;
+`demonstration.json` records their hashes and run IDs. Full recordings are
+machine-local, not bundled. These results measure functional tests, not formal
+proof, area, power, timing or fabrication readiness.
 
-This example repairs a deliberately incomplete 4-bit counter. `counter/counter.sv`
-ignores `enable`. The objective is **functional correctness**, not circuit area,
-power, delay, synthesis quality, or whole-design equivalence. OpenEvolve remains
-an optional external optimizer; ChipSim neither runs a built-in search engine
-nor configures an LLM provider/account.
+## Evaluate one candidate
 
-## Run a real evaluation without an LLM
-
-Requires Node.js 22.13+, Python 3.10+, and stock `iverilog`/`vvp` on PATH.
-No Python packages are needed for evaluation. From the checkout:
+Requires Node.js 22.13+, Python 3.10+ and stock `iverilog`/`vvp` on PATH.
+Evaluation needs no OpenEvolve package. Run from the checkout:
 
 ```sh
 mkdir -p /tmp/counter-work
 python3 examples/evolutionary-example/run.py evaluate --project /tmp/counter-work
-# Expected exit 1: the deliberately incomplete baseline fails some checks.
+# Exit 1: faulty baseline.
 python3 examples/evolutionary-example/run.py evaluate --project /tmp/counter-work \
   --candidate examples/evolutionary-example/counter/correct-counter.sv
-# Expected exit 0: a manually supplied known-correct regression candidate.
+# Exit 0: manual fixture passes; no search.
 node scripts/chipsim.mjs --agent /tmp/counter-work
 ```
 
-In an installed package, use the actual `examples/evolutionary-example/run.py` path. The
-script resolves the packaged Node CLI relative to itself; `--chipsim /path/to/chipsim`
-selects a different installed executable. The work directory must already exist;
-no PDF or initial design manifest is needed. Each invocation starts a work session
-before evaluation and ends with a summary. `--session UUID` appends manual
-submissions to an existing nonterminal session instead and leaves its lifecycle
-to the caller. Optional `--parent ID --generation N` records known lineage;
-the adapter never invents OpenEvolve parent/generation data absent from its
-`evaluate(program_path)` callback.
+For other goals, add `--example saturating-adder` or `--example priority-encoder`
+and choose its candidate. The work directory must exist. In an installed package,
+use the runner path from `chipsim agent help`; it resolves the packaged CLI.
+`--chipsim PATH` overrides that executable. This folder replaces `examples/evolution`.
 
-Open Activity (`8`) in another terminal **while evaluation runs** to see the goal,
-candidates, job progress, and agent-reported metrics. Select evidence explicitly
-to inspect it. Background updates do not replace your current recording.
-Each result prints the exact isolated project, job, run and viewer artifact IDs:
-
-```sh
-chipsim job logs JOB_UUID --project ISOLATED_PROJECT --limit 16000
-chipsim artifact inspect ARTIFACT_HASH --project ISOLATED_PROJECT
-chipsim artifact verify RUN_HASH --project ISOLATED_PROJECT
-chipsim --design ISOLATED_PROJECT
-```
-
-For source + RTL + waveform review, install the observer tools separately as
-explained in [HDL_DEBUG.md](../../docs/HDL_DEBUG.md), then evaluate with `--debug`.
-The evidence link selects `out/debug.json` instead of waveform-only JSON. Missing
-observers fail explicitly; there is no silent downgrade. Open the linked debug
-artifact from Activity, or open its `artifact inspect` `payloadPath` with
-`chipsim --hdl-debug PATH` and press `I` for the combined debugger.
-
-## Let OpenEvolve generate candidates
-
-Install OpenEvolve separately in **your chosen Python environment** and supply
-its YAML with your existing provider/model settings. This example does not
-install dependencies, choose a provider, write account configuration, or embed
-credentials. Unlike offline evaluation, this command may send RTL and feedback
-to the provider configured in your YAML and may incur charges.
-
-```sh
-/path/to/your/venv/bin/python examples/evolutionary-example/run.py evolve \
-  --project /tmp/counter-work --config /path/to/your-openevolve.yaml \
-  --iterations 5 --timeout 60
-```
-
-Your YAML should set `prompt.system_message` to explain the interface:
-synchronous rising-edge reset (priority over enable), increment modulo 16 when
-enabled, otherwise hold; edit only the counter implementation; produce
-synthesizable SystemVerilog, not testbench or evaluator code. It must configure
-`llm.models` using your separately installed OpenEvolve's documented schema.
-The checked-in `counter/correct-counter.sv` is a manual acceptance fixture, **not** an
-LLM-generated candidate or evidence that a search was performed.
-
-`run.py` supervises `search.py` in a separate process. That worker calls the public
-`openevolve.run_evolution(initial_program=..., evaluator=..., config=...,
-iterations=..., output_dir=..., cleanup=False)` library API with a real `.sv` file.
-The supervisor retains signal ownership even when OpenEvolve installs its own
-SIGINT/SIGTERM handlers. `evaluator.py:evaluate(program_path)` returns
-`openevolve.evaluation_result.EvaluationResult(metrics, artifacts)` lazily.
-The compatibility target is OpenEvolve's public API inspected on 2026-10-18:
-[API](https://github.com/codelion/openevolve/blob/main/openevolve/api.py),
-[result](https://github.com/codelion/openevolve/blob/main/openevolve/evaluation_result.py),
-[configuration](https://github.com/codelion/openevolve/blob/main/openevolve/config.py).
-No OpenEvolve source is copied here. An installed release lacking these APIs
-will fail explicitly; use a compatible separately installed release.
-
-Adapter-required overrides (printed here rather than silently changing YAML):
-`language=verilog`, `file_suffix=.sv`, `enforce_evolve_blocks=true`,
-`max_code_length=65536`, no cascade or LLM feedback, one parallel evaluation,
-zero retries, and evaluator timeout = candidate timeout + 60 seconds. Provider
-settings are not modified. Iterations are bounded to 1–100. Search checkpoints
-and the selected `.sv` remain under `evaluations/SESSION/openevolve` and
-`evaluations/SESSION/selected.sv`. The selected candidate is independently
-re-evaluated before a selection event and final summary are published. No live
-provider-backed search is claimed by the offline regression tests.
+Each command creates a work session and isolated evaluation projects. To append
+manual evaluations to an existing nonterminal session, use `--session UUID`;
+the caller then closes that session. `--parent ID --generation N` records known
+lineage; the adapter does not infer it from an evaluation callback.
 
 ## Agent-assisted mode: verified example
 
-OpenEvolve 0.4.0 also supports `llm.manual_mode`: it writes improvement prompts
-to a file queue and accepts responses from a human or existing coding agent.
-This uses the real OpenEvolve library and the same ChipSim evaluator, without
-requiring a separately configured provider endpoint. It is not unattended
-provider-backed search. Confirm this mode exists in your separately installed
-OpenEvolve version; it is an upstream capability, not a ChipSim provider.
-
-A verified run on 2026-10-19 used two agent-authored SEARCH/REPLACE responses:
-
-| Program / evaluation                                   | Observations passed |
-| ------------------------------------------------------ | ------------------- |
-| Original counter: always increment unless reset        | 11/80               |
-| Variation A: `else if (enable) count <= count + 4'd1;` | 80/80               |
-| Variation B: `else count <= count + {3'b000, enable};` | 80/80               |
-| OpenEvolve-selected A, fresh automatic evaluation      | **80/80**           |
-
-OpenEvolve checkpoints recorded both variations as generation-1 children of the
-baseline. The adapter independently evaluated selected A in a new project/job.
-All four run closures verified, independent rescoring matched, and the trusted
-harness/scorer bytes were unchanged. An extra observer-enabled evaluation of the
-selected source also passed 80/80. Candidate edits came from a coding agent, which
-already knew the objective and the manual regression fixture: this is an
-integration demonstration, not blind discovery, formal proof or a PPA benchmark.
-The output is `evaluations/SESSION/selected.sv`, original SystemVerilog RTL.
-
-To reproduce the agent-assisted workflow, save this as `agent-assisted.yaml`
-and use a fresh existing work directory:
+Install OpenEvolve separately in an approved Python environment. Manual mode
+queues prompts for a human or existing agent; ChipSim does not launch a responder.
+Save this counter configuration as `agent-assisted.yaml`:
 
 ```yaml
 max_iterations: 2
@@ -218,15 +101,15 @@ evaluator:
 ```
 
 ```sh
-/path/to/your/venv/bin/python examples/evolutionary-example/run.py evolve \
-  --project /path/to/fresh-work --config /path/to/agent-assisted.yaml \
+mkdir -p /tmp/counter-search
+/path/to/approved/venv/bin/python examples/evolutionary-example/run.py evolve \
+  --project /tmp/counter-search --config /path/to/agent-assisted.yaml \
   --iterations 2 --timeout 60
 ```
 
-Read the actual generated prompts under
-`evaluations/SESSION/openevolve/manual_tasks_queue/TASK_UUID.json`. For each,
-write an adjacent `TASK_UUID.answer.json` containing `{"answer":"YOUR RESPONSE"}`.
-The response string contains a targeted diff in the requested format, for example:
+Read each actual prompt at
+`evaluations/SESSION/openevolve/manual_tasks_queue/TASK_UUID.json`.
+Write an adjacent `TASK_UUID.answer.json` with the requested diff, for example:
 
 ```json
 {
@@ -234,87 +117,85 @@ The response string contains a targeted diff in the requested format, for exampl
 }
 ```
 
-An agent can read each prompt and write the answer using its normal file tools;
-ChipSim does not supply that agent. Keep real prompt/answer pairs, checkpoints,
-`evaluation.json` records and final IDs as provenance. Inspect the actual selected
-source and fresh result rather than assuming the example response will be chosen.
-The model name above is a queue label, not a provider endpoint or model identity.
+The model name is a queue label, not an endpoint. The queue may wait indefinitely;
+`llm.timeout` does not bound that wait in the inspected version. Respond or cancel.
+The adder and encoder READMEs provide their own one-iteration configurations.
+Do not reuse the counter prompt for another interface.
 
-The 60-second option bounds each candidate evaluation, not the overall run.
-OpenEvolve's manual queue may wait indefinitely for an answer; `llm.timeout`
-does not bound that wait in the inspected version. Supply responses or explicitly
-cancel the supervisor. No queue responder, credentials or provider is installed
-or launched automatically. Provider-backed mode still requires separately approved
-model configuration, data sharing and any applicable spending limits.
+Provider-backed mode instead needs your approved provider configuration and a
+compatible OpenEvolve API. It may send RTL/feedback off-machine and incur charges.
+Nothing here installs dependencies, credentials or provider settings automatically.
 
-## What is measured and retained
+## Evaluation and retained evidence
 
-Only the candidate RTL is offered to the optimizer. Every evaluation creates a
-fresh directory and copies that RTL plus the trusted harness and scorer into it.
-The generated design has two real tasks:
+1. `simulate` runs Icarus in a fresh project and captures VCD, normalized waveform,
+   source snapshots and diagnostics.
+2. `score` reads that waveform and computes expected results independently.
+3. The adapter accepts metrics only from the current run/job's `score` artifact.
+   A simulator-written file with the same name cannot supply fitness.
+4. After search, the supervisor tests `selected.sv` in another fresh project/job.
 
-1. `simulate`: managed Icarus simulation of the selected fixed harness (80 cycles
-   for the counter, 256 input combinations for the adder/encoder); captures
-   VCD, normalized waveform, sources, diagnostics, and optional debug events.
-2. `score`: separate managed Python command, bound to the published waveform,
-   computes expectations independently from the selected contract. For the
-   counter, it checks clock/reset/enable and samples `count` one nanosecond after
-   each rising edge, exercising reset, hold, increment and wrapping. For the
-   combinational examples it checks every input combination and samples outputs
-   six nanoseconds after stimulus changes.
-   Unknown bits fail; missing signals, changed stimulus or incomplete duration
-   cannot earn a partial passing report. It publishes `out/metrics.json`.
+Fitness is `checks_passed / checks_total`; readiness requires a score of 1.0 and
+all required simulation/output/scoring checks. Counter samples 80 rising edges
+at +1 ns; adder samples all 256 input pairs and encoder all 256 masks at +6 ns.
+These offsets
+are test choices, not propagation-delay measurements. Unknown outputs fail;
+missing signals, changed stimulus or incomplete traces reject evaluation.
+Compile/incomplete failures receive an optimizer penalty of zero, not a fabricated
+measured check count.
 
-`combined_score = checks_passed / checks_total`, dimensionless, maximized by
-OpenEvolve. The counter has 80 checks; the adder and encoder each have 256.
-Readiness requires simulation, outputs, scorer execution, and `combined_score == 1`.
-A failed baseline can therefore have a completed process job but fail readiness.
-A compile error or incomplete evaluation receives score zero **as an optimizer
-penalty**, not a measured zero-check result; no `checks_passed` is then reported.
-Work events remain labeled **agent-reported**. Hash verification establishes byte
-integrity, not that reported claims are proof or that a candidate is safe.
+Results print project/job/run/artifact IDs. Keep queue answers, checkpoints and
+`evaluation.json` records. Use returned IDs to inspect evidence:
 
-`counter/trusted/counter_tb.sv` and `counter/trusted/score.py` are outside the evolving program.
-Their copied bytes, tool identities and all inputs are captured in managed
-snapshots. The scoring report is itself an artifact linked to the input waveform. The adapter
-accepts metrics only from the `score` task's attempt in the exact current run/job;
-a simulator-produced file with the same name cannot replace the trusted report.
-Viewer artifacts likewise must come from that run's `simulate` attempt.
-Candidate IDs are stable SHA-256 IDs of source bytes; repeated evaluations retain
-separate projects/jobs. The example's trusted files are assumed unchanged by the
-operator during a session. This is isolation of evaluation inputs, **not an OS
-security sandbox**: HDL tools run with your local permissions. Review generated
-RTL and use an external OS/container sandbox for adversarial inputs. Fixed tests
-can be overfit and do not replace formal verification or broader regressions.
+```sh
+chipsim job logs JOB_UUID --project ISOLATED_PROJECT --limit 16000
+chipsim artifact inspect ARTIFACT_HASH --project ISOLATED_PROJECT
+chipsim artifact verify RUN_HASH --project ISOLATED_PROJECT
+chipsim --design ISOLATED_PROJECT
+```
 
-To measure area, timing or other custom objectives, author a separate trusted
-managed task that invokes the real installed tool, declares its inputs/constraints,
-produces a numeric report and required checks, then adapt the report-to-metrics
-mapping in `evaluator.py`. Keep units/corners/scope and linked report evidence.
-Do not rename source length or functional score as PPA. This example has no
-synthesis tool, technology library or PDK requirement.
+Activity (`8`) shows agent-reported progress without replacing the recording you
+are inspecting. `--debug` requires the optional [observer tools](../../docs/HDL_DEBUG.md)
+and links source/RTL/signal recordings; missing observers fail explicitly.
 
-## Bounds and cancellation
+Hashes verify bytes, not correctness or safety. Keep trusted files unchanged during
+a run. Separate projects isolate evaluation inputs, **not OS permissions**; use an
+external sandbox for untrusted RTL. Fixed tests can be overfit. Area/timing/power
+goals need real tool reports, declared units/libraries/constraints and correctness
+gates; functional scores are not PPA measurements.
 
-Candidate files: 64 KiB. Waveform scoring input: 8 MiB. CLI JSON replies: 2 MiB.
-Evaluation wall-clock limit: 1–300 seconds (default 60); HDL stages also use their
-native capped 120-second timeout; scoring has a 10-second process timeout.
-Deadline or Ctrl-C/SIGTERM requests cancellation of accepted managed jobs and
-retains partial diagnostics. For a search, Ctrl-C/SIGTERM stops the external
-optimizer process group (TERM, then KILL after at most five seconds), cancels
-managed jobs, publishes `cancelled`, and exits 130. A best-so-far return from
-OpenEvolve's graceful signal handler is not re-evaluated or reported as completion. An evaluation deadline waits at most five additional
-seconds for job shutdown, then records cancellation requested, not completed.
-Ctrl-C exits 130. Killing the adapter with SIGKILL cannot run cleanup; use
-`chipsim job cancel JOB --project ISOLATED_PROJECT` or allow native task deadlines.
-A provider call's latency/timeouts remain OpenEvolve's responsibility.
+## Search settings and cancellation
 
-The adapter creates `evaluations/SESSION/CANCEL` when cancelling a search so later
-worker evaluations cannot start. It does not erase any candidate or evidence.
-Work storage allows 128 sessions/project and 2048 events/session (16 KiB/event);
-queries show at most 200 recent events while retaining candidate summaries.
-Start a new project/session when a hard bound is reached; no destructive retention
-or background cleanup occurs.
+`run.py` supervises `search.py`, which calls OpenEvolve's public `run_evolution`
+API. The worker retains checkpoints under `evaluations/SESSION/openevolve` and
+writes `evaluations/SESSION/selected.sv`. `evaluator.py` returns `EvaluationResult`.
+The verified release is 0.4.0; incompatible APIs fail explicitly.
+
+The adapter overrides language/suffix to Verilog/`.sv`, enforces evolve blocks,
+limits code to 65,536 bytes, disables cascade/LLM feedback, uses one parallel
+evaluation with zero retries, and sets evaluator timeout to candidate timeout +
+60 seconds. Provider settings are unchanged.
+
+| Limit                           | Value                                                   |
+| ------------------------------- | ------------------------------------------------------- |
+| Iterations                      | 1–100; default 5                                        |
+| Candidate evaluation            | 1–300 seconds; default 60                               |
+| HDL stage                       | Capped at 120 seconds                                   |
+| Scoring process                 | 10 seconds                                              |
+| Candidate / waveform / CLI JSON | 64 KiB / 8 MiB / 2 MiB                                  |
+| Work storage                    | 128 sessions/project; 2048 events/session; 16 KiB/event |
+| Status query                    | At most 200 recent events; candidate summaries retained |
+
+Ctrl-C/SIGTERM stops the search process group, requests managed-job cancellation,
+retains partial evidence and exits 130. Search shutdown escalates to KILL after
+at most five seconds. A best-so-far return after cancellation is not completion.
+The `CANCEL` marker blocks later worker evaluations. An evaluation deadline waits
+up to five extra seconds for job shutdown, then records cancellation requested.
+The candidate timeout is not an overall search deadline or provider-call timeout.
+
+SIGKILL cannot clean up: use `chipsim job cancel JOB --project ISOLATED_PROJECT`
+or native task deadlines. Closing Activity or a work summary does not cancel jobs.
+Evidence is not deleted; start a new session/project when storage limits are reached.
 
 ## Regression checks
 
@@ -323,12 +204,10 @@ node --test test/evolution.test.js
 CHIPSIM_TEST_EVOLUTION=1 node --test test/evolution.test.js
 ```
 
-The first command tests the trusted oracle, imports/help without OpenEvolve, and
-signal ownership using a provider-free library protocol fixture (not a search).
-The second additionally requires stock Icarus and exercises real isolated managed
-runs of baseline, correct RTL, colliding candidate-written metric files, compile
-failure and cancellation; no paid LLM or mock search. Run those tests while other source edits are stopped: managed jobs
-fingerprint the ChipSim runtime, so concurrent edits correctly invalidate runs.
-All example sources are original MIT-licensed ChipSim code under the root license.
-OpenEvolve, by Asankhaya Sharma and contributors, is separately installed under
-Apache-2.0; see the [integration notice](../../THIRD_PARTY_NOTICES.md#optional-external-evolutionary-optimizer).
+The first checks scorers, import/help and a provider-free API/signal fixture—not a
+search. The second adds real managed Icarus evaluations, spoofed-metric rejection,
+compile failure and cancellation. Stop source edits during managed jobs: runtime
+fingerprints detect changes.
+
+Examples are original MIT-licensed ChipSim code. OpenEvolve is separately installed
+under Apache-2.0; see the [integration notice](../../THIRD_PARTY_NOTICES.md#optional-external-evolutionary-optimizer).
