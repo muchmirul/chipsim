@@ -168,11 +168,26 @@ test("agent prepare handles the supplied ESP32-C6 manual and bounded, paginated 
 
 test("an unfamiliar PDF accepts an authored model and hands the exact experiment to the TUI", async (t) => {
   const { path, project, model } = await authoredFixture(t);
-  for (const file of ["AGENT_CONTROL.md", "AGENT_WORK.md"])
+  for (const file of [
+    "AGENT_CONTROL.md",
+    "AGENT_WORK.md",
+    "HDL.md",
+    "HDL_DEBUG.md",
+    "HDL_ENVIRONMENT.md",
+  ])
     assert.equal(
       await readFile(join(project, "docs", file), "utf8"),
       await readFile(join(root, "docs", file), "utf8"),
     );
+  const context = await json(join(project, "programming-context.json"));
+  const instructions = await readFile(
+    join(project, "PROGRAMMING_CONTEXT.md"),
+    "utf8",
+  );
+  for (const file of ["HDL.md", "HDL_DEBUG.md", "HDL_ENVIRONMENT.md"]) {
+    assert.equal(context.documentation[file], join(root, "docs", file));
+    assert.ok(instructions.includes(context.documentation[file]));
+  }
   assert.equal(
     await readFile(join(project, "AGENTS.md"), "utf8"),
     await readFile(join(root, "docs/AGENT_PROJECT.md"), "utf8"),

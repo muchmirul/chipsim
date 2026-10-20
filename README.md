@@ -147,6 +147,13 @@ See [environment profiles and limits](docs/HDL_ENVIRONMENT.md) and
 [baseline, compensation and failure examples](examples/hdl/environment/README.md).
 These are digital test assumptions, not analog noise or physical calibration.
 
+```mermaid
+flowchart LR
+    P["Profile + seed"] --> E["Generated stimulus"]
+    E --> D["Delayed / jittered / glitched input"]
+    D --> H["DUT via testbench"] --> R["Recorded signals + checks"]
+```
+
 ## Coding-agent workflow
 
 Any agent with file access and process execution can use the CLI. **ChipSim supplies no LLM, provider account or API key.** Pi and prime-agent also have a shared native extension:

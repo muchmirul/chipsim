@@ -5,6 +5,20 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-19 — Expose digital environments to coding agents
+
+**Context:** Digital environment profiles were documented but missing from agent
+help, programming-context links and copied project guidance.
+**Use/behavior:** Agent discovery now links the environment/debug guides. Newly
+prepared projects copy the environment guide and explain explicit DUT wiring,
+new runs and schedule inspection. The testbench input recipe links the same
+workflow; README and feature guides use Mermaid diagrams.
+**Limits/preservation:** No environment semantics, RTL, seeds, defaults or resource
+limits change. Existing prepared projects are not refreshed automatically.
+Binary stimulus is not analog noise, calibration or a timing proof.
+**Checks:** Context/preparation and design-guide tests, environment regressions,
+installed documentation discovery and package checks.
+
 ## 2026-10-19 — Reproducible digital environment perturbations
 
 **Context:** Timing-offset compensation needs experiments with declared external

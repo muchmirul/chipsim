@@ -8,7 +8,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { agentCommand } from "../src/agent/commands.js";
 import { prepareProject } from "../src/agent/project.js";
-import { buildProgrammingContext } from "../src/agent/context.js";
+import {
+  buildProgrammingContext,
+  programmingContextMarkdown,
+} from "../src/agent/context.js";
 import catalog from "../docs/references/catalog.json" with { type: "json" };
 import { TuiState } from "../src/tui/state.js";
 import { screenText } from "../src/tui/render.js";
@@ -74,8 +77,18 @@ test("every catalog chip exposes truthful programming guidance, document pointer
     pio.models[0].inputs.map((s) => s.id),
     ["ack"],
   );
-  for (const guide of ["AGENT_CONTROL.md", "AGENT_WORK.md", "DESIGN.md"])
+  const instructions = programmingContextMarkdown(pio);
+  for (const guide of [
+    "AGENT_CONTROL.md",
+    "AGENT_WORK.md",
+    "DESIGN.md",
+    "HDL.md",
+    "HDL_DEBUG.md",
+    "HDL_ENVIRONMENT.md",
+  ])
     assert.ok((await stat(pio.documentation[guide])).isFile());
+  for (const guide of ["HDL.md", "HDL_DEBUG.md", "HDL_ENVIRONMENT.md"])
+    assert.ok(instructions.includes(pio.documentation[guide]));
   assert.ok(
     pio.models[0].observedRegisters.some(
       (register) => register.target === "reg.osr",

@@ -11,6 +11,16 @@ This feature supports only `"language": "verilog"` with SystemVerilog standards
 `"2005-sv"`, `"2009"` or `"2012"`. It adds no dependencies, browser interface or
 network service.
 
+```mermaid
+flowchart LR
+    P["Profile + seed"] --> G["Generated stimulus HDL"]
+    G --> N["Nominal inputs"]
+    G --> D["Disturbed inputs"]
+    D --> T["Testbench wiring to DUT"]
+    T --> O["Sampled DUT output"]
+    G --> R["environment.json: realized schedule"]
+```
+
 ## Declare the schedule inline
 
 For example, put this manifest beside `target.sv` and `tb.sv`:
@@ -52,6 +62,14 @@ The channel array defines bit order: the first channel is bit 0. Names label
 channels; they are not DUT hierarchy paths. `initial` and event `value` are
 numeric binary levels, `0` or `1`. Events must alternate levels from the initial
 state and have strictly increasing source ticks.
+
+Each channel requires `name`, `initial`, `events` and `glitches`; use empty
+arrays when needed. `delayTicks`, `offsetTicks` and `jitterTicks` default to zero.
+Names must be unique, nonreserved HDL identifiers matching
+`[a-zA-Z_][a-zA-Z0-9_]*`, at most 128 characters. Event/glitch start ticks and
+glitch durations must be at least 1; time zero is initialization only. Delay
+support, arrivals and glitch ends must stay within 1,000,000,000 ticks.
+Glitches may be unsorted or adjacent, but must not overlap.
 
 All timing fields are integer ticks in the explicit `timeUnit`, not DUT clock
 cycles. Accepted units are `1`, `10` or `100` followed by `fs`, `ps`, `ns`, `us`,
@@ -124,6 +142,11 @@ reduce a delay; it cannot make an edge appear before its nominal source event.
 Jitter uses a stable xorshift32 generator with rejection-sampled uniform integer
 draws and a nonzero unsigned 32-bit seed. The same profile and seed reproduce
 the same schedule. Different seeds can produce the same bounded result.
+The algorithm is `xorshift32-rejection-v1`. One shared stream is consumed in
+channel-array then event-array order, with at least one draw per event even at
+zero jitter. Adding or reordering events/channels can change later jitter.
+Initialization and glitches consume no draws. Inspect `rng.drawOrder`, `draws`,
+`rejections` and each edge's `rngDraws`/`rngState` in the report.
 
 Actual arrival edges must remain strictly ordered within each channel. If the
 drawn delays collapse or reorder two edges, the profile is rejected for that
@@ -181,12 +204,16 @@ new directory to change conditions. Saved waveform/debug replay is read-only;
 it does not resimulate inputs or edit the running DUT. Existing runs and the
 current terminal experiment are preserved on validation or execution failure.
 
-Each environment run writes `environment.json`, referenced by
-`result.json` as `artifacts.environment`. It records the normalized profile,
-seed and algorithm, the drawn jitter/delay/arrival values, the final timeline
-and the generated source hash. The generated source snapshot and report make
-it possible to review what was actually simulated rather than infer timing
-from a seed alone.
+After profile validation and source snapshotting, the runner writes
+`environment.json`, referenced by `result.json` as `artifacts.environment`.
+It records the normalized profile, seed and algorithm, drawn jitter/delay/arrival
+values, full generated timeline and generated-source hash. It is produced before
+compilation, so it is not proof that every edge executed. Check `result.json`
+stages and actual waveform/debug/DUT observations: `$finish` may end the run
+before a scheduled edge. Validation failures need not create a report.
+The supplied [compensated profile](../examples/hdl/environment/compensated.project.json)
+restores the target arrival; [missed-target](../examples/hdl/environment/missed-target.project.json)
+intentionally fails an assertion and retains partial evidence.
 
 ## Bounds and interpretation
 
@@ -194,10 +221,13 @@ Profiles have 1–16 channels and at most 256 nominal events per channel. Ticks
 are bounded by 1,000,000,000. At most 20,000 timeline endpoints (two per
 nominal event or glitch) are allowed, excluding initialization. Concurrent
 endpoints coalesce, so the report contains at most 20,001 frames including time
-zero. Channel names are at most 128 characters. Unknown fields, wrong types, nonbinary levels, unordered/nonalternating
-events, overlapping glitches and invalid arrival ordering are rejected rather
-than repaired. Existing HDL source-copy, process and waveform limits also
-apply; see [HDL.md](HDL.md).
+zero. The entire inline project JSON is capped at 65,536 bytes and may reach
+that limit before the generator's endpoint limit. Generated HDL is capped at
+4 MiB and counts toward the 256-file / 16 MiB source snapshot limits. Unknown
+fields, wrong types, nonbinary levels, unordered/nonalternating events,
+overlapping glitches and invalid arrival ordering are rejected rather than
+repaired. Existing process, waveform and observer capture limits also apply;
+see [HDL.md](HDL.md).
 
 The example values, time units, seed, clock/reset choices and assertion windows
 are experiment assumptions, not calibrated device properties. A successful

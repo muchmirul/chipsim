@@ -75,6 +75,7 @@ export async function prepareProject(pdf, output) {
       "EXISTING_SIMULATORS.md",
       "HDL.md",
       "HDL_DEBUG.md",
+      "HDL_ENVIRONMENT.md",
       "DESIGN.md",
       "DESIGN_INPUTS.md",
       "LOCAL_REFERENCES.md",

@@ -46,6 +46,10 @@ test("input guidance works without a project or tools and returns real installed
     assert.ok((await stat(join(starter.directory, file))).isFile());
   for (const path of Object.values(documentation))
     assert.ok((await stat(path)).isFile());
+  assert.equal(
+    documentation.environment,
+    new URL("../docs/HDL_ENVIRONMENT.md", import.meta.url).pathname,
+  );
   const project = await readProject(
     join(starter.directory, "sim.project.json"),
   );

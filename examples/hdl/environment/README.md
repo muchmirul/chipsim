@@ -4,6 +4,13 @@ These are illustrative timing experiments, not ASIC candidates or measured
 hardware profiles. ChipSim generates stimulus inside the actual HDL run. It
 does not move the waveform afterward.
 
+```mermaid
+flowchart LR
+    N["Command at 150 ns"] --> B["No delay: arrives at 150 ns"]
+    N --> D["80 ns delay: arrives at 230 ns"]
+    C["Command moved to 70 ns"] --> E["80 ns delay: arrives at 150 ns"]
+```
+
 ```sh
 chipsim hdl run examples/hdl/environment/baseline.project.json --out tmp/env-baseline
 chipsim hdl run examples/hdl/environment/delay.project.json --out tmp/env-delay

@@ -296,6 +296,21 @@ If waveform-only execution meets an agreed task, explicitly use `hdl run
 /path/to/sim.project.json --no-debug --out /path/to/new-wave-run`, or set managed
 `options.debug: false`. Explain the lost source-event capture.
 
+### Digital delay, jitter and glitches
+
+For this task, read [HDL_ENVIRONMENT.md](HDL_ENVIRONMENT.md), also returned by
+`agent help`. Only SystemVerilog projects support inline `environment` profiles.
+The testbench instantiates `chipsim_environment` and wires `disturbed` to the DUT;
+channel names do not select DUT paths. Keep nominal, disturbed and sampled DUT
+signals visible. The testbench owns clock/reset, assertions and termination.
+
+Run into a new directory after changing the profile or seed. Inspect
+`environment.json` for actual arrival times and the generated-source hash;
+a declared edge beyond the simulation end was not observed. Replay does not
+change stimulus. Phase checks away from input transitions: this feature models
+binary events, not analog noise, metastability, physical calibration or worst-case
+timing proof. Use `--no-debug` for stock Icarus; default debug needs observers.
+
 ### Cancel, retry or change inputs
 
 ```sh

@@ -343,8 +343,9 @@ For HDL experiments, use `chipsim hdl doctor|import|run|compare` and [HDL.md](HD
 
 ## Digital environment injection
 
-For finite delay/offset, jitter or glitch experiments, use a SystemVerilog
-manifest with an inline `environment` profile. The testbench must explicitly
+For finite delay/offset, jitter or glitch experiments, read the installed
+`documentation["HDL_ENVIRONMENT.md"]` path from `agent help` or `agent context`.
+Use a SystemVerilog manifest with an inline `environment` profile. The testbench must explicitly
 instantiate `chipsim_environment` and connect `disturbed` to the DUT; `nominal`
 remains a separate observation. `hdl run` (including native tools and the H menu)
 generates and snapshots the HDL stimulus before execution. `environment.json`

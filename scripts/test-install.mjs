@@ -387,6 +387,10 @@ try {
     help.documentation["AGENT_CONTROL.md"],
     join(installed, "docs/AGENT_CONTROL.md"),
   );
+  for (const name of ["HDL_DEBUG.md", "HDL_ENVIRONMENT.md"]) {
+    assert.equal(help.documentation[name], join(installed, "docs", name));
+    assert.ok((await readFile(help.documentation[name])).length > 100);
+  }
   assert.equal(
     help.examples.evolution.guide,
     join(installed, "examples/evolutionary-example/README.md"),

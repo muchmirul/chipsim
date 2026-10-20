@@ -89,6 +89,7 @@ const recipes = {
     notes: [
       "HDL tests execute stimulus/assertions; ChipSim runs the simulator and preserves evidence. Plain HDL failures are reflected in process status/logs, not structured per-assertion results.",
       "cocotb normalizes tests and test-N checks from xUnit. Declare any waveform as an output and configure the simulator to emit it; results.xml is not a waveform.",
+      "For finite digital delay/jitter/glitches, use a SystemVerilog manifest environment profile and explicitly wire chipsim_environment.disturbed to the DUT (docs/HDL_ENVIRONMENT.md; examples/hdl/environment). Re-run after edits; replay does not inject stimulus. This is not analog noise or physical calibration.",
       "Record seeds, parameters and vector inputs when using randomized tests. Seed matrices, merged functional coverage and verification-plan management are not built-in features; use explicit tasks/reports if needed.",
       "Do not weaken an expected result to match a failing DUT or treat waveform existence as test success.",
     ],
@@ -396,6 +397,7 @@ export function designGuide(topic = "overview") {
       inputs: installed("docs/DESIGN_INPUTS.md"),
       design: installed("docs/DESIGN.md"),
       hdl: installed("docs/HDL.md"),
+      environment: installed("docs/HDL_ENVIRONMENT.md"),
       programming: installed("docs/PROGRAMMING.md"),
     },
     argumentConvention:

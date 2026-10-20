@@ -31,6 +31,10 @@ ChipSim is a local TUI hardware behavior workbench. The terminal is the only int
 - `docs/DEVELOPMENT.md`: source layout, verification, and extension points.
 - `docs/CHANGELOG.md`: context, usage, limits and regression coverage for feature and behavior changes.
 - `docs/HDL.md`: external Icarus/GHDL runs, waveform import, exact time and mapped comparisons.
+- `docs/HDL_ENVIRONMENT.md`: finite SystemVerilog input schedules with delay,
+  seeded jitter and XOR glitches. Wire the generated `chipsim_environment`
+  outputs explicitly in the testbench. Inspect `environment.json` and DUT samples;
+  rerun after edits. This is digital stimulus, not analog noise or calibration.
 - `docs/HDL_DEBUG.md`: optional observer builds, synchronized source/RTL/signal event replay, portable sessions, capture limits and real-backend/PTY checks.
 - `docs/REFERENCES.md`: pinned vendor PDFs and model scope.
 

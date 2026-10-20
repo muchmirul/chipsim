@@ -265,6 +265,8 @@ export async function agentCommand(args) {
             "LICENSING.md",
             "DESIGN.md",
             "HDL.md",
+            "HDL_DEBUG.md",
+            "HDL_ENVIRONMENT.md",
             "MODEL_FORMAT.md",
             "PROGRAMMING.md",
             "EXISTING_SIMULATORS.md",

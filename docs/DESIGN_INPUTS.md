@@ -40,6 +40,16 @@ An ordinary fixed-function block needs no assembly. A VCD is normally an
 new RTL. A PDF is optional for original hardware design; it is required where
 the chosen document-backed model/source-verification workflow needs it.
 
+## Digital timing experiments
+
+For finite delay, jitter or glitches, add an inline `environment` profile to a
+SystemVerilog HDL manifest and wire `chipsim_environment.disturbed` into the DUT.
+The profile alone does not connect signals or create clock/reset. See the
+[environment guide](HDL_ENVIRONMENT.md) and
+[examples](../examples/hdl/environment/README.md). Run again after each edit;
+inspect actual DUT samples and `environment.json`, not only nominal events.
+These are declared binary test conditions, not measured physical behavior.
+
 ## Smallest useful RTL start
 
 The shipped [minimal counter](../examples/design/minimal) contains:

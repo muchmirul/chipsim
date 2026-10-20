@@ -91,6 +91,16 @@ costs or private-data sharing. See the installed evolution guide. The counter
 example's functional score is neither formal proof nor PPA; handwritten fixture
 comparisons are not evidence of an LLM search.
 
+## Digital input timing experiments
+
+For delay, jitter or glitches, read `docs/HDL_ENVIRONMENT.md`. Use a SystemVerilog
+manifest profile and explicitly wire `chipsim_environment.disturbed` to the DUT.
+The testbench still supplies clock/reset, assertions and termination. Run into a
+new directory after each edit; inspect DUT samples and `environment.json`.
+Replay does not inject stimulus. These are binary test conditions, not analog
+noise, physical calibration or a timing proof. Current installed guide paths
+come from `agent help`; copied docs are not refreshed automatically.
+
 ## Choose what to program
 
 1. Establish whether the task requests a **behavioral experiment**, **RTL** or
