@@ -341,6 +341,19 @@ Run `npm run test:install` to repeat the isolated, offline package-install test.
 
 For HDL experiments, use `chipsim hdl doctor|import|run|compare` and [HDL.md](HDL.md). This separate process interface accepts source/testbench manifests and explicit comparison maps, keeps one versioned JSON result with meaningful exit status, and exports waveform artifacts without requiring a PDF. Source fingerprints identify the HDL files and simulator backend; they do not establish vendor documentation fidelity. Waveform import is data-only and never executes HDL.
 
+## Digital environment injection
+
+For finite delay/offset, jitter or glitch experiments, use a SystemVerilog
+manifest with an inline `environment` profile. The testbench must explicitly
+instantiate `chipsim_environment` and connect `disturbed` to the DUT; `nominal`
+remains a separate observation. `hdl run` (including native tools and the H menu)
+generates and snapshots the HDL stimulus before execution. `environment.json`
+records the profile/seed, realized jitter and edge schedule, and generated source
+hash. Do not simulate injection by moving a finished recording or treating the
+profile as measured hardware calibration. Re-run into a new folder after each
+change; imports and replays remain data-only. See
+[HDL_ENVIRONMENT.md](HDL_ENVIRONMENT.md) and the environment examples.
+
 ## HDL event recordings for terminal review
 
 Build the optional observer toolchain explicitly as described in [HDL_DEBUG.md](HDL_DEBUG.md).

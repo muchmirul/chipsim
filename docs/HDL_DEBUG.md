@@ -137,6 +137,18 @@ operate on saved events; they do not control or restart a simulator. A signal
 value condition matches its after-event held value. To change stimulus or code,
 edit the testbench/project and explicitly capture another run.
 
+## Generated environment sources
+
+SystemVerilog projects may include a finite inline digital environment profile;
+see [HDL_ENVIRONMENT.md](HDL_ENVIRONMENT.md). Native runs embed the generated
+`chipsim_environment.sv` beside authored source snapshots, with normal source
+hashes and linked process locations. Nominal, disturbed and sampled DUT signals
+are actual backend observations, not moved waveform segments. The profile and
+realized edge schedule remain in `environment.json` in the run folder. A portable
+debug recording embeds the generated source and original manifest profile; keep
+the run's report for convenient edge-by-edge inspection. Replaying does not
+regenerate stimulus, execute HDL or reconfigure a DUT.
+
 ## Portable data and limits
 
 `chipsim-hdl-debug` version 1 stores a run, timescale, source snapshots, design,

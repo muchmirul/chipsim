@@ -88,6 +88,23 @@ chipsim --hdl examples/hdl/adder-verilog.project.json --hdl-out tmp/new-run
 chipsim --hdl examples/hdl/adder-verilog.project.json --hdl-out tmp/new-wave-run --no-debug
 ```
 
+## Digital delay, jitter and glitch environments
+
+An optional inline `environment` profile in a SystemVerilog project generates
+finite external stimulus before simulation. The testbench explicitly instantiates
+`chipsim_environment` and wires its `disturbed` output to the hardware under test;
+`nominal` remains available beside it. Fixed delay, signed delay trim, seeded
+bounded timing jitter and explicit XOR glitches are saved with exact realized
+edges in `environment.json`. Source generation is part of the native run, not a
+rewrite of a captured waveform. Existing imports/replays remain read-only.
+
+See [HDL_ENVIRONMENT.md](HDL_ENVIRONMENT.md) for the schema, wiring, limits,
+causality and reproducibility rules, and
+[the environment examples](../examples/hdl/environment/README.md) for baseline,
+delayed, explicitly compensated, jittered, glitched and assertion-failure runs.
+This is a bounded digital test environment, not analog noise, metastability,
+automatic calibration or measured physical timing.
+
 ## Map signals and time explicitly
 
 ```json

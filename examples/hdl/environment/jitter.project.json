@@ -1,0 +1,40 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "name": "Environment experiment: jitter",
+  "language": "verilog",
+  "standard": "2012",
+  "sources": ["tb.sv"],
+  "top": "environment_tb",
+  "waveform": "trace.vcd",
+  "timeoutMs": 10000,
+  "parameters": {
+    "REQUIRE_TARGET": 0
+  },
+  "environment": {
+    "format": "chipsim-digital-environment",
+    "version": 1,
+    "timeUnit": "1ns",
+    "seed": 12345,
+    "channels": [
+      {
+        "name": "pin",
+        "initial": 0,
+        "delayTicks": 65,
+        "offsetTicks": 0,
+        "jitterTicks": 15,
+        "events": [
+          {
+            "tick": 85,
+            "value": 1
+          },
+          {
+            "tick": 185,
+            "value": 0
+          }
+        ],
+        "glitches": []
+      }
+    ]
+  }
+}

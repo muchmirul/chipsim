@@ -5,6 +5,34 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-19 — Reproducible digital environment perturbations
+
+**Context:** Timing-offset compensation needs experiments with declared external
+delay shifts and disturbances before hardware exists. Rewriting a completed
+waveform cannot test the hardware's reaction.
+**Use/behavior:** An inline `environment` profile in a SystemVerilog HDL manifest
+generates a finite native `chipsim_environment` stimulus module during `hdl run`,
+including H-menu/native-tool runs. Explicit testbench wiring exposes both nominal
+and disturbed signals to the same source/RTL/waveform viewer. Profiles support
+fixed delay, signed trim, seeded bounded per-transition jitter, and half-open
+XOR glitches. Whole channel vectors update together. `environment.json` preserves
+normalized profile, bit mapping, algorithm/seed, each realized edge and source
+fingerprint. Example manifests show no delay, late effects, explicit compensation,
+remaining jitter, glitches sampled by a consumer and a retained assertion failure.
+**Limits/preservation:** Finite external binary events only; no arbitrary live-net
+force/bind, analog amplitude, metastability, clock drift, physical qualification
+or automatic calibration/compiler. Timing support cannot advance an event before
+its declared source. Collapsed/reordered same-channel arrivals reject rather than
+silently clamp/sort. Cross-channel reorder is allowed. Testbenches own clock/reset
+and native HDL race handling. Existing manifests, working sessions and data-only
+imports are unchanged; new runs never overwrite old ones. A few seeds do not prove
+worst-case timing or establish a measured hardware profile.
+**Implementation/checks:** `src/hdl/environment.js`, `src/hdl/run.js`, focused pure
+generator tests and real stock/observer Icarus tests for DUT sampling, source/report
+provenance, reproducibility and preserved failures. Existing HDL, TUI and packed
+installation checks cover the shared runner/interface. See
+[HDL_ENVIRONMENT.md](HDL_ENVIRONMENT.md).
+
 ## 2026-10-19 — Shorter evolution guides with Mermaid diagrams
 
 **Context:** The evolution explanations were too long and used text diagrams.

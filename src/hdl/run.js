@@ -16,6 +16,7 @@ import {
   failedDebugRecording,
 } from "./debug/collector.js";
 import { debugLimits, sourceDigest } from "./debug/recording.js";
+import { generateEnvironment, environmentSourceName } from "./environment.js";
 
 // No shell, custom commands or loadable simulator plugins in the manifest.
 // HDL is executed only by the explicit run action, never by trace import.
@@ -174,6 +175,7 @@ export async function readProject(file) {
     "timeoutMs",
     "stopTime",
     "parameters",
+    "environment",
   ]);
   for (const key of Object.keys(project))
     if (!allowed.has(key)) throw new Error("Unknown HDL project field " + key);
@@ -256,8 +258,20 @@ export async function readProject(file) {
     )
   )
     throw new Error("HDL parameters/generics must be named integer values.");
+  let environment;
+  if (project.environment !== undefined) {
+    if (
+      project.language !== "verilog" ||
+      !["2005-sv", "2009", "2012"].includes(standard)
+    )
+      throw new Error(
+        "Digital environments require Verilog with a SystemVerilog standard.",
+      );
+    environment = generateEnvironment(project.environment).report.profile;
+  }
   return {
     ...project,
+    ...(environment ? { environment } : {}),
     ...lists,
     standard,
     waveform,
@@ -352,6 +366,48 @@ export async function runHDL(
         }
       }
     }
+    let environment;
+    const compileSources = [...project.sources];
+    if (project.environment) {
+      if (files.size >= 256)
+        throw new Error("HDL environment would exceed 256 source/asset files.");
+      if (files.has(environmentSourceName))
+        throw new Error(
+          "The generated environment source name is reserved: " +
+            environmentSourceName,
+        );
+      environment = generateEnvironment(project.environment);
+      const bytes = Buffer.from(environment.source);
+      total += bytes.length;
+      if (bytes.length > 4 * 1048576 || total > 16 * 1048576)
+        throw new Error("HDL environment exceeds source snapshot limits.");
+      await writeFile(join(sourceRoot, environmentSourceName), bytes, {
+        flag: "wx",
+      });
+      const sha256 = digest(bytes);
+      sources.push({
+        file: environmentSourceName,
+        bytes: bytes.length,
+        sha256,
+      });
+      if (debug)
+        debugSources.push({
+          id: "source:" + environmentSourceName,
+          path: environmentSourceName,
+          text: environment.source,
+          sha256: sourceDigest(environment.source),
+        });
+      compileSources.push(environmentSourceName);
+      environment.report.generatedSource = {
+        file: environmentSourceName,
+        sha256,
+      };
+      await writeFile(
+        join(root, "environment.json"),
+        jsonText(environment.report),
+        { flag: "wx" },
+      );
+    }
     const { base, ...savedProject } = project;
     await writeFile(join(root, "project.json"), jsonText(savedProject));
     const toolchain = debug ? (await debugTools())[project.language] : null;
@@ -430,7 +486,7 @@ export async function runHDL(
         ...Object.entries(project.parameters).map(
           ([key, value]) => `-P${project.top}.${key}=${value}`,
         ),
-        ...project.sources.map((file) => "./" + file),
+        ...compileSources.map((file) => "./" + file),
       ];
       ok = await execute("compile", command("iverilog"), args);
       if (ok) ok = await execute("simulate", command("vvp"), ["-n", binary]);
@@ -557,6 +613,7 @@ export async function runHDL(
       artifacts: {
         result: join(root, "result.json"),
         diagnostics: join(root, "diagnostics.json"),
+        ...(environment ? { environment: join(root, "environment.json") } : {}),
         ...captureArtifacts,
         ...(recording ? { debug: join(root, "debug.json") } : {}),
         ...(waveform

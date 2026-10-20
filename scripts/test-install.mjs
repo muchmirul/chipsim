@@ -151,6 +151,10 @@ try {
     "examples/hdl/counter.vhdl",
     "src/hdl/vcd.js",
     "src/hdl/run.js",
+    "src/hdl/environment.js",
+    "docs/HDL_ENVIRONMENT.md",
+    "examples/hdl/environment/baseline.project.json",
+    "examples/hdl/environment/tb.sv",
     "scripts/hdl.mjs",
     "examples/hdl/upstream/adder.sv",
     "examples/hdl/upstream/adder.vhdl",
@@ -534,6 +538,36 @@ try {
       assert.equal(hdlRun.ok, true);
       assert.ok(hdlRun.tools.every((tool) => tool.available));
     }
+  }
+  if (
+    backendCheck.tools
+      .filter((tool) => ["iverilog", "vvp"].includes(tool.command))
+      .every((tool) => tool.available)
+  ) {
+    const injected = JSON.parse(
+      (
+        await run(
+          binary,
+          [
+            "hdl",
+            "run",
+            join(
+              installed,
+              "examples/hdl/environment/compensated.project.json",
+            ),
+            "--no-debug",
+            "--out",
+            join(cwd, "installed environment"),
+          ],
+          { cwd },
+        )
+      ).stdout,
+    );
+    assert.equal(injected.ok, true);
+    const profile = JSON.parse(
+      await readFile(injected.artifacts.environment, "utf8"),
+    );
+    assert.equal(profile.edges[0].arrivalTick, 150);
   }
   const chipContext = (await cli(["context", "esp32-c6"])).programmingContext;
   assert.equal(chipContext.decision.nativeExecution.available, false);

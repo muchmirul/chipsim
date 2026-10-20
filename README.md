@@ -137,6 +137,16 @@ chipsim hdl compare tmp/verilog-run/trace.vcd tmp/vhdl-run/trace.vcd --map examp
 
 Use new output directories. `H` offers import/run/comparison in the TUI. VCD import requires no simulator and cannot reconstruct source events. Comparisons require explicit signal mappings and compatible widths; comparisons with model ticks require a chosen tick duration. See [HDL workflows](docs/HDL.md), [debugger setup](docs/HDL_DEBUG.md) and [examples](examples/hdl/README.md).
 
+### Digital delay, jitter and glitches
+
+SystemVerilog manifests can declare finite external events with fixed delay,
+signed delay trim, seeded bounded jitter and XOR glitches. The testbench wires
+the generated disturbed output into the DUT; nominal signals remain visible.
+Runs retain the profile, realized edge schedule and source fingerprints.
+See [environment profiles and limits](docs/HDL_ENVIRONMENT.md) and
+[baseline, compensation and failure examples](examples/hdl/environment/README.md).
+These are digital test assumptions, not analog noise or physical calibration.
+
 ## Coding-agent workflow
 
 Any agent with file access and process execution can use the CLI. **ChipSim supplies no LLM, provider account or API key.** Pi and prime-agent also have a shared native extension:

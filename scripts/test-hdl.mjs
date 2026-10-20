@@ -1,7 +1,12 @@
 import { spawnSync } from "node:child_process";
 const result = spawnSync(
   process.execPath,
-  ["--test", new URL("../test/hdl.test.js", import.meta.url).pathname],
+  [
+    "--test",
+    new URL("../test/hdl.test.js", import.meta.url).pathname,
+    new URL("../test/hdl-environment-backends.test.js", import.meta.url)
+      .pathname,
+  ],
   {
     stdio: "inherit",
     env: { ...process.env, CHIPSIM_TEST_HDL: "1" },
