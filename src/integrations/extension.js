@@ -353,6 +353,7 @@ export function commandArguments(args = []) {
       ? ["--help"]
       : [...args];
   const headless = [
+    "table",
     "agent",
     "hdl",
     "design",
@@ -367,7 +368,7 @@ export function commandArguments(args = []) {
     );
   if (!headless && !textOutput)
     throw new Error(
-      "Pass ChipSim arguments starting with agent, hdl, design, job, artifact or checks; use --snapshot for a terminal frame, or help for discovery. Open the interactive TUI with /chipsim.",
+      "Pass ChipSim arguments starting with agent, hdl, table, design, job, artifact or checks; use --snapshot for a terminal frame, or help for discovery. Open the interactive TUI with /chipsim.",
     );
   return { args: argv, textOutput };
 }
@@ -466,7 +467,7 @@ export function registerChipSim(
     name: "chipsim_command",
     label: "ChipSim command",
     description:
-      'General ChipSim controller. Pass literal CLI arguments without the executable, e.g. {"args":["design","run","--project",".","--target","simulation"]}. Empty args or ["help"] lists usage; ["design","commands"] returns machine-readable commands and integration formats. Before preparing chip inputs, ["design","guide"] or ["design","guide","rtl"] gives optional recipes, minimum files, missing-input preparation and installed examples; inspect/reuse existing work, then create/find/prepare prerequisites instead of requiring generated outputs from the user. Guidance does not enforce a workflow or execute tools. design status --project PATH returns current checks and next actions. ["hdl","help"] and ["agent","help"] give other family details. Supports jobs, artifacts, checks and --snapshot. Paths resolve in the current call’s cwd. Start durable jobs without --wait; poll job status with --wait --timeout-ms 1000 and job logs using its cursor; job cancel explicitly cancels them. Uses the existing CLI validation and evidence gates.',
+      'General ChipSim controller. Pass literal CLI arguments without the executable, e.g. {"args":["design","run","--project",".","--target","simulation"]}. Empty args or ["help"] lists usage; ["design","commands"] returns machine-readable commands and integration formats. Before preparing chip inputs, ["design","guide"] or ["design","guide","rtl"] gives optional recipes, minimum files, missing-input preparation and installed examples; inspect/reuse existing work, then create/find/prepare prerequisites instead of requiring generated outputs from the user. Guidance does not enforce a workflow or execute tools. design status --project PATH returns current checks and next actions. ["table","help"] describes CSV register and stimulus inputs without a PDF; ["hdl","help"] and ["agent","help"] give other family details. Supports jobs, artifacts, checks and --snapshot. Paths resolve in the current call’s cwd. Start durable jobs without --wait; poll job status with --wait --timeout-ms 1000 and job logs using its cursor; job cancel explicitly cancels them. Uses the existing CLI validation and evidence gates.',
     parameters: Type.Object(
       {
         args: Type.Optional(

@@ -1,5 +1,11 @@
 # Programming and modeling this chip
 
+Original hardware specifications can also use CSV register/stimulus inputs.
+See `docs/CSV_INPUTS.md` and `chipsim table help`. CSV register experiments need
+no PDF; this prepared project's existing model/program source gates remain
+in effect. `agent run --inputs events.csv` accepts an explicit tick/signal/value
+schedule for the source-checked model.
+
 For chip development from an idea or partial files, use `chipsim design guide`
 and `docs/DESIGN_INPUTS.md`. These optional recipes describe minimum inputs,
 testbenches, firmware and installed starters. Inspect existing work, then

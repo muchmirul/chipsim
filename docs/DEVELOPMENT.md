@@ -1,5 +1,15 @@
 # Developing ChipSim
 
+`src/tables/` owns bounded CSV parsing, model-stimulus validation and the
+`table registers|stimulus` headless commands. Register CSV reuses the explicit
+register-bank interpreter and source/check gate, with CSV provenance and one
+logical source page. Preserve exact input bytes/hashes, source-kind labels,
+ordering and atomic stimulus replacement. CSV parsing must never execute
+spreadsheet formulas or infer missing masks, resets or widths. Regressions in
+`test/csv-inputs.test.js` cover independent register results, malformed files,
+source verification, no-Poppler operation, output preservation and both terminal
+sizes. See [CSV_INPUTS.md](CSV_INPUTS.md).
+
 Vendor PDFs and extracted manuals are private inputs, excluded from public Git
 and npm distributions. The default tests/verification run without them and mark
 private-source cases skipped. For the complete original-source suite, use

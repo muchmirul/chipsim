@@ -1,0 +1,15 @@
+tick,signal,value
+1,address,0x00
+1,write_data,0x05
+1,write,1
+1,request,1
+2,write,0
+2,request,0
+3,set_STATUS,0x03
+4,set_STATUS,0
+4,address,0x04
+4,write_data,0x01
+4,write,1
+4,request,1
+5,write,0
+5,request,0

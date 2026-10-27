@@ -460,6 +460,8 @@ export class TerminalApp {
     }
     const document = this.state.document,
       suggestions = suggestScenarios(document);
+    if (document.mediaType === "text/csv")
+      return this.registerBankEditor.create(document, null, true);
     this.menu(
       "CREATE · choose model builder",
       [
@@ -931,13 +933,16 @@ export class TerminalApp {
         this.stimulusEditor.remove();
       else if (k === "u") this.registerMenu();
       else if (k === "d")
-        this.prompt("Import PDF, model/session JSON, or VCD", "", (path) =>
-          this.task(() =>
-            s.loadFile(unquote(path), (message) => {
-              s.setMessage(message);
-              this.draw();
-            }),
-          ),
+        this.prompt(
+          "Import PDF, CSV source, model/session JSON, or VCD",
+          "",
+          (path) =>
+            this.task(() =>
+              s.loadFile(unquote(path), (message) => {
+                s.setMessage(message);
+                this.draw();
+              }),
+            ),
         );
       else if (k === "c") this.createScenario();
       else if (k === "o") this.sourceSimulations.open();
@@ -978,13 +983,18 @@ export class TerminalApp {
         );
       } else if (k === "a") {
         const load = () =>
-          this.prompt("Stimulus JSON array or JSON file path", "[]", (value) =>
-            this.task(async () => {
-              const text = value.trim().startsWith("[")
-                ? value
-                : await readFile(resolve(unquote(value)), "utf8");
-              s.setInputs(JSON.parse(text));
-            }),
+          this.prompt(
+            "Stimulus JSON array or JSON/CSV file path",
+            "[]",
+            (value) =>
+              this.task(async () => {
+                const inputs = value.trim().startsWith("[")
+                  ? JSON.parse(value)
+                  : await (
+                      await import("../tables/stimulus.js")
+                    ).readInputFile(resolve(unquote(value)), s.model.signals);
+                s.setInputs(inputs);
+              }),
           );
         if (s.view === "stimulus") this.stimulusEditor.actions(load);
         else load();

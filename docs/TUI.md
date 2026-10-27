@@ -1,5 +1,11 @@
 # Terminal workbench
 
+CSV hardware tables can be used without a PDF: `d` imports a register-map source,
+and `c` opens guided register creation with explicit word width and event order.
+Source view labels the CSV's one logical page. `a` loads JSON or CSV stimulus
+(`tick,signal,value`); failed loads preserve the experiment and `U` undoes
+successful replacement. See [CSV_INPUTS.md](CSV_INPUTS.md) for examples and limits.
+
 `chipsim --agent PROJECT` opens the [live agent-work dashboard](AGENT_WORK.md)
 for explicit goals, actions and evolving candidates, without a PDF or embedded
 model provider. `--design` also includes this dashboard at `8`. Use `s` for

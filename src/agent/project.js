@@ -80,6 +80,7 @@ export async function prepareProject(pdf, output) {
       "DESIGN_INPUTS.md",
       "LOCAL_REFERENCES.md",
       "LICENSING.md",
+      "CSV_INPUTS.md",
     ])
       await copyFile(join(packageRoot, "docs", file), join(root, "docs", file));
     await mkdir(join(root, "examples"));

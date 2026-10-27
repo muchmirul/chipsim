@@ -1,5 +1,12 @@
 # ChipSim as a coding-agent tool
 
+For developer-authored CSV register maps and stimulus schedules, use
+`chipsim table help` and [CSV_INPUTS.md](CSV_INPUTS.md). `table registers` creates
+a runnable register experiment without a PDF. `--inputs` accepts CSV as well
+as JSON in model runs and the terminal. Native agents can use
+`chipsim_command({args:["table","help"]})`; these local commands never install
+tools or providers. PDF-backed `agent check/run` retain their source gates.
+
 Start with [Agent control](AGENT_CONTROL.md) for the task-to-result procedure,
 viewer choice, job/evidence commands, live reporting and external evolution.
 `chipsim agent help` returns current installed documentation paths and the

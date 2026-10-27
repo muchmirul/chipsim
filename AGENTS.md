@@ -21,6 +21,7 @@ ChipSim is a local TUI hardware behavior workbench. The terminal is the only int
 - `docs/PROGRAMMING.md`: experiment source, line debugging, guide citations and native-backend limits. Before programming a chip, run `chipsim agent context CHIP_ID` or `chipsim agent context PROJECT --model MODEL_ID`; use the actual declared inputs/registers and applicable guides. Prepared projects include `PROGRAMMING_CONTEXT.md` and `programming-context.json`. Do not silently replace a native firmware request with an experiment script.
 - `docs/FUNCTION_TABLES.md`: local data-derived combinational/sequential logic compilation and limits.
 - `docs/REGISTER_BANKS.md`: explicit sourced register maps, masks, bus/event ordering, and limits.
+- `docs/CSV_INPUTS.md`: developer-authored register maps and stimulus, exact CSV bytes, one logical source page, and explicit width/order without PDF inference.
 - `docs/BEHAVIOR_TABLES.md`: developer-entered custom logic/state machines, step semantics, provenance, and limits.
 - `docs/DOCUMENT_PROFILES.md`: reviewed automatic datasheet compilation and extension requirements.
 - `docs/ESP32_C6_GPIO.md`: GPIO word transactions, atomic aliases, logical output observation and boundaries.

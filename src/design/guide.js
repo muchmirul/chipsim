@@ -180,6 +180,7 @@ const recipes = {
     ],
     example: "examples/design/peripheral",
     notes: [
+      "For a local behavioral register experiment without a PDF or EDA tools, use chipsim table registers MAP.csv --width 32 --priority before --name NAME --out NEW_DIRECTORY. Required CSV columns are name,address,mode,reset,mask; explicit storage/side-effect rules only, not generated RTL. See docs/CSV_INPUTS.md.",
       "These are optional entry points. Bind generator outputs to consumers instead of requiring them to exist beforehand. FuseSoC currently performs setup only; declare and lock resolved dependencies. Generated and handwritten RTL are not assumed equivalent.",
     ],
   },
@@ -278,6 +279,13 @@ const recipes = {
 };
 
 const formats = [
+  {
+    extensions: [".csv"],
+    role: "Developer-authored register maps or normalized model stimulus",
+    support:
+      "table registers creates a bounded register model/session without a PDF. --inputs accepts tick,signal,value CSV; table stimulus validates and converts it to JSON. These are explicit binary/word rules, not inferred RTL or analog timing.",
+    guide: "registers",
+  },
   {
     extensions: [".v", ".sv"],
     role: "Hardware or HDL testbench source",
@@ -398,6 +406,7 @@ export function designGuide(topic = "overview") {
       design: installed("docs/DESIGN.md"),
       hdl: installed("docs/HDL.md"),
       environment: installed("docs/HDL_ENVIRONMENT.md"),
+      csv: installed("docs/CSV_INPUTS.md"),
       programming: installed("docs/PROGRAMMING.md"),
     },
     argumentConvention:

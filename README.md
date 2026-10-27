@@ -4,6 +4,13 @@
 
 Start with Verilog/VHDL, a supplied architecture experiment, a supported datasheet or an explicitly authored model. Inspect source, hardware, signals and verification results together, then save the experiment and its provenance for review.
 
+## Import CSV register maps and stimulus
+
+For a register-map or stimulus spreadsheet, use the [CSV workflow](docs/CSV_INPUTS.md):
+`chipsim table registers map.csv --width 32 --priority after --name "My CSR" --out NEW_DIRECTORY`
+creates a runnable register experiment without a PDF. Model stimulus also
+accepts `--inputs events.csv` with `tick,signal,value` columns.
+
 ## Current highlights
 
 - **Linked HDL debugging by default:** Icarus/GHDL observer recordings synchronize source/process activity, elaborated RTL connections and waveforms at one event cursor. Stock waveform-only runs remain an explicit option.

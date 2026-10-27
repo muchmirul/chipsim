@@ -1,5 +1,11 @@
 # ChipSim in Pi and prime-agent
 
+Use `chipsim_command({args:["table","help"]})` for CSV register-map and stimulus
+workflows. `table registers` creates a model/session without a PDF; `table
+stimulus` validates and converts a schedule. The general command tool also
+accepts `--inputs events.csv` for model snapshots. These commands use the current
+call's cwd and existing CLI validation; see [CSV_INPUTS.md](CSV_INPUTS.md).
+
 The extension also exposes the [versioned design workbench](DESIGN.md):
 `chipsim_design_init/doctor/lock/plan/run`, `chipsim_job_status/logs/cancel/retry`,
 `chipsim_artifact_list/inspect/verify/import/export/compare`, and `chipsim_checks`.

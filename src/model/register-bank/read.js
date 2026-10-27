@@ -1,10 +1,27 @@
 import { parsePayload } from "../../core/values.js";
+import { readCSV } from "../../tables/csv.js";
 
 export function readRegisterRows(text, width) {
   if (!Number.isInteger(width) || width < 1 || width > 32)
     throw new Error("Register width must be 1–32 bits.");
   if (typeof text !== "string" || text.length > 65536)
     throw new Error("Register rows must be text of at most 64 KiB.");
+  if (text.includes(",")) {
+    const rows = readCSV(text, ["name", "address", "mode", "reset", "mask"], {
+      maxBytes: 65536,
+      maxRows: 16,
+    });
+    text = rows
+      .map((row) => {
+        const fields = [row.name, row.address, row.mode, row.reset, row.mask];
+        if (fields.some((field) => /[\s;]/.test(field)))
+          throw new Error(
+            "Register CSV fields must be single identifiers or numeric/access values.",
+          );
+        return fields.join(" ");
+      })
+      .join("\n");
+  }
   const lines = text
     .split(/[;\n]/)
     .map((line) => line.trim())

@@ -89,16 +89,22 @@ module chipsim_environment(
   initial begin
     {nominal, disturbed} = 2'b11;
     #2;
+    if ($time != 2) $fatal(1, "ChipSim environment time overflow at tick 2; reduce the schedule duration or use coarser design precision.");
     {nominal, disturbed} = 2'b00;
     #2;
+    if ($time != 4) $fatal(1, "ChipSim environment time overflow at tick 4; reduce the schedule duration or use coarser design precision.");
     {nominal, disturbed} = 2'b01;
     #1;
+    if ($time != 5) $fatal(1, "ChipSim environment time overflow at tick 5; reduce the schedule duration or use coarser design precision.");
     {nominal, disturbed} = 2'b00;
     #1;
+    if ($time != 6) $fatal(1, "ChipSim environment time overflow at tick 6; reduce the schedule duration or use coarser design precision.");
     {nominal, disturbed} = 2'b10;
     #1;
+    if ($time != 7) $fatal(1, "ChipSim environment time overflow at tick 7; reduce the schedule duration or use coarser design precision.");
     {nominal, disturbed} = 2'b11;
     #1;
+    if ($time != 8) $fatal(1, "ChipSim environment time overflow at tick 8; reduce the schedule duration or use coarser design precision.");
     {nominal, disturbed} = 2'b11;
   end
 endmodule

@@ -16,6 +16,7 @@ export function modelId(name) {
 // Shared provenance/check gate for developer-authored builders. A quotation
 // proves textual provenance; the selected rules remain explicit assumptions.
 export function sourcedModel(document, options, behavior) {
+  const csv = document?.mediaType === "text/csv";
   if (!document?.sha256 || !Array.isArray(document.pages))
     throw new Error("Select an imported PDF first.");
   if (!document.pages.some((page) => page.number === Number(options.page)))
@@ -34,22 +35,27 @@ export function sourcedModel(document, options, behavior) {
     ...behavior,
     sources: [
       {
-        id: "manual",
+        id: csv ? "register-csv" : "manual",
         title: document.title || document.filename,
         filename: document.filename,
         sha256: document.sha256,
+        ...(csv ? { mediaType: "text/csv" } : {}),
       },
     ],
     evidence: [
       {
-        id: "manual-excerpt",
-        sourceId: "manual",
+        id: csv ? "register-table" : "manual-excerpt",
+        sourceId: csv ? "register-csv" : "manual",
         page: Number(options.page),
         quote: options.quote.trim(),
         claim: options.claim.trim(),
       },
     ],
-    assumptions: scenarioAssumptions(behavior.assumptions, options.assumptions),
+    assumptions: scenarioAssumptions(
+      behavior.assumptions,
+      options.assumptions,
+      csv,
+    ),
   };
   validateModel(spec, [document]);
   const checks = runChecks(spec),

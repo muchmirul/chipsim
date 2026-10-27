@@ -1,6 +1,7 @@
 import manifest from "../../docs/references/manifest.json" with { type: "json" };
 
 export function recognizeDocument(document) {
+  if (document.mediaType === "text/csv") return null;
   const exact = manifest.documents.find(
     (source) => source.sha256 === document.sha256,
   );
@@ -73,6 +74,6 @@ export function sourceBundle(documents) {
     createdAt: new Date().toISOString(),
     documents: documents.map(({ bytes, filePath, ...document }) => document),
     instructions:
-      "Use AGENTS.md and docs/MODEL_FORMAT.md to build a sourced behavioral model. Preserve PDF page numbers and SHA-256. Import the resulting model JSON into ChipSim; do not assume that a datasheet specifies every internal behavior.",
+      "Use AGENTS.md and docs/MODEL_FORMAT.md to build a sourced behavioral model. Preserve source SHA-256 and page numbers (CSV has one logical source page). Import the resulting model JSON into ChipSim; source evidence does not establish silicon fidelity.",
   };
 }

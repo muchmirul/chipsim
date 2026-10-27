@@ -5,6 +5,63 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-27 — Developer-authored CSV register experiments
+
+**Context:** Hardware developers maintain register maps in spreadsheets and
+source control; requiring a PDF prevented direct experiments with their own
+specifications.
+**Use/behavior:** `table registers MAP.csv --width N --priority before|after
+--name NAME --out NEW_DIRECTORY` validates explicit name/address/mode/reset/mask
+columns and creates a runnable source-linked model, demonstration traces,
+session, source bundle and fingerprinted original CSV. The TUI attaches CSV
+source evidence as one logical page; `d` imports a CSV and `c` opens guided
+register creation with that row file selected. Existing row-file prompts accept
+the same CSV columns. `design guide` and native command discovery link the guide.
+**Limits/preservation:** 1–16 words, width 1–32, 64 KiB, explicit supported
+storage modes only. No inferred vendor behavior or RTL generation. Existing
+destinations reject; invalid tables produce no result directory. Source hashes
+identify authored bytes, not independent hardware truth. PDF gates stay intact.
+**Implementation/checks:** `src/tables/`, register-bank builders and source/TUI
+loading; `test/csv-inputs.test.js` verifies no-Poppler creation, exact bytes,
+source-quote checking, unsigned words, independent results, sessions, both
+terminal sizes and output preservation. See [CSV_INPUTS.md](CSV_INPUTS.md).
+
+## 2026-10-27 — CSV model stimulus
+
+**Context:** Spreadsheet/script event schedules required manual JSON conversion.
+**Use/behavior:** `--inputs EVENTS.csv`, TUI stimulus loading, agent model runs
+and managed model tasks accept named tick/signal/value columns. `table stimulus`
+validates against an explicit model and emits a fingerprinted CSV copy and
+`inputs.json` for other scripts, without simulation. Native agents use the same
+general command tool and structured errors.
+**Limits/preservation:** 1 MiB, 10000 events, normalized ticks 0–10000, declared
+input widths only; no live HDL injection or trace-to-stimulus conversion. Stable
+tick sorting preserves same-pin/tick order. Failed terminal import preserves
+the prior trace/configuration; successful replacement supports undo. Unknown or
+missing columns/values, invalid UTF-8 and formulas reject.
+**Implementation/checks:** `src/tables/stimulus.js`, shared model/CLI/TUI input
+paths; CSV regressions cover syntax, bounds, direction, high-bit values,
+ordering, real register effects, failed replacement and undo. Installed CLI
+tests exercise the same workflow. See [CSV_INPUTS.md](CSV_INPUTS.md).
+
+## 2026-10-27 — Reject native environment time wrap
+
+**Context:** A profile with `timeUnit: "1s"` and an edge at tick 1,000,000,000
+could overflow Icarus's native time counter when another module used 1 ps
+precision. The run previously succeeded with an incorrect edge timestamp.
+**Use/behavior:** `hdl run` now checks native elapsed time before each generated
+environment frame. Time wrap fails the run with an explicit diagnostic before
+driving the frame. The profile/report, generated source, diagnostics and partial
+capture remain inspectable; existing runs are preserved.
+**Limits/preservation:** The native design's finest precision determines its
+range. Large schedules still work at compatible coarser precision; stimulus
+beyond an earlier testbench finish is not executed or certified. This does not
+change the declared units, realized random schedule or normal HDL ordering.
+**Implementation/checks:** `src/hdl/environment.js` and real-Icarus regression
+coverage in `test/hdl-environment-backends.test.js` reproduce fine-precision
+overflow and verify the same large schedule at seconds precision. See
+[HDL_ENVIRONMENT.md](HDL_ENVIRONMENT.md).
+
 ## 2026-10-19 — Expose digital environments to coding agents
 
 **Context:** Digital environment profiles were documented but missing from agent

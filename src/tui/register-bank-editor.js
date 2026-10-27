@@ -99,6 +99,7 @@ export class RegisterBankEditor {
     const app = this.app,
       state = app.state,
       options = {};
+    const csv = document.mediaType === "text/csv";
     if (table) {
       state.page = table.page;
       state.sourceScroll = 0;
@@ -133,8 +134,13 @@ export class RegisterBankEditor {
       },
       {
         key: "rows",
-        label: "Register rows · NAME ADDRESS MODE RESET MASK · or @file",
-        value: table ? registerDraftRows(table) : "",
+        label:
+          "Register rows · NAME ADDRESS MODE RESET MASK · or @file.txt/csv",
+        value: table
+          ? registerDraftRows(table)
+          : csv
+            ? "@" + document.filePath
+            : "",
         help: "Question marks are missing reset/mask fields and must be replaced with reviewed choices. Separate rows with ;. Modes: rw replaces mask bits, ro ignores writes, w1c/w1s clear/set written ones, rc clears mask bits after reading. Addresses/reset/masks accept decimal/0x/0b/0o. No inference from PDF prose.",
         parse: async (text) => {
           const rows = await textRows(text, "Registers");
@@ -154,7 +160,9 @@ export class RegisterBankEditor {
       },
       {
         key: "page",
-        label: "Evidence PDF page · one-based",
+        label: csv
+          ? "Evidence CSV source page · 1"
+          : "Evidence PDF page · one-based",
         value: () => state.page,
         parse: (text) => {
           const value = parsePayload(text)?.value;
@@ -163,7 +171,11 @@ export class RegisterBankEditor {
               "Keep the extracted table's source page; use manual entry for a different source.",
             );
           if (!document.pages.some((page) => page.number === value))
-            throw new Error("Choose an existing PDF page.");
+            throw new Error(
+              csv
+                ? "CSV tables use source page 1."
+                : "Choose an existing PDF page.",
+            );
           state.page = value;
           state.sourceScroll = 0;
           return value;
@@ -189,7 +201,9 @@ export class RegisterBankEditor {
             ).includes(normalize(text))
           )
             throw new Error(
-              "Quote must occur on this PDF page and contain 8–1000 characters.",
+              "Quote must occur on this " +
+                (csv ? "CSV source" : "PDF") +
+                " page and contain 8–1000 characters.",
             );
           return text;
         },
@@ -199,7 +213,9 @@ export class RegisterBankEditor {
         label: "What the excerpt supports in these register rules",
         value: table
           ? "The selected table supplies byte addresses, access labels and power-up patterns. Storage rules, masks, unknown initial values and side effects require developer review."
-          : "",
+          : csv
+            ? "Developer-authored register rules; CSV is not independent vendor evidence."
+            : "",
       },
       {
         key: "assumptions",

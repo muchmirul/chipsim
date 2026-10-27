@@ -81,7 +81,10 @@ export class Workspace {
   async saveDocument(document) {
     const directory = join(this.path, "documents");
     await mkdir(directory, { recursive: true });
-    const target = join(directory, document.id + ".pdf");
+    const target = join(
+      directory,
+      document.id + (document.mediaType === "text/csv" ? ".csv" : ".pdf"),
+    );
     if (document.filePath !== target) await copyFile(document.filePath, target);
     const saved = { ...document, filePath: target };
     await writeJSON(join(directory, document.id + ".json"), saved);

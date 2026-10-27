@@ -6,7 +6,7 @@ import {
 } from "../models/index.js";
 import { normalizeParameters, validateInputs } from "../model/engine.js";
 import { registerAccessInputs } from "../model/register-access.js";
-import { extractPDFFile } from "../documents/extract-node.js";
+import { extractSourceFile } from "../documents/extract-source.js";
 import { referencePath } from "../documents/references.js";
 import { needsDocumentRefresh, replaceExtraction } from "../documents/cache.js";
 import { modelsForDocument, searchDocument } from "../documents/recognize.js";
@@ -320,7 +320,7 @@ export class TuiState {
         item.path?.startsWith("docs/references/"),
       );
     if (!source) throw new Error("Import a reference PDF with d first.");
-    const extracted = await extractPDFFile(
+    const extracted = await extractSourceFile(
       referencePath(source, { root: this.root }),
       {
         onProgress,
@@ -710,7 +710,7 @@ export class TuiState {
       );
     let extracted;
     try {
-      extracted = await extractPDFFile(existing.filePath, { onProgress });
+      extracted = await extractSourceFile(existing.filePath, { onProgress });
     } catch (error) {
       if (error.code === "ENOENT")
         throw new Error(
@@ -738,8 +738,8 @@ export class TuiState {
   async loadFile(path, onProgress = () => {}) {
     path = resolve(path);
     if (/\.vcd$/i.test(path)) return this.loadWaveformFile(path);
-    if (/\.pdf$/i.test(path)) {
-      const extracted = await extractPDFFile(path, { onProgress });
+    if (/\.(pdf|csv)$/i.test(path)) {
+      const extracted = await extractSourceFile(path, { onProgress });
       const existing = this.documents.find(
         (d) => d.sha256 === extracted.sha256,
       );
@@ -765,6 +765,7 @@ export class TuiState {
       let compiled = null,
         createdCount = 0;
       if (
+        document.mediaType !== "text/csv" &&
         !this.models.some(
           (model) =>
             model.kind === "document" &&
@@ -821,7 +822,9 @@ export class TuiState {
           document.analysis?.diagnostics.length
             ? "PDF imported · table needs review: " +
                 document.analysis.diagnostics[0].reason
-            : "PDF imported · c creates a local scenario · / searches this manual",
+            : document.mediaType === "text/csv"
+              ? "CSV source imported · load its generated model/session · / searches the table"
+              : "PDF imported · c creates a local scenario · / searches this manual",
         );
       }
       if (errors.length)

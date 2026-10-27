@@ -229,6 +229,16 @@ overlapping glitches and invalid arrival ordering are rejected rather than
 repaired. Existing process, waveform and observer capture limits also apply;
 see [HDL.md](HDL.md).
 
+Native simulator time has a finite range measured at the finest precision in
+the entire design. Even a valid profile tick can exceed that range when a
+coarse environment unit is combined with fine DUT precision. Before each
+scheduled frame is driven, the generated module checks native elapsed time.
+A wrapped timestamp fails the run with `environment time overflow`; the invalid
+frame is not driven. Diagnostics, the full declared schedule and any partial
+waveform/debug recording remain available. Shorten the schedule or use suitable
+coarser design precision, then run into a new directory. A schedule ending after
+the testbench's `$finish` remains unexecuted, as with any other stimulus.
+
 The example values, time units, seed, clock/reset choices and assertion windows
 are experiment assumptions, not calibrated device properties. A successful
 run (`ok: true`) reports simulator/assertion status, not physical suitability.

@@ -11,6 +11,8 @@ import { normalizeParameters } from "../src/model/engine.js";
 import { views } from "../src/tui/views.js";
 import { AgentMonitor } from "../src/tui/agent-monitor.js";
 export async function main(args = process.argv.slice(2)) {
+  if (args[0] === "table")
+    return (await import("../src/tables/commands.js")).main(args.slice(1));
   if (["design", "job", "artifact", "checks"].includes(args[0])) {
     return (await import("../src/design/cli.js")).main(args);
   }
@@ -22,7 +24,7 @@ export async function main(args = process.argv.slice(2)) {
     const hdl = await import("./hdl.mjs");
     return hdl.main(args.slice(1));
   }
-  const usage = `ChipSim · terminal hardware behavior workbench\nUsage: npm start -- [options]\n  --model pio|pru|flexio|udb|xmos|etpu|model.json\n  --document manual.pdf       Import a PDF; compile supported tables or reviewed profiles
+  const usage = `ChipSim · terminal hardware behavior workbench\nUsage: npm start -- [options]\n  --model pio|pru|flexio|udb|xmos|etpu|model.json\n  --document manual.pdf|map.csv Import source evidence; CSV uses one logical source page
   --list-profiles              List reviewed automatic document profiles
   --vcd trace.vcd|waveform.json Read-only HDL waveform replay
   --hdl-debug RUN/debug.json   Synchronized source / RTL / signal event replay
@@ -32,11 +34,11 @@ export async function main(args = process.argv.slice(2)) {
   --no-debug                  With --hdl: ordinary waveform-only simulation
   --agent PROJECT            Live agent goals, candidates, events and debug evidence
   --design PROJECT           Open the versioned project workbench; 0 returns to Project\n  --dwfv /path/to/dwfv        Optional external viewer command
-  --watch PROJECT             Monitor agent activity and completed runs\n  --workspace .chipsim        Persistent local workspace directory\n  --program experiment.chip   Load a source experiment; 9 opens line debugger\n  --params parameters.json    Parameter overrides\n  --inputs events.json        Timed input stimulus\n  --ticks 100                 Duration for document models\n  --snapshot                  Print one terminal frame without a TTY\n  --at 0 --columns 120 --rows 40  Snapshot dimensions and cursor\n  --view wave|inspect|log|sources|model|registers|stimulus|activity|program|states|flow|compare|debug|project|pipeline|artifacts|checks\n  --no-color                  Disable colored text\n  --help                      Show this help\n\nInside the TUI: ? help · m models · p params · i pins · d import · c create · q quit.\nVisuals: g states · v bit flow · Y capture reference · D compare.\nOptional waveform viewer: V opens the exported trace in installed dwfv.\n`;
+  --watch PROJECT             Monitor agent activity and completed runs\n  --workspace .chipsim        Persistent local workspace directory\n  --program experiment.chip   Load a source experiment; 9 opens line debugger\n  --params parameters.json    Parameter overrides\n  --inputs events.json|csv    Timed input stimulus\n  --ticks 100                 Duration for document models\n  --snapshot                  Print one terminal frame without a TTY\n  --at 0 --columns 120 --rows 40  Snapshot dimensions and cursor\n  --view wave|inspect|log|sources|model|registers|stimulus|activity|program|states|flow|compare|debug|project|pipeline|artifacts|checks\n  --no-color                  Disable colored text\n  --help                      Show this help\n\nInside the TUI: ? help · m models · p params · i pins · d import · c create · q quit.\nVisuals: g states · v bit flow · Y capture reference · D compare.\nOptional waveform viewer: V opens the exported trace in installed dwfv.\n`;
   if (args.includes("--help") || args.includes("-h")) {
     process.stdout.write(usage);
     process.stdout.write(
-      "Project commands: chipsim design commands · design guide [TOPIC] · design status --project PROJECT · design help · job · artifact · checks.\nCoding agents: chipsim agent help · local PDF search, validation and trace artifacts without a TTY.\n",
+      "CSV tables: chipsim table registers|stimulus · table help.\nProject commands: chipsim design commands · design guide [TOPIC] · design status --project PROJECT · design help · job · artifact · checks.\nCoding agents: chipsim agent help · local PDF search, validation and trace artifacts without a TTY.\n",
     );
     return;
   }
@@ -197,7 +199,9 @@ export async function main(args = process.argv.slice(2)) {
   }
   if (options.inputs)
     state.setInputs(
-      JSON.parse(await readFile(resolve(options.inputs), "utf8")),
+      await (
+        await import("../src/tables/stimulus.js")
+      ).readInputFile(resolve(options.inputs), state.model.signals),
     );
   if (options.ticks) state.setDuration(Number(options.ticks));
   if (options.at) {

@@ -2,6 +2,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { registerModel, defaultParameters } from "../src/models/index.js";
 import { exportCSV, exportJSON, exportVCD } from "../src/trace/export.js";
+import { readInputFile } from "../src/tables/stimulus.js";
 const [command, file, ...args] = process.argv.slice(2);
 const option = (name) => {
   const index = args.indexOf("--" + name);
@@ -33,7 +34,7 @@ try {
         ? JSON.parse(await readFile(option("params"), "utf8"))
         : defaultParameters(model),
       inputs = option("inputs")
-        ? JSON.parse(await readFile(option("inputs"), "utf8"))
+        ? await readInputFile(option("inputs"), model.signals)
         : model.exampleInputs || [];
     const trace = model.simulate(parameters, {
       ticks: option("ticks") ? Number(option("ticks")) : undefined,

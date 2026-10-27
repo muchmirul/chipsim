@@ -1,5 +1,11 @@
 # Entered register banks
 
+For an original hardware specification without a PDF, use
+`chipsim table registers MAP.csv --width 32 --priority after --name "My CSR" --out NEW_DIRECTORY`.
+This creates a CSV-source-linked model, traces and terminal session. The five
+columns are `name,address,mode,reset,mask`. Existing row-file prompts also accept
+CSV. See [CSV_INPUTS.md](CSV_INPUTS.md) for examples and provenance limits.
+
 Import a searchable manual with `d`, press `c`, and choose **Register bank**. This builds a source-linked register experiment from explicit addresses, reset words, masks, and access rules. The model uses the same `u` register menu, waveforms, logs, stimulus timeline, sessions, and JSON/CSV/VCD exports as reviewed chip profiles.
 
 The builder does not infer a register map or semantics from PDF prose. A matching source quote establishes provenance; generated checks establish consistency with the entered rules. Review every address, width, reset domain, access mode, mask, and ordering rule against the manual before treating the experiment as a device model. Its scope, rules, synthetic events, and omissions remain visible in Model view (`5`) and exported JSON (`M`).

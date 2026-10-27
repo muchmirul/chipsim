@@ -222,6 +222,10 @@ test("general commands keep arguments literal, enforce bounds and forward cwd/ca
       /Pass ChipSim arguments/,
     );
   assert.deepEqual(commandArguments(), { args: ["--help"], textOutput: true });
+  assert.deepEqual(commandArguments(["table", "help"]), {
+    args: ["table", "help"],
+    textOutput: false,
+  });
 });
 
 test("one general tool drives discovery, durable jobs, evidence, checks and snapshots", async (t) => {

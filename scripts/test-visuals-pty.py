@@ -40,7 +40,7 @@ for columns, rows in [(80, 24), (120, 40)]:
             assert 'DATA [0]' in frame() and '1/8 samples' in frame()
             send('Y'); wait('Reference captured')
             send('D'); wait('0 differing ticks')
-            send('d'); wait('Import PDF, model/session JSON, or VCD')
+            send('d'); wait('Import PDF, CSV source, model/session JSON, or VCD')
             send(str(missing)+'\r'); wait('first 35')
             assert 'success' in frame() and 'timeout' in frame()
             send('r]'); wait('tick 35/59')

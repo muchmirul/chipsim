@@ -325,7 +325,20 @@ export function generateEnvironment(input) {
   ];
   let previousTick = 0;
   for (const current of frames) {
-    if (current.tick) lines.push("    #" + (current.tick - previousTick) + ";");
+    if (current.tick) {
+      lines.push("    #" + (current.tick - previousTick) + ";");
+      // Native simulators store time at the finest precision of the whole
+      // design, which can be much finer than this module's unit. A bounded
+      // profile tick can still wrap that counter. Check native elapsed time
+      // before driving the frame instead of trusting a successful process exit.
+      lines.push(
+        "    if ($time != " +
+          current.tick +
+          ') $fatal(1, "ChipSim environment time overflow at tick ' +
+          current.tick +
+          '; reduce the schedule duration or use coarser design precision.");',
+      );
+    }
     lines.push(
       "    {nominal, disturbed} = " +
         2 * width +

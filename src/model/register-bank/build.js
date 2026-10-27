@@ -15,6 +15,8 @@ export function buildRegisterBank(document, options) {
   const width = Number(options.width),
     rows = readRegisterRows(options.rows, width);
   const priority = options.hardwarePriority;
+  const csv = document?.mediaType === "text/csv";
+  const evidenceId = csv ? "register-table" : "manual-excerpt";
   if (!["before", "after"].includes(priority))
     throw new Error(
       "Choose hardware-set priority before or after the bus operation.",
@@ -104,7 +106,7 @@ export function buildRegisterBank(document, options) {
     message,
     actions: [],
     active: ["bus", "storage"],
-    evidence: ["manual-excerpt"],
+    evidence: [evidenceId],
   });
   const transitions = [
     transition(
@@ -289,7 +291,7 @@ export function buildRegisterBank(document, options) {
       address: row.address,
       value: "reg." + id(row),
       access: ["ro", "rc"].includes(row.mode) ? "ro" : "rw",
-      evidence: ["manual-excerpt"],
+      evidence: [evidenceId],
     })),
     nodes: [
       {
@@ -350,7 +352,10 @@ export function buildRegisterBank(document, options) {
     exampleInputs,
     checks,
     assumptions: [
-      "Every entered address is a distinct scenario address, without implicit base offsets, alignment checks, byte lanes, aliases or address arithmetic. All words have the declared width. These values, modes, reset values and masks require review against the cited manual.",
+      "Every entered address is a distinct scenario address, without implicit base offsets, alignment checks, byte lanes, aliases or address arithmetic. All words have the declared width. These values, modes, reset values and masks require review against " +
+        (csv
+          ? "the intended hardware specification; the CSV is developer-authored input."
+          : "the cited manual."),
       "A request-token change after tick zero performs one addressed word. Held tokens do not replay changed fields; tick zero initializes storage and the token baseline. Valid/error are tool status, not hardware ACK/NACK. Reset dominates accesses and hardware-set events and captures the current token baseline.",
       "rw replaces mask-selected bits; w1c clears mask-selected written ones; w1s sets mask-selected written ones. ro ignores writes and requires mask zero. rc ignores writes and clears mask-selected bits after returning the pre-clear word. Other bits retain their previous value.",
       `set_NAME inputs are synthetic word-wide bit-set events, not physical chip pins. Nonzero levels reassert on every model step. Hardware set runs ${priority} the bus operation; reset dominates both. With before ordering, reads include this tick's set bits; with after ordering, reads return the prior storage. No interrupt or physical peripheral event source is inferred.`,

@@ -30,20 +30,27 @@ export class SourceSimulations {
       "SIMULATIONS · " + document.filename,
       [
         ...sourceModelItems(document, state.models),
+        ...(document.mediaType === "text/csv"
+          ? []
+          : [
+              {
+                label: "Find supported simulations in saved PDF",
+                detail:
+                  "Reread the saved PDF locally and check available reviewed profiles/function tables. Preview scope before creating a new model. Existing models and experiments are preserved.",
+                value: { kind: "find" },
+              },
+              {
+                label: "Create a sourced scenario",
+                detail:
+                  "Choose counter, FIFO, shift transfer, behavior table or register bank. Enter and review the rules this manual does not yet compile automatically.",
+                value: { kind: "create" },
+              },
+            ]),
         {
-          label: "Find supported simulations in saved PDF",
-          detail:
-            "Reread the saved PDF locally and check available reviewed profiles/function tables. Preview scope before creating a new model. Existing models and experiments are preserved.",
-          value: { kind: "find" },
-        },
-        {
-          label: "Create a sourced scenario",
-          detail:
-            "Choose counter, FIFO, shift transfer, behavior table or register bank. Enter and review the rules this manual does not yet compile automatically.",
-          value: { kind: "create" },
-        },
-        {
-          label: "Read/search this manual",
+          label:
+            document.mediaType === "text/csv"
+              ? "Read/search this CSV table"
+              : "Read/search this manual",
           detail:
             "Return to source text at the current page. / searches; h/l changes PDF page. Reading a manual does not change the running experiment.",
           value: { kind: "read" },

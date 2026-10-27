@@ -152,6 +152,13 @@ try {
     "src/hdl/vcd.js",
     "src/hdl/run.js",
     "src/hdl/environment.js",
+    "src/tables/commands.js",
+    "src/tables/csv.js",
+    "src/tables/stimulus.js",
+    "src/documents/extract-source.js",
+    "docs/CSV_INPUTS.md",
+    "examples/csv/registers.csv",
+    "examples/csv/stimulus.csv",
     "docs/HDL_ENVIRONMENT.md",
     "examples/hdl/environment/baseline.project.json",
     "examples/hdl/environment/tb.sv",
@@ -383,6 +390,66 @@ try {
   );
   assert.equal((await cli(["doctor"])).pdfTools.length, 2);
   const installed = join(prefix, "lib/node_modules/chipsim");
+  const csvBank = JSON.parse(
+    (
+      await run(
+        binary,
+        [
+          "table",
+          "registers",
+          join(installed, "examples/csv/registers.csv"),
+          "--width",
+          "32",
+          "--priority",
+          "after",
+          "--name",
+          "Installed CSR",
+          "--out",
+          join(cwd, "CSV bank"),
+        ],
+        { cwd },
+      )
+    ).stdout,
+  );
+  assert.equal(csvBank.ok, true);
+  assert.ok(csvBank.checks.every((check) => check.passed));
+  const csvStimulus = join(installed, "examples/csv/stimulus.csv");
+  const csvConverted = JSON.parse(
+    (
+      await run(
+        binary,
+        [
+          "table",
+          "stimulus",
+          csvStimulus,
+          "--model",
+          csvBank.artifacts["model.json"],
+          "--out",
+          join(cwd, "CSV inputs"),
+        ],
+        { cwd },
+      )
+    ).stdout,
+  );
+  assert.equal(csvConverted.ok, true);
+  const csvSnapshot = await run(
+    binary,
+    [
+      ...csvBank.tui.slice(1),
+      "--inputs",
+      csvStimulus,
+      "--snapshot",
+      "--view",
+      "registers",
+      "--at",
+      "5",
+      "--workspace",
+      join(cwd, "CSV workspace"),
+    ],
+    { cwd },
+  );
+  assert.match(csvSnapshot.stdout, /CONTROL/);
+  assert.doesNotMatch(csvSnapshot.stdout, /UNVERIFIED/);
   assert.equal(
     help.documentation["AGENT_CONTROL.md"],
     join(installed, "docs/AGENT_CONTROL.md"),

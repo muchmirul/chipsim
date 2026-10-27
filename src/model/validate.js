@@ -351,7 +351,7 @@ export function validateModel(model, documents = []) {
   }
   for (const source of sources)
     if (!/^[a-f0-9]{64}$/.test(source.sha256 || ""))
-      fail(`sources.${source.id}.sha256`, "required PDF SHA-256");
+      fail(`sources.${source.id}.sha256`, "required source SHA-256");
   const normalize = (value) => String(value).replace(/\s+/g, " ").trim();
   for (const item of evidence) {
     const source = definitions.sources?.get(item.sourceId);
@@ -376,7 +376,9 @@ export function validateModel(model, documents = []) {
       if (!page || !normalize(page.text).includes(normalize(item.quote)))
         fail(
           `evidence.${item.id}`,
-          "quote does not occur on the stated PDF page",
+          document.mediaType === "text/csv"
+            ? "quote does not occur on the stated CSV source page"
+            : "quote does not occur on the stated PDF page",
         );
     } else
       warnings.push(

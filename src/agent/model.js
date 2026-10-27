@@ -11,6 +11,7 @@ import { builtinModels } from "../models/index.js";
 import { exportCSV, exportJSON, exportVCD } from "../trace/export.js";
 import { loadProject } from "./project.js";
 import { AgentError, readJSON, createDirectory, writeJSON } from "./io.js";
+import { readInputFile } from "../tables/stimulus.js";
 
 export async function checkModel(
   file,
@@ -79,7 +80,9 @@ export async function runModel(file, project, output, options = {}) {
   const parameters = normalizeParameters(spec.parameters, supplied);
   const inputs = validateInputs(
     spec.signals,
-    options.inputs ? await readJSON(options.inputs) : spec.exampleInputs || [],
+    options.inputs
+      ? await readInputFile(options.inputs, spec.signals)
+      : spec.exampleInputs || [],
   );
   const duration = options.ticks ?? spec.duration ?? 100;
   await options.progress?.(

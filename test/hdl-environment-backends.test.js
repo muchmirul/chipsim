@@ -112,7 +112,11 @@ function settled(data, ns) {
   return values;
 }
 
-async function environmentArtifacts(run, expectedProfile) {
+async function environmentArtifacts(
+  run,
+  expectedProfile,
+  expectedSource = source,
+) {
   assert.equal(
     run.result.artifacts.environment,
     join(run.result.root, "environment.json"),
@@ -131,7 +135,7 @@ async function environmentArtifacts(run, expectedProfile) {
     assert.equal(entry.bytes, bytes.length);
     assert.equal(entry.sha256, digest(bytes), entry.file);
   }
-  assert.equal(run.result.sources[0].sha256, digest(source));
+  assert.equal(run.result.sources[0].sha256, digest(expectedSource));
   assert.deepEqual(report.generatedSource, {
     file: "chipsim_environment.sv",
     sha256: run.result.sources[1].sha256,
@@ -293,6 +297,67 @@ test(
     assert.equal(settled(wave, 15)["tb.sampled"], "1");
     const endFs = BigInt(wave.events.at(-1).time) * scaleFs(wave.timescale);
     assert.ok(endFs >= 14000000n && endFs < 35000000n);
+  },
+);
+
+test(
+  "native time overflow fails before driving a wrapped environment edge",
+  { skip: !real, timeout: 120000 },
+  async (t) => {
+    const root = await workspace(t);
+    await writeFile(
+      join(root, "tb.sv"),
+      `\`timescale 1ns/1ps
+module tb;
+  wire [0:0] nominal, disturbed;
+  chipsim_environment env(nominal, disturbed);
+  initial begin $dumpfile("trace.vcd"); $dumpvars(0,tb); end
+  always @(posedge disturbed[0]) $finish;
+endmodule
+`,
+    );
+    const large = structuredClone(profile);
+    large.timeUnit = "1s";
+    Object.assign(large.channels[0], {
+      delayTicks: 0,
+      offsetTicks: 0,
+      jitterTicks: 0,
+      events: [{ tick: 1000000000, value: 1 }],
+      glitches: [],
+    });
+    const run = await runHDL(
+      await project(root, "overflow", large),
+      join(root, "overflow-run"),
+      { debug: false },
+    );
+    assert.equal(run.result.ok, false);
+    assert.match(
+      run.result.error,
+      /environment time overflow at tick 1000000000/,
+    );
+    const report = await environmentArtifacts(
+      run,
+      large,
+      await readFile(join(root, "tb.sv")),
+    );
+    assert.equal(report.edges[0].arrivalTick, 1000000000);
+    const wave = await readWaveform(run.result.artifacts.vcd);
+    assert.ok(
+      !wave.events.some((event) => event.changes["tb.disturbed"] === "1"),
+    );
+
+    // The same large schedule is representable when every module uses seconds.
+    const tb = await readFile(join(root, "tb.sv"), "utf8");
+    await writeFile(join(root, "tb.sv"), tb.replace("1ns/1ps", "1s/1s"));
+    const safe = await runHDL(
+      await project(root, "coarse", large),
+      join(root, "coarse-run"),
+      { debug: false },
+    );
+    assert.equal(safe.result.ok, true, safe.result.error);
+    assert.deepEqual(safe.waveform.timescale, { magnitude: "1", unit: "s" });
+    assert.equal(safe.waveform.events.at(-1).time, "1000000000");
+    assert.equal(safe.waveform.events.at(-1).changes["tb.disturbed"], "1");
   },
 );
 

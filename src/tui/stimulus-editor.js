@@ -105,7 +105,7 @@ export class StimulusEditor {
         { label: "Schedule an input event", value: "add" },
         { label: "Clear all explicit events · U to undo", value: "clear" },
         { label: "Restore demonstration events · U to undo", value: "restore" },
-        { label: "Load JSON array or file", value: "load" },
+        { label: "Load JSON array or JSON/CSV file", value: "load" },
       ],
       (action) => {
         if (action === "add") this.schedule();

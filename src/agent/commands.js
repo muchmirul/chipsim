@@ -263,6 +263,7 @@ export async function agentCommand(args) {
             "DESIGN_INPUTS.md",
             "LOCAL_REFERENCES.md",
             "LICENSING.md",
+            "CSV_INPUTS.md",
             "DESIGN.md",
             "HDL.md",
             "HDL_DEBUG.md",

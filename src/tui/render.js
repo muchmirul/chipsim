@@ -310,7 +310,9 @@ function sources(state, height) {
   return [
     row(
       document.filename +
-        " · PDF page " +
+        (document.mediaType === "text/csv"
+          ? " · CSV source page "
+          : " · PDF page ") +
         state.page +
         "/" +
         document.pages.length +
@@ -325,19 +327,21 @@ function sources(state, height) {
       "selected",
     ),
     row(
-      "j/k scroll · h/l page · / search · n/N matches · Enter choose PDF",
+      "j/k scroll · h/l page · / search · n/N matches · Enter choose source",
       "dim",
     ),
     row(
       state.model.sources.some((source) => source.sha256 === document.sha256)
         ? "Reference for " + state.model.name
-        : "Browsing another PDF · model: " + state.model.name,
+        : (document.mediaType === "text/csv"
+            ? "Browsing another CSV source · model: "
+            : "Browsing another PDF · model: ") + state.model.name,
       "dim",
     ),
     ...text
       .slice(state.sourceScroll, state.sourceScroll + height - 6)
       .map((text) => row(text)),
-    row("o simulations and scope for this PDF · B export sources", "dim"),
+    row("o simulations and scope for this source · B export sources", "dim"),
   ];
 }
 function registerTable(state, height) {
@@ -490,7 +494,13 @@ function modelInfo(state, height) {
       (s) => (s.title || s.filename || s.id) + " · SHA " + s.sha256,
     ),
     ...(m.evidence || []).flatMap((e) => [
-      "PDF page " + e.page + ": " + e.claim,
+      (m.sources.find((source) => source.id === e.sourceId)?.mediaType ===
+      "text/csv"
+        ? "CSV source page "
+        : "PDF page ") +
+        e.page +
+        ": " +
+        e.claim,
       "“" + e.quote + "”",
     ]),
     ...(m.warnings || []).map((w) => "UNVERIFIED: " + w),
