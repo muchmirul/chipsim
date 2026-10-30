@@ -94,6 +94,11 @@ for columns, rows in [(80, 24), (120, 40)]:
             wait("Implementing counter")
             send("c")
             wait("CANDIDATES")
+            wait("← root")
+            publish({"kind": "candidate", "candidate": "unobserved",
+                     "status": "running", "message": "Ancestry not supplied"})
+            wait("← unknown")
+            send("k")
             publish({"kind": "evaluation", "candidate": "candidate-1", "status": "passed",
                      "message": "Review recorded fixture", "metrics": {"cases": {"value": 4, "unit": "tests"}},
                      "evidence": {"project": str(project), "artifact": debug_artifact["id"]}})

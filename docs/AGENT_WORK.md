@@ -264,6 +264,15 @@ single-candidate bridge checks evaluation/reporting, **not an LLM-driven search*
 Actual evolution requires a separately installed OpenEvolve environment and a
 user-configured model. Mode `evolution` alone runs no search.
 
+For project-defined objectives, see [EVOLUTION.md](EVOLUTION.md), also copied
+into newly prepared projects. Discover the installed template through
+`examples.evolution.workflows`. The external runner isolates configuration and
+cancellation per invocation, gates measured fitness on managed checks, imports
+recorded checkpoint ancestry and bounds overall search wall time. Candidate
+rows show `root` only for explicit generation zero; absent ancestry otherwise
+shows `unknown`. Fresh finalist measurements keep an observed individual's ID.
+These remain agent reports; verify the linked managed evidence separately.
+
 Keep testbenches, reference behavior, scoring code, tool configuration and
 constraints outside the mutable candidate. Use distinct worker projects for
 parallel candidates: ChipSim executes one design job at a time per project.

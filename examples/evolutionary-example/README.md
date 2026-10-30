@@ -4,6 +4,12 @@ Three teaching examples share one evaluator and search runner. Only candidate
 RTL changes; each goal has a fixed interface, testbench and Python scorer.
 Use `--example NAME`; the default is `counter`.
 
+For your own managed RTL project, use `--workflow workflow.json` with declared
+correctness checks and measured objectives. See [Project-defined evolution](../../docs/EVOLUTION.md)
+and the [runnable activity workflow](project-workflow/README.md). Verilog and
+VHDL candidates can use real tool-produced reports with explicit metric units,
+directions, ranges and weights.
+
 | Example                                        | Goal                                          | Baseline | Selected RTL, fresh check |
 | ---------------------------------------------- | --------------------------------------------- | -------- | ------------------------- |
 | [Counter](counter/README.md)                   | Reset; increment when enabled; otherwise hold | 11/80    | 80/80                     |
@@ -62,7 +68,10 @@ use the runner path from `chipsim agent help`; it resolves the packaged CLI.
 Each command creates a work session and isolated evaluation projects. To append
 manual evaluations to an existing nonterminal session, use `--session UUID`;
 the caller then closes that session. `--parent ID --generation N` records known
-lineage; the adapter does not infer it from an evaluation callback.
+lineage for manual work. Each call has an exclusive configuration and cancellation
+marker under `evaluations/SESSION/invocations/INVOCATION/`; appending never
+replaces an active invocation's configuration. Invalid inputs reject before
+creating invocation state. Both UUIDs are printed and returned.
 
 ## Agent-assisted mode: verified example
 
@@ -104,11 +113,11 @@ evaluator:
 mkdir -p /tmp/counter-search
 /path/to/approved/venv/bin/python examples/evolutionary-example/run.py evolve \
   --project /tmp/counter-search --config /path/to/agent-assisted.yaml \
-  --iterations 2 --timeout 60
+  --iterations 2 --timeout 60 --search-timeout 900
 ```
 
 Read each actual prompt at
-`evaluations/SESSION/openevolve/manual_tasks_queue/TASK_UUID.json`.
+`evaluations/SESSION/invocations/INVOCATION/openevolve/manual_tasks_queue/TASK_UUID.json`.
 Write an adjacent `TASK_UUID.answer.json` with the requested diff, for example:
 
 ```json
@@ -117,8 +126,9 @@ Write an adjacent `TASK_UUID.answer.json` with the requested diff, for example:
 }
 ```
 
-The model name is a queue label, not an endpoint. The queue may wait indefinitely;
-`llm.timeout` does not bound that wait in the inspected version. Respond or cancel.
+The model name is a queue label, not an endpoint. `llm.timeout` does not bound
+queue waits in the inspected version; the supervisor's `--search-timeout` does.
+Respond within that budget or cancel.
 The adder and encoder READMEs provide their own one-iteration configurations.
 Do not reuse the counter prompt for another interface.
 
@@ -167,11 +177,21 @@ gates; functional scores are not PPA measurements.
 ## Search settings and cancellation
 
 `run.py` supervises `search.py`, which calls OpenEvolve's public `run_evolution`
-API. The worker retains checkpoints under `evaluations/SESSION/openevolve` and
-writes `evaluations/SESSION/selected.sv`. `evaluator.py` returns `EvaluationResult`.
+API. The worker retains checkpoints under
+`evaluations/SESSION/invocations/INVOCATION/openevolve` and writes `selected.sv`
+beside that directory (`.v`/`.vhd`/`.vhdl` follow custom workflow suffixes).
+`evaluator.py` returns `EvaluationResult`.
 The verified release is 0.4.0; incompatible APIs fail explicitly.
 
-The adapter overrides language/suffix to Verilog/`.sv`, enforces evolve blocks,
+The supervisor imports actual checkpoint parent/generation matched to evaluator
+identity and exact source hashes; callbacks alone supply no ancestry. Different
+optimizer individuals keep separate IDs even with identical code. The fresh
+finalist measurement retains its recorded identity, rather than adding a
+generation. Partial/unmatched records remain unknown. Activity labels root only
+for explicit generation zero; see [the lineage contract](../../docs/EVOLUTION.md).
+
+The adapter uses Verilog/`.sv` for built-ins or the custom workflow language/suffix,
+enforces evolve blocks, requests a checkpoint every iteration,
 limits code to 65,536 bytes, disables cascade/LLM feedback, uses one parallel
 evaluation with zero retries, and sets evaluator timeout to candidate timeout +
 60 seconds. Provider settings are unchanged.
@@ -180,6 +200,7 @@ evaluation with zero retries, and sets evaluator timeout to candidate timeout +
 | ------------------------------- | ------------------------------------------------------- |
 | Iterations                      | 1–100; default 5                                        |
 | Candidate evaluation            | 1–300 seconds; default 60                               |
+| Overall evolution wall time     | 1–86400 seconds; default 900                             |
 | HDL stage                       | Capped at 120 seconds                                   |
 | Scoring process                 | 10 seconds                                              |
 | Candidate / waveform / CLI JSON | 64 KiB / 8 MiB / 2 MiB                                  |
@@ -189,9 +210,12 @@ evaluation with zero retries, and sets evaluator timeout to candidate timeout +
 Ctrl-C/SIGTERM stops the search process group, requests managed-job cancellation,
 retains partial evidence and exits 130. Search shutdown escalates to KILL after
 at most five seconds. A best-so-far return after cancellation is not completion.
-The `CANCEL` marker blocks later worker evaluations. An evaluation deadline waits
+The invocation's `CANCEL` marker blocks later worker evaluations. An evaluation deadline waits
 up to five extra seconds for job shutdown, then records cancellation requested.
-The candidate timeout is not an overall search deadline or provider-call timeout.
+The overall deadline includes setup, queue waits and fresh finalist measurement.
+Expiry exits 124, closes the owned session as failed and requests active-job
+cancellation; late best-so-far results are not accepted. Cleanup can take extra
+time. Provider-side call/spending limits remain externally configured.
 
 SIGKILL cannot clean up: use `chipsim job cancel JOB --project ISOLATED_PROJECT`
 or native task deadlines. Closing Activity or a work summary does not cancel jobs.
@@ -200,13 +224,15 @@ Evidence is not deleted; start a new session/project when storage limits are rea
 ## Regression checks
 
 ```sh
-node --test test/evolution.test.js
-CHIPSIM_TEST_EVOLUTION=1 node --test test/evolution.test.js
+node --test test/evolution.test.js test/evolution-workflow.test.js
+CHIPSIM_TEST_EVOLUTION=1 node --test test/evolution.test.js test/evolution-workflow.test.js
 ```
 
 The first checks scorers, import/help and a provider-free API/signal fixture—not a
 search. The second adds real managed Icarus evaluations, spoofed-metric rejection,
-compile failure and cancellation. Stop source edits during managed jobs: runtime
+compile failure, custom measured objectives, checkpoint identity, fresh finalist
+jobs and queue/simulation deadline cancellation. These API fixtures perform no
+model search. Stop source edits during managed jobs: runtime
 fingerprints detect changes.
 
 Examples are original MIT-licensed ChipSim code. OpenEvolve is separately installed

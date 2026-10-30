@@ -1,0 +1,8 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "language": "verilog",
+  "standard": "2012",
+  "top": "counter_tb",
+  "sources": ["counter.sv", "counter_tb.sv"]
+}

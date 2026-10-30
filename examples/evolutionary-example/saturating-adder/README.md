@@ -52,7 +52,7 @@ With an approved installed OpenEvolve environment, start a new one-iteration run
 /path/to/your/venv/bin/python examples/evolutionary-example/run.py evolve \
   --example saturating-adder --project /tmp/saturating-adder-work \
   --config examples/evolutionary-example/saturating-adder/manual-mode.yaml \
-  --iterations 1 --timeout 60
+  --iterations 1 --timeout 60 --search-timeout 900
 ```
 
 A human or existing agent must answer the queue; no responder starts automatically.

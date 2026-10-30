@@ -5,6 +5,83 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-30 — Isolate evolution invocation state
+
+**Context:** Appending even a rejected manual candidate could overwrite a live
+search's session-level adapter configuration, changing subsequent evaluations.
+**Use/behavior:** `run.py evaluate --session UUID` now validates inputs before
+creating invocation state, then writes an exclusive configuration under
+`evaluations/SESSION/invocations/INVOCATION/`. Each call has independent worker
+projects and a cancellation marker; output includes both UUIDs. The caller
+continues to own closure of an appended session.
+**Limits/preservation:** Existing session-level files and other invocations are
+preserved. This is application-level input isolation, not an OS sandbox.
+**Implementation/checks:** `run.py`, `evaluator.py`, `support.py`;
+`test/evolution-workflow.test.js` checks rejected appends, exclusive writes and
+cancellation isolation. See [EVOLUTION.md](EVOLUTION.md).
+
+## 2026-10-30 — Project-defined measured evolution objectives
+
+**Context:** Three hardcoded functional-repair goals could not evaluate a chip
+developer's own managed RTL flow or measured optimization objectives.
+**Use/behavior:** `run.py evaluate|evolve --workflow FILE` accepts explicit fixed
+template files, one mutable Verilog/VHDL source, a managed target with required
+checks, a named report producer and objective units/directions/ranges/weights.
+Frozen input hashes are checked on every copy. The adapter verifies exact run
+attempt/artifact identity before accepting finite measured values, normalizes
+and weights fitness, and gates it on required readiness checks. A runnable
+counter activity example and installed agent discovery demonstrate the format.
+**Limits/preservation:** 256 files, 4 MiB/file, 16 MiB total, 64 KiB candidate and
+16 objectives. Invalid/incomplete custom reports receive an explicit -1 penalty
+without invented measurements. Failed gates retain available raw metrics but
+block fitness. Existing built-in scores and zero penalties stay compatible.
+Physical PPA needs real tools/reports/libraries/constraints; the example measures
+simulation activity only and is not a useful physical optimization benchmark.
+**Implementation/checks:** `workflow.py`, evaluator producer lookup and
+`project-workflow/`; contract tests cover normalization, units, invalid bounds,
+path escape and changed trusted bytes. Real Icarus tests verify independent
+correctness gates, sealed evidence and measured activity. Installed checks cover
+packaged helper/template discovery. New prepared projects copy
+[EVOLUTION.md](EVOLUTION.md); existing project snapshots remain intact.
+
+## 2026-10-30 — Recorded optimizer ancestry and honest unknown labels
+
+**Context:** Evaluator callbacks supplied no parent/generation and the dashboard
+incorrectly labeled every missing parent as root. Source hashes also merged
+distinct optimizer individuals with identical RTL.
+**Use/behavior:** Optimizer evaluations receive unique attempt identities. The
+supervisor imports actual checkpoint parent/generation only after matching
+evaluator identity and code SHA-256; metrics remain those from managed evaluation.
+Finalist remeasurement uses a fresh job and retains observed identity/ancestry.
+Candidate rows show root only for explicit generation zero, otherwise unknown.
+**Limits/preservation:** Bounded OpenEvolve 0.4.0 checkpoint import; partial,
+malformed or unmatched records leave ancestry unknown. Manual parent/generation
+flags still record only caller-supplied facts; no guessed generations or metrics.
+Migration copies are not new variations. Polling preserves the inspected trace.
+**Implementation/checks:** `lineage.py`, evaluator callback and work-panel rows;
+checkpoint/protocol tests cover identical-code children, retained metrics and
+fresh finalist jobs. Unit/PTY checks inspect both terminal sizes. See
+[EVOLUTION.md](EVOLUTION.md) and [AGENT_WORK.md](AGENT_WORK.md).
+
+## 2026-10-30 — Overall evolution deadline
+
+**Context:** Candidate timeouts did not bound manual queue waits or total search
+duration, including the final independent evaluation.
+**Use/behavior:** `run.py evolve --search-timeout SECONDS` bounds invocation
+setup through fresh finalist measurement. Expiry returns 124, fails the owned
+session, stops the optimizer process group and requests invocation job
+cancellation. Late best-so-far results are not accepted. Candidate CLI waits
+also respect the remaining evaluation budget; interrupted launch replies trigger
+project job discovery/cancellation.
+**Limits/preservation:** POSIX timers/process groups; 1–86400 seconds, default
+900. Cleanup/journal writes can take extra time and process-group shutdown
+escalates after five seconds. Ctrl-C/SIGTERM remains exit 130. Provider-side
+spending limits and SIGKILL recovery remain external; evidence is retained.
+**Implementation/checks:** Supervisor timer and evaluator cleanup;
+provider-free protocol tests interrupt a queue that returns best-so-far on TERM,
+and real managed Icarus checks cancel a hanging finalist. No test starts a model
+turn. See [EVOLUTION.md](EVOLUTION.md).
+
 ## 2026-10-27 — Developer-authored CSV register experiments
 
 **Context:** Hardware developers maintain register maps in spreadsheets and

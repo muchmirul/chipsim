@@ -4,7 +4,8 @@ import os
 from pathlib import Path
 import sys
 
-from evaluator import HERE, read_json
+from evaluator import HERE
+from support import read_json, write_json
 
 
 def main():
@@ -13,11 +14,12 @@ def main():
     from openevolve.config import load_config
 
     adapter_file, config_file, candidate, iterations = sys.argv[1:]
-    adapter = read_json(adapter_file, 16384)
-    directory = Path(adapter["project"]) / "evaluations" / adapter["session"]
+    adapter = read_json(adapter_file, 262144)
+    directory = Path(adapter_file).parent
     config = load_config(config_file)
-    config.language = "verilog"
-    config.file_suffix = ".sv"
+    config.language = adapter.get("language", "verilog")
+    config.file_suffix = adapter.get("suffix", ".sv")
+    config.checkpoint_interval = 1
     config.enforce_evolve_blocks = True
     config.max_code_length = 65536
     config.evaluator.cascade_evaluation = False
@@ -31,7 +33,8 @@ def main():
                            output_dir=str(directory / "openevolve"), cleanup=False)
     if result.best_program is None:
         raise RuntimeError("OpenEvolve returned no best candidate")
-    (directory / "selected.sv").write_text(result.best_code)
+    (directory / ("selected" + config.file_suffix)).write_text(result.best_code, encoding="utf-8")
+    write_json(directory / "selected.json", {"id": result.best_program.id}, exclusive=True)
 
 
 if __name__ == "__main__":

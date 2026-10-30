@@ -1,0 +1,70 @@
+{
+  "format": "chipsim-design",
+  "version": 1,
+  "id": "project-counter-activity",
+  "tasks": {
+    "simulate": {
+      "adapter": "hdl",
+      "options": { "project": "sim.project.json", "debug": false },
+      "outputs": [{ "path": "out/waveform.json", "kind": "waveform" }]
+    },
+    "correctness": {
+      "adapter": "command",
+      "inputs": ["score.py"],
+      "bindings": [
+        {
+          "task": "simulate",
+          "output": "out/waveform.json",
+          "path": "waveform.json"
+        }
+      ],
+      "options": {
+        "command": "python3",
+        "versionArgs": ["--version"],
+        "args": ["score.py", "waveform.json", "out/checks.json"]
+      },
+      "outputs": [{ "path": "out/checks.json", "kind": "report" }],
+      "checks": [
+        {
+          "name": "correctness",
+          "path": "out/checks.json",
+          "field": "combined_score",
+          "operator": "eq",
+          "value": 1,
+          "scope": "80 fixed counter observations"
+        }
+      ]
+    },
+    "activity": {
+      "adapter": "command",
+      "inputs": ["activity.py"],
+      "needs": ["correctness"],
+      "bindings": [
+        {
+          "task": "simulate",
+          "output": "out/waveform.json",
+          "path": "waveform.json"
+        }
+      ],
+      "options": {
+        "command": "python3",
+        "versionArgs": ["--version"],
+        "args": ["activity.py", "waveform.json", "out/metrics.json"]
+      },
+      "outputs": [{ "path": "out/metrics.json", "kind": "report" }]
+    }
+  },
+  "targets": {
+    "evaluation": {
+      "tasks": ["activity"],
+      "requiredChecks": [
+        "simulate:simulation",
+        "simulate:outputs",
+        "correctness:correctness",
+        "correctness:execution",
+        "activity:execution",
+        "activity:outputs"
+      ]
+    }
+  }
+}

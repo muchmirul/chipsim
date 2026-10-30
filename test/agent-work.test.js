@@ -478,8 +478,10 @@ test("work CLI discovers commands, validates bounded JSON files and emits one ve
   for (const path of [
     help.result.documentation["AGENT_CONTROL.md"],
     help.result.documentation["AGENT_WORK.md"],
+    help.result.documentation["EVOLUTION.md"],
     help.result.examples.evolution.guide,
     help.result.examples.evolution.runner,
+    help.result.examples.evolution.workflows["counter-activity"],
   ]) {
     assert.ok(path.startsWith(new URL("../", import.meta.url).pathname));
     assert.ok((await readFile(path)).length > 100);

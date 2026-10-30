@@ -208,6 +208,13 @@ See [live work commands and controls](docs/AGENT_WORK.md).
 
 ### OpenEvolve integration: agent-assisted RTL evolution
 
+For an existing chip-development flow, [project-defined evolution](docs/EVOLUTION.md)
+accepts fixed managed Verilog/VHDL inputs and tool-produced objective reports,
+with correctness gates, declared units and weighted fitness. The runner isolates
+each invocation, imports recorded ancestry and enforces an overall search budget.
+The [runnable custom example](examples/evolutionary-example/project-workflow/README.md)
+measures simulation activity; physical PPA requires your actual tool reports.
+
 The [evolution examples](examples/evolutionary-example/README.md) use fixed tests
 for three hardware goals. OpenEvolve manages candidate edits and selection;
 ChipSim runs isolated simulation and scoring jobs. The output is

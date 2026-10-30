@@ -47,7 +47,7 @@ To run a new search, save the counter YAML from the
 ```sh
 /path/to/your/venv/bin/python examples/evolutionary-example/run.py evolve \
   --example counter --project /tmp/counter-work \
-  --config /path/to/agent-assisted.yaml --iterations 2 --timeout 60
+  --config /path/to/agent-assisted.yaml --iterations 2 --timeout 60 --search-timeout 900
 ```
 
 A human or existing agent must answer the actual queue prompts; no responder starts

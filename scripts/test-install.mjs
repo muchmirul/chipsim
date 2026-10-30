@@ -85,6 +85,19 @@ try {
     "examples/evolutionary-example/run.py",
     "examples/evolutionary-example/search.py",
     "examples/evolutionary-example/evaluator.py",
+    "examples/evolutionary-example/support.py",
+    "examples/evolutionary-example/workflow.py",
+    "examples/evolutionary-example/lineage.py",
+    "examples/evolutionary-example/project-workflow/README.md",
+    "examples/evolutionary-example/project-workflow/workflow.json",
+    "examples/evolutionary-example/project-workflow/template/chipsim.design.json",
+    "examples/evolutionary-example/project-workflow/template/chipsim.lock.json",
+    "examples/evolutionary-example/project-workflow/template/sim.project.json",
+    "examples/evolutionary-example/project-workflow/template/counter.sv",
+    "examples/evolutionary-example/project-workflow/template/counter_tb.sv",
+    "examples/evolutionary-example/project-workflow/template/score.py",
+    "examples/evolutionary-example/project-workflow/template/activity.py",
+    "docs/EVOLUTION.md",
     "examples/evolutionary-example/counter/README.md",
     "examples/evolutionary-example/counter/EVOLUTION_EXAMPLE.md",
     "examples/evolutionary-example/saturating-adder/README.md",
@@ -454,7 +467,7 @@ try {
     help.documentation["AGENT_CONTROL.md"],
     join(installed, "docs/AGENT_CONTROL.md"),
   );
-  for (const name of ["HDL_DEBUG.md", "HDL_ENVIRONMENT.md"]) {
+  for (const name of ["HDL_DEBUG.md", "HDL_ENVIRONMENT.md", "EVOLUTION.md"]) {
     assert.equal(help.documentation[name], join(installed, "docs", name));
     assert.ok((await readFile(help.documentation[name])).length > 100);
   }
@@ -477,6 +490,26 @@ try {
   assert.match(evolutionHelp.stdout, /evaluate,evolve/);
   assert.match(evolutionHelp.stdout, /saturating-adder/);
   assert.match(evolutionHelp.stdout, /priority-encoder/);
+  assert.match(evolutionHelp.stdout, /--workflow/);
+  assert.match(evolutionHelp.stdout, /--search-timeout/);
+  assert.equal(
+    help.examples.evolution.workflows["counter-activity"],
+    join(
+      installed,
+      "examples/evolutionary-example/project-workflow/workflow.json",
+    ),
+  );
+  const installedWorkflow = await run(
+    "python3",
+    [
+      "-c",
+      "import sys; sys.path.insert(0,sys.argv[1]); from workflow import load_workflow; print(load_workflow(sys.argv[2])['objectives'][0]['name'])",
+      join(installed, "examples/evolutionary-example"),
+      help.examples.evolution.workflows["counter-activity"],
+    ],
+    { cwd },
+  );
+  assert.match(installedWorkflow.stdout, /output_bit_changes/);
   for (const name of ["counter", "saturating-adder", "priority-encoder"]) {
     assert.equal(
       help.examples.evolution.scenarios[name],

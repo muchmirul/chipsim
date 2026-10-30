@@ -381,9 +381,23 @@ only when that lineage is actually known. Add `--debug` only with the observer
 tools available. `--chipsim /path/to/chipsim` selects an explicit executable;
 otherwise the runner resolves its packaged Node CLI.
 
+Each call writes an exclusive invocation configuration and cancellation scope
+under `evaluations/SESSION/invocations/INVOCATION/`. Appended evaluations preserve
+other invocations and existing session-level files. Rejected inputs create no
+invocation; save both UUIDs from the runner output for recovery.
+
 Use `--example saturating-adder` or `--example priority-encoder` for the other
 fixed goals; the default is counter. `examples.evolution.scenarios` exposes each
 installed scenario guide. Select the matching candidate and system prompt.
+
+For an existing managed hardware workflow, use `--workflow workflow.json`
+instead of `--example`. [EVOLUTION.md](EVOLUTION.md) defines explicit fixed
+template files, one mutable Verilog/VHDL source, required correctness/constraint
+checks and a named producer's measured-objective report. Units, minimize/maximize
+directions, normalization bounds and weights are declared; fitness is gated by
+managed readiness. Real physical PPA requires actual tool reports and fixed
+libraries/constraints. The supplied `examples.evolution.workflows` entry measures
+waveform activity only. This guide is copied into new prepared projects.
 
 The counter measures `combined_score = checks_passed / 80`, dimensionless,
 maximized; the adder and encoder each use 256 exhaustive input observations.
@@ -402,19 +416,26 @@ settings or embed credentials without explicit authorization. Explain that RTL
 and feedback may leave the machine and charges may accrue.
 
 ```sh
-/path/to/approved/venv/bin/python /installed/examples/evolutionary-example/run.py evolve --project /path/to/work --config /path/to/approved-openevolve.yaml --iterations 5 --timeout 60
+/path/to/approved/venv/bin/python /installed/examples/evolutionary-example/run.py evolve --project /path/to/work --config /path/to/approved-openevolve.yaml --iterations 5 --timeout 60 --search-timeout 900
 ```
 
 Here 5 iterations and 60 seconds per evaluation are illustrative choices, not
-approval or a total cost/time cap. The runner bounds iterations to 1–100 and
-candidate evaluation time to 1–300 seconds. Provider call timeouts remain
+approval or a spending cap. The runner bounds iterations to 1–100 and
+candidate evaluation time to 1–300 seconds. `--search-timeout` bounds invocation
+setup, queue waits and fresh finalist measurement (1–86400 seconds, default 900).
+Expiry returns 124, fails the owned session and requests job cancellation without
+accepting a late selection; cleanup may take extra time. Provider call limits remain
 OpenEvolve's responsibility. Read the example guide's explicit adapter overrides
 and API requirements before use; it restricts the evolving program, scoring,
 parallelism and retries without configuring a provider.
 
 The external worker generates candidates. The supervisor independently
 reevaluates the selected source before reporting selection/completion. Its
-callback does not supply parent/generation, so the bridge does not invent them.
+callback does not supply parent/generation. The supervisor imports actual
+checkpoint ancestry only when evaluator IDs and exact code hashes match.
+Identical-code individuals remain distinct; finalist remeasurement keeps the
+observed identity. Unmatched ancestry stays unknown, with root shown only for
+explicit generation zero.
 Report actual attempts, failures and measured outcomes, not just best score.
 The example retains checkpoints and selected source under the session's
 `evaluations/` tree. Its Ctrl-C/SIGTERM handler stops the external optimizer

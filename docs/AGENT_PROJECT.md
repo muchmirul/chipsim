@@ -97,6 +97,16 @@ costs or private-data sharing. See the installed evolution guide. The counter
 example's functional score is neither formal proof nor PPA; handwritten fixture
 comparisons are not evidence of an LLM search.
 
+Read `docs/EVOLUTION.md` for project-defined managed evaluation via `--workflow`:
+list fixed inputs, independent required checks, the report producer and measured
+objective units/directions/bounds/weights. Discover installed examples using
+`agent help` → `examples.evolution.workflows`. Each invocation has its own
+configuration/cancellation scope. Use an explicit `--search-timeout` to bound
+queue waits and fresh finalist evaluation; expiry requests cancellation and
+accepts no late selection. Checkpoint ancestry must match real evaluation IDs
+and source hashes; missing ancestry stays unknown. Physical PPA requires real
+tool reports with fixed libraries and constraints, not functional scores.
+
 ## Digital input timing experiments
 
 For delay, jitter or glitches, read `docs/HDL_ENVIRONMENT.md`. Use a SystemVerilog

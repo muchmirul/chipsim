@@ -104,7 +104,7 @@ export function workRows(state, height) {
             row(
               (item === selected ? "› " : "  ") +
                 (w.tab === "candidates"
-                  ? `${short(item.id)} · ${item.status || "reported"} · ${metrics(item.metrics)} · gen ${item.generation ?? "—"} ← ${item.parent ? short(item.parent) : "root"} · ${item.message}`
+                  ? `${short(item.id)} · ${item.status || "reported"} · ${metrics(item.metrics)} · gen ${item.generation ?? "—"} ← ${item.parent ? short(item.parent) : item.generation === 0 ? "root" : "unknown"} · ${item.message}`
                   : `${item.time.slice(11, 19)} ${item.kind} ${item.status || ""} · ${item.candidate ? short(item.candidate) + " " : ""}${item.message}`),
               item === selected
                 ? "selected"

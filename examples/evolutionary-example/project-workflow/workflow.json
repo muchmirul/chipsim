@@ -1,0 +1,28 @@
+{
+  "format": "chipsim-evolution-workflow",
+  "version": 1,
+  "goal": "Preserve the independently checked counter contract and minimize observed output bit transitions; simulation activity only, no physical power claim",
+  "template": "template",
+  "candidate": "counter.sv",
+  "language": "verilog",
+  "files": [
+    "counter.sv",
+    "counter_tb.sv",
+    "score.py",
+    "activity.py",
+    "sim.project.json",
+    "chipsim.design.json",
+    "chipsim.lock.json"
+  ],
+  "target": "evaluation",
+  "report": { "task": "activity", "path": "out/metrics.json" },
+  "objectives": [
+    {
+      "name": "output_bit_changes",
+      "unit": "bit-transitions",
+      "direction": "minimize",
+      "range": [0, 200],
+      "weight": 1
+    }
+  ]
+}

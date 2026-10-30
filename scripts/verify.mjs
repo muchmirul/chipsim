@@ -120,6 +120,7 @@ for (const file of [
   "docs/AGENT_WORKFLOW.md",
   "docs/AGENT_CONTROL.md",
   "docs/AGENT_WORK.md",
+  "docs/EVOLUTION.md",
   "docs/AGENT_EXTENSIONS.md",
   "docs/AGENT_PROJECT.md",
   "README.md",

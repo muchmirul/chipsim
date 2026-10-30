@@ -61,6 +61,16 @@ debug recording during polling, and stop timers on terminal exit. No model
 provider, hidden agent execution, automatic edited-RTL loading or web frontend
 belongs in this layer. See [AGENT_WORK.md](AGENT_WORK.md).
 
+The external bridge's `workflow.py` validates and freezes explicit managed
+inputs/objectives; `evaluator.py` accepts verified reports by producer identity.
+`run.py` owns invocation isolation, cancellation and the POSIX overall deadline;
+`lineage.py` matches optimizer checkpoints to actual evaluated code/identities.
+Keep population search and provider configuration external. The runnable custom
+activity flow and full contract are described in [EVOLUTION.md](EVOLUTION.md).
+Run both evolution test files, with `CHIPSIM_TEST_EVOLUTION=1` for real Icarus
+evaluation and finalist/cancellation checks. Protocol fixtures must make no
+provider requests. Packaging tests validate installed discovery and snapshots.
+
 `src/visualization/` derives graphs, bit-flow observations and general experiment
 comparisons from shared traces. Engine transition indices and evaluated reads
 must preserve ordered actions, lazy selection, self-transition semantics,

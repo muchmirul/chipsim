@@ -260,6 +260,7 @@ export async function agentCommand(args) {
             "AGENT_WORKFLOW.md",
             "AGENT_EXTENSIONS.md",
             "AGENT_WORK.md",
+            "EVOLUTION.md",
             "DESIGN_INPUTS.md",
             "LOCAL_REFERENCES.md",
             "LICENSING.md",
@@ -277,6 +278,12 @@ export async function agentCommand(args) {
           evolution: {
             guide: join(packageRoot, "examples/evolutionary-example/README.md"),
             runner: join(packageRoot, "examples/evolutionary-example/run.py"),
+            workflows: {
+              "counter-activity": join(
+                packageRoot,
+                "examples/evolutionary-example/project-workflow/workflow.json",
+              ),
+            },
             scenarios: {
               counter: join(
                 packageRoot,

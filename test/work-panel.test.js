@@ -183,6 +183,37 @@ test("SHA candidate labels keep scores and event messages visible at 80 columns 
   assert.match(screenText(state), /Waveform checks completed/);
 });
 
+test("candidate rows distinguish unknown ancestry from a recorded generation-zero root at both sizes", async (t) => {
+  const { project, state, panel } = await fixture(t);
+  const session = await startWork(project, {
+    goal: "Observed ancestry",
+    mode: "evolution",
+  });
+  for (const event of [
+    { candidate: "unobserved" },
+    { candidate: "known-root", generation: 0 },
+    { candidate: "orphan", generation: 3 },
+  ]) {
+    await appendWorkEvent(project, session.id, {
+      kind: "candidate",
+      message: "Recorded candidate",
+      ...event,
+    });
+  }
+  await panel.refresh();
+  state.work.tab = "candidates";
+  for (const [columns, rows] of [
+    [80, 24],
+    [120, 40],
+  ]) {
+    Object.assign(state, { columns, rows });
+    const text = screenText(state);
+    assert.match(text, /unobserved.*← unknown/);
+    assert.match(text, /known-root.*← root/);
+    assert.match(text, /orphan.*← unknown/);
+  }
+});
+
 test("verified external-project recordings open in combined debug without replacing active design", async (t) => {
   const { project, state, panel, app } = await fixture(t);
   const external = join(project, "candidate-project");

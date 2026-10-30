@@ -213,6 +213,12 @@ is installed with ChipSim; prepared projects do not copy it. Resolve its current
 location using `agent help` → `examples.evolution`. Reported metrics are not
 proof, and polling never replaces the inspected recording automatically.
 
+Use [EVOLUTION.md](EVOLUTION.md) for `--workflow` project-defined managed
+objectives, fixed input snapshots, report units/normalization, checkpoint
+ancestry and `--search-timeout`. `agent help` exposes this guide and the
+installed `examples.evolution.workflows` definitions. New prepared projects
+copy the guide; existing documentation snapshots are preserved.
+
 ## Live monitoring
 
 Run `chipsim --watch ./chip-work` in a separate terminal before or while the
