@@ -21,6 +21,7 @@ import { SourceSimulations } from "./source-simulations.js";
 import { TraceDetail } from "./trace-detail.js";
 import { activityEvents } from "./activity-panel.js";
 import { HdlPanel } from "./hdl-panel.js";
+import { circuitKey } from "./circuit-panel.js";
 import { DebugPanel } from "./debug-panel.js";
 import { advanceDebugReplay } from "./debug-state.js";
 import { searchBits } from "../hdl/values.js";
@@ -848,7 +849,10 @@ export class TerminalApp {
         /* explicit reported work never reloads the inspected recording */
       } else if (this.designPanel?.handle(k, key, this)) {
         /* project/artifact controls share the same service as agents */
-      } else if (k === "H") this.hdlPanel.menu();
+      } else if (circuitKey(this, k, key)) {
+        /* Relation probes never advance or replace native observations. */
+      } else if (k === "O") s.setView("circuit");
+      else if (k === "H") this.hdlPanel.menu();
       else if (this.debugPanel.handle(k, key)) {
         /* shared HDL event controls */
       } else if (k === "P")

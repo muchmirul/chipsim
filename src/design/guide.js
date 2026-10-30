@@ -7,6 +7,43 @@ const input = (role, formats, whenMissing) => ({ role, formats, whenMissing });
 // Advisory knowledge, not another planner or an execution policy. Keep paths
 // relative to the installed package, so discovery works outside the checkout.
 const recipes = {
+  circuit: {
+    purpose:
+      "Inspect complete connected state/next-state rules and verify supported HDL correspondence.",
+    adapters: ["circuit", "hdl", "sby", "eqy"],
+    minimumInputs: [
+      input(
+        "Authoritative circuit source",
+        ["chipsim-circuit JSON", "self-contained SystemVerilog"],
+        "Declare fixed wiring, initialized binary state, a single rising clock and complete explicit table/equation rules; or import supported RTL using an existing Yosys and explicit initial inputs.",
+      ),
+    ],
+    tools: [
+      "Node.js for connected checks/build/probes",
+      "Icarus for native run/correspondence",
+      "Yosys for explicit RTL import",
+    ],
+    outputs: [
+      "connected relation",
+      "symbolic coverage",
+      "SystemVerilog",
+      "SMT-LIB",
+      "native observations",
+      "portable circuit session",
+    ],
+    commands: [
+      ["circuit", "help"],
+      ["circuit", "check", "SOURCE.json"],
+      ["circuit", "verify", "SOURCE.json", "--out", "NEW_DIRECTORY"],
+      ["--circuit", "SOURCE_OR_BUNDLE.json"],
+    ],
+    example: "examples/connected-circuit",
+    notes: [
+      "Static connections, one-step probes and native observations are separate. Complete rule coverage is not reachability or whole-chip/physical proof.",
+      "The first subset rejects asynchronous controls, latches, multiple/gated clocks, X/Z, memories and combinational loops. No PDF is required.",
+      "Existing ordered JSON models retain their execution semantics. Read docs/CONNECTED_CIRCUITS.md for the versioned contract and bounds.",
+    ],
+  },
   rtl: {
     purpose: "Build and simulate new digital hardware from RTL.",
     adapters: ["hdl", "verilator"],
@@ -407,6 +444,7 @@ export function designGuide(topic = "overview") {
       hdl: installed("docs/HDL.md"),
       environment: installed("docs/HDL_ENVIRONMENT.md"),
       csv: installed("docs/CSV_INPUTS.md"),
+      circuit: installed("docs/CONNECTED_CIRCUITS.md"),
       programming: installed("docs/PROGRAMMING.md"),
     },
     argumentConvention:

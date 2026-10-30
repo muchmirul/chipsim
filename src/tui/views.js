@@ -12,10 +12,13 @@ export const views = [
   "flow",
   "compare",
   "debug",
+  "circuit",
   "project",
   "pipeline",
   "artifacts",
   "checks",
 ];
 export const availableViews = (state) =>
-  state.design ? views : views.slice(0, -4);
+  (state.design ? views : views.slice(0, -4)).filter(
+    (view) => view !== "circuit" || state.model?.connected,
+  );

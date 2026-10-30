@@ -5,6 +5,108 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-30 — Connected circuit state/next-state contract
+
+**Context:** Ordered JSON assignments and observed trace flow could not express
+a first-class wiring contract with simultaneous register updates. Cross-connected
+registers need both D expressions to sample old Q, independent of rule order.
+**Use/behavior:** `circuit inspect/check/step SOURCE.json` accepts version-1
+connected inputs, stored state, combinational nodes, outputs, slices and explicit
+port connections. Complete tables or typed unsigned expressions define rules,
+numeric priority, load/hold/reset/safety reasons. One-event evaluation samples
+one old-state network and commits accepted updates together, then settles outputs.
+**Limits/preservation:** One rising clock with explicit initial zero; binary
+initialized state only. Async controls, multiple/gated clocks, X/Z, memories,
+latches and combinational loops reject. Existing ordered JSON/table semantics
+and sessions remain unchanged. This models declared digital behavior, not
+physical wiring/layout accuracy or transistor/timing effects.
+**Implementation/checks:** `src/circuit/model.js`, `expression.js`, `relation.js`;
+independent exhaustive swap/load/counter oracles, reordered declarations/rules,
+missing paths, slices, selected mux paths and same-edge old-state capture in
+`test/circuit.test.js`. See [CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md).
+
+## 2026-10-30 — Exact rule coverage and native HDL correspondence
+
+**Context:** Trace coverage cannot establish that every permitted binary state
+and input combination has an unambiguous next-state rule; enumerated whole-chip
+lookup tables are impractical.
+**Use/behavior:** `circuit check` uses bounded reduced ordered BDDs to check all
+binary old-state/input assignments for missing rules and disagreeing equal-priority
+winning writes, returning concrete witnesses. `circuit build` emits the same
+model as SystemVerilog and compact SMT-LIB. `circuit run` reuses native Icarus
+execution; `circuit verify [--rtl FILE]` compares injected old state, actual
+sampled inputs, next Q and settled outputs against the model.
+**Limits/preservation:** `complete-scoped-proof` covers rule completeness/agreement
+only, not reachability or temporal/HDL equivalence. BDD budget exhaustion is
+inconclusive. Native correspondence is simulation-only: exhaustive up to 12 domain
+bits/4096 cases, or explicit cases for larger models. Native mismatch is a
+counterexample; incomplete execution is inconclusive. Existing destinations are
+preserved and failed native runs retain diagnostics/partial evidence.
+**Implementation/checks:** `bdd.js`, `hdl.js`, `files.js`; arithmetic checked
+against independent expectations, compact 128-bit state, budget exhaustion,
+actual Icarus swap/load/capture runs, intentional wrong RTL, unknown outputs and
+source/tool/artifact identity checks. See [CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md).
+
+## 2026-10-30 — Authoritative HDL connected-model import
+
+**Context:** An independent handwritten transition table could disagree with
+existing RTL, while FSM-only extraction omits datapath state and real wiring.
+**Use/behavior:** `circuit import FILE.sv --top NAME --clock CLK --initial JSON
+--out NEW_DIRECTORY [--yosys PATH]` runs an existing Yosys, consumes actual
+lowered gate/DFF bit connections and initialization, and captures retained-state
+source mappings, original bytes, tool version/hash, script, netlist and diagnostics.
+Small domains are checked against the original RTL in Icarus using mapped state
+injection; larger domains accept explicit `--cases` or remain unverified there.
+**Limits/preservation:** One self-contained unsigned compilation unit and a
+reviewed binary primitive subset; absent initialization, unsupported cells,
+latches/async state, gated clocks and loops reject. Source names do not invent
+reset behavior or wiring. Bounds and original-correspondence status stay explicit.
+No tool installation, automatic formal proof, PPA or physical reconstruction.
+Changed available RTL/tool identities make derived bundles stale.
+**Implementation/checks:** `src/circuit/import.js` and real Yosys/Icarus import
+regressions in `test/circuit-import.test.js`, including all swap states,
+unsupported constructs, retained diagnostics and original-RTL staleness. See
+[CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md).
+
+## 2026-10-30 — Terminal connected rules, probes, source and observations
+
+**Context:** Existing trace/source views did not separate a complete connected
+relation from one selected step or recorded simulator observations.
+**Use/behavior:** `--circuit SOURCE|BUNDLE|SESSION` or `d` opens a checked model;
+`O` selects its view. `t/e/o` show static rules, a one-step probe or native
+observations, `s/r` frozen authoritative source or generated RTL, `[/]` state,
+and `p` an explicit probe snapshot. Q/next Q, selected rule/priority/reason,
+connected ports and selected versus structural dependencies are inspectable.
+Details wrap and scroll; common native JSON/CSV/VCD exports and portable connected
+sessions retain identities. Verification-harness state injection is labeled.
+**Limits/preservation:** Probes do not execute HDL or advance a recording. Failed
+imports preserve the active model; mode switches preserve cursor/recording.
+Portable sessions identify frozen evidence rather than claim current source
+agreement. Old session formats remain intact.
+**Implementation/checks:** `src/circuit/view.js`, `src/tui/circuit-panel.js` and
+load/render/key integrations; unit and actual PTY checks at 80×24/120×40 cover
+atomic probes, source/RTL modes, native cursor preservation, stale rejection,
+portable reopening and terminal restoration. See [TUI.md](TUI.md).
+
+## 2026-10-30 — Managed connected tasks and installed agent discovery
+
+**Context:** Circuit checks needed the same reproducible job/evidence loop as
+other chip-development tools, with scoped readiness and inspectable artifacts.
+**Use/behavior:** Managed `circuit` tasks explicitly select check/build/run/verify;
+source/options and compiler identity enter their fingerprint. Coverage, native
+simulation and correspondence checks are separate target policy choices.
+Verified `circuit-session` artifacts open directly. `agent help`, the native
+general controller and `design guide circuit` expose installed commands,
+examples and documentation; new prepared projects copy the guide.
+**Limits/preservation:** Execution success alone is insufficient. No PDF,
+provider or additional runtime dependency is added. Existing prepared project
+documentation snapshots remain unchanged. Tool execution stays explicit.
+**Implementation/checks:** Design adapter/contracts, agent discovery/preparation
+and artifact opening; managed jobs verify passing/failed coverage, frozen source
+closure and portable artifact inspection. Installed-package checks exercise
+discovery, complete coverage, generation and a source-free terminal frame outside
+the checkout. See [DESIGN.md](DESIGN.md) and [CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md).
+
 ## 2026-10-30 — Isolate evolution invocation state
 
 **Context:** Appending even a rejected manual candidate could overwrite a live

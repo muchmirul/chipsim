@@ -20,6 +20,7 @@ import { verifyProgramGuides } from "../program/guides.js";
 import { readBounded } from "../agent/io.js";
 import { readWaveform } from "../hdl/io.js";
 import { waveformModel } from "../hdl/trace.js";
+import { loadCircuitView, circuitSession } from "../circuit/view.js";
 import { debugModel } from "../hdl/debug/model.js";
 import {
   HDLRecording,
@@ -838,6 +839,14 @@ export class TuiState {
       "utf8",
     );
     const json = JSON.parse(text);
+    if (
+      [
+        "chipsim-circuit",
+        "chipsim-circuit-bundle",
+        "chipsim-circuit-session",
+      ].includes(json.format)
+    )
+      return this.loadCircuitFile(path);
     if (json.format === "chipsim-hdl-debug")
       return this.installDebugRecording(json);
     if (json.format === "chipsim-hdl-debug-session") {
@@ -883,6 +892,8 @@ export class TuiState {
     await this.installModel(json);
   }
   session() {
+    if (this.model.connected)
+      return circuitSession(this.model, this.tick, this.format);
     if (this.hdlDebug)
       return {
         format: "chipsim-hdl-debug-session",
@@ -929,6 +940,10 @@ export class TuiState {
     };
   }
   requireManualExperiment() {
+    if (this.model.connected)
+      throw new Error(
+        "Connected circuits are read-only here. Use the one-step probe or edit the source and run HDL explicitly.",
+      );
     if (this.model.kind === "waveform")
       throw new Error(
         "Recorded HDL waveform is read-only. Change its testbench and use H → Run HDL project.",
@@ -955,6 +970,24 @@ export class TuiState {
   async loadWaveformFile(path) {
     const wave = await readWaveform(path);
     this.installWaveform(wave);
+  }
+  async loadCircuitFile(path) {
+    let index = this.models.length;
+    while (this.models.some((model) => model.id === "connected-" + index))
+      index++;
+    const model = await loadCircuitView(path, "connected-" + index);
+    this.models.push(model);
+    this.selectModel(model.id);
+    this.documentId = null;
+    this.view = "circuit";
+    if (model.connected.savedUI) {
+      this.format = model.connected.savedUI.display;
+      this.seek(model.connected.savedUI.tick);
+    }
+    this.setMessage(
+      "Connected state · t rules · e one-step probe · o native observations · Tab waves",
+    );
+    return model;
   }
   async loadDebugFile(path) {
     const json = JSON.parse(

@@ -52,6 +52,17 @@ Read `AGENTS.md` before changing simulation behavior or adding a model. The TUI 
 
 ## Architecture
 
+`src/circuit/` owns the version-1 connected-state contract, typed expressions,
+explicit connections, one-event old-state evaluation, bounded exact BDD rule
+checks, SystemVerilog/SMT emission and reviewed Yosys gate/flop import. It does
+not change the ordered JSON engine or implement an HDL simulator. Native runs
+reuse `runHDL`; managed tasks reuse snapshots, jobs and check/evidence APIs.
+`src/tui/circuit-panel.js` separates static source/rules, probes and observations.
+See [CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md) and `test/circuit*.test.js`.
+Use real Icarus/Yosys gates when configured, independent expectations, all four
+swap states, same-edge capture, intentional mismatch and inconclusive budgets.
+Keep unsupported constructs explicit and preserve old sessions/semantics.
+
 `src/agent/work.js` owns the local agent-work session/event contract and bounded
 journal reads. `src/tui/work-panel.js` reads that journal for the live dashboard
 and follows explicit links through existing design evidence APIs. Population

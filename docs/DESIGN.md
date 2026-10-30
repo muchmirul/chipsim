@@ -1,5 +1,11 @@
 # Versioned design workbench
 
+The native `circuit` adapter captures connected-model sources and compiler
+identity, with explicit `check`, `build`, `run` or `verify` operations. It emits
+separate coverage/native simulation/correspondence checks and portable
+`circuit-session` artifacts. Choose the needed checks in the target policy;
+execution success alone is insufficient. See [CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md).
+
 ChipSim records managed work as **input snapshot → task attempt → artifacts →
 checks**. A snapshot captures dirty working files as well as effective task
 configuration, tool identities, and declared dependency locks. A waveform, proof

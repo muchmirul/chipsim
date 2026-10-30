@@ -107,6 +107,16 @@ accepts no late selection. Checkpoint ancestry must match real evaluation IDs
 and source hashes; missing ancestry stays unknown. Physical PPA requires real
 tool reports with fixed libraries and constraints, not functional scores.
 
+## Connected state and next-state
+
+For connected state/next-state inspection, read `docs/CONNECTED_CIRCUITS.md` and
+discover `agent help` → `examples.circuit`. Use `circuit check/step/build` for
+declared binary wiring/rules, `circuit run/verify` for native observations, or
+`circuit import` for supported authoritative SystemVerilog through an existing
+Yosys. Keep complete rule coverage separate from reachability/property proof
+and native correspondence. Never change the ordered JSON engine to emulate
+simultaneous HDL register updates; the connected contract is explicitly distinct.
+
 ## Digital input timing experiments
 
 For delay, jitter or glitches, read `docs/HDL_ENVIRONMENT.md`. Use a SystemVerilog

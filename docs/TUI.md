@@ -1,5 +1,14 @@
 # Terminal workbench
 
+Open `chipsim --circuit SOURCE.json|BUNDLE/circuit.json` for connected state and
+next-state inspection, or import its source/session with `d`. `O` opens the
+connected view; `t` shows static rules/connections, `e` a one-step probe, `o`
+native observations, `s` frozen authoritative source and `r` generated RTL.
+`[`/`]` choose state, `j`/`k` scroll complete wrapped details, `p` loads a probe,
+`h`/`l` moves the native cursor, `1` shows its waves and `S` saves a portable
+session. Probes and view switches preserve recordings. See
+[CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md) for scope, generation and checks.
+
 CSV hardware tables can be used without a PDF: `d` imports a register-map source,
 and `c` opens guided register creation with explicit word width and event order.
 Source view labels the CSV's one logical page. `a` loads JSON or CSV stimulus

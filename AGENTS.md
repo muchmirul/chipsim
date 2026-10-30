@@ -23,6 +23,7 @@ ChipSim is a local TUI hardware behavior workbench. The terminal is the only int
 - `docs/REGISTER_BANKS.md`: explicit sourced register maps, masks, bus/event ordering, and limits.
 - `docs/CSV_INPUTS.md`: developer-authored register maps and stimulus, exact CSV bytes, one logical source page, and explicit width/order without PDF inference.
 - `docs/BEHAVIOR_TABLES.md`: developer-entered custom logic/state machines, step semantics, provenance, and limits.
+- `docs/CONNECTED_CIRCUITS.md`: separate versioned connected wiring/state contract, old-state atomic updates, BDD rule coverage, generated/native HDL correspondence and reviewed Yosys import. Preserve existing ordered JSON semantics; unsupported constructs and resource exhaustion must never pass silently.
 - `docs/DOCUMENT_PROFILES.md`: reviewed automatic datasheet compilation and extension requirements.
 - `docs/ESP32_C6_GPIO.md`: GPIO word transactions, atomic aliases, logical output observation and boundaries.
 - `docs/ESP32_C6_PCNT.md`: the user-selected ESP32-C6 manual, single-channel scope, signed counts and terminal experiments.

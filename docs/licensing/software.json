@@ -61,7 +61,7 @@
       "relationship": "external-tool-and-patch-context",
       "bundled_upstream_code": true,
       "locations": ["src/hdl/run.js", "extensions/hdl-debug/iverilog"],
-      "adapters": ["hdl", "cocotb"],
+      "adapters": ["hdl", "cocotb", "circuit"],
       "evidence": [
         {
           "url": "https://github.com/steveicarus/iverilog/blob/master/COPYING",
@@ -313,8 +313,8 @@
       "license": "ISC",
       "relationship": "external-tool",
       "bundled_upstream_code": false,
-      "locations": ["src/design/adapters.js"],
-      "adapters": ["sby", "eqy", "orfs"],
+      "locations": ["src/design/adapters.js", "src/circuit/import.js"],
+      "adapters": ["sby", "eqy", "orfs", "circuit-import"],
       "evidence": [
         {
           "url": "https://github.com/YosysHQ/yosys/blob/main/COPYING",

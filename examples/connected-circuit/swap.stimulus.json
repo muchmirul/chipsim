@@ -1,0 +1,12 @@
+{
+  "format": "chipsim-circuit-stimulus",
+  "version": 1,
+  "duration": 10,
+  "events": [
+    { "tick": 1, "signal": "clk", "value": 1 },
+    { "tick": 2, "signal": "clk", "value": 0 },
+    { "tick": 3, "signal": "clk", "value": 1 },
+    { "tick": 4, "signal": "clk", "value": 0 },
+    { "tick": 5, "signal": "clk", "value": 1 }
+  ]
+}

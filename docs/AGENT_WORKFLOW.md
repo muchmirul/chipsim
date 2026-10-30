@@ -203,6 +203,15 @@ binary and octal entry. Integer CLI options such as `--ticks` also accept explic
 
 ## Live agent tasks and evolution
 
+For fixed circuit connectivity and state transitions, use `chipsim circuit help`
+and [CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md). `circuit import` derives a
+supported connected model from actual Yosys-lowered RTL, with original-RTL
+correspondence checks; authored connected JSON instead generates its HDL from
+the same rules. Complete rule coverage, one-step probes and recorded native
+observations have distinct scopes. No PDF is required. `agent help` exposes
+installed `examples.circuit` and guide paths; new prepared projects copy the
+guide. Existing ordered JSON models retain their semantics.
+
 Use `chipsim --agent PROJECT` for agent goals, explicit actions and candidate
 history in any existing directory, including RTL projects without PDFs. Agents
 publish structured `work-start`, `work-event` and `work-status` commands; the

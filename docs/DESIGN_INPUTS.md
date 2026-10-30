@@ -1,5 +1,11 @@
 # Starting a chip project: files and agent preparation
 
+For wiring-aware state transitions, `chipsim design guide circuit` describes
+connected JSON tables/equations and supported authoritative HDL import. See
+[CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md) for fixed paths, atomic old-state
+updates, exact rule coverage, scoped native correspondence and terminal probes.
+This developer-authored flow does not require a PDF.
+
 ChipSim can start with an idea, existing RTL, a testbench, firmware, a manual, or
 a recorded waveform. **You do not need to supply all file types.** Select a
 useful goal and prepare only its prerequisites. These are optional recipes, not

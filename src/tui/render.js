@@ -11,6 +11,7 @@ import { timeLabel } from "../hdl/time.js";
 import { stateRows, flowRows, comparisonRows } from "./visual-render.js";
 import { debugRows, debugHeader } from "./debug-render.js";
 import { designRows, designViews } from "./design-panel.js";
+import { circuitRows } from "./circuit-panel.js";
 const row = (text, style = "") => ({ text, style });
 function section(title, width) {
   return row(
@@ -672,30 +673,34 @@ export function render(state) {
     row(
       "CHIPSIM  " +
         state.model.name +
-        (state.hdlDebug
-          ? " · HDL event replay"
-          : state.model.waveform
-            ? " · HDL waveform replay"
-            : "   · behavioral · normalized ticks"),
+        (state.model.connected
+          ? " · connected state relation"
+          : state.hdlDebug
+            ? " · HDL event replay"
+            : state.model.waveform
+              ? " · HDL waveform replay"
+              : "   · behavioral · normalized ticks"),
       "title",
     ),
     row(
-      state.hdlDebug || state.view === "debug"
-        ? "I Combined debug · 9 Source · 2 Hardware · 1 Signals · 3 Events · Tab views"
-        : ["states", "flow", "compare"].includes(state.view)
-          ? "1–9 standard views · " +
-            ["states", "flow", "compare"]
-              .map(
-                (name, index) =>
-                  (state.view === name
-                    ? "[" + name.toUpperCase() + "]"
-                    : name) +
-                  " " +
-                  ["g", "v", "D"][index],
-              )
-              .join(" · ") +
-            " · Y capture"
-          : tabs,
+      state.view === "circuit"
+        ? "CONNECTED CIRCUIT · t rules · e step · o native · Tab other views"
+        : state.hdlDebug || state.view === "debug"
+          ? "I Combined debug · 9 Source · 2 Hardware · 1 Signals · 3 Events · Tab views"
+          : ["states", "flow", "compare"].includes(state.view)
+            ? "1–9 standard views · " +
+              ["states", "flow", "compare"]
+                .map(
+                  (name, index) =>
+                    (state.view === name
+                      ? "[" + name.toUpperCase() + "]"
+                      : name) +
+                    " " +
+                    ["g", "v", "D"][index],
+                )
+                .join(" · ") +
+              " · Y capture"
+            : tabs,
       "dim",
     ),
     row(
@@ -742,7 +747,9 @@ export function render(state) {
       "selected",
     );
     lines.push(...designRows(state, available));
-  } else if (state.view === "debug") lines.push(...debugRows(state, available));
+  } else if (state.view === "circuit")
+    lines.push(...circuitRows(state, available));
+  else if (state.view === "debug") lines.push(...debugRows(state, available));
   else if (
     state.hdlDebug &&
     ["wave", "inspect", "program"].includes(state.view)

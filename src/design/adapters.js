@@ -16,6 +16,7 @@ import { mcpResult } from "./mcp-result.js";
 import { referencePath } from "../documents/references.js";
 
 const native = new Set([
+  "circuit",
   "hdl",
   "model",
   "program",
@@ -28,6 +29,15 @@ const tool =
   (command, args = ["--version"]) =>
   async () => [[command, args]];
 export const adapters = {
+  circuit: {
+    tools: async (task) =>
+      task.options?.operation === "check" || task.options?.operation === "build"
+        ? []
+        : [
+            ["iverilog", ["-V"]],
+            ["vvp", ["-V"]],
+          ],
+  },
   hdl: {
     tools: async (task, root) => {
       const p = await readProject(join(root, localPath(task.options?.project)));
@@ -177,6 +187,8 @@ export async function adapterResources(task, root) {
   });
 }
 export async function adapterIdentity(task) {
+  if (task.adapter === "circuit")
+    return (await import("../circuit/files.js")).compilerIdentity();
   if (task.adapter !== "hdl" || task.options?.debug === false) return {};
   const toolchain = await debugTools(),
     entries = [];
@@ -194,7 +206,9 @@ export async function adapterInputs(task, root) {
   const add = (p) => {
     if (p) paths.push(localPath(p));
   };
-  if (task.adapter === "hdl") {
+  if (task.adapter === "circuit") {
+    for (const key of ["source", "stimulus", "cases", "rtl"]) add(o[key]);
+  } else if (task.adapter === "hdl") {
     add(o.project);
     const p = await readProject(join(root, o.project));
     for (const f of [...p.sources, ...p.assets, ...p.includeDirs])
@@ -220,7 +234,8 @@ export async function adapterInputs(task, root) {
 export function payloadKind(path, adapter) {
   if (path.endsWith("debug.json"))
     return adapter === "hdl" ? "hdl-debug" : "program-debug";
-  if (path.endsWith("session.json")) return "model-session";
+  if (path.endsWith("session.json"))
+    return adapter === "circuit" ? "circuit-session" : "model-session";
   if (path.endsWith("waveform.json")) return "waveform";
   if (path.endsWith("trace.json")) return "model-trace";
   if (path.endsWith("comparison.json")) return "comparison";
@@ -256,6 +271,7 @@ export function capabilities(kind) {
       waveform: ["waveform"],
       "waveform-vcd": ["waveform"],
       "model-session": ["model-session"],
+      "circuit-session": ["connected-state", "sources", "waveform"],
       layout: ["external-layout"],
       "program-debug": ["report"],
       report: ["report"],
@@ -289,7 +305,41 @@ export async function normalizeChecks(
       "execution.json",
     ]),
   );
-  if (execution.nativeResult) {
+  if (adapter === "circuit" && execution.nativeResult) {
+    const r = execution.nativeResult,
+      verdict = (status) =>
+        status === "complete-scoped-proof" || status === "simulation-only"
+          ? "pass"
+          : status === "counterexample"
+            ? "fail"
+            : "inconclusive";
+    result.push(
+      check(
+        "coverage",
+        verdict(r.coverage?.status),
+        r.coverage?.scope || "Connected rule completeness and agreement",
+        ["native-result.json"],
+      ),
+    );
+    if (o.operation === "verify")
+      result.push(
+        check(
+          "correspondence",
+          verdict(r.correspondence?.status || r.status),
+          "Native one-step model/HDL correspondence; not formal equivalence",
+          ["native-result.json"],
+        ),
+      );
+    if (o.operation === "run" || o.operation === "verify")
+      result.push(
+        check(
+          "simulation",
+          r.native?.ok ? "pass" : "inconclusive",
+          "Actual native HDL execution and capture",
+          ["native-result.json"],
+        ),
+      );
+  } else if (execution.nativeResult) {
     const r = execution.nativeResult;
     const label =
       adapter === "compare"
@@ -473,6 +523,34 @@ export async function executeAdapter(task, context) {
   const path = (p) => join(workspace, localPath(p));
   if (native.has(adapter)) {
     let r;
+    if (adapter === "circuit") {
+      if (!["check", "build", "run", "verify"].includes(o.operation))
+        throw new Error(
+          "Circuit task operation must explicitly be check, build, run or verify",
+        );
+      const { readCircuit, buildCircuit, relationDescription } =
+        await import("../circuit/files.js");
+      if (o.operation === "check") {
+        const { checkCoverage } = await import("../circuit/relation.js");
+        const { model } = await readCircuit(path(o.source)),
+          coverage = checkCoverage(model);
+        await mkdir(path("out"));
+        await writeFile(path("out/coverage.json"), JSON.stringify(coverage));
+        await writeFile(
+          path("out/relation.json"),
+          JSON.stringify(relationDescription(model)),
+        );
+        r = { ok: coverage.ok, status: coverage.status, coverage };
+      } else
+        r = await buildCircuit(path(o.source), path("out"), {
+          operation: o.operation,
+          stimulus: o.stimulus && path(o.stimulus),
+          cases: o.cases && path(o.cases),
+          rtl: o.rtl && path(o.rtl),
+          signal,
+          owners,
+        });
+    }
     if (adapter === "hdl")
       r = (
         await runHDL(path(o.project), path("out"), {

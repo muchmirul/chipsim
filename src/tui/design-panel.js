@@ -48,6 +48,7 @@ export async function openRecordedArtifact(state, store, id) {
   captureDesignCursor(state);
   if (a.kind === "hdl-debug") await state.loadDebugFile(payload);
   else if (a.kind === "waveform") await state.loadWaveformFile(payload);
+  else if (a.kind === "circuit-session") await state.loadCircuitFile(payload);
   else if (a.kind === "waveform-vcd")
     state.installWaveform(
       parseVCD(await readFile(payload, "utf8"), {

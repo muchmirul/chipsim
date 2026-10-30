@@ -1,0 +1,62 @@
+{
+  "format": "chipsim-circuit",
+  "version": 1,
+  "id": "load_hold",
+  "name": "Explicit load, hold and synchronous reset",
+  "clock": { "signal": "clk", "edge": "rising" },
+  "inputs": [
+    { "id": "clk", "width": 1, "initial": 0 },
+    { "id": "reset", "width": 1, "initial": 0 },
+    { "id": "enable", "width": 1, "initial": 0 },
+    { "id": "data", "width": 1, "initial": 0 }
+  ],
+  "state": [
+    {
+      "id": "Q",
+      "width": 1,
+      "initial": 1,
+      "ports": { "reset": 1, "enable": 1, "data": 1 },
+      "table": {
+        "columns": ["reset", "enable", "data"],
+        "rows": [
+          {
+            "id": "reset",
+            "match": "1XX",
+            "priority": 20,
+            "reason": "reset",
+            "value": { "bits": 0, "width": 1 }
+          },
+          {
+            "id": "load_zero",
+            "match": "X10",
+            "priority": 10,
+            "reason": "load",
+            "value": { "bits": 0, "width": 1 }
+          },
+          {
+            "id": "load_one",
+            "match": "X11",
+            "priority": 10,
+            "reason": "load",
+            "value": { "bits": 1, "width": 1 }
+          },
+          {
+            "id": "hold",
+            "match": "X0X",
+            "priority": 0,
+            "reason": "hold",
+            "hold": true
+          }
+        ]
+      }
+    }
+  ],
+  "nodes": [],
+  "outputs": [{ "id": "q", "width": 1 }],
+  "connections": [
+    { "from": "input.reset", "to": "state.Q.reset" },
+    { "from": "input.enable", "to": "state.Q.enable" },
+    { "from": "input.data", "to": "state.Q.data" },
+    { "from": "state.Q", "to": "output.q" }
+  ]
+}

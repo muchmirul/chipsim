@@ -98,6 +98,17 @@ try {
     "examples/evolutionary-example/project-workflow/template/score.py",
     "examples/evolutionary-example/project-workflow/template/activity.py",
     "docs/EVOLUTION.md",
+    "docs/CONNECTED_CIRCUITS.md",
+    "src/circuit/model.js",
+    "src/circuit/relation.js",
+    "src/circuit/bdd.js",
+    "src/circuit/hdl.js",
+    "src/circuit/import.js",
+    "src/circuit/commands.js",
+    "src/tui/circuit-panel.js",
+    "examples/connected-circuit/swap.json",
+    "examples/connected-circuit/load-hold.json",
+    "examples/connected-circuit/counter-capture.json",
     "examples/evolutionary-example/counter/README.md",
     "examples/evolutionary-example/counter/EVOLUTION_EXAMPLE.md",
     "examples/evolutionary-example/saturating-adder/README.md",
@@ -467,7 +478,12 @@ try {
     help.documentation["AGENT_CONTROL.md"],
     join(installed, "docs/AGENT_CONTROL.md"),
   );
-  for (const name of ["HDL_DEBUG.md", "HDL_ENVIRONMENT.md", "EVOLUTION.md"]) {
+  for (const name of [
+    "HDL_DEBUG.md",
+    "HDL_ENVIRONMENT.md",
+    "EVOLUTION.md",
+    "CONNECTED_CIRCUITS.md",
+  ]) {
     assert.equal(help.documentation[name], join(installed, "docs", name));
     assert.ok((await readFile(help.documentation[name])).length > 100);
   }
@@ -475,6 +491,49 @@ try {
     help.examples.evolution.guide,
     join(installed, "examples/evolutionary-example/README.md"),
   );
+  const connectedCheck = JSON.parse(
+    (
+      await run(binary, ["circuit", "check", help.examples.circuit.swap], {
+        cwd,
+      })
+    ).stdout,
+  );
+  assert.equal(connectedCheck.format, "chipsim-circuit-result");
+  assert.equal(connectedCheck.coverage.status, "complete-scoped-proof");
+  assert.equal(connectedCheck.coverage.assignments, "4");
+  const connectedBuild = JSON.parse(
+    (
+      await run(
+        binary,
+        [
+          "circuit",
+          "build",
+          help.examples.circuit.swap,
+          "--out",
+          join(cwd, "connected circuit"),
+        ],
+        { cwd },
+      )
+    ).stdout,
+  );
+  assert.equal(connectedBuild.ok, true);
+  const connectedFrame = await run(
+    binary,
+    [
+      "--circuit",
+      connectedBuild.path,
+      "--snapshot",
+      "--columns",
+      "80",
+      "--rows",
+      "24",
+      "--workspace",
+      join(cwd, "connected ui"),
+    ],
+    { cwd },
+  );
+  assert.match(connectedFrame.stdout, /CONNECTED STATE/);
+  assert.match(connectedFrame.stdout, /ONE-STEP PROBE/);
   assert.equal(
     help.examples.evolution.runner,
     join(installed, "examples/evolutionary-example/run.py"),

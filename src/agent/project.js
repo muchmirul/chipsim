@@ -68,6 +68,7 @@ export async function prepareProject(pdf, output) {
       "AGENT_EXTENSIONS.md",
       "AGENT_WORK.md",
       "EVOLUTION.md",
+      "CONNECTED_CIRCUITS.md",
       "CHANGELOG.md",
       "TUI.md",
       "VISUALIZATION.md",

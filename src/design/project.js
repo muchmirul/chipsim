@@ -117,6 +117,8 @@ export async function loadDesign(path) {
       "import",
       "preparation",
       "comparison",
+      "coverage",
+      "correspondence",
       "mcp",
     ]);
     for (const check of task.checks || []) {

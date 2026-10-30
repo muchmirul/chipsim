@@ -261,6 +261,7 @@ export async function agentCommand(args) {
             "AGENT_EXTENSIONS.md",
             "AGENT_WORK.md",
             "EVOLUTION.md",
+            "CONNECTED_CIRCUITS.md",
             "DESIGN_INPUTS.md",
             "LOCAL_REFERENCES.md",
             "LICENSING.md",
@@ -275,6 +276,17 @@ export async function agentCommand(args) {
           ].map((name) => [name, join(packageRoot, "docs", name)]),
         ),
         examples: {
+          circuit: {
+            swap: join(packageRoot, "examples/connected-circuit/swap.json"),
+            loadHold: join(
+              packageRoot,
+              "examples/connected-circuit/load-hold.json",
+            ),
+            counterCapture: join(
+              packageRoot,
+              "examples/connected-circuit/counter-capture.json",
+            ),
+          },
           evolution: {
             guide: join(packageRoot, "examples/evolutionary-example/README.md"),
             runner: join(packageRoot, "examples/evolutionary-example/run.py"),

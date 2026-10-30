@@ -1,0 +1,120 @@
+{
+  "format": "chipsim-circuit",
+  "version": 1,
+  "id": "counter_capture",
+  "name": "Connected counter and capture",
+  "description": "Capture selects the old counter Q or external data. Increment and capture commit together; reset has explicit higher priority.",
+  "clock": { "signal": "clk", "edge": "rising" },
+  "inputs": [
+    { "id": "clk", "width": 1, "initial": 0 },
+    { "id": "reset", "width": 1, "initial": 0 },
+    { "id": "enable", "width": 1, "initial": 0 },
+    { "id": "capture", "width": 1, "initial": 0 },
+    { "id": "external", "width": 1, "initial": 0 },
+    { "id": "data", "width": 2, "initial": 0 }
+  ],
+  "state": [
+    {
+      "id": "Count",
+      "width": 2,
+      "initial": 1,
+      "ports": { "reset": 1, "enable": 1, "d": 2 },
+      "rules": [
+        {
+          "id": "reset",
+          "priority": 20,
+          "reason": "reset",
+          "when": { "ref": "reset" },
+          "value": { "bits": 0, "width": 2 }
+        },
+        {
+          "id": "increment",
+          "priority": 10,
+          "reason": "load",
+          "when": { "ref": "enable" },
+          "value": { "ref": "d" }
+        },
+        {
+          "id": "hold",
+          "priority": 0,
+          "reason": "hold",
+          "when": { "bits": 1, "width": 1 },
+          "hold": true
+        }
+      ]
+    },
+    {
+      "id": "Captured",
+      "width": 2,
+      "initial": 0,
+      "ports": { "reset": 1, "enable": 1, "d": 2 },
+      "rules": [
+        {
+          "id": "reset",
+          "priority": 20,
+          "reason": "reset",
+          "when": { "ref": "reset" },
+          "value": { "bits": 0, "width": 2 }
+        },
+        {
+          "id": "capture",
+          "priority": 10,
+          "reason": "load",
+          "when": { "ref": "enable" },
+          "value": { "ref": "d" }
+        },
+        {
+          "id": "hold",
+          "priority": 0,
+          "reason": "hold",
+          "when": { "bits": 1, "width": 1 },
+          "hold": true
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "Increment",
+      "width": 2,
+      "ports": { "a": 2 },
+      "expression": {
+        "op": "add",
+        "args": [{ "ref": "a" }, { "bits": 1, "width": 2 }]
+      }
+    },
+    {
+      "id": "Selected",
+      "width": 2,
+      "ports": { "select": 1, "external": 2, "internal": 2 },
+      "expression": {
+        "op": "mux",
+        "args": [
+          { "ref": "select" },
+          { "ref": "external" },
+          { "ref": "internal" }
+        ]
+      }
+    }
+  ],
+  "outputs": [
+    { "id": "count", "width": 2 },
+    { "id": "captured", "width": 2 },
+    { "id": "lsb", "width": 1 }
+  ],
+  "connections": [
+    { "from": "input.reset", "to": "state.Count.reset" },
+    { "from": "input.enable", "to": "state.Count.enable" },
+    { "from": "node.Increment", "to": "state.Count.d" },
+    { "from": "input.reset", "to": "state.Captured.reset" },
+    { "from": "input.capture", "to": "state.Captured.enable" },
+    { "from": "node.Selected", "to": "state.Captured.d" },
+    { "from": "state.Count", "to": "node.Increment.a" },
+    { "from": "input.external", "to": "node.Selected.select" },
+    { "from": "input.data", "to": "node.Selected.external" },
+    { "from": "state.Count", "to": "node.Selected.internal" },
+    { "from": "state.Count", "to": "output.count" },
+    { "from": "state.Captured", "to": "output.captured" },
+    { "from": "state.Captured", "slice": [0, 0], "to": "output.lsb" }
+  ]
+}

@@ -1,5 +1,12 @@
 # HDL projects, waveform import and behavior comparison
 
+For complete connected next-state inspection beyond a recorded trace, see
+[CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md). `circuit import` derives a
+reviewed binary gate/flop model through an existing Yosys and checks supported
+cases against original RTL with Icarus. `circuit build/run/verify` generates
+and checks HDL from explicit connected tables/equations. Native correspondence,
+symbolic rule coverage, and temporal/formal proof have distinct scopes.
+
 HDL manifests can also be tasks in the [versioned design workbench](DESIGN.md).
 Managed runs snapshot source bytes before execution and publish native waveforms,
 debug recordings and diagnostics as graph artifacts. Standalone commands keep

@@ -8,6 +8,13 @@ internal evolutionary search.
 
 ## 1. Discover before acting
 
+For complete connected state/next-state modeling, use `circuit help` and
+[CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md), discoverable through `agent help`
+and `design guide circuit`. Keep static wiring, one-event probes, native
+observations, rule completeness and property proof distinct. Existing ordered
+JSON behavior is preserved. HDL import executes an explicit existing Yosys and
+supported native correspondence; it installs no tools or providers.
+
 Use Node.js 22.13 or newer. These commands discover the installed contracts
 without creating a project or starting a hardware task:
 

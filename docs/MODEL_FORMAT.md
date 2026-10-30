@@ -1,5 +1,11 @@
 # Declarative model format · version 1
 
+Ordered assignments in this contract remain unchanged. For fixed connections,
+simultaneous old-state sampling and atomic register updates, use the explicitly
+distinct [connected circuit contract](CONNECTED_CIRCUITS.md). It can author
+tables/equations and generate HDL, or derive a supported relation from actual
+HDL lowering. Do not silently reinterpret an existing model as synchronous RTL.
+
 Declarative simulation snapshots now also expose optional observation fields:
 `transition` is `{from,to,index}` or `null`; `operations` records the first 64
 completed assignments in execution order with stage, target, width, before/after

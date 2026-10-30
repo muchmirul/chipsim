@@ -1,0 +1,52 @@
+{
+  "format": "chipsim-circuit",
+  "version": 1,
+  "id": "swap",
+  "name": "Atomic cross-connected registers",
+  "description": "Two fixed Q-to-D connections. Both registers sample old state on the same rising edge.",
+  "clock": { "signal": "clk", "edge": "rising" },
+  "inputs": [{ "id": "clk", "width": 1, "initial": 0 }],
+  "state": [
+    {
+      "id": "A",
+      "width": 1,
+      "initial": 0,
+      "ports": { "d": 1 },
+      "rules": [
+        {
+          "id": "load",
+          "priority": 0,
+          "reason": "load",
+          "when": { "bits": 1, "width": 1 },
+          "value": { "ref": "d" }
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "width": 1,
+      "initial": 1,
+      "ports": { "d": 1 },
+      "rules": [
+        {
+          "id": "load",
+          "priority": 0,
+          "reason": "load",
+          "when": { "bits": 1, "width": 1 },
+          "value": { "ref": "d" }
+        }
+      ]
+    }
+  ],
+  "nodes": [],
+  "outputs": [
+    { "id": "a", "width": 1 },
+    { "id": "b", "width": 1 }
+  ],
+  "connections": [
+    { "from": "state.B", "to": "state.A.d" },
+    { "from": "state.A", "to": "state.B.d" },
+    { "from": "state.A", "to": "output.a" },
+    { "from": "state.B", "to": "output.b" }
+  ]
+}

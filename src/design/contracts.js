@@ -2,6 +2,24 @@
 // bridge remains an explicit project setup action.
 export const integrationContracts = [
   [
+    "circuit",
+    [
+      "chipsim-circuit JSON",
+      "explicit stimulus/cases",
+      "optional comparison RTL",
+    ],
+    [
+      "connected relation",
+      "symbolic coverage",
+      "SystemVerilog",
+      "SMT-LIB",
+      "native waveform",
+      "correspondence report",
+    ],
+    ["coverage", "simulation", "correspondence"],
+    "One rising clock and finite binary vectors; native one-step correspondence is simulation-only, not temporal/formal proof.",
+  ],
+  [
     "hdl",
     ["HDL project JSON", "Verilog/SystemVerilog/VHDL"],
     ["VCD", "waveform JSON", "debug JSON"],
