@@ -201,7 +201,13 @@ for stimulus. JSON numbers use decimal syntax; the TUI accepts decimal, hex,
 binary and octal entry. Integer CLI options such as `--ticks` also accept explicit
 `0x`, `0b`, and `0o` prefixes. Changing a display base never changes the experiment.
 
-## Live agent tasks and evolution
+## Connected circuit tasks
+
+The practical [connected-circuit agent playbook](AGENT_CIRCUITS.md) covers source
+selection, exact commands/results, managed targets, failure handling and evidence.
+`agent help` exposes its installed path plus `examples.circuit.directory`,
+`.instructions`, `.managedProject` and RTL/JSON examples. The scoped `AGENTS.md`
+travels with a copied starter; new prepared projects copy the playbook.
 
 For fixed circuit connectivity and state transitions, use `chipsim circuit help`
 and [CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md). `circuit import` derives a
@@ -211,6 +217,8 @@ the same rules. Complete rule coverage, one-step probes and recorded native
 observations have distinct scopes. No PDF is required. `agent help` exposes
 installed `examples.circuit` and guide paths; new prepared projects copy the
 guide. Existing ordered JSON models retain their semantics.
+
+## Live agent tasks and evolution
 
 Use `chipsim --agent PROJECT` for agent goals, explicit actions and candidate
 history in any existing directory, including RTL projects without PDFs. Agents

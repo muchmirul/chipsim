@@ -171,6 +171,7 @@ test("an unfamiliar PDF accepts an authored model and hands the exact experiment
   for (const file of [
     "AGENT_CONTROL.md",
     "AGENT_WORK.md",
+    "AGENT_CIRCUITS.md",
     "HDL.md",
     "HDL_DEBUG.md",
     "HDL_ENVIRONMENT.md",
@@ -184,7 +185,13 @@ test("an unfamiliar PDF accepts an authored model and hands the exact experiment
     join(project, "PROGRAMMING_CONTEXT.md"),
     "utf8",
   );
-  for (const file of ["HDL.md", "HDL_DEBUG.md", "HDL_ENVIRONMENT.md"]) {
+  for (const file of [
+    "HDL.md",
+    "HDL_DEBUG.md",
+    "HDL_ENVIRONMENT.md",
+    "CONNECTED_CIRCUITS.md",
+    "AGENT_CIRCUITS.md",
+  ]) {
     assert.equal(context.documentation[file], join(root, "docs", file));
     assert.ok(instructions.includes(context.documentation[file]));
   }

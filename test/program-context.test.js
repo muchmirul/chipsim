@@ -85,9 +85,17 @@ test("every catalog chip exposes truthful programming guidance, document pointer
     "HDL.md",
     "HDL_DEBUG.md",
     "HDL_ENVIRONMENT.md",
+    "CONNECTED_CIRCUITS.md",
+    "AGENT_CIRCUITS.md",
   ])
     assert.ok((await stat(pio.documentation[guide])).isFile());
-  for (const guide of ["HDL.md", "HDL_DEBUG.md", "HDL_ENVIRONMENT.md"])
+  for (const guide of [
+    "HDL.md",
+    "HDL_DEBUG.md",
+    "HDL_ENVIRONMENT.md",
+    "CONNECTED_CIRCUITS.md",
+    "AGENT_CIRCUITS.md",
+  ])
     assert.ok(instructions.includes(pio.documentation[guide]));
   assert.ok(
     pio.models[0].observedRegisters.some(

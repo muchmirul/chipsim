@@ -109,6 +109,16 @@ tool reports with fixed libraries and constraints, not functional scores.
 
 ## Connected state and next-state
 
+Read `docs/AGENT_CIRCUITS.md` for the agent workflow and result interpretation.
+Use installed `agent help` → `examples.circuit.directory` and `.instructions`
+to locate the copyable starter and its `AGENTS.md`; these files are not copied
+into this prepared project. Its `analyze` target checks complete rules with
+Node; `verify` adds actual Icarus correspondence. Adapt the authoritative source
+and independent acceptance cases to the user's task, retaining required checks
+and exact evidence IDs. Inspect `storedOutcome`/`evaluationStatus` as well as
+`circuit validate` integrity success. Do not treat rule coverage as RTL or
+temporal proof, invent initial zero, or silently substitute ordered JSON logic.
+
 For connected state/next-state inspection, read `docs/CONNECTED_CIRCUITS.md` and
 discover `agent help` → `examples.circuit`. Use `circuit check/step/build` for
 declared binary wiring/rules, `circuit run/verify` for native observations, or

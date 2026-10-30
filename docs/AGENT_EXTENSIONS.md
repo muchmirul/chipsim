@@ -1,5 +1,15 @@
 # ChipSim in Pi and prime-agent
 
+For connected state/next-state work, call
+`chipsim_command({args:["circuit","help"]})`, then read the installed
+`documentation["AGENT_CIRCUITS.md"]` from `chipsim_help`. `examples.circuit`
+locates its scoped `AGENTS.md`, copyable managed starter and RTL/JSON sources.
+Use literal argument arrays, for example
+`{"args":["circuit","check","/path/to/circuit.json"]}`. Native managed
+design/job/artifact tools operate the starter's `analyze` and `verify` targets
+through the same evidence API. Rule coverage, one-step probes, native
+correspondence and physical/temporal proof retain distinct scopes.
+
 Use `chipsim_command({args:["table","help"]})` for CSV register-map and stimulus
 workflows. `table registers` creates a model/session without a PDF; `table
 stimulus` validates and converts a schedule. The general command tool also

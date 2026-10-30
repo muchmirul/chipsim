@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
+import { mkdtemp, writeFile, readFile, rm, cp } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { startJob, waitJob } from "../src/design/jobs.js";
@@ -81,5 +81,45 @@ test(
       ),
     );
     await verifyEvidence(store, state.run);
+  },
+);
+
+test(
+  "the copyable agent starter enforces rule and native correspondence readiness",
+  { timeout: 30000 },
+  async (t) => {
+    const root = await mkdtemp(join(tmpdir(), "chipsim-circuit-starter-"));
+    t.after(() => rm(root, { recursive: true, force: true }));
+    await cp(resolve("examples/connected-circuit"), root, { recursive: true });
+    const store = new Store(root),
+      analyze = await startJob(root, "analyze"),
+      checked = await waitJob(store, analyze.id, { timeoutMs: 15000 });
+    assert.equal(checked.state, "completed", JSON.stringify(checked));
+    assert.equal(checked.ready, true);
+    await verifyEvidence(store, checked.run);
+    if (process.env.CHIPSIM_TEST_CIRCUIT === "1") {
+      const verify = await startJob(root, "verify"),
+        tested = await waitJob(store, verify.id, { timeoutMs: 20000 });
+      assert.equal(tested.state, "completed", JSON.stringify(tested));
+      assert.equal(tested.ready, true);
+      await verifyEvidence(store, tested.run);
+      const artifacts = await store.list("artifact"),
+        report = artifacts.find(
+          (artifact) => artifact.path === "out/correspondence.json",
+        );
+      assert.ok(report);
+      const measured = JSON.parse(
+        await readFile(store.blobPath(report.payload.sha256), "utf8"),
+      );
+      assert.equal(measured.checked, 1024);
+      assert.equal(measured.status, "simulation-only");
+      const checks = await store.list("check");
+      assert.ok(
+        checks.some(
+          (check) =>
+            check.name === "correspondence" && check.verdict === "pass",
+        ),
+      );
+    }
   },
 );

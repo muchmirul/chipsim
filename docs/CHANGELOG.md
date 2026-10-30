@@ -5,6 +5,43 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-10-30 — Connected-circuit agent playbook and discovery
+
+**Context:** The feature contract described implementation semantics, but agents
+needed a practical source-selection, execution and result-reading procedure.
+**Use/behavior:** `docs/AGENT_CIRCUITS.md`, root/scoped `AGENTS.md` and the agent
+guides explain authoritative JSON versus RTL, explicit initialization/old-state
+sampling, exact commands/result fields, bounded cases, stale recovery, native
+tool calls, managed evidence, viewer handoff and reporting. `agent help` and
+`design guide circuit` expose installed instructions/starter/RTL paths; agent
+contexts link the playbook and new prepared projects copy it.
+**Limits/preservation:** Documentation does not install tools, authorize providers
+or refresh existing project snapshots. Unsupported hardware remains explicit;
+integrity validation, rule coverage and simulation are not interchangeable.
+No circuit or ordered model execution semantics change.
+**Implementation/checks:** Agent discovery/context/preparation, copied-document
+and installed-path checks. Source-free preparation verifies exact guide copies;
+installed-package checks exercise the playbook and scoped instructions outside
+the checkout. See [AGENT_CIRCUITS.md](AGENT_CIRCUITS.md).
+
+## 2026-10-30 — Copyable managed circuit starter
+
+**Context:** Agents had loose source examples but no ready project showing the
+required checks and durable job/evidence loop for connected circuits.
+**Use/behavior:** Copy `examples/connected-circuit/` to a new project and read its
+`AGENTS.md`. `analyze` checks complete rules using Node; `verify` adds real Icarus
+correspondence across all 1024 binary counter/capture edge assignments. Explicit
+execution/output/coverage/simulation/correspondence requirements gate readiness;
+portable circuit-session outputs support verified terminal inspection.
+**Limits/preservation:** The starter is illustrative, not validation of a user's
+different hardware. Adapt authoritative source and independent expectations,
+preserving required checks. Existing example source bytes and bounds remain
+unchanged; Icarus is needed only for the native target.
+**Implementation/checks:** The two design manifests and scoped instructions;
+managed tests copy the actual project, execute both targets, verify captured
+evidence and assert 1024 measured cases. The installed-package gate runs the
+Node-only target outside the checkout. See [AGENT_CIRCUITS.md](AGENT_CIRCUITS.md).
+
 ## 2026-10-30 — Connected circuit state/next-state contract
 
 **Context:** Ordered JSON assignments and observed trace flow could not express

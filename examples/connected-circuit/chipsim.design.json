@@ -1,0 +1,44 @@
+{
+  "format": "chipsim-design",
+  "version": 1,
+  "id": "connected-circuit-starter",
+  "tasks": {
+    "rules": {
+      "adapter": "circuit",
+      "options": { "source": "counter-capture.json", "operation": "check" },
+      "outputs": [
+        { "path": "out/coverage.json", "kind": "report" },
+        { "path": "out/relation.json", "kind": "report" }
+      ]
+    },
+    "correspondence": {
+      "adapter": "circuit",
+      "needs": ["rules"],
+      "options": { "source": "counter-capture.json", "operation": "verify" },
+      "outputs": [
+        { "path": "out/coverage.json", "kind": "report" },
+        { "path": "out/correspondence.json", "kind": "report" },
+        { "path": "out/session.json", "kind": "circuit-session" }
+      ]
+    }
+  },
+  "targets": {
+    "analyze": {
+      "tasks": ["rules"],
+      "requiredChecks": ["rules:coverage", "rules:execution", "rules:outputs"]
+    },
+    "verify": {
+      "tasks": ["correspondence"],
+      "requiredChecks": [
+        "rules:coverage",
+        "rules:execution",
+        "rules:outputs",
+        "correspondence:coverage",
+        "correspondence:simulation",
+        "correspondence:correspondence",
+        "correspondence:execution",
+        "correspondence:outputs"
+      ]
+    }
+  }
+}

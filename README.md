@@ -20,6 +20,7 @@ accepts `--inputs events.csv` with `tick,signal,value` columns.
 - **Agent control and input recipes:** native Pi/prime-agent tools and the general CLI controller discover capabilities, prepare missing inputs, run jobs and inspect results.
 - **Live agent work:** follow reported goals, actions, candidate history and linked evidence for ordinary tasks or external evolution without replacing the recording under review.
 - **Connected circuit state:** inspect fixed wiring, complete binary next-state rules and atomic updates; generate HDL from tables/equations or derive a supported model from authoritative RTL. See [connected circuits](docs/CONNECTED_CIRCUITS.md).
+- **Connected-circuit agent workflow:** use the [agent playbook](docs/AGENT_CIRCUITS.md), installed discovery and a [managed starter with scoped instructions](examples/connected-circuit/AGENTS.md) to choose inputs, run checks and report evidence.
 - **Private source verification:** the catalog records 34 vendor documents, but no PDFs are distributed. Exact hashes, original PDF pages and acceptance cases remain required for source-backed workflows.
 
 ![PIO transfer waveforms, registers and current event](docs/screenshots/waveforms.png)

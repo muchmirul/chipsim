@@ -1,5 +1,10 @@
 # Connected circuit state and next-state models
 
+Coding agents: start with [AGENT_CIRCUITS.md](AGENT_CIRCUITS.md) for task routing,
+commands/results, managed jobs, troubleshooting and honest reporting. The
+copyable starter includes scoped [agent instructions](../examples/connected-circuit/AGENTS.md)
+and `analyze`/`verify` targets; discover installed paths through `agent help`.
+
 ChipSim can inspect a circuit's declared connections and complete binary
 transition rules, separately from the transitions observed in a simulation.
 This is a distinct version-1 `chipsim-circuit` contract. Existing JSON models

@@ -1,5 +1,20 @@
 # Connected circuit examples
 
+Agents: read [AGENTS.md](AGENTS.md), then discover the installed
+`documentation["AGENT_CIRCUITS.md"]` through `chipsim agent help`. Copy this folder
+to a new project to use its managed targets:
+
+```sh
+chipsim design run --project /path/to/copied-project --target analyze
+chipsim design run --project /path/to/copied-project --target verify
+```
+
+`analyze` checks complete connected rules using Node only. `verify` adds actual
+Icarus correspondence over all 1024 one-edge binary assignments. Required checks
+are explicit in `chipsim.design.json`; `circuit-session` evidence opens in the TUI.
+Adapt the actual source and independent expectations before claiming results
+for user hardware. Returned job acceptance is not target readiness.
+
 `swap.json` defines cross-connected register Q-to-D paths. `load-hold.json`
 defines a complete one-bit table with explicit synchronous reset priority.
 `counter-capture.json` combines modular arithmetic, a mux, capture of old counter

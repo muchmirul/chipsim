@@ -15,6 +15,12 @@ observations, rule completeness and property proof distinct. Existing ordered
 JSON behavior is preserved. HDL import executes an explicit existing Yosys and
 supported native correspondence; it installs no tools or providers.
 
+Use [AGENT_CIRCUITS.md](AGENT_CIRCUITS.md) for the operating procedure, exact
+command/result fields, scoped managed starter, failure recovery and reporting.
+`agent help` → `examples.circuit.instructions` locates its installed `AGENTS.md`;
+`examples.circuit.directory` locates the copyable project. Read those instructions
+when adapting the starter. A copied guide does not imply copied example files.
+
 Use Node.js 22.13 or newer. These commands discover the installed contracts
 without creating a project or starting a hardware task:
 

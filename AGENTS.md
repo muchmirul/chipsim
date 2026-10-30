@@ -24,6 +24,7 @@ ChipSim is a local TUI hardware behavior workbench. The terminal is the only int
 - `docs/CSV_INPUTS.md`: developer-authored register maps and stimulus, exact CSV bytes, one logical source page, and explicit width/order without PDF inference.
 - `docs/BEHAVIOR_TABLES.md`: developer-entered custom logic/state machines, step semantics, provenance, and limits.
 - `docs/CONNECTED_CIRCUITS.md`: separate versioned connected wiring/state contract, old-state atomic updates, BDD rule coverage, generated/native HDL correspondence and reviewed Yosys import. Preserve existing ordered JSON semantics; unsupported constructs and resource exhaustion must never pass silently.
+- `docs/AGENT_CIRCUITS.md`: operating playbook for choosing a circuit source of truth, probing/checking/generating/importing, managed target readiness, evidence and recovery. Installed starter instructions are in `examples/connected-circuit/AGENTS.md`.
 - `docs/DOCUMENT_PROFILES.md`: reviewed automatic datasheet compilation and extension requirements.
 - `docs/ESP32_C6_GPIO.md`: GPIO word transactions, atomic aliases, logical output observation and boundaries.
 - `docs/ESP32_C6_PCNT.md`: the user-selected ESP32-C6 manual, single-channel scope, signed counts and terminal experiments.
@@ -90,6 +91,19 @@ The CLI/native tools control ChipSim jobs and evidence, not the external agent's
 editor or reasoning. Documentation is context, not permission to install tools,
 configure providers, launch paid searches, upload private material, or publish
 changes. Keep user-approved scope and private reference boundaries intact.
+
+## Connected circuit work for agents
+
+For connected circuit tasks, first read [the agent playbook](docs/AGENT_CIRCUITS.md)
+and `chipsim circuit help`. Use `agent help` → `examples.circuit` to locate the
+installed examples, scoped instructions and managed starter; newly prepared
+projects copy the playbook but not those examples. Choose one authoritative
+source: connected JSON generates its RTL, or supported SystemVerilog derives
+the view through actual Yosys lowering. Preserve fixed connections, complete
+explicit rules and old-state simultaneous updates. Keep a hypothetical probe,
+exact rule coverage, native correspondence and temporal/physical proof distinct.
+Inspect returned statuses, bounds and job/run/artifact evidence; do not weaken
+checks or invent initialization to turn an unsupported case into a pass.
 
 ## Creating a simulation from a manual
 

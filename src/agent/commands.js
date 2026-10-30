@@ -262,6 +262,7 @@ export async function agentCommand(args) {
             "AGENT_WORK.md",
             "EVOLUTION.md",
             "CONNECTED_CIRCUITS.md",
+            "AGENT_CIRCUITS.md",
             "DESIGN_INPUTS.md",
             "LOCAL_REFERENCES.md",
             "LICENSING.md",
@@ -277,6 +278,21 @@ export async function agentCommand(args) {
         ),
         examples: {
           circuit: {
+            directory: join(packageRoot, "examples/connected-circuit"),
+            instructions: join(
+              packageRoot,
+              "examples/connected-circuit/AGENTS.md",
+            ),
+            guide: join(packageRoot, "docs/AGENT_CIRCUITS.md"),
+            managedProject: join(
+              packageRoot,
+              "examples/connected-circuit/chipsim.design.json",
+            ),
+            rtlSwap: join(packageRoot, "examples/connected-circuit/swap.sv"),
+            rtlCounterCapture: join(
+              packageRoot,
+              "examples/connected-circuit/counter_capture.sv",
+            ),
             swap: join(packageRoot, "examples/connected-circuit/swap.json"),
             loadHold: join(
               packageRoot,

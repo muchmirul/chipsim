@@ -42,6 +42,7 @@ const recipes = {
       "Static connections, one-step probes and native observations are separate. Complete rule coverage is not reachability or whole-chip/physical proof.",
       "The first subset rejects asynchronous controls, latches, multiple/gated clocks, X/Z, memories and combinational loops. No PDF is required.",
       "Existing ordered JSON models retain their execution semantics. Read docs/CONNECTED_CIRCUITS.md for the versioned contract and bounds.",
+      "Read docs/AGENT_CIRCUITS.md for the agent workflow. Copy the example to a new project and read its AGENTS.md; analyze checks complete rules with Node, verify adds actual Icarus correspondence over 1024 one-edge cases.",
     ],
   },
   rtl: {
@@ -445,6 +446,7 @@ export function designGuide(topic = "overview") {
       environment: installed("docs/HDL_ENVIRONMENT.md"),
       csv: installed("docs/CSV_INPUTS.md"),
       circuit: installed("docs/CONNECTED_CIRCUITS.md"),
+      circuitAgent: installed("docs/AGENT_CIRCUITS.md"),
       programming: installed("docs/PROGRAMMING.md"),
     },
     argumentConvention:

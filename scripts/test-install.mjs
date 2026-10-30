@@ -99,6 +99,10 @@ try {
     "examples/evolutionary-example/project-workflow/template/activity.py",
     "docs/EVOLUTION.md",
     "docs/CONNECTED_CIRCUITS.md",
+    "docs/AGENT_CIRCUITS.md",
+    "examples/connected-circuit/AGENTS.md",
+    "examples/connected-circuit/chipsim.design.json",
+    "examples/connected-circuit/chipsim.lock.json",
     "src/circuit/model.js",
     "src/circuit/relation.js",
     "src/circuit/bdd.js",
@@ -483,6 +487,7 @@ try {
     "HDL_ENVIRONMENT.md",
     "EVOLUTION.md",
     "CONNECTED_CIRCUITS.md",
+    "AGENT_CIRCUITS.md",
   ]) {
     assert.equal(help.documentation[name], join(installed, "docs", name));
     assert.ok((await readFile(help.documentation[name])).length > 100);
@@ -501,6 +506,41 @@ try {
   assert.equal(connectedCheck.format, "chipsim-circuit-result");
   assert.equal(connectedCheck.coverage.status, "complete-scoped-proof");
   assert.equal(connectedCheck.coverage.assignments, "4");
+  assert.equal(
+    help.examples.circuit.guide,
+    help.documentation["AGENT_CIRCUITS.md"],
+  );
+  assert.equal(
+    help.examples.circuit.instructions,
+    join(help.examples.circuit.directory, "AGENTS.md"),
+  );
+  assert.match(
+    await readFile(help.examples.circuit.instructions, "utf8"),
+    /old-state snapshot/,
+  );
+  const copiedCircuit = join(cwd, "managed circuit starter");
+  await cp(help.examples.circuit.directory, copiedCircuit, { recursive: true });
+  const managedCircuit = JSON.parse(
+    (
+      await run(
+        binary,
+        [
+          "design",
+          "run",
+          "--project",
+          copiedCircuit,
+          "--target",
+          "analyze",
+          "--wait",
+          "--timeout-ms",
+          "20000",
+        ],
+        { cwd },
+      )
+    ).stdout,
+  );
+  assert.equal(managedCircuit.job.state, "completed");
+  assert.equal(managedCircuit.job.ready, true);
   const connectedBuild = JSON.parse(
     (
       await run(
