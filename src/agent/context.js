@@ -314,6 +314,9 @@ export function buildProgrammingContext({
     documentation: Object.fromEntries(
       [
         "AGENT_CONTROL.md",
+        "AGENT_QUICKSTART.md",
+        "EVOLUTION.md",
+        "EVOLUTION_OBJECTIVES.md",
         "AGENT_WORK.md",
         "DESIGN_INPUTS.md",
         "DESIGN.md",
@@ -417,6 +420,7 @@ export function programmingContextMarkdown(context) {
     "## Agent control and live progress",
     "",
     `Read the installed agent-control guide: ${context.documentation["AGENT_CONTROL.md"]}. Prepared projects also carry docs/AGENT_CONTROL.md and docs/AGENT_WORK.md.`,
+    `Quickstart: ${context.documentation["AGENT_QUICKSTART.md"]}. Native benchmark CLI: ${context.documentation["EVOLUTION.md"]}. Separate multi-objective workflow runner: ${context.documentation["EVOLUTION_OBJECTIVES.md"]}. Prepared projects copy these guides into docs/.`,
     "Use chipsim agent help for current command/documentation and external evolution-example paths. Saved context is not an inventory of installed EDA tools.",
     "For requested live progress, retain a work-start session ID and publish concrete actions and actual evidence with work-event. --agent displays those reports; it does not run an agent or replace the recording being inspected. Closing a session does not cancel a managed job.",
     "",

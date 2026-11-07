@@ -1,0 +1,11 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "name": "Custom counter",
+  "language": "verilog",
+  "standard": "2012",
+  "sources": ["counter.sv", "counter_tb.sv"],
+  "top": "counter_tb",
+  "waveform": "trace.vcd",
+  "timeoutMs": 10000
+}

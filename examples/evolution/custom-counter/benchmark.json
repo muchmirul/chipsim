@@ -1,0 +1,53 @@
+{
+  "format": "chipsim-evolution-benchmark",
+  "version": 1,
+  "id": "custom-counter",
+  "description": "Counter evaluation through user-authored design targets and reports.",
+  "interface": "Four-bit count; synchronous reset, enable, and rising-edge clock.",
+  "candidate": "counter.sv",
+  "files": [
+    "chipsim.design.json",
+    "chipsim.lock.json",
+    "counter.sv",
+    "counter_tb.sv",
+    "equivalence.eqy",
+    "formal-wrapper.sv",
+    "oracle.py",
+    "prefix.py",
+    "reference.sv",
+    "replay.project.json",
+    "replay_score.py",
+    "sim.project.json",
+    "stage.py"
+  ],
+  "timeout": 120,
+  "objective": {
+    "metric": "combined_score",
+    "direction": "maximize",
+    "unit": "fraction"
+  },
+  "stages": [
+    {
+      "target": "evaluate",
+      "report": {
+        "task": "score",
+        "path": "out/stage.json"
+      },
+      "expected_checks": 80
+    }
+  ],
+  "formal": {
+    "target": "formal",
+    "required": false,
+    "reference": "reference.sv",
+    "scope": "Counter from first synchronous reset onward",
+    "assumptions": ["Reset asserted at first sampled clock"]
+  },
+  "replay": {
+    "target": "replay",
+    "report": {
+      "task": "replay-score",
+      "path": "out/replay.json"
+    }
+  }
+}

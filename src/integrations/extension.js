@@ -361,15 +361,22 @@ export function commandArguments(args = []) {
     "job",
     "artifact",
     "checks",
+    "evolution",
   ].includes(argv[0]);
   const textOutput =
-    !headless &&
-    ["--help", "-h", "--snapshot", "--list-profiles"].some((flag) =>
-      argv.includes(flag),
-    );
+    (!headless &&
+      ["--help", "-h", "--snapshot", "--list-profiles"].some((flag) =>
+        argv.includes(flag),
+      )) ||
+    (argv[0] === "evolution" &&
+      (argv.length === 1 ||
+        argv.includes("--format=text") ||
+        ["help", "--help", "-h"].some((flag) => argv.includes(flag)) ||
+        (argv.includes("--format") &&
+          argv[argv.indexOf("--format") + 1] === "text")));
   if (!headless && !textOutput)
     throw new Error(
-      "Pass ChipSim arguments starting with agent, hdl, circuit, table, design, job, artifact or checks; use --snapshot for a terminal frame, or help for discovery. Open the interactive TUI with /chipsim.",
+      "Pass ChipSim arguments starting with agent, hdl, circuit, table, design, job, artifact, checks or evolution; use --snapshot for a terminal frame, or help for discovery. Open the interactive TUI with /chipsim.",
     );
   return { args: argv, textOutput };
 }
@@ -468,7 +475,7 @@ export function registerChipSim(
     name: "chipsim_command",
     label: "ChipSim command",
     description:
-      'General ChipSim controller. Pass literal CLI arguments without the executable, e.g. {"args":["design","run","--project",".","--target","simulation"]}. Empty args or ["help"] lists usage; ["design","commands"] returns machine-readable commands and integration formats. Before preparing chip inputs, ["design","guide"] or ["design","guide","rtl"] gives optional recipes, minimum files, missing-input preparation and installed examples; inspect/reuse existing work, then create/find/prepare prerequisites instead of requiring generated outputs from the user. Guidance does not enforce a workflow or execute tools. design status --project PATH returns current checks and next actions. ["circuit","help"] describes connected state/next-state models, symbolic rule checks and native HDL correspondence; ["table","help"] describes CSV register and stimulus inputs without a PDF; ["hdl","help"] and ["agent","help"] give other family details. Supports jobs, artifacts, checks and --snapshot. Paths resolve in the current call’s cwd. Start durable jobs without --wait; poll job status with --wait --timeout-ms 1000 and job logs using its cursor; job cancel explicitly cancels them. Uses the existing CLI validation and evidence gates.',
+      'General ChipSim controller. Pass literal CLI arguments without the executable, e.g. {"args":["design","run","--project",".","--target","simulation"]}. Empty args or ["help"] lists usage; ["design","commands"] returns machine-readable commands and integration formats. Before preparing chip inputs, ["design","guide"] or ["design","guide","rtl"] gives optional recipes, minimum files, missing-input preparation and installed examples; inspect/reuse existing work, then create/find/prepare prerequisites instead of requiring generated outputs from the user. Guidance does not enforce a workflow or execute tools. design status --project PATH returns current checks and next actions. ["evolution","list"] and ["evolution","describe","--benchmark","alu8"] discover text-based RTL evaluation; use evolution report/compare/reproduce to inspect saved evidence and increase timeoutMs for ALU, formal or search. ["agent","help"] returns installed agent quickstart and evolution guide paths. ["circuit","help"] describes connected state models, rule coverage and native correspondence; ["table","help"] describes CSV register and stimulus inputs without a PDF; ["hdl","help"] and ["agent","help"] give other family details. Supports jobs, artifacts, checks and --snapshot. Paths resolve in the current call’s cwd. Start durable jobs without --wait; poll job status with --wait --timeout-ms 1000 and job logs using its cursor; job cancel explicitly cancels them. Uses the existing CLI validation and evidence gates.',
     parameters: Type.Object(
       {
         args: Type.Optional(
@@ -478,12 +485,28 @@ export function registerChipSim(
               "Literal arguments after chipsim. No quoting, shell expansion, pipes or command chaining; omit for help.",
           }),
         ),
+        timeoutMs: Type.Optional(
+          Type.Integer({
+            minimum: 1000,
+            maximum: 86400000,
+            description:
+              "Command wall-clock limit; default 180000 ms. Increase for evolution searches.",
+          }),
+        ),
       },
       { additionalProperties: false },
     ),
     async execute(_id, params, signal, _update, ctx) {
       const { args, textOutput } = commandArguments(params.args);
-      const result = await run(args, { cwd: ctx.cwd, signal, textOutput });
+      const result = await run(args, {
+        cwd: ctx.cwd,
+        signal,
+        textOutput,
+        ...(params.timeoutMs !== undefined
+          ? { timeout: params.timeoutMs }
+          : {}),
+        ...(args[0] === "evolution" ? { cleanupMs: 20000 } : {}),
+      });
       return {
         content: [
           {

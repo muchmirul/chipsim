@@ -479,7 +479,9 @@ def run_evolution(**kwargs):
         "--config",
         yaml,
         "--search-timeout",
-        "3",
+        // This case needs an accepted job, unlike the separate pre-launch
+        // deadline test. Leave time for snapshots/probes before the hang.
+        "10",
       ],
       {
         env: { ...process.env, PYTHONPATH: root, PYTHONDONTWRITEBYTECODE: "1" },

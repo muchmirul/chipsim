@@ -11,6 +11,8 @@ import { normalizeParameters } from "../src/model/engine.js";
 import { views } from "../src/tui/views.js";
 import { AgentMonitor } from "../src/tui/agent-monitor.js";
 export async function main(args = process.argv.slice(2)) {
+  if (args[0] === "evolution")
+    return (await import("../src/evolution/cli.js")).main(args.slice(1));
   if (args[0] === "circuit")
     return (await import("../src/circuit/commands.js")).main(args.slice(1));
   if (args[0] === "table")
@@ -41,7 +43,7 @@ export async function main(args = process.argv.slice(2)) {
   if (args.includes("--help") || args.includes("-h")) {
     process.stdout.write(usage);
     process.stdout.write(
-      "CSV tables: chipsim table registers|stimulus · table help.\nProject commands: chipsim design commands · design guide [TOPIC] · design status --project PROJECT · design help · job · artifact · checks.\nCoding agents: chipsim agent help · local PDF search, validation and trace artifacts without a TTY.\n",
+      "CSV tables: chipsim table registers|stimulus · table help.\nProject commands: chipsim design commands · design guide [TOPIC] · design status --project PROJECT · design help · job · artifact · checks.\nEvolution: chipsim evolution help · benchmarks, evaluation, reports, comparison and reproduction.\nCoding agents: chipsim agent help · local PDF search, validation and trace artifacts without a TTY.\n",
     );
     return;
   }

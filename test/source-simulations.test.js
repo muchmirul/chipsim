@@ -48,7 +48,8 @@ const experiment = (state) =>
   });
 const enter = (app) => app.key("\r", { name: "return" });
 async function idle(state) {
-  const deadline = Date.now() + 15000;
+  // Real PDF extraction competes with other source-backed tests in verification.
+  const deadline = Date.now() + 60000;
   while (state.busy && Date.now() < deadline)
     await new Promise((resolve) => setTimeout(resolve, 10));
   assert.equal(state.busy, false, state.message);

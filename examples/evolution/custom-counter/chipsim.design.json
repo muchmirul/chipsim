@@ -1,0 +1,160 @@
+{
+  "format": "chipsim-design",
+  "version": 1,
+  "id": "custom-counter",
+  "tasks": {
+    "sim": {
+      "adapter": "hdl",
+      "options": {
+        "project": "sim.project.json",
+        "debug": false
+      },
+      "outputs": [
+        {
+          "path": "out/waveform.json",
+          "kind": "waveform"
+        }
+      ]
+    },
+    "score": {
+      "adapter": "command",
+      "inputs": ["stage.py", "oracle.py"],
+      "bindings": [
+        {
+          "task": "sim",
+          "output": "out/waveform.json",
+          "path": "waveform.json"
+        }
+      ],
+      "options": {
+        "command": "python3",
+        "versionArgs": ["--version"],
+        "args": ["stage.py"]
+      },
+      "outputs": [
+        {
+          "path": "out/stage.json",
+          "kind": "report"
+        }
+      ],
+      "checks": [
+        {
+          "name": "correctness",
+          "path": "out/stage.json",
+          "field": "metrics.combined_score",
+          "operator": "eq",
+          "value": 1
+        }
+      ]
+    },
+    "formal": {
+      "adapter": "eqy",
+      "inputs": ["counter.sv", "reference.sv", "formal-wrapper.sv"],
+      "options": {
+        "config": "equivalence.eqy",
+        "scope": "Counter from first synchronous reset onward",
+        "assumptions": ["Reset asserted at first sampled clock"]
+      }
+    },
+    "prefix": {
+      "adapter": "command",
+      "inputs": ["prefix.py", "counter_tb.sv", "replay-case.json"],
+      "bindings": [],
+      "options": {
+        "command": "python3",
+        "versionArgs": ["--version"],
+        "args": ["prefix.py"]
+      },
+      "outputs": [
+        {
+          "path": "prefix_tb.sv",
+          "kind": "rtl"
+        }
+      ]
+    },
+    "replay-sim": {
+      "adapter": "hdl",
+      "options": {
+        "project": "replay.project.json",
+        "debug": false
+      },
+      "bindings": [
+        {
+          "task": "prefix",
+          "output": "prefix_tb.sv",
+          "path": "prefix_tb.sv"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "out/waveform.json",
+          "kind": "waveform"
+        }
+      ]
+    },
+    "replay-score": {
+      "adapter": "command",
+      "inputs": ["replay_score.py", "replay-case.json"],
+      "bindings": [
+        {
+          "task": "replay-sim",
+          "output": "out/waveform.json",
+          "path": "waveform.json"
+        }
+      ],
+      "options": {
+        "command": "python3",
+        "versionArgs": ["--version"],
+        "args": [
+          "replay_score.py",
+          "counter",
+          "waveform.json",
+          "replay-case.json",
+          "out/replay.json"
+        ]
+      },
+      "outputs": [
+        {
+          "path": "out/replay.json",
+          "kind": "report"
+        }
+      ],
+      "checks": [
+        {
+          "name": "reproduced",
+          "path": "out/replay.json",
+          "field": "reproduced",
+          "operator": "eq",
+          "value": true
+        }
+      ]
+    }
+  },
+  "targets": {
+    "evaluate": {
+      "tasks": ["score"],
+      "requiredChecks": [
+        "sim:simulation",
+        "sim:outputs",
+        "score:execution",
+        "score:outputs",
+        "score:correctness"
+      ]
+    },
+    "formal": {
+      "tasks": ["formal"],
+      "requiredChecks": ["formal:execution", "formal:equivalence"]
+    },
+    "replay": {
+      "tasks": ["replay-score"],
+      "requiredChecks": [
+        "prefix:execution",
+        "replay-sim:simulation",
+        "replay-sim:outputs",
+        "replay-score:execution",
+        "replay-score:outputs",
+        "replay-score:reproduced"
+      ]
+    }
+  }
+}

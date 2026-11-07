@@ -142,8 +142,14 @@ test("agent prepare handles the supplied ESP32-C6 manual and bounded, paginated 
     await readFile(join(project, "AGENTS.md"), "utf8"),
     /docs\/CHANGELOG\.md/,
   );
+  // The template is installed at the project root, not under docs/.
+  const instructions = await readFile(join(project, "AGENTS.md"), "utf8");
+  for (const [, target] of instructions.matchAll(/\[[^\]]+\]\(([^)]+)\)/g))
+    await access(join(project, target));
   for (const file of [
     "CHANGELOG.md",
+    "AGENT_QUICKSTART.md",
+    "EVOLUTION.md",
     "TUI.md",
     "DEVELOPMENT.md",
     "VISUALIZATION.md",
@@ -170,6 +176,9 @@ test("an unfamiliar PDF accepts an authored model and hands the exact experiment
   const { path, project, model } = await authoredFixture(t);
   for (const file of [
     "AGENT_CONTROL.md",
+    "AGENT_QUICKSTART.md",
+    "EVOLUTION.md",
+    "EVOLUTION_OBJECTIVES.md",
     "AGENT_WORK.md",
     "AGENT_CIRCUITS.md",
     "HDL.md",
@@ -187,6 +196,9 @@ test("an unfamiliar PDF accepts an authored model and hands the exact experiment
   );
   for (const file of [
     "HDL.md",
+    "AGENT_QUICKSTART.md",
+    "EVOLUTION.md",
+    "EVOLUTION_OBJECTIVES.md",
     "HDL_DEBUG.md",
     "HDL_ENVIRONMENT.md",
     "CONNECTED_CIRCUITS.md",

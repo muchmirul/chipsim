@@ -296,7 +296,7 @@
       "license": "ISC",
       "relationship": "external-tool",
       "bundled_upstream_code": false,
-      "locations": ["src/design/adapters.js"],
+      "locations": ["src/design/adapters.js", "examples/evolution/workflow.py"],
       "adapters": ["eqy"],
       "evidence": [
         {
@@ -313,7 +313,11 @@
       "license": "ISC",
       "relationship": "external-tool",
       "bundled_upstream_code": false,
-      "locations": ["src/design/adapters.js", "src/circuit/import.js"],
+      "locations": [
+        "src/design/adapters.js",
+        "src/circuit/import.js",
+        "examples/evolution/alu8/benchmark.py"
+      ],
       "adapters": ["sby", "eqy", "orfs", "circuit-import"],
       "evidence": [
         {
@@ -714,7 +718,10 @@
       "locations": [
         "examples/evolutionary-example/run.py",
         "examples/evolutionary-example/search.py",
-        "examples/evolutionary-example/evaluator.py"
+        "examples/evolutionary-example/evaluator.py",
+        "examples/evolution/run.py",
+        "examples/evolution/search.py",
+        "examples/evolution/evaluator.py"
       ],
       "adapters": [],
       "evidence": [

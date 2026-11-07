@@ -13,6 +13,9 @@ ChipSim is a local TUI hardware behavior workbench. The terminal is the only int
   findings. Preserve exact source bytes/notices and maintain acknowledgments.
 
 - `README.md`: user workflow, setup, and current limits.
+- `docs/AGENT_QUICKSTART.md`: workflow selection and the native evolution baseline/edit/evaluate loop.
+- `docs/EVOLUTION.md`: `chipsim evolution` benchmark JSON, feedback, comparison, reproduction and formal gates.
+- `docs/EVOLUTION_OBJECTIVES.md`: the separate project-defined multi-objective runner (`--workflow`), including Verilog/VHDL, units, weights and search budgets.
 - `docs/DESIGN_INPUTS.md`: optional chip-development input recipes and missing-file preparation. Use `chipsim design guide [TOPIC]` to discover formats, minimum files and installed examples. Inspect existing work, then create/find/prepare missing prerequisites within the user's scope; generated outputs need producers, not mandatory user uploads. `.asm` needs an explicit compatible assembler task; VCD is a recorded result. These recipes are advisory and do not impose stage ordering.
 - `docs/AGENT_CONTROL.md`: agent operating procedure, task/mode selection, execution/evidence controls, live reporting, evolution budgets and recovery.
 - `docs/AGENT_WORK.md`: explicit work-event contract, lifecycle, monitoring keys and trust boundaries.
@@ -104,6 +107,32 @@ explicit rules and old-state simultaneous updates. Keep a hypothetical probe,
 exact rule coverage, native correspondence and temporal/physical proof distinct.
 Inspect returned statuses, bounds and job/run/artifact evidence; do not weaken
 checks or invent initialization to turn an unsupported case into a pass.
+
+## Evaluating and improving RTL
+
+Discover with `chipsim evolution list` and `describe --benchmark NAME`; custom
+definitions need `validate --benchmark FILE`. Read `docs/AGENT_QUICKSTART.md`
+and `docs/EVOLUTION.md`. Save baseline JSON, inspect failures, change only the
+declared candidate, then evaluate and compare. Counter starts deliberately
+broken. Exit 1 may retain a complete failure report; inspect status, diagnostics,
+cases and evidence rather than discarding stdout. Use `report --format text` for
+readable feedback and `reproduce` for captured inputs or a saved case. A focused
+replay does not establish full acceptance.
+
+Keep tests, oracle, reference, recipes and scoring fixed; use a new session and
+baseline for policy changes. Enabled/mandatory formal must gate acceptance;
+missing tools, timeout or an unproven result must not pass. Only rank matching
+verified contexts. Preserve evidence and units; generic cells do not establish
+physical PPA. Search stays external through explicitly configured OpenEvolve;
+handwritten fixtures do not establish that search ran.
+
+Evaluation/search/reproduction commands own their default sessions; a caller
+supplying `--session` owns its final summary. Keep managed jobs/artifacts and
+the evaluator shared by the native CLI and Python example wrapper. Do not add
+a second search engine, proof adapter or report contract. Implementation lives
+in `src/evolution/` and `examples/evolution/`; contract tests are in
+`test/text-evolution-workflow.test.js`, with native/formal/ALU opt-ins in the guide.
+CLI or copied-document changes require `npm run test:install`.
 
 ## Creating a simulation from a manual
 

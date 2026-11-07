@@ -1,0 +1,37 @@
+{
+  "format": "chipsim-evolution-benchmark",
+  "version": 1,
+  "id": "counter",
+  "engine": "counter",
+  "description": "Repair the incomplete four-bit counter against 80 fixed observations.",
+  "interface": "Rising-edge clock. Synchronous reset has priority over enable; increment modulo 16 when enabled, otherwise hold.",
+  "candidate": "counter.sv",
+  "files": [
+    "counter.sv",
+    "trusted/counter_tb.sv",
+    "trusted/score.py",
+    "correct-counter.sv"
+  ],
+  "timeout": 60,
+  "objective": {
+    "metric": "combined_score",
+    "direction": "maximize",
+    "unit": "fraction"
+  },
+  "stages": [
+    {
+      "target": "evaluation",
+      "expected_checks": 80
+    }
+  ],
+  "formal": {
+    "target": "formal",
+    "required": false,
+    "reference": "correct-counter.sv",
+    "scope": "Candidate against the known-correct counter, from the first synchronous reset onward.",
+    "assumptions": ["Reset is asserted at the first sampled clock."]
+  },
+  "replay": {
+    "target": "replay"
+  }
+}

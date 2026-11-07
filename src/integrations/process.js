@@ -28,6 +28,7 @@ export async function runChipSim(
     executable = nodeCommand(),
     cli = chipsimCLI,
     textOutput = false,
+    cleanupMs = 250,
   } = {},
 ) {
   if (signal?.aborted)
@@ -61,7 +62,7 @@ export async function runChipSim(
       if (stopped) return;
       stopped = reason;
       kill("SIGTERM");
-      killTimer = setTimeout(() => kill("SIGKILL"), 250);
+      killTimer = setTimeout(() => kill("SIGKILL"), cleanupMs);
       killTimer.unref();
     };
     const abort = () => stop("cancelled");
@@ -114,6 +115,8 @@ export async function runChipSim(
             "chipsim-agent-result",
             "chipsim-hdl-result",
             "chipsim-design-result",
+            "chipsim-circuit-result",
+            "chipsim-evolution-result",
           ].includes(result.format) ||
           result.version !== 1 ||
           typeof result.ok !== "boolean")

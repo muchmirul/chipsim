@@ -44,6 +44,10 @@ chipsim --model pio
 
 Keep the checkout for this local installation. Add the PATH line to your shell configuration for future terminals. Without installing, use `node scripts/chipsim.mjs` from the checkout. Press `?` for help and `q` to quit.
 
+Coding agents: read your project's `AGENTS.md` and the
+[agent quickstart](docs/AGENT_QUICKSTART.md). `chipsim agent help` discovers
+installed guides, native benchmark examples and connected-circuit starters.
+
 ## Choose a starting point
 
 | Input                      | What you can do                                                                                                       |
@@ -208,9 +212,16 @@ this view. Reports are **agent-reported**, not captured private reasoning or
 hardware proof. Background polling preserves the selected recording and cursor.
 See [live work commands and controls](docs/AGENT_WORK.md).
 
+### Text-based RTL evaluation and evolution
+
+Use `chipsim evolution list`, `describe --benchmark alu8`, and `evaluate` for
+bundled counter/ALU or custom JSON benchmarks. Read failures, compare verified
+candidates, reproduce captured runs/cases and require formal equivalence when
+needed. See [the native evolution guide](docs/EVOLUTION.md).
+
 ### OpenEvolve integration: agent-assisted RTL evolution
 
-For an existing chip-development flow, [project-defined evolution](docs/EVOLUTION.md)
+For an existing chip-development flow, [project-defined evolution](docs/EVOLUTION_OBJECTIVES.md)
 accepts fixed managed Verilog/VHDL inputs and tool-produced objective reports,
 with correctness gates, declared units and weighted fitness. The runner isolates
 each invocation, imports recorded ancestry and enforces an overall search budget.

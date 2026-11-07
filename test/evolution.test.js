@@ -335,13 +335,21 @@ test(
       assert.equal(timed.execution.status, 1);
       assert.ok(["inconclusive", "failed"].includes(timed.result.status));
       assert.equal(timed.result.metrics.combined_score, 0);
-      assert.ok(timed.result.evidence.job);
+      // The complete evaluation budget includes preparation/tool probes. On a
+      // larger checkout one second can expire before any job is accepted. Keep
+      // that deadline check, then separately exercise cancellation after launch.
+      const launched = timed.result.evidence.job
+        ? timed
+        : evaluate(hangingFile, ["--timeout", "10"]);
+      assert.equal(launched.execution.status, 1);
+      assert.equal(launched.result.metrics.combined_score, 0);
+      assert.ok(launched.result.evidence.job);
       const cancelled = JSON.parse(
         await readFile(
           join(
-            timed.result.evidence.project,
+            launched.result.evidence.project,
             ".chipsim/design/jobs",
-            timed.result.evidence.job,
+            launched.result.evidence.job,
             "state.json",
           ),
           "utf8",

@@ -220,6 +220,12 @@ guide. Existing ordered JSON models retain their semantics.
 
 ## Live agent tasks and evolution
 
+For the native `chipsim evolution` benchmark family, start with
+[AGENT_QUICKSTART.md](AGENT_QUICKSTART.md) and [EVOLUTION.md](EVOLUTION.md).
+It supports text/JSON reports, verified comparison, captured reproduction and
+formal acceptance gates. Evaluation/search/reproduction commands own their
+default sessions; supplying `--session` leaves the terminal summary to the caller.
+
 Use `chipsim --agent PROJECT` for agent goals, explicit actions and candidate
 history in any existing directory, including RTL projects without PDFs. Agents
 publish structured `work-start`, `work-event` and `work-status` commands; the
@@ -230,7 +236,7 @@ is installed with ChipSim; prepared projects do not copy it. Resolve its current
 location using `agent help` → `examples.evolution`. Reported metrics are not
 proof, and polling never replaces the inspected recording automatically.
 
-Use [EVOLUTION.md](EVOLUTION.md) for `--workflow` project-defined managed
+Use [EVOLUTION_OBJECTIVES.md](EVOLUTION_OBJECTIVES.md) for `--workflow` project-defined managed
 objectives, fixed input snapshots, report units/normalization, checkpoint
 ancestry and `--search-timeout`. `agent help` exposes this guide and the
 installed `examples.evolution.workflows` definitions. New prepared projects

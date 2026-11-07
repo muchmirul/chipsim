@@ -1,0 +1,11 @@
+[gold]
+read_verilog -sv reference.sv formal-wrapper.sv
+prep -top formal_top -flatten
+
+[gate]
+read_verilog -sv counter.sv formal-wrapper.sv
+prep -top formal_top -flatten
+
+[strategy simple]
+use sat
+depth 10

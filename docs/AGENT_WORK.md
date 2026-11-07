@@ -256,6 +256,12 @@ job; its timeout/output limits are described in [AGENT_EXTENSIONS.md](AGENT_EXTE
 
 ## Evolution and trust boundaries
 
+For the native `chipsim evolution` benchmark family, start with
+[AGENT_QUICKSTART.md](AGENT_QUICKSTART.md) and [EVOLUTION.md](EVOLUTION.md).
+It supports text/JSON reports, verified comparison, captured reproduction and
+formal acceptance gates. Evaluation/search/reproduction commands own their
+default sessions; supplying `--session` leaves the terminal summary to the caller.
+
 The [external counter example](../examples/evolutionary-example/README.md) connects
 OpenEvolve to managed ChipSim evaluations and this dashboard. In a prepared project,
 example files are not copied beside this guide: use `agent help` →
@@ -264,7 +270,7 @@ single-candidate bridge checks evaluation/reporting, **not an LLM-driven search*
 Actual evolution requires a separately installed OpenEvolve environment and a
 user-configured model. Mode `evolution` alone runs no search.
 
-For project-defined objectives, see [EVOLUTION.md](EVOLUTION.md), also copied
+For project-defined objectives, see [EVOLUTION_OBJECTIVES.md](EVOLUTION_OBJECTIVES.md), also copied
 into newly prepared projects. Discover the installed template through
 `examples.evolution.workflows`. The external runner isolates configuration and
 cancellation per invocation, gates measured fitness on managed checks, imports

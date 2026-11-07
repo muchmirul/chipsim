@@ -6,6 +6,13 @@ commands and reports results. ChipSim supplies local execution, evidence and a
 terminal viewer. It does not start an agent, choose a model/provider, or run an
 internal evolutionary search.
 
+Start with [AGENT_QUICKSTART.md](AGENT_QUICKSTART.md) for workflow selection.
+The native `chipsim evolution` family evaluates benchmark JSON and provides
+text/JSON reports, comparison, reproduction and optional required formal gates;
+see [EVOLUTION.md](EVOLUTION.md). Its commands create/close default work sessions.
+The multi-objective `--workflow` runner described later has its own schema and
+flags; both use existing managed jobs/evidence and external OpenEvolve search.
+
 ## 1. Discover before acting
 
 For complete connected state/next-state modeling, use `circuit help` and
@@ -404,7 +411,7 @@ fixed goals; the default is counter. `examples.evolution.scenarios` exposes each
 installed scenario guide. Select the matching candidate and system prompt.
 
 For an existing managed hardware workflow, use `--workflow workflow.json`
-instead of `--example`. [EVOLUTION.md](EVOLUTION.md) defines explicit fixed
+instead of `--example`. [EVOLUTION_OBJECTIVES.md](EVOLUTION_OBJECTIVES.md) defines explicit fixed
 template files, one mutable Verilog/VHDL source, required correctness/constraint
 checks and a named producer's measured-objective report. Units, minimize/maximize
 directions, normalization bounds and weights are declared; fitness is gated by

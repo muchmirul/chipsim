@@ -76,11 +76,45 @@ try {
     "src/design/physical.js",
     "scripts/design-klayout.py",
     "docs/AGENT_EXTENSIONS.md",
+    "docs/AGENT_QUICKSTART.md",
+    "docs/EVOLUTION_OBJECTIVES.md",
     "src/agent/activity.js",
     "src/agent/work.js",
     "src/tui/work-panel.js",
     "docs/AGENT_CONTROL.md",
     "docs/AGENT_WORK.md",
+    "examples/evolution/README.md",
+    "examples/evolution/run.py",
+    "examples/evolution/search.py",
+    "examples/evolution/evaluator.py",
+    "examples/evolution/benchmarks.py",
+    "examples/evolution/report.py",
+    "examples/evolution/command.py",
+    "examples/evolution/definitions.py",
+    "examples/evolution/feedback.py",
+    "examples/evolution/workflow.py",
+    "examples/evolution/custom.py",
+    "examples/evolution/verification.py",
+    "examples/evolution/reproduce.py",
+    "examples/evolution/replay_score.py",
+    "examples/evolution/counter.benchmark.json",
+    "examples/evolution/alu8.benchmark.json",
+    "examples/evolution/alu8/reference.sv",
+    "examples/evolution/custom-counter/benchmark.json",
+    "src/evolution/cli.js",
+    "src/evolution/project-info.mjs",
+    "docs/EVOLUTION.md",
+    "examples/evolution/alu8/benchmark.py",
+    "examples/evolution/alu8/alu.sv",
+    "examples/evolution/alu8/shared-adder.sv",
+    "examples/evolution/alu8/trusted/alu_tb.sv",
+    "examples/evolution/alu8/trusted/oracle.py",
+    "examples/evolution/alu8/trusted/score.py",
+    "examples/evolution/alu8/trusted/cost.py",
+    "examples/evolution/counter.sv",
+    "examples/evolution/correct-counter.sv",
+    "examples/evolution/trusted/counter_tb.sv",
+    "examples/evolution/trusted/score.py",
     "examples/evolutionary-example/README.md",
     "examples/evolutionary-example/run.py",
     "examples/evolutionary-example/search.py",
@@ -409,6 +443,14 @@ try {
   }
   assert.deepEqual(help.designGuidance.command, ["design", "guide"]);
   assert.match(
+    await readFile(help.documentation["AGENT_QUICKSTART.md"], "utf8"),
+    /A manual RTL improvement loop/,
+  );
+  assert.match(
+    await readFile(help.documentation["AGENT_WORK.md"], "utf8"),
+    /Live agent work/,
+  );
+  assert.match(
     await readFile(help.documentation["DESIGN_INPUTS.md"], "utf8"),
     /optional recipes/,
   );
@@ -418,6 +460,39 @@ try {
   );
   assert.equal((await cli(["doctor"])).pdfTools.length, 2);
   const installed = join(prefix, "lib/node_modules/chipsim");
+  const evolutionList = JSON.parse(
+    (await run(binary, ["evolution", "list"], { cwd })).stdout,
+  );
+  assert.equal(evolutionList.ok, true);
+  assert.deepEqual(
+    evolutionList.result.benchmarks.map((b) => b.id),
+    ["counter", "alu8"],
+  );
+  const customEvolution = JSON.parse(
+    (
+      await run(
+        binary,
+        [
+          "evolution",
+          "validate",
+          "--benchmark",
+          join(installed, "examples/evolution/custom-counter/benchmark.json"),
+        ],
+        { cwd },
+      )
+    ).stdout,
+  );
+  assert.equal(customEvolution.result.valid, true);
+  assert.match(
+    (
+      await run(
+        binary,
+        ["evolution", "describe", "--benchmark", "counter", "--format", "text"],
+        { cwd },
+      )
+    ).stdout,
+    /Rising-edge clock/,
+  );
   const csvBank = JSON.parse(
     (
       await run(
@@ -483,6 +558,8 @@ try {
     join(installed, "docs/AGENT_CONTROL.md"),
   );
   for (const name of [
+    "AGENT_QUICKSTART.md",
+    "EVOLUTION_OBJECTIVES.md",
     "HDL_DEBUG.md",
     "HDL_ENVIRONMENT.md",
     "EVOLUTION.md",
@@ -587,6 +664,34 @@ try {
     { cwd },
   );
   assert.match(evolutionHelp.stdout, /evaluate,evolve/);
+  const nativeEvolutionHelp = await run(binary, ["evolution", "--help"], {
+    cwd,
+  });
+  assert.match(nativeEvolutionHelp.stdout, /counter,alu8/);
+  await run(
+    "python3",
+    [
+      "-c",
+      `
+import sys
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+from benchmarks import BENCHMARKS
+from alu8.benchmark import prepare, replay_testbench
+from alu8.trusted.oracle import reference
+assert set(BENCHMARKS) == {'counter', 'alu8'}
+assert reference(255, 1, 0) == {'result': 0, 'carry': 1, 'zero': 1, 'overflow': 0}
+assert 'vectors [0:15]' in replay_testbench(16)
+class LocalBridge:
+    config = {'debug': False}
+prepare(LocalBridge(), BENCHMARKS['alu8'].initial.read_bytes(), Path(sys.argv[2]))
+assert (Path(sys.argv[2]) / 'exhaustive.hex').stat().st_size == 524288 * 6
+`,
+      join(installed, "examples/evolution"),
+      join(cwd, "installed-alu-project"),
+    ],
+    { cwd },
+  );
   assert.match(evolutionHelp.stdout, /saturating-adder/);
   assert.match(evolutionHelp.stdout, /priority-encoder/);
   assert.match(evolutionHelp.stdout, /--workflow/);
@@ -830,7 +935,13 @@ try {
       await readFile(join(project, "AGENTS.md"), "utf8"),
       /only\s+interactive frontend is the TUI/,
     );
+    const instructions = await readFile(join(project, "AGENTS.md"), "utf8");
+    for (const [, target] of instructions.matchAll(/\[[^\]]+\]\(([^)]+)\)/g))
+      assert.ok((await readFile(join(project, target), "utf8")).length);
     for (const file of [
+      "AGENT_QUICKSTART.md",
+      "EVOLUTION.md",
+      "EVOLUTION_OBJECTIVES.md",
       "CHANGELOG.md",
       "TUI.md",
       "DEVELOPMENT.md",

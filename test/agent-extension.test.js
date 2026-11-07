@@ -222,6 +222,16 @@ test("general commands keep arguments literal, enforce bounds and forward cwd/ca
       /Pass ChipSim arguments/,
     );
   assert.deepEqual(commandArguments(), { args: ["--help"], textOutput: true });
+  assert.deepEqual(commandArguments(["evolution", "list"]), {
+    args: ["evolution", "list"],
+    textOutput: false,
+  });
+  assert.equal(commandArguments(["evolution", "help"]).textOutput, true);
+  assert.equal(
+    commandArguments(["evolution", "report", "report.json", "--format", "text"])
+      .textOutput,
+    true,
+  );
   assert.deepEqual(commandArguments(["table", "help"]), {
     args: ["table", "help"],
     textOutput: false,
@@ -239,6 +249,19 @@ test("one general tool drives discovery, durable jobs, evidence, checks and snap
   assert.equal(
     (await call(["design", "help"])).details.format,
     "chipsim-design-result",
+  );
+  const circuit = await call([
+    "circuit",
+    "check",
+    join(root, "examples/connected-circuit/swap.json"),
+  ]);
+  assert.equal(circuit.details.format, "chipsim-circuit-result");
+  assert.equal(circuit.details.coverage.status, "complete-scoped-proof");
+  const evolution = await call(["evolution", "list"]);
+  assert.equal(evolution.details.format, "chipsim-evolution-result");
+  assert.deepEqual(
+    evolution.details.result.benchmarks.map((benchmark) => benchmark.id),
+    ["counter", "alu8"],
   );
   const catalog = (await call(["design", "commands"])).details;
   const guidance = (await call([...catalog.guidance.command, "testbench"]))

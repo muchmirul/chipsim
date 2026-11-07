@@ -50,6 +50,20 @@ ORFS/KLayout/OpenROAD-MCP installations with required tools and locks.
 
 Read `AGENTS.md` before changing simulation behavior or adding a model. The TUI is the only interactive interface. Headless commands share its engine, source checks and trace formats so coding agents can prepare reproducible experiments for terminal inspection. No frontend build is required.
 
+[AGENT_QUICKSTART.md](AGENT_QUICKSTART.md) is the common agent entry guide.
+It is linked from repository instructions, copied into new prepared projects,
+and returned by `agent help`. Keep it aligned with public commands and the
+prepared-project template (`docs/AGENT_PROJECT.md`, installed as root `AGENTS.md`).
+Links in that template must resolve from the prepared project root.
+
+`src/evolution/cli.js` transports native evolution commands to the shared
+`examples/evolution/command.py` evaluator. Definitions, frozen inputs, feedback,
+verification and replay remain shared with the legacy Python entry point.
+Reuse design jobs, artifacts and the EQY adapter; search belongs to separately
+configured OpenEvolve. See [EVOLUTION.md](EVOLUTION.md) for contracts, acceptance
+gates and real-tool regression commands. The installation check verifies guide
+discovery and copied instructions outside the checkout.
+
 ## Architecture
 
 `src/circuit/` owns the version-1 connected-state contract, typed expressions,
@@ -77,7 +91,7 @@ inputs/objectives; `evaluator.py` accepts verified reports by producer identity.
 `run.py` owns invocation isolation, cancellation and the POSIX overall deadline;
 `lineage.py` matches optimizer checkpoints to actual evaluated code/identities.
 Keep population search and provider configuration external. The runnable custom
-activity flow and full contract are described in [EVOLUTION.md](EVOLUTION.md).
+activity flow and full contract are described in [EVOLUTION_OBJECTIVES.md](EVOLUTION_OBJECTIVES.md).
 Run both evolution test files, with `CHIPSIM_TEST_EVOLUTION=1` for real Icarus
 evaluation and finalist/cancellation checks. Protocol fixtures must make no
 provider requests. Packaging tests validate installed discovery and snapshots.

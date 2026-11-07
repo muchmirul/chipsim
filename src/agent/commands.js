@@ -258,11 +258,13 @@ export async function agentCommand(args) {
           [
             "AGENT_CONTROL.md",
             "AGENT_WORKFLOW.md",
-            "AGENT_EXTENSIONS.md",
+            "AGENT_QUICKSTART.md",
             "AGENT_WORK.md",
+            "AGENT_EXTENSIONS.md",
             "EVOLUTION.md",
             "CONNECTED_CIRCUITS.md",
             "AGENT_CIRCUITS.md",
+            "EVOLUTION_OBJECTIVES.md",
             "DESIGN_INPUTS.md",
             "LOCAL_REFERENCES.md",
             "LICENSING.md",
@@ -277,6 +279,18 @@ export async function agentCommand(args) {
           ].map((name) => [name, join(packageRoot, "docs", name)]),
         ),
         examples: {
+          nativeEvolution: {
+            guide: join(packageRoot, "docs/EVOLUTION.md"),
+            runner: join(packageRoot, "examples/evolution/run.py"),
+            customBenchmark: join(
+              packageRoot,
+              "examples/evolution/custom-counter/benchmark.json",
+            ),
+            aluCandidate: join(
+              packageRoot,
+              "examples/evolution/alu8/shared-adder.sv",
+            ),
+          },
           circuit: {
             directory: join(packageRoot, "examples/connected-circuit"),
             instructions: join(

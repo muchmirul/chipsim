@@ -1,0 +1,56 @@
+{
+  "format": "chipsim-evolution-benchmark",
+  "version": 1,
+  "id": "alu8",
+  "engine": "alu8",
+  "description": "Minimize generic ALU cells while preserving exhaustive RTL and synthesized-netlist correctness.",
+  "interface": "Eight-bit A/B, three-bit opcode: add, subtract, AND, OR, XOR, NOT A, left shift, right shift. Carry means carry-out for add and no borrow for subtract. Signed arithmetic overflow; zero from result; logical and shift carry/overflow zero.",
+  "candidate": "alu8/alu.sv",
+  "files": [
+    "alu8/alu.sv",
+    "alu8/trusted/alu_tb.sv",
+    "alu8/trusted/oracle.py",
+    "alu8/trusted/score.py",
+    "alu8/trusted/cost.py",
+    "alu8/reference.sv"
+  ],
+  "timeout": 300,
+  "objective": {
+    "metric": "cell_count",
+    "direction": "minimize",
+    "unit": "generic cells"
+  },
+  "stages": [
+    {
+      "target": "directed",
+      "expected_checks": 288
+    },
+    {
+      "target": "random",
+      "expected_checks": 1000
+    },
+    {
+      "target": "exhaustive",
+      "expected_checks": 524288
+    },
+    {
+      "target": "synthesis"
+    },
+    {
+      "target": "netlist",
+      "expected_checks": 524288
+    }
+  ],
+  "formal": {
+    "target": "formal",
+    "required": false,
+    "reference": "alu8/reference.sv",
+    "scope": "All defined binary ALU inputs, combinational candidate against the fixed original ALU.",
+    "assumptions": [
+      "Inputs are binary; physical timing, glitches and analog behavior are outside scope."
+    ]
+  },
+  "replay": {
+    "target": "replay"
+  }
+}

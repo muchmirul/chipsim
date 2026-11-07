@@ -1,153 +1,256 @@
-# Project-defined RTL evolution
+# Text-based evolution workflows
 
-ChipSim evaluates a fixed managed design; an external OpenEvolve installation
-owns candidate generation and selection. Use `chipsim agent help` to discover
-`examples.evolution.runner`, `examples.evolution.workflows` and this guide's
-installed path. No PDF is needed. The [teaching examples](../examples/evolutionary-example/README.md)
-remain available with `--example counter|saturating-adder|priority-encoder`.
+Agents should first read [AGENT_QUICKSTART.md](AGENT_QUICKSTART.md) for workflow
+selection, a manual improvement loop, exit handling and session ownership.
 
-## Evaluate an existing hardware workflow
+ChipSim evaluates one editable Verilog/SystemVerilog file against fixed tests,
+reports useful failures, and retains evidence. OpenEvolve supplies the optional
+external search. No PDF, browser, model provider, or interactive viewer is needed
+to evaluate, compare, or reproduce candidates.
 
-Create a version-1 `chipsim-evolution-workflow` JSON beside your template project.
-The [runnable definition](../examples/evolutionary-example/project-workflow/workflow.json)
-and [template](../examples/evolutionary-example/project-workflow/README.md)
-show the complete contract. Manual evaluation requires Python 3.10+, Node.js
-22.13+ and the tools declared by your project, with no OpenEvolve dependency:
+For multiple weighted measured objectives or VHDL, use the separate
+[project-defined workflow runner](EVOLUTION_OBJECTIVES.md). Its
+`chipsim-evolution-workflow` definition and `--workflow` flags are distinct from
+this command family's `chipsim-evolution-benchmark` and `--benchmark`.
+
+## Commands
 
 ```sh
-mkdir -p /tmp/hardware-work
-python3 /installed/examples/evolutionary-example/run.py evaluate \
-  --project /tmp/hardware-work --workflow /path/to/workflow.json \
-  --candidate /path/to/candidate.sv --timeout 60
-chipsim --agent /tmp/hardware-work
+chipsim evolution list
+chipsim evolution describe --benchmark alu8 --format text
+chipsim evolution validate --benchmark ./benchmark.json
+mkdir -p ./work
+chipsim evolution evaluate --benchmark counter --project ./work > before.json
+chipsim evolution evaluate --benchmark counter --candidate ./fixed-counter.sv \
+  --project ./work > after.json
+chipsim evolution report before.json --format text
+chipsim evolution compare before.json after.json --format text
+chipsim evolution reproduce before.json --project ./work
+chipsim evolution reproduce before.json --case 0 --project ./work
 ```
 
-The definition has these required fields; additional fields reject:
+The default counter is deliberately incorrect, so its evaluation exits 1 while
+retaining a useful report. Bundled `correct-counter.sv` is a handwritten passing
+fixture. `alu8` provides exhaustive RTL and synthesized-netlist checks and a
+generic-cell objective; its `shared-adder.sv` is another handwritten fixture.
+These demonstrations are not evidence that an AI search was run.
 
-| Field | Contract |
-| --- | --- |
-| `format`, `version` | `chipsim-evolution-workflow`, integer `1` |
-| `goal` | Explicit hardware objective, 1–4000 characters |
-| `template` | Existing directory, resolved relative to this JSON; absolute paths also work |
-| `files` | Explicit relative file paths, including both design manifests, the candidate, testbenches, scoring scripts, constraints and tool inputs |
-| `candidate`, `language` | The only replaceable file; `verilog` with `.v`/`.sv`, or `vhdl` with `.vhd`/`.vhdl` |
-| `target` | Managed target with tasks and nonempty `requiredChecks` |
-| `report` | `{ "task": "measure", "path": "out/metrics.json" }`; a required output of that reachable task |
-| `objectives` | 1–16 explicit name/unit/direction/range/weight objects |
+The installed command uses `PYTHON` or `python3`. Python 3.10+ and Node.js 22.13+
+are required; EDA tools are installed separately. `list`, `describe`, `validate`,
+`report`, and `compare` do not run EDA tools or model providers. Custom validation
+checks declared task inputs and locked dependencies without probing executables.
+Optional replay inputs are supplied when a saved failure is replayed.
 
-`files` accepts 1–256 regular files, at most 4 MiB each and 16 MiB total.
-Paths cannot escape the template, traverse symlinks or include repository/cache
-directories. Candidate source is at most 64 KiB. The runner snapshots and
-fingerprints the listed files once per invocation; every fresh candidate project
-copies those exact bytes before replacing its RTL. Changes to the authoring
-template do not change an active invocation. Changes to frozen bytes reject the
-next evaluation. Include every required input explicitly; files are not fetched
-or toolchains installed automatically. Managed design validation still applies.
+## Output and feedback
 
-Use independent fixed reference tests and declare correctness and hard constraints
-in `requiredChecks`. Nonempty checks alone do not establish their adequacy.
-For physical PPA, retain real synthesis/place/route reports with the library,
-process corner, clock/IO constraints and tool identity in the fixed managed
-inputs/evidence. A functional simulation score is not a physical measurement.
+Default stdout is one `chipsim-evolution-result`, version 1, containing `command`,
+`ok`, and `result`. Progress and external optimizer diagnostics go to stderr.
+`--format text` selects readable output. Evaluation exits 0 only on acceptance;
+failures/inconclusive evaluations exit 1 and interruption exits 130. Read-only
+comparison succeeds even when the reports are not comparable; inspect its
+`comparable`, `reasons`, and `winner` fields.
 
-## Measurements and fitness
+Saved evaluations use `chipsim-evolution-evaluation`, version 2. Existing version
+1 reports remain readable; missing failure details, contexts, and snapshots are
+not inferred. The existing Python `examples/evolution/run.py` commands share the
+implementation and retain their unwrapped JSON output.
 
-For example, declare objectives like these when your real tool reports them:
+Reports include candidate identity, acceptance, stage outcomes and checks,
+measurements, diagnostics, exact project/job/run/artifact links, and up to 16
+normalized failure cases. A counter case includes its cycle and control inputs;
+an ALU case includes operands, opcode, expected outputs, and observed outputs.
+X/Z values remain failures rather than being coerced to zero. Missing tools,
+timeouts, invalid evidence, and incomplete runs cannot establish correctness.
+Stage reports retain their detailed native context. OpenEvolve receives the same
+readable feedback, bounded to 8 KiB, plus evidence links.
+
+The counter keeps `checks_passed / 80` as repair progress even when it is not
+accepted. The ALU earns `1 / (1 + cell_count)` only after all required checks pass.
+Unavailable measurements are omitted. Zero used as an optimizer penalty does not
+mean that a tool measured zero checks, cells, or timing.
+
+Reports remain **agent-reported**. Artifact verification establishes byte and
+producer identity, not the correctness of an author-supplied specification.
+
+## Custom benchmark definitions
+
+Copy the installed `examples/evolution/custom-counter` directory to a new project.
+Use `agent help` → `examples.nativeEvolution.customBenchmark` to find its exact
+installed definition path; copy that definition's containing directory.
+It contains a runnable counter, independent oracle, ordinary design targets,
+formal reference, and a prefix replay recipe. Change the trusted files deliberately
+before starting a new search; only the declared candidate is mutable during it.
+
+`benchmark.json` uses this contract:
 
 ```json
-[
-  {"name":"area","unit":"um2","direction":"minimize","range":[0,10000],"weight":1},
-  {"name":"frequency","unit":"MHz","direction":"maximize","range":[0,500],"weight":2}
-]
+{
+  "format": "chipsim-evolution-benchmark",
+  "version": 1,
+  "id": "my-counter",
+  "description": "Repair the counter against fixed observations",
+  "interface": "Four-bit count; rising clock, synchronous reset and enable",
+  "candidate": "counter.sv",
+  "files": [
+    "chipsim.design.json",
+    "chipsim.lock.json",
+    "counter.sv",
+    "counter_tb.sv",
+    "sim.project.json",
+    "stage.py",
+    "oracle.py"
+  ],
+  "timeout": 120,
+  "objective": {
+    "metric": "combined_score",
+    "direction": "maximize",
+    "unit": "fraction"
+  },
+  "stages": [
+    {
+      "target": "evaluate",
+      "expected_checks": 80,
+      "report": { "task": "score", "path": "out/stage.json" }
+    }
+  ]
+}
 ```
 
-The trusted report must contain each named measurement as
-`"area": {"value": NUMBER, "unit": "um2"}`. Values must be finite numbers,
-not booleans; units must match exactly. Objective names are unique and cannot be
-`combined_score`; weights are positive and at most 1,000,000; ranges contain
-two increasing finite bounds. Units are declarations, not automatic conversion.
+Paths are relative to the definition. Declare every fixed source, test, script,
+configuration, and manifest used by the selected tasks. The candidate must be
+one listed `.v` or `.sv` file. Files are regular files without symlinks or path
+traversal. There are at most 512 files, 32 MiB total, and 32 ordered stages.
+The candidate retains the 64 KiB bound. `publish` and evolution report paths are
+reserved. Built-in engine definitions are fixed; custom definitions use ordinary
+design targets rather than importing Python plugins.
 
-For each value, normalize `(value-low)/(high-low)` and clamp to `[0,1]`.
-For minimization, subtract that utility from 1. `combined_score` is the weighted
-mean of utilities, maximized by the optimizer. Raw measurements and units are
-retained even outside the normalization range. Out-of-range values are not hard
-constraint failures unless the managed checks declare those constraints.
+Each stage names an existing design target with explicit required checks. The
+existing design manifest describes commands, task dependencies, bindings, and
+outputs; see [DESIGN.md](DESIGN.md). A separate trusted scoring task publishes:
 
-The adapter verifies the run closure and follows exact attempt/artifact IDs.
-It accepts only the specified producer's report from the current job, so a
-same-named simulator output cannot supply fitness. A completed evaluation is
-`passed` only when all required checks pass and the report validates. A measured
-report with failed gates receives fitness `-1`, retaining its raw measurements;
-missing/invalid reports and incomplete execution also receive `-1`, with
-`measured: false` and no invented measurements. Built-in teaching goals retain
-their existing zero failure penalty and partial functional scores.
+```json
+{
+  "format": "chipsim-evolution-stage",
+  "version": 1,
+  "metrics": { "checks_passed": 80, "checks_total": 80, "combined_score": 1 },
+  "cases": []
+}
+```
 
-The supplied custom example counts observed output-bit transitions from a real
-counter waveform and gates fitness with 80 independent functional observations.
-This illustrates the contract; the fixed output behavior gives a passing counter
-the same observed activity. It is not an area, power or timing optimization
-benchmark. Replace the managed measurement task with your actual tool flow to
-optimize a meaningful hardware objective.
+Metrics must be finite numbers, with at most 32 names. The scorer supplies a
+nonnegative `combined_score` to maximize and the declared objective measurement.
+The objective's direction and unit describe comparison of that measurement;
+they do not automatically transform it into a fitness formula. Authors implement
+that formula in their fixed scoring task. Custom optimization scores are zero
+unless every required stage passes. When counts are supplied, passed/total must
+be consistent and match `expected_checks` when declared. Cases contain `check`,
+`inputs`, `expected`, and `observed`; additional history fields may support replay.
+There may be at most 16 cases per report. Reports are bounded to 64 KiB.
+The sealed aggregate evaluation is bounded to 256 KiB; keep stage reports concise
+and retain larger logs or observations as linked native artifacts.
 
-## Search, deadlines and ancestry
+The definition names the exact producing task and output path. A same-named file
+from the candidate simulation cannot replace the trusted report. A successful
+process alone does not satisfy the required behavioral checks.
 
-Use an already approved OpenEvolve environment/configuration. Its system prompt
-must describe your interface, mutable evolve block, objectives and fixed tests;
-the workflow JSON does not rewrite provider prompts or authorize API costs.
+## Formal acceptance
+
+Add `--formal` to `evaluate` or `evolve` to require the bundled equivalence recipe.
+Counter and ALU runs normally work without EQY. Once enabled, proof must pass
+before acceptance; missing tools, timeout, or an unproven result yield zero fitness.
+The selected search winner independently repeats the required checks and proof.
+
+For a custom benchmark add:
+
+```json
+"formal": {
+  "target": "formal", "required": false, "reference": "reference.sv",
+  "scope": "Counter from the first synchronous reset onward",
+  "assumptions": ["Reset asserted at the first sampled clock"]
+}
+```
+
+The reference must be a fixed input distinct from the candidate. The target must
+require an EQY equivalence check consuming both. Set `required: true` to make
+proof mandatory for every run; CLI flags cannot weaken that policy. Native EQY
+configuration remains author-supplied and is captured with the evidence.
+
+Bundled recipes use the Yosys SAT strategy. The counter wrapper forces reset at
+the first sampled clock; subsequent reset/enable inputs remain unconstrained.
+The ALU proof covers its binary combinational behavior. Initialization assumptions
+and scope are explicit, not inferred from simulation. An EQY `FAIL` means
+equivalence was not established; it is not automatically a demonstrated mismatch.
+Native logs and any available counterexample artifacts remain inspectable.
+
+## Comparing and reproducing results
+
+Comparison verifies the sealed report and stage evidence, then checks the
+definition, fixed input hashes, settings, relevant tool identities, evaluator,
+and ChipSim runtime. Candidate source hashes may differ. Different contexts or
+incomplete evidence are listed and prevent ranking. Accepted candidates outrank
+rejected ones only under comparable conditions. Generic cells are a size proxy,
+not physical area, timing, or power. A zero baseline has no percentage change.
+
+Every evaluation stores the frozen definition and input bytes as a managed
+artifact alongside its sealed summary. Full reproduction restores those bytes
+into a fresh isolated project, requires the recorded executable identities and
+runtime, and validates locked dependencies. It never rereads the original source
+project or overwrites the original evaluation. A missing snapshot or changed
+tool/runtime gives an actionable error; use a new evaluation to intentionally
+change the setup. Reproduction does not install missing dependencies.
+
+Focused replay preserves an ALU's exact vector, and uses the captured synthesized
+netlist when that is where the failure occurred. Counter replay keeps every cycle
+from initialization through the failing cycle. It checks actual captured stimulus
+and observed results against the saved failure. A reproduced failure is not a
+passing hardware design, and a replay never establishes full benchmark acceptance.
+
+Custom benchmarks can declare `replay.target` and `replay.report` with a task/path
+like evaluation stages. The target consumes `replay-case.json` and publishes
+`chipsim-evolution-replay`, version 1, with boolean `reproduced`. Require that field
+as a native design check. The custom-counter example shows how to retain history.
+Without a replay recipe, full reproduction remains available and `--case` fails
+explicitly. Compile errors and incomplete runs may have no behavioral case.
+
+## Search, limits and verification
 
 ```sh
-/path/to/approved/venv/bin/python /installed/examples/evolutionary-example/run.py evolve \
-  --project /tmp/hardware-work --workflow /path/to/workflow.json \
-  --config /path/to/approved.yaml --iterations 5 --timeout 60 --search-timeout 900
+chipsim evolution evolve --benchmark alu8 --project ./work \
+  --config /path/to/your-openevolve.yaml --iterations 5 --formal
 ```
 
-`--timeout` bounds one managed evaluation (1–300 seconds). `--search-timeout`
-bounds evolution from invocation setup through queue waits, checkpoint import and
-fresh finalist evaluation (1–86400 seconds, default 900). Expiry returns 124,
-closes the owned session as failed, stops the optimizer process group and requests
-cancellation of this invocation's jobs. No selected result is accepted after
-expiry, even if the optimizer returns its best-so-far result while stopping.
-Cleanup/journal writes can take extra time; shutdown escalates to KILL after
-five seconds. Ctrl-C/SIGTERM returns 130. POSIX supervision is required.
-Provider-side call limits and spending remain external. SIGKILL requires manual
-job recovery/cancellation.
+OpenEvolve is separately installed/configured in the selected Python environment.
+This explicit search can send RTL/feedback to its configured provider and incur
+charges. Evaluation and discovery do not import OpenEvolve or configure a provider.
+The input snapshot is frozen once per search and checked before each evaluation.
+Repeated manual submissions with `--session` reuse and verify that session's
+snapshot. Use a new session to change the benchmark definition.
+Only one candidate file is offered to search, with the existing EVOLVE-BLOCK policy.
 
-Every call writes its own exclusive configuration under
-`evaluations/SESSION/invocations/INVOCATION/adapter.json`. The runner prints and
-returns both UUIDs. Checkpoints, `CANCEL`, frozen custom inputs, selected source
-and isolated attempt directories live there. `evaluate --session UUID` appends
-to a running session without replacing another invocation's configuration or
-cancellation marker; its caller owns session closure. Rejected inputs create no
-invocation. Existing session-level files remain intact.
+The existing budgets remain 60 seconds for counter and 300 for ALU, including
+enabled formal work; `--timeout 1..300` overrides evaluation budgets. Native task
+limits still apply. Ctrl-C requests cancellation of managed jobs and stops the
+external optimizer process group. Partial evidence is retained, and work sessions
+continue to use the existing Activity view without replacing its cursor/recording.
 
-Optimizer evaluations use unique attempt identities even when two individuals
-contain identical RTL. The supervisor imports actual parent/generation from
-OpenEvolve 0.4.0 checkpoint records, matching evaluator identity and exact code
-SHA-256. Migration copies are not additional variations. It imports no optimizer
-metrics: managed evaluator measurements remain authoritative for reporting.
-Checkpoint scanning is bounded to 128 directories and 512 program files each;
-partial, malformed or unmatched records leave ancestry unknown. Recorded parents
-may arrive on a later checkpoint poll. Root is displayed only for explicit
-generation zero; other missing parents display `unknown`.
+The agent `chipsim_command` accepts evolution arguments and optional `timeoutMs`
+(1,000–86,400,000; default 180,000). Increase it for ALU/formal/search commands.
+Evolution cancellation allows time for supervisor cleanup. No automatic provider
+or agent configuration is installed.
 
-Selection is re-evaluated in a fresh managed job. A matching recorded optimizer
-individual keeps its identity and ancestry for that new measurement; the bridge
-does not invent an extra generation. If no matching checkpoint is available,
-fresh evaluation still works and ancestry remains unknown. Manual evaluations
-can supply known `--parent`/`--generation` explicitly.
+Implementation is shared by the example bridge and `src/evolution/cli.js`.
+Regression commands:
 
-All journal metrics/ancestry remain agent-reported. Inspect the linked run and
-artifacts to verify stored bytes and checks. Input isolation and hashes are not
-an OS sandbox or a proof of correctness. See [AGENT_CONTROL.md](AGENT_CONTROL.md)
-for execution/evidence boundaries and [AGENT_WORK.md](AGENT_WORK.md) for the TUI.
+```sh
+node --test test/text-evolution-workflow.test.js test/evolution.test.js test/alu-evolution.test.js
+CHIPSIM_TEST_EVOLUTION_WORKFLOW=1 node --test test/text-evolution-workflow.test.js
+CHIPSIM_TEST_ALU=1 CHIPSIM_TEST_EVOLUTION=1 node --test test/alu-evolution.test.js test/evolution.test.js
+npm run test:install
+npm run verify
+```
 
-## Verification
-
-`node --test test/evolution.test.js test/evolution-workflow.test.js` checks
-contracts, isolation, scoring, checkpoint mapping and a queue/deadline protocol
-fixture. Set `CHIPSIM_TEST_EVOLUTION=1` for real managed Icarus checks, verified
-objective reports, independent correctness gating, fresh finalist ancestry and
-deadline cancellation during simulation. Optimizer fixtures make no model
-requests and are not evidence of a new evolutionary search. Dashboard unit and
-PTY tests inspect unknown/root labels at 80×24 and 120×40; installed-package
-checks validate discovery and the packaged custom workflow.
+The workflow integration suite requires real Icarus, Yosys and EQY. It covers
+custom reports, context-aware comparison, replay after source deletion, tampered
+evidence, and a reset bug that simulation misses but required formal rejects.
+Fixtures never claim a provider-backed search. HDL tools execute with local
+permissions; input snapshots and hashes are not an operating-system sandbox.

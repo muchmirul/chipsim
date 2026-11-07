@@ -5,6 +5,108 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-11-06 — Combined connected-circuit and evolution context
+
+**Context:** The local branch contained the native text evolution workflow while
+GitHub's public history contained connected circuits, managed multi-objective
+evaluation and source-free packaging. Agents working from different checkouts
+could see different commands and incompatible evolution definitions.
+**Use/behavior:** The combined checkout supports `circuit` and `evolution` through
+the CLI and native agent controller. `AGENT_QUICKSTART.md` routes tasks to circuit
+inspection, native benchmark evaluation or the separate `--workflow` runner.
+`EVOLUTION.md` documents native benchmark JSON; `EVOLUTION_OBJECTIVES.md` retains
+the existing multi-objective JSON contract. `agent help` exposes both guides,
+native benchmark paths and connected starters. New prepared projects and their
+programming contexts carry the same guide discovery and scope distinctions.
+**Preservation:** Existing connected semantics, independent verification,
+multi-objective units/weights/lineage and native feedback/reproduction/formal
+gates remain available. Public packages exclude private vendor originals;
+source-backed tests still require exact private reference bytes. Existing
+prepared documentation snapshots are not rewritten automatically.
+**Checks:** Combined contract tests, installed guide/link discovery, both command
+families and real circuit/evolution backends validate the reconciled interfaces.
+Native benchmark tests are now `test/text-evolution-workflow.test.js`; the
+existing `test/evolution-workflow.test.js` retains multi-objective coverage.
+The process bridge accepts circuit and native evolution result envelopes; the
+general-controller regression exercises both real command families.
+The native timeout regression preserves a one-second total budget check and,
+when it expires during preparation, separately tests an accepted hanging job
+with a ten-second budget. Deadline exhaustion before launch does not fabricate
+job evidence or change production cancellation semantics.
+The post-launch overall-search deadline fixture likewise allows ten seconds
+for setup while retaining its indefinite simulator and cancellation assertions.
+
+## 2026-11-04 — Complete agent entry context for text evolution
+
+**Context:** Repository instructions omitted the new evolution workflow, while
+prepared-project instructions linked its guide from the wrong directory and
+did not distinguish self-managed evaluation sessions from caller-owned sessions.
+**Use/behavior:** Start with `AGENTS.md` and `docs/AGENT_QUICKSTART.md`, or discover
+installed guide paths with `chipsim agent help`. New prepared projects receive
+the quickstart alongside the detailed evolution guide. The entry context covers
+workflow selection, prerequisites, a manual improvement loop, retained failure
+reports, fixed inputs, formal gates, comparison/reproduction, session ownership,
+native tool timeouts and the evidence to return. Provider guidance distinguishes
+offline commands from explicitly configured external search.
+**Limits/preservation:** Existing prepared folders retain their documentation
+snapshot; `agent context` refreshes capabilities, not copied docs. No tool,
+provider or agent configuration is changed. Native command behavior is unchanged.
+**Implementation/checks:** `src/agent/project.js` copies the new guide,
+`commands.js` exposes installed paths, and the extension description advertises
+evolution discovery. Preparation and outside-checkout installation checks verify
+the copied guides and instruction links.
+
+## 2026-11-04 — Text-based evolution definitions, feedback and reproduction
+
+**Context:** Benchmark-specific feedback omitted counter failures, and comparison
+and reproduction required manual inspection of separate artifacts.
+**Use/behavior:** `chipsim evolution` adds discovery, validation, evaluate/evolve,
+readable or JSON report output, context-aware comparison, full reproduction and
+focused failure replay. Custom version-1 JSON definitions connect ordinary design
+targets with exact trusted report producers. Each search freezes its fixed inputs;
+version-2 evaluation reports capture shared failure cases and managed input snapshots.
+The legacy Python commands remain available, and version-1 reports remain readable.
+**Formal:** `--formal`, or `formal.required` in a definition, gates acceptance on
+the existing EQY adapter. Bundled references cover the counter from its first reset
+and the binary combinational ALU. An unproven result is not labeled a counterexample.
+**Limits/preservation:** One editable `.v`/`.sv` file, 64 KiB; fixed inputs up to
+32 MiB/512 files; up to 32 stages and 16 reported failure cases. Full reproduction
+requires the captured tools/runtime/dependencies; focused replay is never a full
+benchmark pass. Counter repair scores remain partial progress; custom/ALU
+optimization and enabled formal acceptance remain gated. Generic cell counts do
+not establish physical PPA. No automatic tool or provider installation occurs.
+**Implementation/checks:** Shared Python definitions, feedback, workflow,
+verification and replay helpers back the native CLI and example entry point.
+Contract and real-tool regressions cover source deletion before replay, sequential
+history, changed evidence, comparison contexts and a simulation-passing reset bug
+rejected by formal. Agent integration adds evolution discovery, JSON envelopes and
+bounded command timeout/cleanup. Packaging checks exercise the installed commands.
+See [EVOLUTION.md](EVOLUTION.md) for the complete contracts and test commands.
+
+## 2026-11-04 — Reusable evolution benchmarks and ALU optimization
+
+**Context:** The counter bridge could repair sampled functional behavior but
+offered no benchmark selection or measured circuit-size objective.
+**Use/behavior:** `examples/evolution/run.py evaluate|evolve --benchmark alu8
+--project PROJECT` evaluates an original eight-operation ALU with directed,
+fixed-seed random, exhaustive RTL, Yosys synthesis and exhaustive netlist stages.
+Only passing candidates score `1/(1+cell_count)`; the omitted benchmark remains
+`counter` with its previous behavior. Independent scoring produces per-operation
+counts and up to 16 concrete failing vectors. Bounded replays and sealed evaluation
+reports are linked through existing terminal candidate/events and evidence APIs.
+**Limits/preservation:** 524,288 binary combinations cover the specified settled
+ALU interface, not analog behavior or a formal proof. Generic cells are not
+physical area, timing or power. ALU requires separately installed Yosys and
+defaults to 300 seconds; counter retains 60 seconds. Missing tools, failed or
+incomplete stages cannot earn positive fitness. Search/provider configuration
+stays external; background reports preserve the inspected recording and cursor.
+**Implementation/checks:** The benchmark registry, shared job/evidence bridge
+and `alu8/` pack live under `examples/evolution/`. Oracle/report tests and real
+Icarus/Yosys acceptance cover binary coverage, flag errors, unknown values,
+stage gating, netlist mismatches, measured size and deadlines. Existing counter,
+dashboard and installation regressions retain their coverage. See the
+[benchmark guide](../examples/evolution/README.md).
+
 ## 2026-10-30 — Connected-circuit agent playbook and discovery
 
 **Context:** The feature contract described implementation semantics, but agents
@@ -212,8 +314,7 @@ session, stops the optimizer process group and requests invocation job
 cancellation. Late best-so-far results are not accepted. Candidate CLI waits
 also respect the remaining evaluation budget; interrupted launch replies trigger
 project job discovery/cancellation.
-**Limits/preservation:** POSIX timers/process groups; 1–86400 seconds, default
-900. Cleanup/journal writes can take extra time and process-group shutdown
+**Limits/preservation:** POSIX timers/process groups; 1–86400 seconds, default 900. Cleanup/journal writes can take extra time and process-group shutdown
 escalates after five seconds. Ctrl-C/SIGTERM remains exit 130. Provider-side
 spending limits and SIGKILL recovery remain external; evidence is retained.
 **Implementation/checks:** Supervisor timer and evaluator cleanup;

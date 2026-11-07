@@ -5,7 +5,7 @@ RTL changes; each goal has a fixed interface, testbench and Python scorer.
 Use `--example NAME`; the default is `counter`.
 
 For your own managed RTL project, use `--workflow workflow.json` with declared
-correctness checks and measured objectives. See [Project-defined evolution](../../docs/EVOLUTION.md)
+correctness checks and measured objectives. See [Project-defined evolution](../../docs/EVOLUTION_OBJECTIVES.md)
 and the [runnable activity workflow](project-workflow/README.md). Verilog and
 VHDL candidates can use real tool-produced reports with explicit metric units,
 directions, ranges and weights.
@@ -188,7 +188,7 @@ identity and exact source hashes; callbacks alone supply no ancestry. Different
 optimizer individuals keep separate IDs even with identical code. The fresh
 finalist measurement retains its recorded identity, rather than adding a
 generation. Partial/unmatched records remain unknown. Activity labels root only
-for explicit generation zero; see [the lineage contract](../../docs/EVOLUTION.md).
+for explicit generation zero; see [the lineage contract](../../docs/EVOLUTION_OBJECTIVES.md).
 
 The adapter uses Verilog/`.sv` for built-ins or the custom workflow language/suffix,
 enforces evolve blocks, requests a checkpoint every iteration,

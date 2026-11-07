@@ -1,5 +1,12 @@
 # ChipSim in Pi and prime-agent
 
+Start with [AGENT_QUICKSTART.md](AGENT_QUICKSTART.md). `chipsim_command` accepts
+`evolution` and `circuit` literal argument arrays. Discover guide paths with
+`{args:["agent","help"]}`. For native ALU evaluation, allow its 300-second
+budget plus cleanup, for example `timeoutMs: 360000` (default 180000; maximum
+86400000). Native text/help forms are supported; default evaluation is JSON.
+See [EVOLUTION.md](EVOLUTION.md) for reports, comparison, replay and formal gates.
+
 For connected state/next-state work, call
 `chipsim_command({args:["circuit","help"]})`, then read the installed
 `documentation["AGENT_CIRCUITS.md"]` from `chipsim_help`. `examples.circuit`
