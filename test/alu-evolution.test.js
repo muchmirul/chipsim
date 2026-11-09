@@ -299,7 +299,7 @@ job = None
 try:
     deadline = time.monotonic() + 60
     while time.monotonic() < deadline:
-        for path in Path(project).glob('evaluations/*/*/.chipsim/design/jobs/*/state.json'):
+        for path in Path(project).glob('evaluations/*/invocations/*/*/.chipsim/design/jobs/*/state.json'):
             state = json.loads(path.read_text())
             if state.get('tasks', {}).get('simulate-directed', {}).get('state') == 'running':
                 job = state

@@ -42,15 +42,20 @@ try {
     const targets = [
       ...definition.stages,
       ...(definition.formal ? [definition.formal] : []),
+      ...(definition.replay ? [definition.replay] : []),
     ];
     for (const stage of targets) {
+      const generatedInputs =
+        stage === definition.replay ? ["replay-case.json"] : [];
       const { snapshot, plan } = await planDesign(resolve(root), stage.target, {
         capture: false,
         probe: false,
+        generatedInputs,
       });
       for (const input of snapshot.inputs)
         if (
           !allowed.has(input.path) &&
+          !generatedInputs.includes(input.path) &&
           !input.path.startsWith("_chipsim_resources/")
         )
           throw new Error(

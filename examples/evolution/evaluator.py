@@ -37,14 +37,20 @@ class Bridge:
         self.session = config["session"]
         if self.session and str(uuid.UUID(self.session)) != self.session:
             raise ValueError("session must be a canonical UUID")
-        self.directory = self.project / "evaluations" / self.session if self.session else None
+        self.session_directory = self.project / "evaluations" / self.session if self.session else None
+        self.directory = None
+        if self.session_directory:
+            invocation = config.setdefault("invocation", str(uuid.uuid4()))
+            if str(uuid.UUID(invocation)) != invocation:
+                raise ValueError("invocation must be a canonical UUID")
+            self.directory = self.session_directory / "invocations" / invocation
         if self.directory:
             self.directory.mkdir(parents=True, exist_ok=True)
         self.cancel_file = self.directory / "CANCEL" if self.directory else None
         self.active = None
 
     def evaluate(self, program_path, **lineage):
-        definition = freeze(self.config, self.directory)
+        definition = freeze(self.config, self.session_directory)
         if definition.get("engine", "design") == "design":
             from custom import evaluate_custom
             return evaluate_custom(self, program_path, **lineage)
@@ -54,7 +60,7 @@ class Bridge:
     def run_stage(self, directory, target, deadline):
         """One managed stage; the caller must gate later stages on readiness."""
         if self.cancel_file.exists():
-            raise KeyboardInterrupt("evaluation session cancelled")
+            raise KeyboardInterrupt("evaluation invocation cancelled")
         if time.monotonic() >= deadline:
             raise TimeoutError("Evaluation deadline before " + target)
         job = self.cli("design", "run", "--project", directory, "--target", target, "--no-reuse")["job"]
@@ -63,7 +69,7 @@ class Bridge:
         try:
             while job["state"] not in TERMINAL:
                 if self.cancel_file.exists():
-                    raise KeyboardInterrupt("evaluation session cancelled")
+                    raise KeyboardInterrupt("evaluation invocation cancelled")
                 if time.monotonic() >= deadline:
                     raise TimeoutError("Evaluation deadline; cancellation requested for " + target)
                 job = self.cli("job", "status", job["id"], "--project", directory,
@@ -165,7 +171,7 @@ class Bridge:
         self.cancel_file.touch()
         # Each evaluation is isolated, including OpenEvolve's worker processes.
         for directory in self.directory.iterdir():
-            if not directory.is_dir() or not (directory / "chipsim.design.json").is_file():
+            if directory.is_symlink() or not directory.is_dir() or not (directory / "chipsim.design.json").is_file():
                 continue
             for job in self.cli("job", "status", "--project", directory).get("jobs", []):
                 if job["state"] not in TERMINAL:
@@ -214,7 +220,7 @@ class Bridge:
 
     def evaluate_counter(self, program_path, *, parent=None, generation=None):
         if self.cancel_file.exists():
-            raise KeyboardInterrupt("evaluation session cancelled")
+            raise KeyboardInterrupt("evaluation invocation cancelled")
         source = Path(program_path)
         if source.is_symlink() or not source.is_file() or source.stat().st_size > MAX_SOURCE_BYTES:
             raise ValueError("candidate must be a regular file of at most 64 KiB")

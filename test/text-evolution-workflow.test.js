@@ -14,7 +14,8 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { runChipSim } from "../src/integrations/process.js";
-import { workStatus } from "../src/agent/work.js";
+import { startWork, workStatus } from "../src/agent/work.js";
+import { planDesign } from "../src/design/project.js";
 
 const cli = resolve("scripts/chipsim.mjs");
 const example = resolve("examples/evolution");
@@ -58,6 +59,22 @@ test("evolution common contracts and discovery require no EDA or provider", () =
   assert.equal(run(["evaluate"]).value.ok, false);
 });
 
+test("generated validation inputs cannot enter an execution plan", async () => {
+  await assert.rejects(
+    planDesign(join(example, "custom-counter"), "replay", {
+      generatedInputs: ["replay-case.json"],
+    }),
+    /require read-only planning/,
+  );
+  await assert.rejects(
+    planDesign(join(example, "custom-counter"), "replay", {
+      capture: false,
+      generatedInputs: ["replay-case.json"],
+    }),
+    /require read-only planning/,
+  );
+});
+
 test(
   "compile failures provide actual diagnostics in optimizer feedback",
   {
@@ -99,85 +116,158 @@ test(
   },
 );
 
-test(
-  "native evolution agent cancellation closes the session and managed job",
-  {
-    skip:
-      process.env.CHIPSIM_TEST_EVOLUTION_WORKFLOW !== "1" &&
-      "set CHIPSIM_TEST_EVOLUTION_WORKFLOW=1; requires Icarus",
-    timeout: 90000,
-  },
-  async () => {
-    const directory = await mkdtemp(join(tmpdir(), "chipsim-workflow-cancel-"));
-    const controller = new AbortController();
-    let job, pending;
-    try {
-      const candidate = join(directory, "hang.sv");
-      await writeFile(
-        candidate,
-        (await readFile(join(example, "counter.sv"), "utf8")).replace(
-          "endmodule",
-          "initial forever #0 count = 0;\nendmodule",
-        ),
+for (const callerOwned of [false, true])
+  test(
+    `native evolution cancellation ${callerOwned ? "preserves a reusable caller-owned session" : "closes the session and managed job"}`,
+    {
+      skip:
+        process.env.CHIPSIM_TEST_EVOLUTION_WORKFLOW !== "1" &&
+        "set CHIPSIM_TEST_EVOLUTION_WORKFLOW=1; requires Icarus",
+      timeout: 90000,
+    },
+    async () => {
+      const directory = await mkdtemp(
+        join(tmpdir(), "chipsim-workflow-cancel-"),
       );
-      pending = runChipSim(
-        [
-          "evolution",
-          "evaluate",
-          "--project",
-          directory,
-          "--candidate",
-          candidate,
-        ],
-        {
-          cwd: directory,
-          signal: controller.signal,
-          timeout: 80000,
-          cleanupMs: 20000,
-        },
-      ).then(
-        (value) => ({ value }),
-        (error) => ({ error }),
-      );
-      for (let n = 0; n < 400 && !job; n++) {
-        for (const file of await readdir(directory, { recursive: true })) {
-          if (!file.includes("/jobs/") || !file.endsWith("/state.json"))
-            continue;
-          const state = JSON.parse(
-            await readFile(join(directory, file), "utf8"),
+      const controller = new AbortController();
+      let job, pending;
+      try {
+        const session = callerOwned
+          ? await startWork(directory, {
+              goal: "Reusable evaluations",
+              mode: "evolution",
+            })
+          : undefined;
+        const sessionArgs = session ? ["--session", session.id] : [];
+        let snapshot, legacyConfig;
+        if (session) {
+          const sessionDirectory = join(directory, "evaluations", session.id);
+          await mkdir(sessionDirectory, { recursive: true });
+          legacyConfig = '{"retained":"prior invocation"}\n';
+          await writeFile(join(sessionDirectory, "adapter.json"), legacyConfig);
+          await writeFile(
+            join(sessionDirectory, "CANCEL"),
+            "previous interruption\n",
           );
-          if (state.tasks?.simulate?.state === "running") job = state;
+          const rejected = run([
+            "evaluate",
+            "--project",
+            directory,
+            ...sessionArgs,
+            "--candidate",
+            join(directory, "missing.sv"),
+          ]);
+          assert.equal(rejected.status, 1, rejected.stdout);
+          assert.equal(rejected.value.result.status, "error");
+          assert.equal((await workStatus(directory)).session.status, "running");
+          snapshot = await readFile(
+            join(sessionDirectory, "benchmark-inputs/inputs.json"),
+            "utf8",
+          );
         }
-        if (!job) await delay(100);
+        const candidate = join(directory, "hang.sv");
+        await writeFile(
+          candidate,
+          (await readFile(join(example, "counter.sv"), "utf8")).replace(
+            "endmodule",
+            "initial forever #0 count = 0;\nendmodule",
+          ),
+        );
+        pending = runChipSim(
+          [
+            "evolution",
+            "evaluate",
+            "--project",
+            directory,
+            "--candidate",
+            candidate,
+            ...sessionArgs,
+          ],
+          {
+            cwd: directory,
+            signal: controller.signal,
+            timeout: 80000,
+            cleanupMs: 20000,
+          },
+        ).then(
+          (value) => ({ value }),
+          (error) => ({ error }),
+        );
+        for (let n = 0; n < 400 && !job; n++) {
+          for (const file of await readdir(directory, { recursive: true })) {
+            if (!file.includes("/jobs/") || !file.endsWith("/state.json"))
+              continue;
+            const state = JSON.parse(
+              await readFile(join(directory, file), "utf8"),
+            );
+            if (state.tasks?.simulate?.state === "running") job = state;
+          }
+          if (!job) await delay(100);
+        }
+        assert.ok(job, "managed simulation started");
+        controller.abort();
+        const result = await pending;
+        assert.equal(result.error?.details.cancelled, true);
+        assert.equal(
+          (await workStatus(directory)).session.status,
+          callerOwned ? "running" : "cancelled",
+        );
+        const state = JSON.parse(
+          await readFile(
+            join(job.project, ".chipsim/design/jobs", job.id, "state.json"),
+            "utf8",
+          ),
+        );
+        assert.equal(state.state, "cancelled");
+        if (session) {
+          const recovered = run([
+            "evaluate",
+            "--project",
+            directory,
+            ...sessionArgs,
+            "--candidate",
+            join(example, "correct-counter.sv"),
+          ]);
+          assert.equal(
+            recovered.status,
+            0,
+            recovered.stdout + recovered.stderr,
+          );
+          assert.equal(recovered.value.result.accepted, true);
+          const sessionDirectory = join(directory, "evaluations", session.id);
+          assert.equal(
+            await readFile(
+              join(sessionDirectory, "benchmark-inputs/inputs.json"),
+              "utf8",
+            ),
+            snapshot,
+          );
+          assert.equal(
+            await readFile(join(sessionDirectory, "adapter.json"), "utf8"),
+            legacyConfig,
+          );
+          assert.equal(
+            await readFile(join(sessionDirectory, "CANCEL"), "utf8"),
+            "previous interruption\n",
+          );
+          assert.equal((await workStatus(directory)).session.status, "running");
+        }
+      } finally {
+        controller.abort();
+        if (pending) await pending;
+        if (job)
+          spawnSync(process.execPath, [
+            cli,
+            "job",
+            "cancel",
+            job.id,
+            "--project",
+            job.project,
+          ]);
+        await rm(directory, { recursive: true, force: true });
       }
-      assert.ok(job, "managed simulation started");
-      controller.abort();
-      const result = await pending;
-      assert.equal(result.error?.details.cancelled, true);
-      assert.equal((await workStatus(directory)).session.status, "cancelled");
-      const state = JSON.parse(
-        await readFile(
-          join(job.project, ".chipsim/design/jobs", job.id, "state.json"),
-          "utf8",
-        ),
-      );
-      assert.equal(state.state, "cancelled");
-    } finally {
-      controller.abort();
-      if (pending) await pending;
-      if (job)
-        spawnSync(process.execPath, [
-          cli,
-          "job",
-          "cancel",
-          job.id,
-          "--project",
-          job.project,
-        ]);
-      await rm(directory, { recursive: true, force: true });
-    }
-  },
-);
+    },
+  );
 
 test(
   "evolution custom reports, frozen reproduction, comparison and formal gates",

@@ -14,7 +14,7 @@ def main():
 
     adapter_file, config_file, candidate, iterations = sys.argv[1:]
     adapter = read_json(adapter_file)
-    directory = Path(adapter["project"]) / "evaluations" / adapter["session"]
+    directory = Path(adapter["project"]) / "evaluations" / adapter["session"] / "invocations" / adapter["invocation"]
     config = load_config(config_file)
     config.language = "verilog"
     config.file_suffix = ".sv"

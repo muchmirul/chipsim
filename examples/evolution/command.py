@@ -129,17 +129,17 @@ def main(argv=None, legacy=False):
             config["session"] = bridge.cli("agent", "work-start", args.project, "--goal", definition["description"], "--mode", "evolution")["session"]["id"]
             bridge = Bridge(config)
         if args.mode == "reproduce":
-            snapshot = bridge.directory / "benchmark-inputs"
+            snapshot = bridge.session_directory / "benchmark-inputs"
             snapshot.mkdir()
             write_json(snapshot / "inputs.json", bundle)
             unpack(bundle, snapshot / "files")
             config.update(definition=definition, asset_root=str(snapshot / "files"), inputs_hash=identity(bundle))
         else:
-            freeze(config, bridge.directory)
+            freeze(config, bridge.session_directory)
         candidate = args.candidate or Path(config["asset_root"]) / definition["candidate"]
         config_path = bridge.directory / "adapter.json"
         write_json(config_path, config)
-        print(f"Session {bridge.session}; inspect with chipsim --agent {args.project}", file=sys.stderr)
+        print(f"Session {bridge.session}; invocation {config['invocation']}; inspect with chipsim --agent {args.project}", file=sys.stderr)
         def interrupt(signum, frame):
             raise KeyboardInterrupt("termination requested")
         previous = {sig: signal.getsignal(sig) for sig in (signal.SIGINT, signal.SIGTERM)}

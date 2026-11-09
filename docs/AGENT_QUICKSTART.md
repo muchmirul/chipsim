@@ -114,7 +114,10 @@ fixture, and `runner` the compatibility entry point. These differ from
 `evaluate`, `evolve` and `reproduce` create and finish their own work sessions by
 default. For a manual multi-candidate session, start `agent work-start PROJECT
 --goal "OBJECTIVE" --mode evolution`, retain its ID, and pass `--session ID` to
-evaluations. Repeated submissions reuse that session's frozen definition. Finish
+evaluations. Repeated submissions reuse that session's frozen definition.
+Each command has its own invocation directory and cancellation marker; a failed
+or interrupted submission leaves the caller-owned session available for retries
+and cancels only its own invocation's jobs. Finish
 the caller-owned session with a terminal `summary` event; see
 [AGENT_WORK.md](AGENT_WORK.md). Avoid duplicate sessions around self-managed
 commands. The dashboard shows reported actions and linked evidence; preserve

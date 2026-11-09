@@ -362,8 +362,13 @@ export async function verifyDependencies(dependencies, root) {
 export async function planDesign(
   path,
   target,
-  { capture = true, probe = true } = {},
+  { capture = true, probe = true, generatedInputs = [] } = {},
 ) {
+  // Read-only validation may declare inputs supplied later by its caller.
+  // Such placeholders must never enter a captured execution plan.
+  if (generatedInputs.length && (capture || probe))
+    throw new Error("Generated input placeholders require read-only planning");
+  const generated = new Set(generatedInputs.map(localPath));
   const design = await loadDesign(path),
     { config, lock, root, store } = design;
   const order = orderTasks(config, target),
@@ -389,7 +394,10 @@ export async function planDesign(
     }
     paths.push(...(await adapterInputs(task, root)));
     const inputs = [];
-    for (const path of await files(root, [...new Set(paths)])) {
+    for (const path of await files(
+      root,
+      [...new Set(paths)].filter((path) => !generated.has(path)),
+    )) {
       if (!all.has(path))
         all.set(path, {
           path,
@@ -397,6 +405,10 @@ export async function planDesign(
             ? store.putFile(join(root, path))
             : fileDigest(join(root, path)))),
         });
+      inputs.push(all.get(path));
+    }
+    for (const path of new Set(paths.filter((path) => generated.has(path)))) {
+      if (!all.has(path)) all.set(path, { path, generated: true });
       inputs.push(all.get(path));
     }
     for (const resource of await adapterResources(task, root)) {

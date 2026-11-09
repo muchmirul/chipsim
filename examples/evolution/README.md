@@ -184,8 +184,9 @@ Adapter-required overrides (printed here rather than silently changing YAML):
 `max_code_length=65536`, no cascade or LLM feedback, one parallel evaluation,
 zero retries, and evaluator timeout = candidate timeout + 60 seconds. Provider
 settings are not modified. Iterations are bounded to 1–100. Search checkpoints
-and the selected `.sv` remain under `evaluations/SESSION/openevolve` and
-`evaluations/SESSION/selected.sv`. The selected candidate is independently
+and the selected `.sv` remain under
+`evaluations/SESSION/invocations/INVOCATION/openevolve` and
+`evaluations/SESSION/invocations/INVOCATION/selected.sv`. The selected candidate is independently
 re-evaluated before a selection event and final summary are published. No live
 provider-backed search is claimed by the offline regression tests.
 
@@ -247,8 +248,13 @@ Ctrl-C exits 130. Killing the adapter with SIGKILL cannot run cleanup; use
 `chipsim job cancel JOB --project ISOLATED_PROJECT` or allow native task deadlines.
 A provider call's latency/timeouts remain OpenEvolve's responsibility.
 
-The adapter creates `evaluations/SESSION/CANCEL` when cancelling a search so later
-worker evaluations cannot start. It does not erase any candidate or evidence.
+The adapter creates `evaluations/SESSION/invocations/INVOCATION/CANCEL` when
+cancelling a command so its later worker evaluations cannot start. Configurations,
+candidate projects and job cleanup share that invocation scope. Repeated manual
+`evaluate --session ID` commands use new invocations and retain the shared
+`evaluations/SESSION/benchmark-inputs` snapshot. A failed or interrupted submission
+leaves a caller-owned session running and available for retries. Existing
+candidate evidence and earlier adapter configurations are retained.
 Work storage allows 128 sessions/project and 2048 events/session (16 KiB/event);
 queries show at most 200 recent events while retaining candidate summaries.
 Start a new project/session when a hard bound is reached; no destructive retention

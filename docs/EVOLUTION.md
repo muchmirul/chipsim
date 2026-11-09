@@ -38,8 +38,10 @@ These demonstrations are not evidence that an AI search was run.
 The installed command uses `PYTHON` or `python3`. Python 3.10+ and Node.js 22.13+
 are required; EDA tools are installed separately. `list`, `describe`, `validate`,
 `report`, and `compare` do not run EDA tools or model providers. Custom validation
-checks declared task inputs and locked dependencies without probing executables.
-Optional replay inputs are supplied when a saved failure is replayed.
+checks declared task inputs and locked dependencies for evaluation, formal, and
+replay targets without probing executables. Only `replay-case.json` is supplied
+later for the replay target; its other dependencies must already exist and be
+included in the frozen file inventory.
 
 ## Output and feedback
 
@@ -206,7 +208,11 @@ and observed results against the saved failure. A reproduced failure is not a
 passing hardware design, and a replay never establishes full benchmark acceptance.
 
 Custom benchmarks can declare `replay.target` and `replay.report` with a task/path
-like evaluation stages. The target consumes `replay-case.json` and publishes
+like evaluation stages. Validation walks that target's dependency graph, including
+bound producer tasks and HDL project inputs. Declare its fixed inputs in `files`;
+missing or unlisted dependencies reject validation and evaluation before freezing
+inputs. Validation is read-only and permits the generated `replay-case.json` only
+for this target. The target consumes `replay-case.json` and publishes
 `chipsim-evolution-replay`, version 1, with boolean `reproduced`. Require that field
 as a native design check. The custom-counter example shows how to retain history.
 Without a replay recipe, full reproduction remains available and `--case` fails
@@ -225,6 +231,13 @@ charges. Evaluation and discovery do not import OpenEvolve or configure a provid
 The input snapshot is frozen once per search and checked before each evaluation.
 Repeated manual submissions with `--session` reuse and verify that session's
 snapshot. Use a new session to change the benchmark definition.
+Each command stores its adapter configuration, cancellation marker and isolated
+candidate projects under `evaluations/SESSION/invocations/INVOCATION`. Search
+workers share their command's invocation. Failure or interruption cancels only
+that invocation's jobs and prevents its workers from starting later stages;
+subsequent `evaluate --session ID` submissions remain usable. The shared
+`evaluations/SESSION/benchmark-inputs` snapshot and prior evidence are retained.
+Caller-owned sessions remain running until the caller publishes their summary.
 Only one candidate file is offered to search, with the existing EVOLVE-BLOCK policy.
 
 The existing budgets remain 60 seconds for counter and 300 for ALU, including

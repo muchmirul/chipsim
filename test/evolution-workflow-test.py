@@ -2,9 +2,12 @@
 import copy
 import json
 from pathlib import Path
+import shutil
 import sys
 import tempfile
 import unittest
+import uuid
+from unittest.mock import Mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "examples/evolution"))
@@ -12,9 +15,67 @@ from definitions import load_definition, validate_definition, pack, unpack, loca
 from feedback import compare, render_report, read_report
 from custom import validate_stage
 from replay_score import score
+from evaluator import Bridge
 
 
 class WorkflowTests(unittest.TestCase):
+    def test_cancellation_only_cleans_current_invocation_and_blocks_its_workers(self):
+        with tempfile.TemporaryDirectory() as temp:
+            config = {"project": temp, "session": str(uuid.uuid4()), "benchmark": "counter"}
+            first = Bridge(config.copy())
+            second = Bridge(config.copy())
+            worker = Bridge(first.config.copy())
+            freeze(first.config, first.session_directory)
+            freeze(second.config, second.session_directory)
+            self.assertEqual(first.config["inputs_hash"], second.config["inputs_hash"])
+            for bridge in (first, second):
+                project = bridge.directory / str(uuid.uuid4())
+                project.mkdir()
+                (project / "chipsim.design.json").write_text("{}")
+            first.cli = Mock(return_value={"jobs": [{"id": "active", "state": "running"},
+                                                    {"id": "done", "state": "completed"}]})
+            first.cancel_jobs()
+            calls = first.cli.call_args_list
+            self.assertEqual(len(calls), 2)
+            self.assertEqual(calls[1].args[:3], ("job", "cancel", "active"))
+            self.assertTrue(all(Path(c.args[-1]).parent == first.directory for c in calls))
+            self.assertTrue(worker.cancel_file.exists())
+            self.assertFalse(second.cancel_file.exists())
+            with self.assertRaises(KeyboardInterrupt):
+                worker.run_stage(worker.directory, "must-not-start", float("inf"))
+
+    def test_custom_replay_dependencies_are_validated_without_generated_case_file(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "custom"
+            shutil.copytree(ROOT / "examples/evolution/custom-counter", root)
+            path = root / "benchmark.json"
+            original = json.loads(path.read_text())
+            design_path = root / "chipsim.design.json"
+            design_bytes = design_path.read_bytes()
+            before = sorted(p.relative_to(root) for p in root.rglob("*"))
+            load_definition(path)
+            self.assertEqual(before, sorted(p.relative_to(root) for p in root.rglob("*")))
+            self.assertEqual(design_bytes, design_path.read_bytes())
+            self.assertFalse((root / "replay-case.json").exists())
+            for name in ("prefix.py", "replay.project.json", "replay_score.py"):
+                with self.subTest(name=name):
+                    definition = copy.deepcopy(original)
+                    definition["files"].remove(name)
+                    path.write_text(json.dumps(definition))
+                    with self.assertRaisesRegex(ValueError, name.replace(".", r"\.")):
+                        load_definition(path)
+                    data = (root / name).read_bytes()
+                    (root / name).unlink()
+                    with self.assertRaisesRegex(ValueError, name.replace(".", r"\.")):
+                        load_definition(path)
+                    (root / name).write_bytes(data)
+            path.write_text(json.dumps(original))
+            design = json.loads(design_bytes)
+            design["tasks"]["score"]["inputs"].append("replay-case.json")
+            design_path.write_text(json.dumps(design))
+            with self.assertRaisesRegex(ValueError, "replay-case.json"):
+                load_definition(path)
+
     def test_repeated_manual_evaluations_reuse_and_verify_session_inputs(self):
         with tempfile.TemporaryDirectory() as temp:
             first = {"benchmark": "counter"}
