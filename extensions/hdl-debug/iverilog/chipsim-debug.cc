@@ -3,6 +3,7 @@
 // See ../COPYING and ../NOTICE for license and upstream attribution.
 // ChipSim observer, Icarus Verilog v12_0. GPL-2.0-or-later.
 // No simulator writes or scheduler callbacks. Value-change callbacks only read.
+// Modified 2026-11-11: hierarchy filtering and bounded process-selection files.
 #include "chipsim-debug.h"
 #include "schedule.h"
 #include "vpi_priv.h"
@@ -22,6 +23,22 @@ std::string phase = "initialization";
 struct observed { vpiHandle handle; std::string id, last; };
 std::vector<observed*> signals;
 std::set<std::string> paths;
+bool restrict_processes = false;
+std::set<std::string> process_ids;
+bool selected(const std::string& path) {
+  const char* env = std::getenv("CHIPSIM_DEBUG_SCOPES");
+  if (!env || !*env) return true;
+  std::string list(env);
+  size_t start = 0;
+  while (start < list.size()) {
+    auto end = list.find('\n', start);
+    auto prefix = list.substr(start, end == std::string::npos ? end : end-start);
+    if (path == prefix || path.compare(0, prefix.size()+1, prefix+".") == 0) return true;
+    if (end == std::string::npos) break;
+    start = end+1;
+  }
+  return false;
+}
 
 std::string quote(const std::string& value) {
   std::string result = "\"";
@@ -42,13 +59,52 @@ void put(const std::string& line) {
   std::fputs(line.c_str(), stream); std::fputc('\n', stream); std::fflush(stream);
   bytes += line.size() + 1;
 }
-void limit(const std::string& reason) {
-  if (!limited) put("{\"record\":\"limit\",\"reason\":" + quote(reason) + "}");
+bool process_selection() {
+  const char* file = std::getenv("CHIPSIM_DEBUG_PROCESS_FILE");
+  const char* scopes = std::getenv("CHIPSIM_DEBUG_SCOPES");
+  if (!file && (!scopes || !*scopes)) return true;
+  restrict_processes = true;
+  FILE* selection = file ? std::fopen(file, "r") : nullptr;
+  char line[128];
+  bool valid = selection && std::fgets(line, sizeof line, selection) &&
+    std::strcmp(line, "chipsim-capture-processes-v1\n") == 0;
+  size_t expected = 0;
+  if (valid) {
+    valid = std::fgets(line, sizeof line, selection);
+    if (valid) {
+      const size_t length = std::strlen(line);
+      valid = length >= 2 && line[length-1] == '\n' &&
+        std::all_of(line, line+length-1, [](unsigned char c) { return std::isdigit(c); });
+      if (valid) { expected = std::strtoul(line, nullptr, 10); valid = expected <= 16384; }
+    }
+  }
+  while (valid && std::fgets(line, sizeof line, selection)) {
+    size_t length = std::strlen(line);
+    if (!length || line[length-1] != '\n') { valid = false; break; }
+    std::string id(line, length-1);
+    if (id.size() <= 4 || id.compare(0, 4, "p:T_") != 0 ||
+        !std::all_of(id.begin()+4, id.end(), [](unsigned char c) { return std::isdigit(c); }) ||
+        process_ids.size() >= expected || !process_ids.insert(id).second) {
+      valid = false; break;
+    }
+  }
+  if (selection) { valid = valid && !std::ferror(selection) && process_ids.size() == expected; std::fclose(selection); }
+  if (!valid) {
+    put("{\"record\":\"limit\",\"reason\":\"missing or malformed capture process selection file\"}");
+    limited = true;
+  }
+  return valid;
+}
+void limit(const std::string& reason, const std::string& name, unsigned observed, unsigned maximum) {
+  if (!limited) put("{\"record\":\"limit\",\"reason\":" + quote(reason) +
+    ",\"limit\":"+quote(name)+",\"observed\":"+std::to_string(observed)+
+    ",\"maximum\":"+std::to_string(maximum)+",\"stage\":\"capture\"}");
   limited = true;
 }
 void event(const char* kind, const std::string& fields = "") {
   if (!stream || limited) return;
-  if (sequence >= 100000 || bytes >= 64 * 1024 * 1024) { limit("event or byte limit"); return; }
+  if (sequence >= 100000) { limit("event limit", "events", sequence+1, 100000); return; }
+  if (bytes >= 64 * 1024 * 1024) { limit("byte limit", "observerBytes", bytes, 64*1024*1024); return; }
   put("{\"record\":\"event\",\"seq\":" + std::to_string(sequence++) +
       ",\"time\":" + quote(std::to_string(schedule_simtime())) +
       ",\"phase\":" + quote(phase) + ",\"kind\":" + quote(kind) + fields + "}");
@@ -76,6 +132,7 @@ PLI_INT32 change(p_cb_data data) {
 }
 void observe(vpiHandle obj, bool constant = false) {
   auto path = property(vpiFullName, obj);
+  if (!selected(path)) return;
   if (!paths.insert(path).second) return;
   const int width = vpi_get(vpiSize, obj);
   if (width < 1 || width > 4096) {
@@ -83,7 +140,7 @@ void observe(vpiHandle obj, bool constant = false) {
         ",\"reason\":\"width exceeds 4096\"}"); return;
   }
   if (signals.size() >= 512) {
-    if (!signal_limit) put("{\"record\":\"limit\",\"reason\":\"signal limit\"}");
+    if (!signal_limit) put("{\"record\":\"limit\",\"reason\":\"signal limit\",\"limit\":\"signals\",\"observed\":513,\"maximum\":512,\"stage\":\"capture\"}");
     signal_limit = true; return;
   }
   auto sig = new observed{obj, "s:" + path, value(obj)};
@@ -125,6 +182,7 @@ void chipsim_start() {
   put("{\"record\":\"header\",\"protocol\":1,\"backend\":\"iverilog-12.0\","
       "\"instrumentation\":\"chipsim-1\",\"precision\":" +
       std::to_string(vpi_get(vpiTimePrecision, nullptr)) + "}");
+  if (!process_selection()) { vpi_mode_flag = previous_mode; return; }
   // Root iteration accepts modules only, unlike iteration within a scope.
   vpiHandle it = vpi_iterate(vpiModule, nullptr), obj;
   while (it && (obj = vpi_scan(it))) scope(obj);
@@ -148,6 +206,7 @@ void chipsim_phase(const char* next) {
   if (phase != next) { phase = next; event("boundary"); }
 }
 void chipsim_process(const std::string& id) {
+  if (restrict_processes && !process_ids.count("p:"+id)) return;
   if (stream) event("process", ",\"process\":" + quote("p:" + id));
 }
 void chipsim_report(vpiHandle call) {

@@ -2,6 +2,7 @@
 -- Copyright (c) 2026 Muchmirul Yusa Setiaji
 -- See ../COPYING and ../NOTICE for license and upstream attribution.
 --  ChipSim observer for GHDL 4.1.0 (mcode). GPL-2.0-or-later.
+--  Modified 2026-11-11: explicit hierarchy filtering before signal capture.
 with Ada.Text_IO;
 with Ada.Environment_Variables;
 with Ada.Strings.Fixed;
@@ -81,6 +82,31 @@ package body Grt.Chipsim is
       end;
    end Path;
 
+   function Selected (P : String) return Boolean is
+      Key : constant String := "CHIPSIM_DEBUG_SCOPES";
+   begin
+      if not Ada.Environment_Variables.Exists (Key) then return True; end if;
+      declare
+         List : constant String := Ada.Environment_Variables.Value (Key);
+         First : Positive := List'First;
+      begin
+         if List'Length = 0 then return True; end if;
+         for Last in List'Range loop
+            if List (Last) = Character'Val (10) or Last = List'Last then
+               declare
+                  Stop : constant Natural := (if List (Last) = Character'Val (10) then Last - 1 else Last);
+                  Prefix : constant String := List (First .. Stop);
+               begin
+                  if P = Prefix or else (P'Length > Prefix'Length and then
+                    P (P'First .. P'First + Prefix'Length) = Prefix & ".") then return True; end if;
+               end;
+               First := Last + 1;
+            end if;
+         end loop;
+      end;
+      return False;
+   end Selected;
+
    function Location (Ctxt : Rti_Context; Linecol : Ghdl_Index_Type)
                      return String is
    begin
@@ -99,10 +125,12 @@ package body Grt.Chipsim is
       end if;
    end Put;
 
-   procedure Limit (Reason : String) is
+   procedure Limit (Reason, Name : String; Observed, Maximum : Natural) is
    begin
       if not Limit_Reached then
-         Put ("{""record"":""limit"",""reason"":" & Q (Reason) & "}");
+         Put ("{""record"":""limit"",""reason"":" & Q (Reason) &
+           ",""limit"":" & Q (Name) & ",""observed"":" & N (Observed) &
+           ",""maximum"":" & N (Maximum) & ",""stage"":""capture""}");
          Limit_Reached := True;
       end if;
    end Limit;
@@ -110,9 +138,8 @@ package body Grt.Chipsim is
    procedure Event (Kind : String; Fields : String := "") is
    begin
       if not Enabled or not Started or Limit_Reached then return; end if;
-      if Seq >= Max_Events or Bytes >= Max_Bytes then
-         Limit ("event or byte limit"); return;
-      end if;
+      if Seq >= Max_Events then Limit ("event limit", "events", Seq + 1, Max_Events); return; end if;
+      if Bytes >= Max_Bytes then Limit ("byte limit", "observerBytes", Bytes, Max_Bytes); return; end if;
       Put ("{""record"":""event"",""seq"":" & N (Seq) &
         ",""time"":" & Q (Ada.Strings.Fixed.Trim
            (Std_Time'Image (Current_Time), Ada.Strings.Both)) &
@@ -134,9 +161,11 @@ package body Grt.Chipsim is
    end record;
    Read_List : array (1 .. 65536) of Read_Info;
    Read_Count : Natural := 0;
+   function Process_Id (Proc : Process_Acc) return String;
    procedure Register_Read (Proc : Process_Acc; Sig : Ghdl_Signal_Ptr) is
    begin
-      if Requested and Read_Count < Read_List'Last then
+      if not Requested or else Process_Id (Proc) = "" then return; end if;
+      if Read_Count < Read_List'Last then
          Read_Count := Read_Count + 1;
          Read_List (Read_Count) := (Proc, Sig);
       elsif Requested then
@@ -156,6 +185,7 @@ package body Grt.Chipsim is
       if not Ada.Environment_Variables.Exists ("CHIPSIM_DEBUG_STREAM") then
          return;
       end if;
+      if not Selected (Path (Ctxt)) then return; end if;
       if Process_Count < Process_List'Last then
          Process_Count := Process_Count + 1;
          Process_List (Process_Count) := (Proc, Ctxt);
@@ -290,9 +320,11 @@ package body Grt.Chipsim is
            ",""source"":" & Location (Ctxt,
              To_Ghdl_Rtin_Block_Acc (Obj).Linecol) & "}");
       elsif Obj.Kind = Ghdl_Rtik_Signal or Obj.Kind = Ghdl_Rtik_Port then
+         Sig := To_Ghdl_Rtin_Object_Acc (Obj);
+         if not Selected (Path (Ctxt) & "." & C (Sig.Name)) then return Traverse_Ok; end if;
          if Signal_Count = Max_Signals then
             if not Signal_Limit then
-               Put ("{""record"":""limit"",""reason"":""signal limit""}");
+               Put ("{""record"":""limit"",""reason"":""signal limit"",""limit"":""signals"",""observed"":513,""maximum"":512,""stage"":""capture""}");
                Signal_Limit := True;
             end if;
             return Traverse_Skip;

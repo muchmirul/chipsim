@@ -83,6 +83,7 @@ const recipes = {
       ["--design", "PROJECT"],
     ],
     example: "examples/design/minimal",
+    verificationExample: "examples/design/ready-valid-fifo",
     notes: [
       "HDL runs capture debug events by default and require observer tools (docs/HDL_DEBUG.md). Use --no-debug for standalone waveform-only simulation, or options.debug:false for managed hdl tasks. Missing observers are a setup failure, not a silent fallback.",
       "The example has three simulation files: counter.v, counter_tb.v and sim.project.json. DUT and testbench can share a source file; separate files make reuse clearer.",
@@ -423,6 +424,9 @@ export function designGuide(topic = "overview") {
           recipe: {
             ...recipe,
             ...(recipe.example ? { example: installed(recipe.example) } : {}),
+            ...(recipe.verificationExample
+              ? { verificationExample: installed(recipe.verificationExample) }
+              : {}),
           },
         }
       : {}),

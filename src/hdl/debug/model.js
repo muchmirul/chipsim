@@ -48,7 +48,7 @@ export function debugModel(recording, id) {
     summary: "HDL source, elaborated RTL and signals at one recorded event",
     fidelity:
       "Read-only simulator observer; snapshots after the selected event",
-    scope: `${debug.signals.length} observed signals · ${data.events.length} ordered events · ${data.status.complete ? "complete" : "partial"} capture`,
+    scope: `${debug.signals.length} observed signals · ${data.events.length} ordered events · ${data.status.complete ? "complete" : "partial"} capture${data.run.project?.capture ? " within " + data.run.project.capture.scopes.join(", ") : ""}`,
     assumptions: [
       "Horizontal positions are event sequence numbers; exact physical time and backend-provided phase/delta appear at the cursor.",
       "Process execution, signal changes and static connections have separate markers. A static driver is not proof of the writer of a particular event.",

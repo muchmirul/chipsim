@@ -191,6 +191,19 @@ try {
     "examples/design/minimal/sim.project.json",
     "examples/design/minimal/chipsim.design.json",
     "examples/design/minimal/chipsim.lock.json",
+    "examples/design/ready-valid-fifo/README.md",
+    "examples/design/ready-valid-fifo/chipsim.design.json",
+    "examples/design/ready-valid-fifo/chipsim.lock.json",
+    "examples/design/ready-valid-fifo/sim.project.json",
+    "examples/design/ready-valid-fifo/regression.project.json",
+    "examples/design/ready-valid-fifo/netlist.project.json",
+    "examples/design/ready-valid-fifo/rtl/rv_fifo.sv",
+    "examples/design/ready-valid-fifo/tb/fifo_tb.sv",
+    "examples/design/ready-valid-fifo/formal-wrapper.sv",
+    "examples/design/ready-valid-fifo/equivalence.eqy",
+    "examples/design/ready-valid-fifo/synth.ys",
+    "examples/design/ready-valid-fifo/mutate.py",
+    "src/hdl/debug/capture.js",
     "docs/CHANGELOG.md",
     "docs/VISUALIZATION.md",
     "docs/TUI.md",
@@ -442,6 +455,17 @@ try {
     assert.equal(frame.stderr, "");
   }
   assert.deepEqual(help.designGuidance.command, ["design", "guide"]);
+  assert.match(
+    await readFile(help.examples.rtlVerification.guide, "utf8"),
+    /Negative control/,
+  );
+  const fifoGuide = JSON.parse(
+    (await run(binary, ["design", "guide", "rtl"], { cwd })).stdout,
+  );
+  assert.equal(
+    fifoGuide.guide.recipe.verificationExample,
+    help.examples.rtlVerification.directory,
+  );
   assert.match(
     await readFile(help.documentation["AGENT_QUICKSTART.md"], "utf8"),
     /A manual RTL improvement loop/,

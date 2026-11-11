@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { StringDecoder } from "node:string_decoder";
 import { mkdir, writeFile, readdir, lstat, stat } from "node:fs/promises";
 import { resolve, dirname, relative, join, isAbsolute } from "node:path";
 import {
@@ -17,6 +18,8 @@ import {
 } from "./debug/collector.js";
 import { debugLimits, sourceDigest } from "./debug/recording.js";
 import { generateEnvironment, environmentSourceName } from "./environment.js";
+import { normalizeCapture, inCaptureScope } from "./debug/capture.js";
+import { parseObserverStream } from "./debug/collector.js";
 
 // No shell, custom commands or loadable simulator plugins in the manifest.
 // HDL is executed only by the explicit run action, never by trace import.
@@ -31,6 +34,7 @@ export async function processRun(
     env,
     capturePaths = [],
     owners,
+    onOutput,
   } = {},
 ) {
   return new Promise((done) => {
@@ -47,6 +51,23 @@ export async function processRun(
       stderr = "",
       bytes = 0,
       reason;
+    let writes = Promise.resolve(),
+      closed = false;
+    const decoders = {
+      stdout: new StringDecoder("utf8"),
+      stderr: new StringDecoder("utf8"),
+    };
+    const emit = (stream, text) => {
+      if (!text) return;
+      if (stream === "stdout") stdout += text;
+      else stderr += text;
+      if (onOutput)
+        writes = writes
+          .then(() => onOutput(stream, text))
+          .catch((error) =>
+            kill("diagnostic log write failed: " + error.message),
+          );
+    };
     const child = spawn(command, args, {
       cwd,
       env: env ? { ...process.env, ...env } : process.env,
@@ -68,6 +89,7 @@ export async function processRun(
       });
     const kill = (why) => {
       reason ||= why;
+      if (closed) return;
       try {
         if (process.platform !== "win32" && child.pid)
           process.kill(-child.pid, "SIGKILL");
@@ -87,7 +109,7 @@ export async function processRun(
       ? setInterval(async () => {
           for (const artifact of watched) {
             try {
-              if ((await stat(artifact.path)).size > artifact.limit)
+              if ((await stat(artifact.path)).size > artifact.limit && !closed)
                 kill("capture artifact exceeds size limit");
             } catch {
               /* not written yet */
@@ -98,8 +120,7 @@ export async function processRun(
     const collect = (stream) => (chunk) => {
       bytes += chunk.length;
       if (bytes > 1048576) return kill("diagnostics exceed 1 MiB");
-      if (stream === "stdout") stdout += chunk.toString();
-      else stderr += chunk.toString();
+      emit(stream, decoders[stream].write(chunk));
     };
     child.stdout.on("data", collect("stdout"));
     child.stderr.on("data", collect("stderr"));
@@ -110,10 +131,14 @@ export async function processRun(
           : error.message;
     });
     child.once("close", async (code, termination) => {
-      await registered;
+      closed = true;
       clearTimeout(timer);
       clearInterval(watch);
       signal?.removeEventListener("abort", onAbort);
+      await registered;
+      for (const stream of ["stdout", "stderr"])
+        emit(stream, decoders[stream].end());
+      await writes;
       done({
         ok: code === 0 && !reason,
         command,
@@ -176,6 +201,7 @@ export async function readProject(file) {
     "stopTime",
     "parameters",
     "environment",
+    "capture",
   ]);
   for (const key of Object.keys(project))
     if (!allowed.has(key)) throw new Error("Unknown HDL project field " + key);
@@ -277,6 +303,9 @@ export async function readProject(file) {
     waveform,
     timeoutMs,
     parameters,
+    ...(project.capture !== undefined
+      ? { capture: normalizeCapture(project.capture) }
+      : {}),
     base,
   };
 }
@@ -284,7 +313,7 @@ export async function readProject(file) {
 export async function runHDL(
   file,
   destination,
-  { signal, onProgress = () => {}, debug = true, owners } = {},
+  { signal, onProgress = () => {}, onOutput, debug = true, owners } = {},
 ) {
   if (!signal) {
     const controller = new AbortController();
@@ -295,6 +324,7 @@ export async function runHDL(
       return await runHDL(file, destination, {
         signal: controller.signal,
         onProgress,
+        onOutput,
         debug,
         owners,
       });
@@ -304,6 +334,10 @@ export async function runHDL(
     }
   }
   const project = await readProject(file);
+  if (!debug && project.capture)
+    throw new Error(
+      "HDL capture.scopes requires debug capture; remove capture or enable debug.",
+    );
   return createDirectory(destination, async (root) => {
     const sourceRoot = join(root, "sources"),
       files = new Set([...project.sources, ...project.assets]);
@@ -416,6 +450,12 @@ export async function runHDL(
     const captureEnvironment = {
       CHIPSIM_DEBUG_DESIGN: debug ? join(root, "design.jsonl") : undefined,
       CHIPSIM_DEBUG_STREAM: debug ? join(root, "events.jsonl") : undefined,
+      CHIPSIM_DEBUG_SCOPES:
+        debug && project.capture
+          ? project.capture.scopes.join("\n")
+          : undefined,
+      CHIPSIM_DEBUG_PROCESSES: undefined,
+      CHIPSIM_DEBUG_PROCESS_FILE: undefined,
     };
     const versions = await Promise.all(
       (project.language === "verilog"
@@ -433,6 +473,9 @@ export async function runHDL(
           env: {
             CHIPSIM_DEBUG_DESIGN: undefined,
             CHIPSIM_DEBUG_STREAM: undefined,
+            CHIPSIM_DEBUG_SCOPES: undefined,
+            CHIPSIM_DEBUG_PROCESSES: undefined,
+            CHIPSIM_DEBUG_PROCESS_FILE: undefined,
           },
         }),
       ),
@@ -453,6 +496,7 @@ export async function runHDL(
         signal,
         owners,
         waveformPath: wavePath,
+        onOutput: onOutput && ((stream, text) => onOutput(name, stream, text)),
         env: captureEnvironment,
         capturePaths: debug
           ? [
@@ -465,11 +509,19 @@ export async function runHDL(
       return result.ok;
     };
     let ok;
-    if (debug && !toolchain.available) {
+    const missingCaptureCapability =
+      project.capture &&
+      [
+        "capture-scopes-v1",
+        ...(project.language === "verilog" ? ["capture-process-file-v1"] : []),
+      ].find((capability) => !toolchain?.capabilities?.includes(capability));
+    if (debug && (!toolchain.available || missingCaptureCapability)) {
       stages.push({
         stage: "debug-setup",
         ok: false,
-        reason: toolchain.reason,
+        reason:
+          toolchain.reason ||
+          `Debug observer lacks ${missingCaptureCapability}. Rebuild with scripts/build-hdl-debug.sh into a new prefix and set CHIPSIM_HDL_DEBUG_TOOLS; see docs/HDL_DEBUG.md.`,
         stdout: "",
         stderr: "",
       });
@@ -489,6 +541,44 @@ export async function runHDL(
         ...compileSources.map((file) => "./" + file),
       ];
       ok = await execute("compile", command("iverilog"), args);
+      if (ok && project.capture) {
+        try {
+          const { records } = parseObserverStream(
+            (
+              await readBounded(join(root, "design.jsonl"), 16 * 1048576)
+            ).toString("utf8"),
+          );
+          const processes = records
+            .filter(
+              (r) =>
+                r.record === "object" &&
+                r.kind === "process" &&
+                inCaptureScope(r.scope, project.capture.scopes),
+            )
+            .map((r) => r.id);
+          const processFile = join(root, "capture-processes.txt");
+          await writeFile(
+            processFile,
+            [
+              "chipsim-capture-processes-v1",
+              String(processes.length),
+              ...processes,
+              "",
+            ].join("\n"),
+            { flag: "wx" },
+          );
+          captureEnvironment.CHIPSIM_DEBUG_PROCESS_FILE = processFile;
+        } catch (error) {
+          stages.push({
+            stage: "debug-scope",
+            ok: false,
+            reason: error.message,
+            stdout: "",
+            stderr: "",
+          });
+          ok = false;
+        }
+      }
       if (ok) ok = await execute("simulate", command("vvp"), ["-n", binary]);
     } else {
       ok = await execute("analyze", command("ghdl"), [
@@ -535,7 +625,7 @@ export async function runHDL(
     } catch (error) {
       waveError = error.message;
     }
-    let recording, debugError;
+    let recording, debugError, debugDiagnostic;
     if (debug) {
       try {
         let design = "";
@@ -562,6 +652,11 @@ export async function runHDL(
         });
       } catch (error) {
         debugError = error.message;
+        debugDiagnostic = {
+          code: error.code || "HDL_DEBUG_CAPTURE",
+          message: error.message,
+          ...(error.details ? { details: error.details } : {}),
+        };
         recording = failedDebugRecording({
           project: savedProject,
           sources: debugSources,
@@ -584,6 +679,7 @@ export async function runHDL(
       for (const [name, file] of [
         ["observer", "events.jsonl"],
         ["design", "design.jsonl"],
+        ["processSelection", "capture-processes.txt"],
       ]) {
         try {
           if ((await lstat(join(root, file))).isFile())
@@ -601,6 +697,21 @@ export async function runHDL(
       sources,
       tools,
       stages,
+      simulation: {
+        ok:
+          stages.some((s) => s.stage === "simulate") &&
+          stages.every((s) => s.ok),
+      },
+      ...(debug
+        ? {
+            capture: {
+              ok: !!recording?.status.complete,
+              status: recording?.status,
+              ...(project.capture ? { scopes: project.capture.scopes } : {}),
+              ...(debugDiagnostic ? { diagnostic: debugDiagnostic } : {}),
+            },
+          }
+        : {}),
       error: ok
         ? null
         : stages.find((s) => !s.ok)?.reason ||
@@ -629,6 +740,18 @@ export async function runHDL(
           ? ["chipsim", "--vcd", join(root, "waveform.json")]
           : null,
     };
+    if (!ok && onOutput) {
+      try {
+        await onOutput(
+          debug && result.simulation.ok ? "capture" : "result",
+          "stderr",
+          result.error + "\n",
+        );
+      } catch (error) {
+        // A broken/full managed log must not discard the native failure artifacts.
+        result.loggingError = error.message;
+      }
+    }
     await writeFile(join(root, "diagnostics.json"), jsonText(stages));
     await writeFile(join(root, "result.json"), jsonText(result));
     await (

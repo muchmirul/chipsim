@@ -116,14 +116,15 @@ export function designRows(state, height) {
       items.findIndex((i) => i.id === d.selection[state.view]),
     );
   const first = Math.max(0, selected - Math.floor((height - 5) / 2));
+  const current = d.summary.runs.find((run) => run.target === d.target);
+  const historical = d.summary.runs.find(
+    (run) => run.stale && run.id !== current?.id,
+  );
+  const verdict = !current ? "NO RUN" : d.ready ? "READY" : "BLOCKED";
+  const status = `${verdict} · ${d.target}${current ? " · run " + current.id.slice(0, 8) : " · no captured run"}`;
   return [
     row(d.root, "dim"),
-    row(
-      state.view === "checks"
-        ? `${d.ready ? "READY" : "BLOCKED"} · ${d.target} · current policy and inputs`
-        : `${d.summary.runs.length} runs · ${d.artifacts.length} artifacts · target ${d.target}`,
-      "selected",
-    ),
+    row(status, "selected"),
     ...items
       .slice(first, first + height - 5)
       .map((i, n) =>
@@ -137,8 +138,11 @@ export function designRows(state, height) {
       : []),
     row(
       d.summary.errors[0] ||
-        (d.summary.runs.find((r) => r.stale)?.target &&
-          "Inputs changed · affected evidence is stale") ||
+        (current?.stale &&
+          `Current ${d.target} run ${current.id.slice(0, 8)} is stale · inputs changed`) ||
+        (historical &&
+          `Historical ${historical.target} run ${historical.id.slice(0, 8)} is stale`) ||
+        d.checkReason ||
         "Historical artifacts remain unchanged",
       "dim",
     ),
@@ -200,6 +204,7 @@ export class DesignPanel {
           artifacts: artifacts.sort((a, b) => a.path.localeCompare(b.path)),
           checks: checks.required,
           ready: checks.ready,
+          checkReason: checks.reason,
         });
       this.onChange?.();
     } catch (error) {

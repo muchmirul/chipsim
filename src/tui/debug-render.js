@@ -20,7 +20,7 @@ export function debugHeader(state) {
   const data = state.hdlDebug.data,
     event = data.events[state.tick];
   return (
-    `${data.status.complete ? "complete" : "PARTIAL"} · run ${data.run.id.slice(0, 8)} · e${event?.seq ?? "—"}/${Math.max(0, data.events.length - 1)} · ` +
+    `${data.status.complete ? "complete" : "PARTIAL"}${data.run.project?.capture ? " scoped" : ""} · run ${data.run.id.slice(0, 8)} · e${event?.seq ?? "—"}/${Math.max(0, data.events.length - 1)} · ` +
     (event
       ? `${timeLabel(event.time, data.timescale)}${event.delta === undefined ? "" : " Δ" + event.delta} · ${event.phase || "phase unreported"} · ${event.kind}`
       : "no simulation events") +

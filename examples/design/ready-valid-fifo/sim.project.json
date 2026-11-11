@@ -1,0 +1,18 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "name": "FIFO directed and short random debug",
+  "language": "verilog",
+  "standard": "2012",
+  "sources": ["rtl/rv_fifo.sv", "tb/fifo_tb.sv"],
+  "top": "fifo_tb",
+  "waveform": "trace.vcd",
+  "timeoutMs": 30000,
+  "parameters": {
+    "MATRIX": 0,
+    "RANDOM_CYCLES": 64
+  },
+  "capture": {
+    "scopes": ["fifo_tb.main_case.genblk1.dut"]
+  }
+}

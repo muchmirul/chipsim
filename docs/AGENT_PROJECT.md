@@ -28,6 +28,14 @@ and suggested next commands. Poll accepted jobs with `job status ID --project
 PATH --wait --timeout-ms 1000`. A timeout leaves the job running; only explicit
 `job cancel` cancels it. Save log `cursor` for the next poll even at current EOF.
 
+Native HDL assertion output is available through job logs. Failed job/task status
+links the full diagnostic artifact. For a complete RTL-to-netlist example, use
+`agent help` → `examples.rtlVerification` or `design guide rtl` →
+`recipe.verificationExample`, then copy its installed directory to a new project.
+Its README covers scoped capture, independent tests, synthesis, netlist simulation,
+EQY induction, reversible mutation and launcher dependency locks. Prepared PDF
+projects copy the guides, not this example or its external toolchain.
+
 This folder is a local ChipSim project prepared from one PDF. ChipSim's only
 interactive frontend is the TUI. Use terminal playback and inspection for
 demonstrations; do not create browser or HTML simulation frontends. Headless

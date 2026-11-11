@@ -1,0 +1,12 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "name": "FIFO depth and width matrix regression",
+  "language": "verilog",
+  "standard": "2012",
+  "sources": ["rtl/rv_fifo.sv", "tb/fifo_tb.sv"],
+  "top": "fifo_tb",
+  "waveform": "trace.vcd",
+  "timeoutMs": 30000,
+  "parameters": { "MATRIX": 1, "RANDOM_CYCLES": 2048 }
+}

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { timeScale, timeLabel } from "../time.js";
+import { normalizeCapture, inCaptureScope } from "./capture.js";
 
 export const debugLimits = Object.freeze({
   events: 100000,
@@ -46,6 +47,14 @@ const own = (obj, key) => Object.hasOwn(obj, key);
 const fail = (message) => {
   throw new Error("HDL debug: " + message);
 };
+export function debugLimit(limit, observed, maximum, stage = "validation") {
+  const error = new Error(
+    `HDL debug: ${stage} ${limit} limit exceeded (${observed} > ${maximum}). Reduce capture.scopes to the required DUT hierarchy; see docs/HDL_DEBUG.md.`,
+  );
+  error.code = "HDL_DEBUG_LIMIT";
+  error.details = { stage, limit, observed, maximum };
+  throw error;
+}
 const plain = (v) => v && typeof v === "object" && !Array.isArray(v);
 const text = (v, max = 2048) =>
   typeof v === "string" &&
@@ -58,6 +67,67 @@ const exactTime = (v) =>
   typeof v === "string" && /^(0|[1-9][0-9]{0,39})$/.test(v);
 export const sourceDigest = (text) =>
   createHash("sha256").update(text).digest("hex");
+
+export function debugLocationValidator(sources) {
+  const lines = new Map(
+    sources.map((source) => [source.id, source.text.split("\n").length]),
+  );
+  return (loc) => {
+    if (loc == null) return;
+    if (
+      !plain(loc) ||
+      !lines.has(loc.file) ||
+      !integer(loc.line, 1, lines.get(loc.file)) ||
+      (loc.column !== undefined && !integer(loc.column, 1, 1048576))
+    )
+      fail("invalid source location or missing snapshot.");
+  };
+}
+
+// Shared by portable-recording validation and raw observer normalization. Validate
+// against the complete elaborated graph before any scope selection can hide data.
+export function validateDebugEvent(event, i, objects, location, previous = 0n) {
+  if (
+    !plain(event) ||
+    event.seq !== i ||
+    !eventKinds.has(event.kind) ||
+    !exactTime(event.time) ||
+    BigInt(event.time) < previous
+  )
+    fail("invalid event sequence, kind or timestamp at event " + i);
+  if (
+    event.delta !== undefined &&
+    !integer(event.delta, 0, Number.MAX_SAFE_INTEGER)
+  )
+    fail("invalid delta cycle.");
+  if (event.phase !== undefined && !text(event.phase, 128))
+    fail("invalid scheduler phase.");
+  if (
+    event.kind === "process" &&
+    objects.get(event.process)?.kind !== "process"
+  )
+    fail("process event lacks an elaborated process.");
+  if (event.process != null && objects.get(event.process)?.kind !== "process")
+    fail("missing event process.");
+  if (event.writer != null && objects.get(event.writer)?.kind !== "process")
+    fail("missing observed writer.");
+  if (event.changes !== undefined) {
+    if (!plain(event.changes)) fail("invalid signal changes.");
+    for (const [id, bits] of Object.entries(event.changes)) {
+      const sig = objects.get(id);
+      if (
+        !sig?.observed ||
+        !["signal", "port"].includes(sig.kind) ||
+        typeof bits !== "string" ||
+        bits.length !== sig.width ||
+        !/^[01XZUWLH-]+$/.test(bits)
+      )
+        fail("invalid or unmapped signal value at event " + i);
+    }
+  }
+  location(event.source);
+  return BigInt(event.time);
+}
 
 function freeze(value) {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
@@ -92,7 +162,11 @@ export function validateDebugRecording(data) {
     fail("recording is not JSON data.");
   }
   if (Buffer.byteLength(serialized) > debugLimits.fileBytes)
-    fail("recording exceeds 96 MiB.");
+    debugLimit(
+      "recordingBytes",
+      Buffer.byteLength(serialized),
+      debugLimits.fileBytes,
+    );
   if (
     !plain(data.run) ||
     !text(data.run.id, 128) ||
@@ -101,13 +175,24 @@ export function validateDebugRecording(data) {
   )
     fail("invalid run identity.");
   if (!plain(data.timescale)) fail("missing exact timescale.");
+  const capture = normalizeCapture(data.run.project?.capture);
   timeScale(data.timescale.magnitude + data.timescale.unit);
-  if (!Array.isArray(data.sources) || data.sources.length > 256)
-    fail("invalid source snapshots.");
+  if (!Array.isArray(data.sources)) fail("invalid source snapshots.");
+  if (data.sources.length > 256)
+    debugLimit("sourceFiles", data.sources.length, 256, "snapshot");
   let sourceBytes = 0;
   const sources = new Map();
-  const lineCounts = new Map();
   for (const source of data.sources) {
+    if (
+      typeof source?.text === "string" &&
+      Buffer.byteLength(source.text) > 4 * 1048576
+    )
+      debugLimit(
+        "sourceFileBytes",
+        Buffer.byteLength(source.text),
+        4 * 1048576,
+        "snapshot",
+      );
     if (
       !text(source.id) ||
       sources.has(source.id) ||
@@ -119,28 +204,30 @@ export function validateDebugRecording(data) {
       fail("invalid source snapshot or fingerprint.");
     sourceBytes += Buffer.byteLength(source.text);
     sources.set(source.id, source);
-    lineCounts.set(source.id, source.text.split("\n").length);
   }
   if (sourceBytes > debugLimits.sourceBytes)
-    fail("source snapshots exceed 16 MiB.");
-  const location = (loc) => {
-    if (loc == null) return;
-    if (
-      !plain(loc) ||
-      !sources.has(loc.file) ||
-      !integer(loc.line, 1, lineCounts.get(loc.file)) ||
-      (loc.column !== undefined && !integer(loc.column, 1, 1048576))
-    )
-      fail("invalid source location or missing snapshot.");
-  };
+    debugLimit("sourceBytes", sourceBytes, debugLimits.sourceBytes, "snapshot");
+  const location = debugLocationValidator(data.sources);
   if (
     !plain(data.design) ||
     !Array.isArray(data.design.objects) ||
-    data.design.objects.length > debugLimits.objects ||
-    !Array.isArray(data.design.connections) ||
-    data.design.connections.length > debugLimits.connections
+    !Array.isArray(data.design.connections)
   )
-    fail("invalid or oversized elaborated design.");
+    fail("invalid elaborated design: objects and connections must be arrays.");
+  if (data.design.objects.length > debugLimits.objects)
+    debugLimit(
+      "objects",
+      data.design.objects.length,
+      debugLimits.objects,
+      "elaboration",
+    );
+  if (data.design.connections.length > debugLimits.connections)
+    debugLimit(
+      "connections",
+      data.design.connections.length,
+      debugLimits.connections,
+      "elaboration",
+    );
   const objects = new Map();
   let observed = 0;
   for (const object of data.design.objects) {
@@ -154,11 +241,22 @@ export function validateDebugRecording(data) {
       fail("invalid or duplicate design object.");
     if (object.kind === "signal" || object.kind === "port") {
       if (
+        Number.isSafeInteger(object.width) &&
+        object.width > debugLimits.width
+      )
+        debugLimit("width", object.width, debugLimits.width, "elaboration");
+      if (
         !integer(object.width, 1, debugLimits.width) ||
         typeof object.observed !== "boolean"
       )
         fail("invalid signal width or observation flag.");
       if (object.observed) observed++;
+      if (
+        object.observed &&
+        capture &&
+        !inCaptureScope(object.path, capture.scopes)
+      )
+        fail("observed signal outside declared capture scopes.");
       if (object.signed !== undefined && typeof object.signed !== "boolean")
         fail("invalid signed signal declaration.");
     }
@@ -167,7 +265,8 @@ export function validateDebugRecording(data) {
     location(object.source);
     objects.set(object.id, object);
   }
-  if (observed > debugLimits.signals) fail("more than 512 observed signals.");
+  if (observed > debugLimits.signals)
+    debugLimit("signals", observed, debugLimits.signals, "capture");
   for (const obj of objects.values()) {
     if (obj.parent != null && !objects.has(obj.parent))
       fail("missing parent object.");
@@ -191,54 +290,17 @@ export function validateDebugRecording(data) {
       fail("invalid connection or missing endpoint.");
     connectionIds.add(edge.id);
   }
-  if (!Array.isArray(data.events) || data.events.length > debugLimits.events)
-    fail("invalid event array or event limit exceeded.");
+  if (!Array.isArray(data.events)) fail("invalid event array.");
+  if (data.events.length > debugLimits.events)
+    debugLimit("events", data.events.length, debugLimits.events, "capture");
   let previous = 0n,
     eventBytes = 0;
   for (const [i, event] of data.events.entries()) {
-    if (
-      !plain(event) ||
-      event.seq !== i ||
-      !eventKinds.has(event.kind) ||
-      !exactTime(event.time) ||
-      BigInt(event.time) < previous
-    )
-      fail("invalid event sequence, kind or timestamp at event " + i);
-    previous = BigInt(event.time);
-    if (
-      event.delta !== undefined &&
-      !integer(event.delta, 0, Number.MAX_SAFE_INTEGER)
-    )
-      fail("invalid delta cycle.");
-    if (event.phase !== undefined && !text(event.phase, 128))
-      fail("invalid scheduler phase.");
-    if (
-      event.kind === "process" &&
-      objects.get(event.process)?.kind !== "process"
-    )
-      fail("process event lacks an elaborated process.");
-    if (event.process != null && objects.get(event.process)?.kind !== "process")
-      fail("missing event process.");
-    if (event.writer != null && objects.get(event.writer)?.kind !== "process")
-      fail("missing observed writer.");
-    if (event.changes !== undefined) {
-      if (!plain(event.changes)) fail("invalid signal changes.");
-      for (const [id, bits] of Object.entries(event.changes)) {
-        const sig = objects.get(id);
-        if (
-          !sig?.observed ||
-          !["signal", "port"].includes(sig.kind) ||
-          typeof bits !== "string" ||
-          bits.length !== sig.width ||
-          !/^[01XZUWLH-]+$/.test(bits)
-        )
-          fail("invalid or unmapped signal value at event " + i);
-      }
-    }
-    location(event.source);
+    previous = validateDebugEvent(event, i, objects, location, previous);
     eventBytes += Buffer.byteLength(JSON.stringify(event));
   }
-  if (eventBytes > debugLimits.eventBytes) fail("event data exceeds 64 MiB.");
+  if (eventBytes > debugLimits.eventBytes)
+    debugLimit("eventBytes", eventBytes, debugLimits.eventBytes, "capture");
   if (
     !plain(data.status) ||
     typeof data.status.complete !== "boolean" ||
@@ -253,6 +315,21 @@ export function validateDebugRecording(data) {
       (data.status.complete && data.status.limits.length))
   )
     fail("invalid capture limit status.");
+  if (
+    data.status.limitDetails !== undefined &&
+    (!Array.isArray(data.status.limitDetails) ||
+      data.status.limitDetails.length > 64 ||
+      data.status.limitDetails.some(
+        (detail) =>
+          !plain(detail) ||
+          !text(detail.stage, 128) ||
+          !text(detail.limit, 128) ||
+          !integer(detail.observed, 0, Number.MAX_SAFE_INTEGER) ||
+          !integer(detail.maximum, 1, Number.MAX_SAFE_INTEGER),
+      ) ||
+      (data.status.complete && data.status.limitDetails.length))
+  )
+    fail("invalid capture limit details.");
   if (
     !plain(data.capabilities) ||
     !Array.isArray(data.diagnostics) ||

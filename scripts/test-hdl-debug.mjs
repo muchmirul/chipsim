@@ -8,6 +8,8 @@ const result = spawnSync(
     "test/hdl-debug-backends.test.js",
     "test/hdl-defaults.test.js",
     "test/hdl-environment-backends.test.js",
+    "test/designer-feedback.test.js",
+    "test/hdl-review-regressions.test.js",
   ],
   {
     cwd: new URL("..", import.meta.url),

@@ -1,5 +1,12 @@
 # Artifact graph integration fixtures
 
+[`ready-valid-fifo`](ready-valid-fifo/README.md) is the complete memory-bearing
+RTL example: scoped observer debug, a three-configuration independent scoreboard,
+Yosys synthesis, generated-netlist simulation and EQY induction. Its acceptance
+target requires all eleven checks. A reversible occupancy mutation demonstrates
+failure diagnosis, stale checks and exact-byte recovery. Its README explains
+fixed netlist parameters, memory/partition proof setup and launcher dependency locks.
+
 `minimal` is a five-file counter project with a self-checking Verilog testbench.
 Default simulation needs the [Icarus observer tools](../../docs/HDL_DEBUG.md)
 and produces linked source/RTL/signal recordings. For stock Icarus

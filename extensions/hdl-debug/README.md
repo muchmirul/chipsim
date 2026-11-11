@@ -1,5 +1,19 @@
 # Optional ChipSim simulator observers
 
+Current builds advertise `capture-scopes-v1` and `capture-process-file-v1` in
+their fingerprint manifest.
+`CHIPSIM_DEBUG_SCOPES` carries validated newline-separated exact hierarchy
+prefixes. Both backends filter signal/process observations before native budgets;
+assertions remain global. Icarus also receives the selected elaborated process
+IDs in `capture-processes.txt` after compilation; only the path is supplied via
+`CHIPSIM_DEBUG_PROCESS_FILE`. The bounded text format has a
+`chipsim-capture-processes-v1` header, a decimal row count and one unique `p:T_N`
+ID per line. The observer verifies count, line lengths, syntax and EOF before
+recording, with a maximum of 16,384 IDs. Missing or malformed files mark capture
+incomplete rather than defaulting to all processes. These variables are set
+only by explicit HDL runs and cleared for version probes/waveform-only runs.
+See [manifest capture scope](../../docs/HDL_DEBUG.md#select-a-capture-hierarchy).
+
 These adapters target **Icarus Verilog v12_0** and **GHDL v4.1.0 mcode**.
 The observer sources and patch recipes in `iverilog/` and `ghdl/` are
 GPL-2.0-or-later; see [COPYING](COPYING) and [NOTICE](NOTICE). The recipes contain small upstream

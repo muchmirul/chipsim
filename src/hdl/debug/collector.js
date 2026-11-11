@@ -1,6 +1,16 @@
 import { basename, resolve, relative } from "node:path";
 import { randomUUID } from "node:crypto";
-import { debugLimits, validateDebugRecording } from "./recording.js";
+import {
+  debugLimits,
+  validateDebugRecording,
+  validateDebugEvent,
+  debugLocationValidator,
+} from "./recording.js";
+import {
+  normalizeCapture,
+  selectCaptureObjects,
+  inCaptureScope,
+} from "./capture.js";
 
 // The observer protocol uses a dedicated JSONL artifact, independent of HDL
 // stdout/stderr. A killed process may leave one unterminated final line.
@@ -166,8 +176,8 @@ export function collectDebugRecording({
       ...(loc.column ? { column: loc.column } : {}),
     };
   };
-  const objects = new Map(),
-    scopeMap = new Map(),
+  let objects = new Map();
+  const scopeMap = new Map(),
     observed = new Set(),
     observedWidths = new Map();
   for (const record of all) {
@@ -281,8 +291,20 @@ export function collectDebugRecording({
     });
   }
   const events = [];
+  const fullObjects = objects;
+  const location = debugLocationValidator(sources);
+  const capture = normalizeCapture(project.capture);
+  if (capture) {
+    objects = selectCaptureObjects(objects, capture.scopes);
+    const selected = connections.filter(
+      (edge) => objects.has(edge.from) && objects.has(edge.to),
+    );
+    connections.splice(0, connections.length, ...selected);
+  }
   let bytes = 0,
-    normalizerLimit;
+    normalizerLimit,
+    rawIndex = 0,
+    previousRawTime = 0n;
   for (const record of raw.records.filter((r) => r.record === "event")) {
     const event = { ...record };
     delete event.record;
@@ -290,7 +312,7 @@ export function collectDebugRecording({
     if (event.arguments && !event.message)
       event.message = event.arguments.join(" · ");
     for (const [id, bits] of Object.entries(event.changes || {})) {
-      const object = objects.get(id);
+      const object = fullObjects.get(id);
       if (
         object?.constant &&
         object.runtimeWidth &&
@@ -302,9 +324,38 @@ export function collectDebugRecording({
           object.signed ? bits[0] : "0",
         );
     }
+    previousRawTime = validateDebugEvent(
+      event,
+      rawIndex++,
+      fullObjects,
+      location,
+      previousRawTime,
+    );
+    if (capture) {
+      if (event.process && !objects.has(event.process)) continue;
+      if (event.writer && !objects.has(event.writer)) delete event.writer;
+      if (event.changes) {
+        event.changes = Object.fromEntries(
+          Object.entries(event.changes).filter(([id]) => objects.has(id)),
+        );
+        if (event.kind === "signal" && !Object.keys(event.changes).length)
+          continue;
+      }
+      // Reindex only a validated projection; retain its original stream identity.
+      event.observerSeq = event.seq;
+      event.seq = events.length;
+    }
     bytes += Buffer.byteLength(JSON.stringify(event));
     if (bytes > debugLimits.eventBytes || events.length >= debugLimits.events) {
-      normalizerLimit = "event data limit";
+      normalizerLimit = {
+        stage: "normalization",
+        limit: bytes > debugLimits.eventBytes ? "eventBytes" : "events",
+        observed: bytes > debugLimits.eventBytes ? bytes : events.length + 1,
+        maximum:
+          bytes > debugLimits.eventBytes
+            ? debugLimits.eventBytes
+            : debugLimits.events,
+      };
       break;
     }
     events.push(event);
@@ -330,9 +381,34 @@ export function collectDebugRecording({
       unit,
     };
   }
-  const limits = all.filter((r) => r.record === "limit").map((r) => r.reason);
-  if (normalizerLimit) limits.push(normalizerLimit);
-  const omissions = all.filter((r) => r.record === "unsupported");
+  const limitRecords = all.filter((r) => r.record === "limit");
+  const limitDetails = limitRecords
+    .filter(
+      (r) =>
+        typeof r.limit === "string" &&
+        Number.isSafeInteger(r.observed) &&
+        Number.isSafeInteger(r.maximum),
+    )
+    .map(({ limit, observed, maximum, stage }) => ({
+      limit,
+      observed,
+      maximum,
+      stage: stage || "capture",
+    }));
+  if (normalizerLimit) limitDetails.push(normalizerLimit);
+  const limits = limitRecords.map((r) =>
+    r.limit
+      ? `${r.reason}: ${r.stage || "capture"} ${r.limit} (${r.observed} > ${r.maximum})`
+      : r.reason,
+  );
+  if (normalizerLimit)
+    limits.push(
+      `event data limit: ${normalizerLimit.limit} (${normalizerLimit.observed} > ${normalizerLimit.maximum})`,
+    );
+  const omissions = all.filter(
+    (r) =>
+      r.record === "unsupported" && inCaptureScope(r.path, capture?.scopes),
+  );
   for (const record of omissions)
     diagnostics.push(`${record.path}: ${record.reason}`);
   for (const file of unmappedSources)
@@ -399,7 +475,9 @@ export function collectDebugRecording({
       signalCoverage:
         omissions.length || limits.length
           ? "partial"
-          : "supported digital signals",
+          : capture
+            ? "declared hierarchy scopes"
+            : "supported digital signals",
     },
     status: {
       complete,
@@ -412,6 +490,7 @@ export function collectDebugRecording({
           ? "interrupted recording"
           : "finished"),
       limits,
+      ...(limitDetails.length ? { limitDetails } : {}),
     },
     diagnostics,
   };

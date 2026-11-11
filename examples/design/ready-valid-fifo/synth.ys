@@ -1,0 +1,6 @@
+read_verilog -sv rtl/rv_fifo.sv
+synth -top rv_fifo
+check -assert
+tee -o stat.json stat -json
+write_json netlist.json
+write_verilog netlist.v

@@ -1,0 +1,16 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "name": "FIFO synthesized-netlist independent scoreboard",
+  "language": "verilog",
+  "standard": "2012",
+  "sources": ["netlist.v", "tb/fifo_tb.sv"],
+  "top": "fifo_tb",
+  "waveform": "trace.vcd",
+  "timeoutMs": 30000,
+  "parameters": {
+    "MATRIX": 0,
+    "RANDOM_CYCLES": 512,
+    "NETLIST": 1
+  }
+}

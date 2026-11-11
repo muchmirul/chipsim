@@ -53,6 +53,7 @@ export async function debugTools() {
           commands,
           instrumentation: manifest.instrumentation,
           source: manifest.source,
+          capabilities: manifest.capabilities || [],
         };
       } catch (error) {
         results[language] = { available: false, reason: error.message };

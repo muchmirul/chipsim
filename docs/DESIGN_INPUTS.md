@@ -32,7 +32,7 @@ The command reads no project, writes nothing and launches no tools.
 
 | File                   | Role in ChipSim                                                            | What else is needed                                                                                                                                                    |
 | ---------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.csv` | Authored register maps or timed model stimulus | `table registers` requires width/order; `--inputs` validates tick/signal/value against a model. No PDF required; see [CSV_INPUTS.md](CSV_INPUTS.md). |
+| `.csv`                 | Authored register maps or timed model stimulus                             | `table registers` requires width/order; `--inputs` validates tick/signal/value against a model. No PDF required; see [CSV_INPUTS.md](CSV_INPUTS.md).                   |
 | `.v`, `.sv`            | Verilog/SystemVerilog hardware or HDL testbench source                     | For simulation: a harness, source manifest, top and compatible simulator. For synthesis: synthesizable RTL, DUT top and flow constraints.                              |
 | `.vhd`, `.vhdl`        | VHDL hardware/testbench through GHDL                                       | HDL manifest and a suitable harness. The supplied physical flow consumes Verilog-compatible RTL/netlists.                                                              |
 | `.vcd`                 | Recorded digital signal values; direct import/replay and simulation output | Only the file to inspect it. It cannot rerun or reconstruct the full design. Supported signal types/limits are in [HDL.md](HDL.md).                                    |
@@ -58,6 +58,13 @@ inspect actual DUT samples and `environment.json`, not only nominal events.
 These are declared binary test conditions, not measured physical behavior.
 
 ## Smallest useful RTL start
+
+For the next complete IP workflow, `design guide rtl` also returns
+`recipe.verificationExample`: the
+[ready/valid FIFO](../examples/design/ready-valid-fifo/README.md), including
+independent regression, scoped capture, synthesis, bound-netlist simulation,
+EQY induction and a reversible fault. The minimal starter below remains useful
+when only simulation is needed.
 
 The shipped [minimal counter](../examples/design/minimal) contains:
 

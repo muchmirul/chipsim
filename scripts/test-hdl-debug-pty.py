@@ -67,6 +67,20 @@ with tempfile.TemporaryDirectory(prefix='chipsim-debug-pty-') as directory:
         send('\r');wait('HDL DEBUG DETAILS')
         wait(f'Event: {stopped} (snapshot after event)')
         send('\x1b');wait(f'HDL SOURCE · e{stopped}',absent='HDL DEBUG DETAILS')
+        # Searching a nested signal must link all panes without changing the event.
+        send('/');wait('Search signal names')
+        send('counter_tb.dut.count\r');wait('BROWSE');wait('counter_tb.dut')
+        assert cursor()==stopped;same_cursor(stopped)
+        send('S');wait('Save session path')
+        linked_session=work/'searched.json'
+        send(str(linked_session)+'\r');wait('Session saved.')
+        linked=json.loads(linked_session.read_text())
+        assert linked['ui']['selection']=='s:counter_tb.dut.count'
+        assert linked['ui']['selectedSignal']=='s:counter_tb.dut.count'
+        assert linked['ui']['scope']=='b:counter_tb.dut'
+        assert linked['ui']['sourceFile']=='source:counter.sv'
+        assert linked['ui']['sourceLine']==6 and not linked['ui']['follow']
+        assert linked['ui']['stops'] and linked['ui']['eventIndex']==stopped
         send('G');wait('Source and hardware follow')
         send('F');wait('HDL SOURCE');assert cursor()==stopped
         send('+');wait('HDL SOURCE');assert cursor()==stopped

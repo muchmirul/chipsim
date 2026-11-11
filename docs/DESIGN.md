@@ -54,6 +54,25 @@ the accepted job continues. An unbounded `--wait` retains its one-day limit.
 Save log `cursor` as the next byte offset even when `nextOffset` is null: null
 means the current end of the file, and running jobs can append more bytes later.
 
+Native HDL stdout/stderr stream into these same logs as `[TASK STAGE CHANNEL]`
+entries, including compile errors and `$fatal` diagnostics. UTF-8 values survive
+split writes. Stage diagnostics retain their 1 MiB bound and the cumulative log
+retains its 16 MiB bound; a log-write failure fails the task. Failed task entries
+in `job status` include `diagnostic.message` and an `artifact` ID for the full
+native/execution report. Job and `design status` summaries expose the same
+diagnostics. Query stdout remains one JSON result.
+
+The terminal header reports the selected target as READY, BLOCKED or NO RUN and
+names its current run. Stale history is labelled with the older target and short
+run ID. Historical stale results do not replace current readiness or an inspected
+recording/cursor. A target without a captured run is distinct from stale evidence.
+
+The [ready/valid FIFO](../examples/design/ready-valid-fifo/README.md) connects
+scoped debug, RTL regression, Yosys synthesis, generated-netlist simulation and
+EQY induction through ordinary adapters and bindings, with an independent
+scoreboard and a reversible negative control. `design guide rtl` returns its
+installed `recipe.verificationExample` path.
+
 Initialization creates both manifests without overwriting either existing file.
 The generated target expects a `sim.project.json` using the existing HDL manifest
 format. The supplied `examples/design/peripheral` project is runnable with Icarus
@@ -91,13 +110,13 @@ symbolic links are rejected. Directory inputs are recursively captured, excludin
   "format": "chipsim-design",
   "version": 1,
   "id": "peripheral",
-  "filesets": {"rtl": ["rtl"]},
+  "filesets": { "rtl": ["rtl"] },
   "tools": {},
   "tasks": {
     "sim": {
       "adapter": "hdl",
-      "options": {"project": "sim.project.json", "debug": false},
-      "outputs": [{"path": "out/waveform.json", "kind": "waveform"}]
+      "options": { "project": "sim.project.json", "debug": false },
+      "outputs": [{ "path": "out/waveform.json", "kind": "waveform" }]
     }
   },
   "targets": {
@@ -116,7 +135,11 @@ execution; missing tasks and cycles reject planning. Bindings both declare a
 dependency and copy a verified upstream artifact into the consumer's workspace:
 
 ```json
-{"task":"registers","output":"out/registers.sv","path":"rtl/registers.sv"}
+{
+  "task": "registers",
+  "output": "out/registers.sv",
+  "path": "rtl/registers.sv"
+}
 ```
 
 An output declaration has `path`, `kind`, optional `format`, and `required`
@@ -154,24 +177,24 @@ Pinned tool executable hashes and reported versions are captured automatically.
 
 ## Adapters and native files
 
-| Adapter | Options / inputs | Outputs / checks |
-| --- | --- | --- |
-| `hdl` | `project`, optional `debug` (default true; false selects stock waveform-only); observer Icarus/GHDL project and HDL | Existing `out/` debug recordings, VCD, diagnostics; `simulation` |
-| `model` | `model`, `project`, optional `params`, `inputs`, `ticks` | Existing traces/session; source and model acceptance checks |
-| `program` | `program`, `model`, optional prepared `project`, `ticks`, `steps` | `.chip` source, traces, program debug and session |
-| `document` | `manual` PDF | Prepared project under `out/`; `preparation` |
-| `waveform` | `waveform` VCD/JSON | `out/waveform.json`; `import` |
-| `compare` | `left`, `right`, `map` | `out/comparison.json`; `comparison` |
-| `fusesoc` | `core`, optional `target`; declared `.core` and source files | Setup-only resolved files, EDAM YAML and backend scripts under `out/` |
-| `peakrdl` | `rdl`, optional `exportArgs` per exporter | Register `.sv`, `.h`, IP-XACT `.xml`, normalized metadata `.json` under `out/` |
-| `verilator` | `top`, declared RTL; optional `flags`, `runArgs`, `buildOnly` | Compiled simulator and configured VCD; process result |
-| `cocotb` | `makefile`, optional `simulator`, `makeArgs`, `results` XML path | xUnit test results, logs, simulator waveforms; individual `test-N` and aggregate `tests` |
-| `sby` | `config` `.sby`, optional `tasks`, `output`, `scope`, `assumptions` | Status files, logs, available counterexamples; `formal` |
-| `eqy` | `config` `.eqy`, optional `output`, `scope`, `assumptions` | Partitions, statuses, available counterexamples; `equivalence` |
-| `orfs` | `flow` installed flow directory, `config` `.mk`, optional `stages`, `reports` | Stage `.v`, `.sdc`, `.odb`, `.spef`, `.gds`, metrics JSON, DRC `.lyrdb`, LVS `.lvsdb`; configured `timing`, `drc`, `lvs` checks |
-| `firmware` | Declared `.c`/`.s`/`.S`, `linker`, optional `compiler`, `objcopy`, `flags`; `.asm` needs an explicit assembler task | `out/firmware.elf`, `.map`, `.bin`, byte-oriented `.hex` |
-| `renode` | `script` `.resc`, declared `.repl`, firmware, compiled HDL bridge | Captured logs and outputs explicitly enabled by the script |
-| `openroad-mcp` | Finite `requests` array of `{name,arguments}` tool calls | `mcp-session.jsonl`, `mcp-results.json` and generated native files; `mcp` |
+| Adapter        | Options / inputs                                                                                                    | Outputs / checks                                                                                                                |
+| -------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `hdl`          | `project`, optional `debug` (default true; false selects stock waveform-only); observer Icarus/GHDL project and HDL | Existing `out/` debug recordings, VCD, diagnostics; `simulation`                                                                |
+| `model`        | `model`, `project`, optional `params`, `inputs`, `ticks`                                                            | Existing traces/session; source and model acceptance checks                                                                     |
+| `program`      | `program`, `model`, optional prepared `project`, `ticks`, `steps`                                                   | `.chip` source, traces, program debug and session                                                                               |
+| `document`     | `manual` PDF                                                                                                        | Prepared project under `out/`; `preparation`                                                                                    |
+| `waveform`     | `waveform` VCD/JSON                                                                                                 | `out/waveform.json`; `import`                                                                                                   |
+| `compare`      | `left`, `right`, `map`                                                                                              | `out/comparison.json`; `comparison`                                                                                             |
+| `fusesoc`      | `core`, optional `target`; declared `.core` and source files                                                        | Setup-only resolved files, EDAM YAML and backend scripts under `out/`                                                           |
+| `peakrdl`      | `rdl`, optional `exportArgs` per exporter                                                                           | Register `.sv`, `.h`, IP-XACT `.xml`, normalized metadata `.json` under `out/`                                                  |
+| `verilator`    | `top`, declared RTL; optional `flags`, `runArgs`, `buildOnly`                                                       | Compiled simulator and configured VCD; process result                                                                           |
+| `cocotb`       | `makefile`, optional `simulator`, `makeArgs`, `results` XML path                                                    | xUnit test results, logs, simulator waveforms; individual `test-N` and aggregate `tests`                                        |
+| `sby`          | `config` `.sby`, optional `tasks`, `output`, `scope`, `assumptions`                                                 | Status files, logs, available counterexamples; `formal`                                                                         |
+| `eqy`          | `config` `.eqy`, optional `output`, `scope`, `assumptions`                                                          | Partitions, statuses, available counterexamples; `equivalence`                                                                  |
+| `orfs`         | `flow` installed flow directory, `config` `.mk`, optional `stages`, `reports`                                       | Stage `.v`, `.sdc`, `.odb`, `.spef`, `.gds`, metrics JSON, DRC `.lyrdb`, LVS `.lvsdb`; configured `timing`, `drc`, `lvs` checks |
+| `firmware`     | Declared `.c`/`.s`/`.S`, `linker`, optional `compiler`, `objcopy`, `flags`; `.asm` needs an explicit assembler task | `out/firmware.elf`, `.map`, `.bin`, byte-oriented `.hex`                                                                        |
+| `renode`       | `script` `.resc`, declared `.repl`, firmware, compiled HDL bridge                                                   | Captured logs and outputs explicitly enabled by the script                                                                      |
+| `openroad-mcp` | Finite `requests` array of `{name,arguments}` tool calls                                                            | `mcp-session.jsonl`, `mcp-results.json` and generated native files; `mcp`                                                       |
 
 The Renode adapter runs a project-supplied platform and HDL co-simulation bridge;
 it does not infer a bus or synthesize a platform from arbitrary RTL. The MCP
@@ -215,19 +238,33 @@ An ORFS task opts into native report checks with `options.reports`:
 ```json
 {
   "stages": ["finish", "drc", "lvs"],
-  "context": {"stage":"finish", "corner":"sky130hd typical", "units":{"time":"ns"}},
+  "context": {
+    "stage": "finish",
+    "corner": "sky130hd typical",
+    "units": { "time": "ns" }
+  },
   "reports": {
     "timing": {
-      "path":"out/logs/6_report.json",
-      "metrics":[
-        {"field":"finish__timing__setup__ws", "operator":"gte", "value":0},
-        {"field":"finish__timing__drv__setup_violation_count", "operator":"eq", "value":0},
-        {"field":"finish__timing__drv__hold_violation_count", "operator":"eq", "value":0}
+      "path": "out/logs/6_report.json",
+      "metrics": [
+        { "field": "finish__timing__setup__ws", "operator": "gte", "value": 0 },
+        {
+          "field": "finish__timing__drv__setup_violation_count",
+          "operator": "eq",
+          "value": 0
+        },
+        {
+          "field": "finish__timing__drv__hold_violation_count",
+          "operator": "eq",
+          "value": 0
+        }
       ],
-      "assumptions":["Unconstrained paths and other corners are outside this check"]
+      "assumptions": [
+        "Unconstrained paths and other corners are outside this check"
+      ]
     },
-    "drc":{"path":"out/reports/6_drc.lyrdb"},
-    "lvs":{"path":"out/results/6_lvs.lvsdb"}
+    "drc": { "path": "out/reports/6_drc.lyrdb" },
+    "lvs": { "path": "out/results/6_lvs.lvsdb" }
   }
 }
 ```

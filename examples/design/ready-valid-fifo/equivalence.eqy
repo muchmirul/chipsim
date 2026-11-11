@@ -1,0 +1,19 @@
+[gold]
+read_verilog -sv rtl/rv_fifo.sv formal-wrapper.sv
+prep -top formal_top -flatten
+memory_map
+opt_clean
+
+[gate]
+read_verilog -sv netlist.v formal-wrapper.sv
+prep -top formal_top -flatten
+memory_map
+opt_clean
+
+[collect *]
+# Preserve relationships among matched FIFO nets during proof.
+group *
+
+[strategy simple]
+use sat
+depth 20

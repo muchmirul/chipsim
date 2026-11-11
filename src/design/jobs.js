@@ -61,6 +61,7 @@ export async function startJob(path, target, { reuse = true } = {}) {
     generation: 1,
     attempts: [],
     tasks: {},
+    diagnostics: [],
     owner: null,
     reuse,
   };
@@ -134,6 +135,7 @@ export async function retryJob(store, id) {
     state.generation++;
     state.updated = new Date().toISOString();
     state.tasks = {};
+    state.diagnostics = [];
     delete state.error;
     delete state.run;
     return await launch(state.project, store, state);
@@ -414,6 +416,27 @@ export async function runWorker(root, id) {
       results.set(task.task, recorded);
       state.attempts.push(recorded.id);
       state.tasks[task.task] = { state: recorded.state, attempt: recorded.id };
+      if (!execution.ok) {
+        const reports = await Promise.all(
+          recorded.artifacts.map((id) => store.get(id, "artifact")),
+        );
+        const artifact =
+          reports.find((a) => a.path === "native-result.json") ||
+          reports.find((a) => a.path === "execution.json");
+        const text = execution.diagnostic || execution.reason || "Task failed";
+        const message = (
+          text
+            .split(/\r?\n/)
+            .find((line) => /fatal|error|assertion|limit|failed/i.test(line)) ||
+          text
+        ).slice(0, 2000);
+        const diagnostic = {
+          message,
+          ...(artifact ? { artifact: artifact.id } : {}),
+        };
+        state.tasks[task.task].diagnostic = diagnostic;
+        (state.diagnostics ||= []).push({ task: task.task, ...diagnostic });
+      }
       await save();
     }
     const readiness = await evaluateChecks(store, plan, attempts);

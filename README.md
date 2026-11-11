@@ -63,6 +63,12 @@ The architecture examples are teaching implementations, not arbitrary native ins
 
 ## Versioned design workbench
 
+For a complete small-IP development loop, use the
+[ready/valid FIFO](examples/design/ready-valid-fifo/README.md): scoped debug,
+independent RTL regression, synthesis, bound-netlist simulation and EQY induction.
+`design guide rtl` exposes its installed verification-example path. Native HDL
+assertion output appears directly in managed job logs and failed-task summaries.
+
 Managed work follows **input snapshot → task attempt → native artifacts → checks**. Snapshots include dirty source files, effective configuration, tool identities and declared dependency locks. Outputs retain their native formats; an ODB, GDS, proof log or firmware image is not flattened into generic JSON.
 
 Start from the five-file counter with independent reset/count/hold/wrap assertions. Choose a new destination and install the [HDL observer tools](docs/HDL_DEBUG.md) for default debug capture:

@@ -279,6 +279,14 @@ export async function agentCommand(args) {
           ].map((name) => [name, join(packageRoot, "docs", name)]),
         ),
         examples: {
+          rtlVerification: {
+            directory: join(packageRoot, "examples/design/ready-valid-fifo"),
+            guide: join(
+              packageRoot,
+              "examples/design/ready-valid-fifo/README.md",
+            ),
+            target: "acceptance",
+          },
           nativeEvolution: {
             guide: join(packageRoot, "docs/EVOLUTION.md"),
             runner: join(packageRoot, "examples/evolution/run.py"),

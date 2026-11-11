@@ -188,6 +188,7 @@ export async function targetStatus(path, target) {
       run: j.run,
       ready: j.ready,
       tasks: j.tasks,
+      ...(j.diagnostics?.length ? { diagnostics: j.diagnostics } : {}),
       error: j.error,
     };
   return {

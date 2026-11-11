@@ -1,0 +1,134 @@
+{
+  "format": "chipsim-design",
+  "version": 1,
+  "id": "ready-valid-fifo",
+  "name": "Ready-valid FIFO: RTL through netlist verification",
+  "tasks": {
+    "debug": {
+      "adapter": "hdl",
+      "options": {
+        "project": "sim.project.json"
+      },
+      "outputs": [
+        {
+          "path": "out/debug.json",
+          "kind": "hdl-debug"
+        },
+        {
+          "path": "out/waveform.json",
+          "kind": "waveform"
+        }
+      ]
+    },
+    "regress": {
+      "adapter": "hdl",
+      "options": {
+        "project": "regression.project.json",
+        "debug": false
+      },
+      "outputs": [
+        {
+          "path": "out/waveform.json",
+          "kind": "waveform"
+        }
+      ]
+    },
+    "synth": {
+      "adapter": "command",
+      "inputs": ["rtl/rv_fifo.sv", "synth.ys"],
+      "options": {
+        "command": "yosys",
+        "versionArgs": ["-V"],
+        "args": ["-Q", "-l", "yosys.log", "synth.ys"]
+      },
+      "outputs": [
+        {
+          "path": "stat.json",
+          "kind": "report"
+        },
+        {
+          "path": "netlist.json",
+          "kind": "netlist-graph"
+        },
+        {
+          "path": "netlist.v",
+          "kind": "netlist"
+        }
+      ]
+    },
+    "netlist_sim": {
+      "adapter": "hdl",
+      "bindings": [
+        {
+          "task": "synth",
+          "output": "netlist.v",
+          "path": "netlist.v"
+        }
+      ],
+      "options": {
+        "project": "netlist.project.json",
+        "debug": false
+      },
+      "outputs": [
+        {
+          "path": "out/waveform.json",
+          "kind": "waveform"
+        }
+      ]
+    },
+    "equivalence": {
+      "adapter": "eqy",
+      "inputs": ["rtl/rv_fifo.sv", "formal-wrapper.sv"],
+      "bindings": [
+        {
+          "task": "synth",
+          "output": "netlist.v",
+          "path": "netlist.v"
+        }
+      ],
+      "options": {
+        "config": "equivalence.eqy",
+        "scope": "Default WIDTH=8 DEPTH=4 RTL versus Yosys netlist; EQY SAT induction depth 20",
+        "assumptions": [
+          "Synchronous reset forced at first sampled clock",
+          "Empty-queue out_data is masked because it is unspecified by the interface"
+        ]
+      },
+      "timeoutMs": 60000
+    }
+  },
+  "targets": {
+    "acceptance": {
+      "tasks": ["debug", "regress", "synth", "netlist_sim", "equivalence"],
+      "requiredChecks": [
+        "debug:simulation",
+        "debug:outputs",
+        "regress:simulation",
+        "regress:outputs",
+        "synth:execution",
+        "synth:outputs",
+        "netlist_sim:simulation",
+        "netlist_sim:outputs",
+        "equivalence:equivalence",
+        "equivalence:outputs",
+        "debug:capture"
+      ]
+    },
+    "debug": {
+      "tasks": ["debug"],
+      "requiredChecks": ["debug:simulation", "debug:outputs", "debug:capture"]
+    },
+    "regression": {
+      "tasks": ["regress"],
+      "requiredChecks": ["regress:simulation", "regress:outputs"]
+    },
+    "synthesis": {
+      "tasks": ["synth"],
+      "requiredChecks": ["synth:execution", "synth:outputs"]
+    },
+    "equivalence": {
+      "tasks": ["equivalence"],
+      "requiredChecks": ["equivalence:equivalence", "equivalence:outputs"]
+    }
+  }
+}

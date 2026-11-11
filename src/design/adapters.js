@@ -1,4 +1,11 @@
-import { readFile, writeFile, mkdir, open } from "node:fs/promises";
+import {
+  readFile,
+  writeFile,
+  mkdir,
+  open,
+  appendFile,
+  stat,
+} from "node:fs/promises";
 import { join, dirname, relative, extname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readProject, runHDL } from "../hdl/run.js";
@@ -14,6 +21,7 @@ import { parseXunit } from "./xunit.js";
 import { physicalChecks, physicalReportFile } from "./physical.js";
 import { mcpResult } from "./mcp-result.js";
 import { referencePath } from "../documents/references.js";
+import { limits as storeLimits } from "./store.js";
 
 const native = new Set([
   "circuit",
@@ -301,9 +309,14 @@ export async function normalizeChecks(
     o = task.definition.options || {};
   const success = execution.ok;
   result.push(
-    check("execution", success ? "pass" : "fail", "Process execution only", [
-      "execution.json",
-    ]),
+    check(
+      "execution",
+      success ? "pass" : "fail",
+      adapter === "hdl"
+        ? "Task execution including required native capture"
+        : "Process execution only",
+      ["execution.json"],
+    ),
   );
   if (adapter === "circuit" && execution.nativeResult) {
     const r = execution.nativeResult,
@@ -341,6 +354,27 @@ export async function normalizeChecks(
       );
   } else if (execution.nativeResult) {
     const r = execution.nativeResult;
+    if (adapter === "hdl" && r.simulation)
+      result.push(
+        check(
+          "process",
+          r.simulation.ok ? "pass" : "fail",
+          "Native HDL process completion only",
+          ["native-result.json"],
+        ),
+      );
+    if (adapter === "hdl" && r.capture)
+      result.push(
+        check(
+          "capture",
+          r.capture.ok ? "pass" : "fail",
+          r.capture.scopes
+            ? "Complete capture within declared hierarchy scopes: " +
+                r.capture.scopes.join(", ")
+            : "Complete HDL debug capture",
+          ["native-result.json"],
+        ),
+      );
     const label =
       adapter === "compare"
         ? "comparison"
@@ -557,6 +591,20 @@ export async function executeAdapter(task, context) {
           debug: o.debug !== false,
           signal,
           owners,
+          onOutput:
+            log &&
+            (async (stage, stream, text) => {
+              const line = `[${task.task} ${stage} ${stream}] ${text}${text.endsWith("\n") ? "" : "\n"}`;
+              let size = 0;
+              try {
+                size = (await stat(log)).size;
+              } catch (error) {
+                if (error.code !== "ENOENT") throw error;
+              }
+              if (size + Buffer.byteLength(line) > storeLimits.log)
+                throw new Error("managed log limit exceeded");
+              await appendFile(log, line);
+            }),
         })
       ).result;
     if (adapter === "model")
@@ -597,6 +645,9 @@ export async function executeAdapter(task, context) {
       ok: r.ok !== false,
       nativeResult: r,
       reason: r.ok === false ? "native checks failed" : null,
+      ...(r.ok === false && r.error
+        ? { diagnostic: String(r.error).slice(0, 4000) }
+        : {}),
     };
   }
   const expand = (s) =>

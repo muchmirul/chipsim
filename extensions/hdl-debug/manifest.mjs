@@ -28,6 +28,7 @@ await writeFile(
       format: "chipsim-hdl-debug-tools",
       version: 1,
       instrumentation: "chipsim-1",
+      capabilities: ["capture-scopes-v1", "capture-process-file-v1"],
       source: { iverilog: "v12_0", ghdl: "v4.1.0" },
       backends,
     },

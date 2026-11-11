@@ -78,6 +78,50 @@ experiment automatically. Open their `debug.json` explicitly to inspect them.
 Source-location or object-reference corruption rejects an imported recording
 before changing the active run, cursor, or trace.
 
+## Select a capture hierarchy
+
+For a large verification harness, add `"capture":{"scopes":["tb.dut"]}` to
+the HDL manifest. The 1–16 exact instance paths include their descendants; each
+must exist. Simple hierarchy names and numbered generate indices are supported,
+without wildcards or executable expressions. Both Icarus and GHDL filter signal
+and process observation before applying native signal/event budgets. The graph
+retains selected objects and ancestors, with connections only between retained
+endpoints. Global assertion/report events remain visible and failures outside
+the scope still fail the run. HDL execution is unchanged.
+
+Scopes require observer builds advertising `capture-scopes-v1` in
+`chipsim hdl doctor --debug`; Icarus additionally requires `capture-process-file-v1`.
+Rebuild older observers into a new prefix and set
+`CHIPSIM_HDL_DEBUG_TOOLS`; an old observer fails setup instead of ignoring scope.
+`--no-debug` rejects a manifest with capture scopes. A nonexistent instance fails
+capture with a diagnostic. The manifest and portable recording retain the scope;
+the header says **scoped**, and complete means complete within that scope.
+Raw-artifact watchdog and source/metadata size limits still apply before graph
+projection. Scope selection is not whole-design observation or proof.
+
+Raw event sequences, timestamps, scheduler metadata, process/writer references,
+signal values and mapped source locations are validated against the full graph
+before projection. A corrupt outside-scope event still fails capture. Only a
+validated subset receives contiguous event indices; `observerSeq` retains each
+event's original index. Projection never repairs a malformed observer stream.
+
+For Icarus, selected process IDs are written after compilation to the retained
+`capture-processes.txt` artifact (`result.artifacts.processSelection`). It contains
+a version header, declared row count and up to 16,384 bounded unique process IDs.
+Only its path is passed through `CHIPSIM_DEBUG_PROCESS_FILE`, avoiding environment
+size limits. Missing/malformed/truncated selections fail capture with diagnostics;
+a zero-row selection is valid for a purely combinational scope. Importing the
+artifact never executes it or consults the local filesystem for process IDs.
+
+Overflow errors report `code: HDL_DEBUG_LIMIT` with `details.stage`, `limit`,
+`observed` and `maximum`; malformed design arrays have a separate error.
+`result.json` separates `simulation.ok` from `capture.ok`: a passing simulator
+followed by failed capture remains an unsuccessful debug run. `capture.diagnostic`
+retains structured validation errors; native/prefix limits retain counts in
+`capture.status.limitDetails`. The managed `process` check reports native process success; `execution` and
+`simulation` retain their task/experiment-and-capture gates. The additional
+`capture` check can be required explicitly. Partial capture never silently becomes success.
+
 ## Read the three panes
 
 At 110×32 and larger, source and hardware sit side by side above waveforms.
@@ -102,6 +146,11 @@ Multiple events at the same physical time remain separate.
   or process links its source, hardware scope and related signals. The selected
   signal stays visible in a small pane. `≋` marks compressed columns containing
   multiple values. Enter retains exact full-width bits and source metadata.
+
+`/` searches full signal names. A successful signal search selects the same
+object in Source, Hardware and Signals, pauses replay and enters **BROWSE** mode
+without moving the event cursor, changing pins or removing replay stops. `G`
+resumes following recorded events. A failed search preserves object selection.
 
 Process activations that change no signals are retained. Deferred updates are
 separate from process activation: the process event may still show the old output

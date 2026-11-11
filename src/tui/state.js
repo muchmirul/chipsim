@@ -27,7 +27,11 @@ import {
   debugLimits,
   validateDebugSession,
 } from "../hdl/debug/recording.js";
-import { initialDebugUI, followDebugEvent } from "./debug-state.js";
+import {
+  initialDebugUI,
+  followDebugEvent,
+  selectDebugObject,
+} from "./debug-state.js";
 import { stateGraph } from "../visualization/state-graph.js";
 import {
   captureExperiment,
@@ -518,6 +522,10 @@ export class TuiState {
           .includes(this.nameSearch.toLowerCase())
       ) {
         this.selected = index;
+        if (this.hdlDebug) {
+          this.playing = false;
+          selectDebugObject(this, signals[index].id);
+        }
         return;
       }
     }

@@ -5,6 +5,143 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-11-11 — Validate observer events before scope projection
+
+**Context:** Scoped normalization discarded unknown process/signal references and
+rewrote event indices before validation, so a corrupt raw stream could become a
+complete recording, including an empty recording after dropping an unknown process.
+**Use/behavior:** Explicit scoped HDL runs validate raw event identity/order,
+monotonic exact timestamps, scheduler metadata, full-graph references, mapped
+source locations and values before filtering. Only valid projections are
+reindexed, with original `observerSeq` retained. Invalid events outside the
+selected hierarchy fail capture instead of being repaired or hidden.
+**Preservation/limits:** Valid outside-scope observations are still excluded,
+global assertions remain observable, and capture/source/graph budgets and failed
+recording diagnostics remain intact. No simulator runs during import/validation.
+**Implementation/checks:** `recording.js` shares event/location validators with
+`collector.js`. `test/hdl-review-regressions.test.js` compares scoped/unscoped
+corruptions (sequence, time, kind, metadata, process/writer/signal, value and source)
+and verifies a valid projected stream preserves original order and assertions.
+
+## 2026-11-11 — File-backed Icarus process selection
+
+**Context:** A supported 16,000-process design ran unscoped but scoped execution
+threw `spawn E2BIG`, because all selected process IDs occupied one environment value.
+**Use/behavior:** Scoped Icarus runs write `capture-processes.txt` after compiling
+and pass only its path via `CHIPSIM_DEBUG_PROCESS_FILE`. Native code loads the
+bounded version/count/ID format once, checks complete rows, uniqueness, syntax,
+count and I/O errors, then uses the selected set for process observation. The
+file is retained as a native artifact and exposed as `artifacts.processSelection`.
+**Limits/preservation:** Up to 16,384 IDs are supported; an empty set is valid for
+combinational scopes. Missing, malformed or truncated selections explicitly fail
+capture while preserving source/diagnostic artifacts. Scoped Icarus requires
+`capture-process-file-v1` in addition to `capture-scopes-v1`; older builds get
+rebuild guidance. Unscoped runs and existing recordings require no new tools.
+GHDL retains its native hierarchy filtering. Discovery/import execute no file.
+**Implementation/checks:** `run.js`, the Icarus observer and build manifest share
+the file contract. Real-backend regressions compare complete 16,000-process
+scoped/unscoped recordings and exercise missing files, bad header/count/IDs,
+duplicate or overlong rows, truncation, row limits and zero-process capture.
+
+## 2026-11-11 — Stop process monitors before draining logs
+
+**Context:** The child-close handler awaited asynchronous log writes before
+clearing its timer. A simulator already exited with code 0 could be reported as
+timed out, or cancelled, while only its log callback was still pending.
+**Use/behavior:** Child close immediately stops its timeout, capture watchdog and
+cancellation listener, then awaits ownership/log writes before returning the
+complete result. Log failures still fail the task; they do not signal an exited
+process. Running children retain their existing timeout/cancellation behavior.
+**Implementation/checks:** `processRun` in `src/hdl/run.js` tracks closed state and
+prevents late watchdog actions. Regressions delay log draining past both the
+execution timeout and an abort while requiring successful native completion,
+and separately require a genuinely running child to time out. Existing tests
+retain asynchronous log-failure and live-simulator cancellation coverage.
+
+## 2026-11-11 — Native HDL job diagnostics
+
+**Context:** Managed HDL assertions failed the task but left `job logs` empty,
+requiring an artifact search to find the simulator's fatal message.
+**Use/behavior:** Native compile/simulation stdout and stderr stream into managed
+logs with task/stage/channel labels. UTF-8 split across pipe writes is preserved.
+Failed task/job status and compact design status include the first diagnostic
+and an artifact ID for the complete native/execution report.
+**Limits/preservation:** Per-process diagnostics remain bounded to 1 MiB and job
+logs to 16 MiB. Asynchronous log failures fail execution. Query stdout remains one
+JSON result; captured artifacts and cursor-based incremental reads are unchanged.
+**Implementation/checks:** `src/hdl/run.js`, `src/design/{adapters,jobs,service}.js`;
+`test/designer-feedback.test.js` checks split UTF-8, log-write failure and a real
+FIFO $fatal available directly through job logs, task status and artifact lookup.
+
+## 2026-11-11 — Declared hierarchy capture and precise limit results
+
+**Context:** A passing FIFO testbench's large reference memory exceeded the debug
+object budget with a generic invalid/oversized error. Unrelated harness signals
+could consume the observer's native signal budget before DUT observation.
+**Use/behavior:** HDL manifests may select `capture.scopes` with 1–16 exact
+instance hierarchy prefixes on both Icarus and GHDL. Native observers filter
+signals/processes before capture budgets; normalized graphs retain selected
+objects/ancestors and connections with retained endpoints. Global assertions
+remain recorded and outside-scope failures still fail simulation. Headers mark
+scoped recordings; completeness covers only the declared observation hierarchy.
+**Diagnostics/gates:** Overflow errors distinguish invalid structure from resource
+limits and expose stage/name/observed/maximum. HDL results separate simulation
+success from capture completeness; native limit records retain structured counts.
+A managed process check reports native process completion; existing execution
+and simulation checks retain their task/experiment-and-capture gates. A separate
+capture check is available. Failed capture never silently passes a debug task.
+**Limits/preservation:** New scopes require observer capability `capture-scopes-v1`;
+older fingerprinted tools fail setup with rebuild guidance. Existing unscoped
+recordings and runs remain supported. Unknown scopes and no-debug/scoped conflicts
+fail explicitly. Scope selection does not alter HDL semantics, source snapshots,
+raw size watchdogs or proof scope. Existing recordings are never filtered on import.
+**Implementation/checks:** `src/hdl/debug/{capture,collector,recording,tools}.js`,
+`run.js`, native observer sources and their build manifest. Regressions cover
+structured overflow versus malformed graphs, old observers, a 16,384-word harness,
+GHDL oversized harness data, both real backend scopes, nonexistent instances,
+global assertion failures, contiguous event replay and full FIFO acceptance.
+
+## 2026-11-11 — Linked signal-name search
+
+**Context:** `/` selected an HDL signal while source/hardware stayed on the previous
+object, despite a shared event cursor.
+**Use/behavior:** A successful name search routes through common debug selection,
+links source and hardware scope, pauses replay and enters BROWSE. `G` returns to
+recorded-event following. Ordinary model/waveform search keeps its prior behavior.
+**Preservation/checks:** The event cursor, pins, display and replay stops remain
+unchanged; a missing match preserves selection. `state.js` reuses
+`selectDebugObject`; unit renders at 80x24/120x40 and real PTY search/session checks
+cover nested signals and the resulting linked scope/source selection.
+
+## 2026-11-11 — Current target status versus stale history
+
+**Context:** A global stale banner could make a fresh passing target look stale
+because an unrelated older run had different inputs.
+**Use/behavior:** Project views show READY/BLOCKED/NO RUN for the selected target
+and its current short run ID. Current stale evidence is labelled current; older
+stale evidence identifies its target and run. No-run and stale states are distinct.
+**Preservation/checks:** `src/tui/design-panel.js` still uses shared readiness and
+freshness services without executing tools or replacing the active recording.
+Mixed current/historical and no-run regressions plus terminal-size inspection
+verify the labels; current readiness and artifact byte integrity gates are unchanged.
+
+## 2026-11-11 — Complete ready/valid FIFO starter
+
+**Context:** Extending the minimal simulation starter required assembling synthesis,
+netlist binding, fixed-parameter simulation and memory-bearing EQY setup from
+separate examples.
+**Use/behavior:** `agent help` exposes `examples.rtlVerification`; `design guide rtl`
+returns `recipe.verificationExample`. Copy `examples/design/ready-valid-fifo` into
+a new project. Its five managed tasks require eleven checks and use an independent
+transaction scoreboard, declared DUT capture, actual generated netlist bindings,
+SAT induction and a reversible occupancy mutation. The README documents native
+first-failure inspection and explicit locks for script-launched tool dependencies.
+**Limits/checks:** The minimal counter remains unchanged. No tools/PDKs/providers
+are installed by discovery or examples. Formal covers only the declared default
+configuration/reset/data scope; generic cells are not physical PPA. Installed
+package checks assert guide paths/assets, and real backend acceptance exercises
+all five tasks, proof outputs, mutation rejection, preserved tests and byte restore.
+
 ## 2026-11-09 — Reusable native evolution sessions after cancellation
 
 **Context:** A missing candidate or interrupted submission wrote a session-wide

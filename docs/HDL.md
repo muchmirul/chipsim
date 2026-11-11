@@ -13,7 +13,6 @@ debug recordings and diagnostics as graph artifacts. Standalone commands keep
 their existing format and add `artifacts.json`; explicit import preserves unknown
 historical provenance. Artifact and check queries never execute HDL.
 
-
 ChipSim's terminal workbench can inspect external HDL traces, run **Verilog/SystemVerilog with Icarus Verilog** and **VHDL with GHDL**, and compare mapped signals with another HDL waveform or a ChipSim behavior trace. The execution backend supplies HDL scheduling semantics. Waveform replay in ChipSim is a recorded-results viewer.
 
 ## Event debugging with linked source and hardware
@@ -61,6 +60,12 @@ The importer retains hierarchy in full identifiers, aliases, widths up to 4096 b
 
 ## HDL project manifest
 
+Optional `capture: {"scopes":["tb.dut"]}` selects exact debug instance hierarchies
+on both backends. It requires observers with `capture-scopes-v1` (plus
+`capture-process-file-v1` for Icarus); waveform-only
+runs reject it. See [capture scopes and limits](HDL_DEBUG.md#select-a-capture-hierarchy).
+The manifest below omits scope selection and observes the supported full design.
+
 ```json
 {
   "format": "chipsim-hdl-project",
@@ -79,6 +84,12 @@ The importer retains hierarchy in full identifiers, aliases, widths up to 4096 b
 ```
 
 Paths are relative to the manifest and remain within its directory. Source order is significant for VHDL analysis. The selected `top` is the testbench module/entity, so parameters/generics target that top. For VHDL use `"language":"vhdl"`, usually `"standard":"08"`; optional `stopTime`, e.g. `"10us"`, bounds simulator time. `timeoutMs` (100–120000) bounds wall-clock time for each process, independently of simulation time.
+
+Execution timeout, capture-watchdog polling and the process cancellation listener
+stop when the child closes. Pending asynchronous log writes still finish before
+the result returns; slow logging does not turn an already completed process into
+a timeout or cancellation. Log-write failures still fail the run and retain
+diagnostic artifacts. Running processes retain their timeout/cancellation behavior.
 
 Verilog testbenches must write the configured VCD filename using `$dumpfile`/`$dumpvars` and terminate with `$finish`; failing assertions should use `$fatal` for a failing exit code. ChipSim runs `vvp -n` so `$stop` does not open an interactive simulator prompt. GHDL is run with `--vcd` and `--assert-level=error`; use a terminating testbench or `stopTime` when it has a free-running clock. A configured stop time is a trace boundary, not evidence that every test assertion was reached. The manifest does not supply clocks/reset/input stimulus itself.
 

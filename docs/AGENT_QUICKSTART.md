@@ -34,6 +34,14 @@ objectives; see [EVOLUTION_OBJECTIVES.md](EVOLUTION_OBJECTIVES.md). Their flags,
 report schemas and scoring penalties differ; use the guide for the chosen entry
 point. Both keep search external through OpenEvolve and reuse managed evidence.
 
+For a complete memory-bearing RTL flow, `agent help` → `examples.rtlVerification`
+and `design guide rtl` → `recipe.verificationExample` locate the ready/valid FIFO
+starter. It includes scoped debug, fixed independent tests, synthesis, generated
+netlist simulation, EQY induction and a reversible occupancy fault. Copy it to a
+new project and follow its README; missing tools or unproven formal results block
+the acceptance target. HDL job logs contain native assertion diagnostics;
+failed job/task status also links the full diagnostic artifact.
+
 Inspect existing work before creating prerequisites. Use only relevant stages.
 A `.chip` program exercises declared model behavior; native firmware requires an
 explicit compiler and execution backend. Document-backed work preserves original

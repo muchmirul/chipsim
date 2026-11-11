@@ -22,6 +22,12 @@ sessions, `c/e` for candidates/events, Enter for details, `o` for linked evidenc
 and `L` for live managed-job logs. Polling preserves the recording you inspect;
 opening another recording is always explicit. Reported scores are not proof.
 
+Project headers show READY, BLOCKED or NO RUN for the selected target and name
+its current run. Historical stale warnings identify their own target/run rather
+than implying the selected current result is stale. In HDL replay, `/` signal
+search links the selected signal's source and hardware scope, pauses replay and
+enters BROWSE without moving the event cursor; pins and replay stops are preserved.
+
 `chipsim --design PROJECT` opens the [artifact workbench](DESIGN.md). Use Tab
 for Project, Pipeline, Artifacts and Checks; `0` returns to Project. Enter opens
 actions/links, `o` inspects a payload, `r` accepts a target, `X` cancels a selected
@@ -29,7 +35,6 @@ job, and `R` retries it. Closing the terminal leaves accepted jobs running.
 Background results preserve the active experiment and selections. Inspection
 state is saved separately from sealed records. Layout inspection hands off to
 an installed KLayout and restores the terminal afterward.
-
 
 The TUI is ChipSim's only interactive interface. `npm start` runs it directly; no frontend build is required. Node.js 22.13+ is required; PDF extraction additionally requires Poppler. `node scripts/chipsim.mjs --help` lists launch options.
 
