@@ -50,6 +50,15 @@ test(
     const root = await mkdtemp(join(tmpdir(), "chipsim-mcp-hdl-"));
     t.after(() => rm(root, { recursive: true, force: true }));
     const { call, raw, client } = await connect(root, t);
+    assert.match(
+      (await call("resource_read", { uri: "chipsim://guide/connections" }))
+        .text,
+      /Connect an agent/,
+    );
+    assert.equal(
+      (await raw("resource_read", { uri: "file:///etc/passwd" })).ok,
+      false,
+    );
     const listed = await client.listTools();
     assert.ok(listed.tools.length >= 20);
     assert.ok(listed.tools.every((t) => t.inputSchema && t.outputSchema));

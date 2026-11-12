@@ -39,6 +39,9 @@ Prepared PDF projects carry copied guides and programming context from their
 preparation version. Current installed help is authoritative for current tooling;
 `agent context` refreshes model context, not copied documentation.
 
+The native extension below targets Pi and the TypeScript prime-agent 0.9.8
+extension API. For Rust prime-agent 0.10, use the MCP setup below.
+
 ## Native Pi / prime-agent tools
 
 Use the host's installer only when installation is requested:
@@ -111,6 +114,35 @@ can instead launch `node` with the CLI script path followed by those arguments.
 Each server is bound to one existing directory, which may be empty. Its stdout
 is reserved for MCP stdio messages; setup errors go to stderr. No HTTP listener
 or shared selected-project state is created. Separate servers isolate roots.
+
+For Codex CLI and Rust prime-agent 0.10, register the stdio server with absolute
+paths (replace the three paths for your installation):
+
+```sh
+codex mcp add chipsim -- /absolute/node /absolute/chipsim/scripts/chipsim.mjs mcp --project /absolute/project
+prime-agent mcp add chipsim -- /absolute/node /absolute/chipsim/scripts/chipsim.mjs mcp --project /absolute/project
+codex mcp list
+prime-agent mcp get chipsim
+```
+
+The project directory must exist. These commands change each client's user MCP
+settings; use a different connection name for a different project. Restart the
+client/session after registration. No model provider configuration is needed.
+Codex can inspect its connections with `/mcp`. In prime-agent's Python tool:
+
+```python
+connections = await mcp.list_connections()
+tools = await mcp.list_tools("chipsim")
+guide = await mcp.call_tool("chipsim", "chipsim_resource_read", {
+    "uri": "chipsim://guide/connections"
+})
+project = await mcp.call_tool("chipsim", "chipsim_project", {})
+```
+
+Prime-agent's tools-only MCP API reads guides through `chipsim_resource_read`.
+This returns the same allowlisted resource content as `resources/read`, inside
+`{format, version, ok, result: {uri, mimeType, text}}`; inspect `ok` and parse
+`text` as JSON only when its MIME type is JSON. Codex can use this tool too.
 
 Read `chipsim://guide/connections`, then `chipsim://guide/workbench`. List tools
 and resources: tools are named `chipsim_TOOL`, installed agent guides are listed

@@ -29,6 +29,13 @@ export const resultSchema = {
 };
 const definitions = [
   [
+    "resource_read",
+    "Read ChipSim guides, schemas, starter files or bounded project resources by URI. Start with chipsim://guide/connections and chipsim://guide/workbench when the host only exposes tools. Uses the same resource allowlist as MCP resources/read.",
+    { uri: { ...string(), minLength: 1 } },
+    ["uri"],
+    true,
+  ],
+  [
     "project",
     "Discover project identity, targets, capabilities and source revision. Works before a project manifest exists.",
     {},

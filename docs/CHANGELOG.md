@@ -5,6 +5,19 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-11-12 — Connect Codex and tools-only prime-agent MCP clients
+
+**Problem/use:** Rust prime-agent 0.10 exposes MCP tools without a resource-read
+API, so agents could not retrieve ChipSim's workflow and starter resources.
+**Behavior:** `chipsim_resource_read` reads the existing resource allowlist through
+the shared workbench contract; the native/CLI forms share it. Server instructions
+and discovery advertise the tool. The connection guide includes explicit Codex
+and prime-agent MCP registrations and Python discovery calls, and distinguishes
+the older TypeScript native extension from Rust prime-agent.
+**Checks:** Shared-service and official SDK tests cover guide/schema/starter
+retrieval, bounded project reads, invalid URIs and path isolation. Host acceptance
+uses protocol calls without provider/model turns; installation remains explicit.
+
 ## 2026-11-12 — Keep agent discovery and connection context current
 
 **Problem/use:** Agent guides described MCP as future work, programming context

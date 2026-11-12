@@ -92,6 +92,7 @@ export function agentConnections() {
       transport:
         "stdio; one existing project directory per server; stdout is protocol-only",
       tools: workbenchTools.map((tool) => "chipsim_" + tool.name),
+      resourceReadTool: "chipsim_resource_read",
       resources: {
         connections: "chipsim://guide/connections",
         workflow: "chipsim://guide/workbench",

@@ -162,6 +162,7 @@ export async function createWorkbench(path) {
     }
   }
   async function perform(name, a, active, store, signal) {
+    if (name === "resource_read") return resource(a.uri);
     if (name === "project") {
       let config, diagnostic;
       try {

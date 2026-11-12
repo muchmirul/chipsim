@@ -42,6 +42,41 @@ const good = (r) => {
   return r.result;
 };
 
+test("resource tool shares allowlisted guides, schemas, starters and bounded project reads", async (t) => {
+  const { wb } = await setup(t);
+  for (const uri of [
+    "chipsim://guide/connections",
+    "chipsim://guide/workbench",
+    "chipsim://schema/tools",
+    "chipsim://examples/programmable/program.json",
+  ])
+    assert.deepEqual(
+      good(await wb.call("resource_read", { uri })),
+      await wb.resource(uri),
+    );
+  good(
+    await wb.call("file_write", {
+      path: "hello.txt",
+      text: "a😀b",
+      expectedHash: null,
+    }),
+  );
+  const value = good(
+    await wb.call("resource_read", {
+      uri: "chipsim://project/files/hello.txt?offset=1&limit=1",
+    }),
+  );
+  assert.equal(JSON.parse(value.text).result.text, "😀");
+  for (const uri of [
+    "file:///etc/passwd",
+    "chipsim://docs/../../package.json",
+    "chipsim://examples/programmable/unknown",
+    "chipsim://project/files/%2e%2e%2foutside",
+    "not a URI",
+  ])
+    assert.equal((await wb.call("resource_read", { uri })).ok, false, uri);
+});
+
 test("root-bound text editing: CAS, concurrent writers, Unicode paging, paths, candidates and invalid drafts", async (t) => {
   const { root, wb } = await setup(t);
   const first = good(

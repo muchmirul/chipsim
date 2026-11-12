@@ -57,6 +57,13 @@ guides and all ten programmable starter files (including README) under
 project entirely through MCP; recipe details use
 `chipsim://guide/recipes?topic=rtl`. Project file/evidence resources support `candidate`, `offset`, `limit`.
 
+Hosts that expose tools without resource APIs can call
+`chipsim_resource_read({uri: "chipsim://guide/connections"})`, then read
+`chipsim://guide/workbench`. It returns `{uri, mimeType, text}` in the normal
+workbench result envelope and uses the same resource allowlist and bounds.
+For project files/artifacts, carry the candidate and paging parameters in the
+URI. This tool does not read arbitrary host paths.
+
 ## Agent loop
 
 1. Discover `chipsim_project`, list/search/read files. Build `chipsim.design.json`
