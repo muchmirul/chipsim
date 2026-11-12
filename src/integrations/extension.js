@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { chipsimCLI, nodeCommand, runChipSim } from "./process.js";
+import { workbenchTools } from "../workbench/schema.js";
 
 // Explicit mappings prevent shell interpretation and keep every path relative
 // to the current tool context, including after an agent changes projects.
@@ -353,6 +354,7 @@ export function commandArguments(args = []) {
       ? ["--help"]
       : [...args];
   const headless = [
+    "workbench",
     "circuit",
     "table",
     "agent",
@@ -471,6 +473,32 @@ export function registerChipSim(
     stdout = process.stdout,
   } = {},
 ) {
+  for (const tool of workbenchTools)
+    agent.registerTool({
+      name: "chipsim_workbench_" + tool.name,
+      label: "ChipSim workbench " + tool.name,
+      description: tool.description,
+      parameters: {
+        ...tool.inputSchema,
+        properties: {
+          project: { type: "string", minLength: 1, maxLength: 4096 },
+          ...tool.inputSchema.properties,
+        },
+        required: ["project", ...tool.inputSchema.required],
+      },
+      async execute(_id, params, signal, _update, ctx) {
+        const { project, ...args } = params;
+        const { createWorkbench } = await import("../workbench/service.js");
+        const result = await (
+          await createWorkbench(resolve(ctx.cwd, project))
+        ).call(tool.name, args, { signal });
+        return {
+          content: [{ type: "text", text: JSON.stringify(result) }],
+          details: result,
+          isError: !result.ok,
+        };
+      },
+    });
   agent.registerTool({
     name: "chipsim_command",
     label: "ChipSim command",
@@ -592,6 +620,7 @@ export function registerChipSim(
               "flow",
               "compare",
               "debug",
+              "schematic",
               "project",
               "pipeline",
               "artifacts",

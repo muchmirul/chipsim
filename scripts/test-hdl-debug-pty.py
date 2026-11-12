@@ -36,9 +36,10 @@ with tempfile.TemporaryDirectory(prefix='chipsim-debug-pty-') as directory:
     def cursor():
         return int(re.search(r' · e(\d+)/', frame()).group(1))
     def same_cursor(index):
-        text=frame()
         for name in ['HDL SOURCE','RTL HARDWARE','SIGNALS']:
-            assert f'{name} · e{index}' in text, text
+            wait(f'{name} · e{index}')
+        text=frame()
+        assert all(f'{name} · e{index}' in text for name in ['HDL SOURCE','RTL HARDWARE','SIGNALS']), text
     def run(project, output):
         send('H');wait('HDL · SIGNAL WORKBENCH')
         send('j\r');wait('HDL project manifest JSON')

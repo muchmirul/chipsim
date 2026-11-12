@@ -121,6 +121,7 @@ const internal = new Set([
   "hdl",
   "model",
   "program",
+  "program-image",
   "document",
   "waveform",
   "compare",

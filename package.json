@@ -49,7 +49,9 @@
     "test:dwfv": "node scripts/verify-dwfv.mjs",
     "document": "node scripts/document.mjs",
     "agent": "node scripts/agent.mjs",
-    "test:install": "node scripts/test-install.mjs"
+    "test:install": "node scripts/test-install.mjs",
+    "test:mcp": "node scripts/test-mcp.mjs",
+    "test:tinytapeout": "node scripts/test-tinytapeout.mjs"
   },
   "devDependencies": {
     "prettier": "^3.9.9"

@@ -47,6 +47,8 @@ export async function openRecordedArtifact(state, store, id) {
   const payload = store.blobPath(a.payload.sha256);
   captureDesignCursor(state);
   if (a.kind === "hdl-debug") await state.loadDebugFile(payload);
+  else if (a.kind === "netlist" && a.path.endsWith(".json"))
+    await state.loadNetlistFile(payload);
   else if (a.kind === "waveform") await state.loadWaveformFile(payload);
   else if (a.kind === "circuit-session") await state.loadCircuitFile(payload);
   else if (a.kind === "waveform-vcd")

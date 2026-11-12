@@ -1,0 +1,10 @@
+{
+  "format": "chipsim-program",
+  "version": 1,
+  "instructions": [
+    { "cycle": 0, "op": "add", "value": 1 },
+    { "cycle": 1, "op": "add", "value": 2 },
+    { "cycle": 2, "op": "add", "value": 3 },
+    { "cycle": 3, "op": "add", "value": 4 }
+  ]
+}

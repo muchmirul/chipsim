@@ -1,0 +1,12 @@
+{
+  "format": "chipsim-hdl-project",
+  "version": 1,
+  "name": "Loaded control image",
+  "language": "verilog",
+  "standard": "2012",
+  "sources": ["engine.sv", "engine_tb.sv"],
+  "assets": ["program.hex"],
+  "top": "engine_tb",
+  "waveform": "trace.vcd",
+  "timeoutMs": 10000
+}

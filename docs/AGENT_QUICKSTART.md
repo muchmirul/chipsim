@@ -1,5 +1,7 @@
 # Start here: using ChipSim as a coding agent
 
+For an MCP-only chip-development loop, read [WORKBENCH_MCP.md](WORKBENCH_MCP.md): create/read/edit project text, fork candidates, validate targets, start durable jobs, inspect real failures, repair and export evidence. The original programmable fixture separates fixed hardware from two control images.
+
 Read this guide together with the working project's `AGENTS.md`. Use the installed
 `chipsim` command; in the checkout, `node scripts/chipsim.mjs` is equivalent.
 `chipsim agent help` returns command contracts and absolute paths to installed

@@ -2,6 +2,31 @@
 // bridge remains an explicit project setup action.
 export const integrationContracts = [
   [
+    "program-image",
+    ["finite program JSON", "explicit capability contract"],
+    ["memory hex", "typed validation report"],
+    ["program-validation"],
+    "Explicit issue cycles and finite resources; no implicit scheduler or hardware rewrite.",
+  ],
+  [
+    "tinytapeout",
+    [
+      "info.yaml",
+      "RTL and configuration",
+      "captured pinned support tools",
+      "locked IHP PDK",
+      "pinned LibreLane container",
+    ],
+    [
+      "GDS/OAS",
+      "native timing/DRC/LVS metrics",
+      "native precheck XML",
+      "submission files",
+    ],
+    ["timing", "drc", "lvs", "precheck"],
+    "Explicit pinned local flow; submission files are not published. Missing/skipped physical checks remain inconclusive.",
+  ],
+  [
     "circuit",
     [
       "chipsim-circuit JSON",

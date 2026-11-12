@@ -10,6 +10,7 @@ import { programRows } from "./program-panel.js";
 import { timeLabel } from "../hdl/time.js";
 import { stateRows, flowRows, comparisonRows } from "./visual-render.js";
 import { debugRows, debugHeader } from "./debug-render.js";
+import { schematicRows } from "./schematic.js";
 import { designRows, designViews } from "./design-panel.js";
 import { circuitRows } from "./circuit-panel.js";
 const row = (text, style = "") => ({ text, style });
@@ -715,6 +716,17 @@ export function render(state) {
   const monitoring =
     (state.work || state.activity) && state.view !== "activity";
   const available = rows - (monitoring ? 8 : 7);
+  if (state.netlistGraph) {
+    lines[0] = row("CHIPSIM · synthesized netlist", "title");
+    lines[1] = row(
+      "Static module definitions · j/k objects · Enter connections",
+      "dim",
+    );
+    lines[2] = row(
+      `${state.netlistGraph.objects.length} objects · ${state.netlistGraph.connections.length} connections · no simulation cursor`,
+      "selected",
+    );
+  }
   if (state.work && state.view === "activity") {
     lines[0] = row("CHIPSIM · Agent work · live local reports", "title");
     lines[1] = row(
@@ -747,7 +759,9 @@ export function render(state) {
       "selected",
     );
     lines.push(...designRows(state, available));
-  } else if (state.view === "circuit")
+  } else if (state.view === "schematic")
+    lines.push(...schematicRows(state, available));
+  else if (state.view === "circuit")
     lines.push(...circuitRows(state, available));
   else if (state.view === "debug") lines.push(...debugRows(state, available));
   else if (

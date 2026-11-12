@@ -10,6 +10,7 @@ for (const name of [
   privateFixtures ? "test-tui-pty.py" : "test-sourcefree-pty.py",
   "test-csv-pty.py",
   "test-circuit-pty.py",
+  "test-netlist-pty.py",
   "test-agent-extension-pty.py",
   "test-agent-work-pty.py",
 ]) {

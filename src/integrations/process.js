@@ -115,6 +115,7 @@ export async function runChipSim(
             "chipsim-agent-result",
             "chipsim-hdl-result",
             "chipsim-design-result",
+            "chipsim-workbench-result",
             "chipsim-circuit-result",
             "chipsim-evolution-result",
           ].includes(result.format) ||

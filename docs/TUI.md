@@ -1,5 +1,13 @@
 # Terminal workbench
 
+HDL recordings now include a **Schematic** view (Tab or `--view schematic`). It uses the same object IDs, static connections and event values as the workbench/MCP API; j/k selects objects, Enter opens linked details, and J/N keeps the shared event cursor. `--netlist YOSYS.json` and opening a verified JSON netlist artifact show bounded static module/port/bus connectivity. Netlists carry no simulated values. See [WORKBENCH_MCP.md](WORKBENCH_MCP.md).
+
+While a netlist is open, numeric/view shortcuts and simulation, edit, save and
+trace-export keys cannot expose or operate the previous experiment. The HDL menu
+omits comparison of the hidden trace. Its trace and cursor remain preserved.
+Use Tab for available project views, `m` to select
+a model and return to Waveforms, or `H`/`d` to load other recorded data.
+
 Open `chipsim --circuit SOURCE.json|BUNDLE/circuit.json` for connected state and
 next-state inspection, or import its source/session with `d`. `O` opens the
 connected view; `t` shows static rules/connections, `e` a one-step probe, `o`

@@ -1,5 +1,7 @@
 # ChipSim as a coding-agent tool
 
+For agents using only MCP, [WORKBENCH_MCP.md](WORKBENCH_MCP.md) describes root-bound file editing, isolated candidates, request-id deduplication, durable jobs and linked evidence inspection. `chipsim workbench tools` exposes the same typed contracts locally. Optional `chipsim mcp --project PATH` uses the separately installed official SDK; the standalone CLI still needs no runtime npm packages.
+
 For developer-authored CSV register maps and stimulus schedules, use
 `chipsim table help` and [CSV_INPUTS.md](CSV_INPUTS.md). `table registers` creates
 a runnable register experiment without a PDF. `--inputs` accepts CSV as well

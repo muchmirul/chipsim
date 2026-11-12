@@ -1,0 +1,54 @@
+{
+  "format": "chipsim-design",
+  "version": 1,
+  "id": "programmable-fixture",
+  "name": "Four-word programmable control fixture",
+  "engineering": {
+    "requirements": [{ "id": "FIXED-HARDWARE-TWO-PROGRAMS" }],
+    "roles": {
+      "hardware": ["engine.sv"],
+      "program": ["program.json"],
+      "tests": ["engine_tb.sv"]
+    },
+    "capabilityContracts": ["contract.json"]
+  },
+  "tasks": {
+    "image": {
+      "adapter": "program-image",
+      "options": { "contract": "contract.json", "program": "program.json" },
+      "outputs": [{ "path": "out/program.hex", "kind": "memory-image" }]
+    },
+    "simulate": {
+      "adapter": "hdl",
+      "options": { "project": "sim.project.json" },
+      "bindings": [
+        { "task": "image", "output": "out/program.hex", "path": "program.hex" }
+      ],
+      "outputs": [{ "path": "out/debug.json", "kind": "hdl-debug" }]
+    },
+    "synthesize": {
+      "adapter": "command",
+      "inputs": ["engine.sv", "synthesis.ys"],
+      "options": {
+        "command": "yosys",
+        "versionArgs": ["-V"],
+        "args": ["-s", "synthesis.ys"]
+      },
+      "outputs": [{ "path": "netlist.json", "kind": "netlist" }]
+    }
+  },
+  "targets": {
+    "simulation": {
+      "tasks": ["simulate"],
+      "requiredChecks": [
+        "image:program-validation",
+        "simulate:simulation",
+        "simulate:outputs"
+      ]
+    },
+    "synthesis": {
+      "tasks": ["synthesize"],
+      "requiredChecks": ["synthesize:execution", "synthesize:outputs"]
+    }
+  }
+}

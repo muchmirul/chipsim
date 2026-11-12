@@ -1,0 +1,21 @@
+{
+  "format": "chipsim-program-contract",
+  "version": 1,
+  "wordWidth": 8,
+  "depth": 4,
+  "resources": { "alu": 1 },
+  "instructions": {
+    "add": {
+      "opcode": 1,
+      "operandBits": 4,
+      "cycles": 1,
+      "resources": { "alu": 1 }
+    },
+    "xor": {
+      "opcode": 2,
+      "operandBits": 4,
+      "cycles": 1,
+      "resources": { "alu": 1 }
+    }
+  }
+}

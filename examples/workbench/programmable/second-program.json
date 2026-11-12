@@ -1,0 +1,10 @@
+{
+  "format": "chipsim-program",
+  "version": 1,
+  "instructions": [
+    { "cycle": 0, "op": "xor", "value": 1 },
+    { "cycle": 1, "op": "xor", "value": 3 },
+    { "cycle": 2, "op": "xor", "value": 7 },
+    { "cycle": 3, "op": "xor", "value": 15 }
+  ]
+}

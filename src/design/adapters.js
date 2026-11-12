@@ -22,6 +22,7 @@ import { physicalChecks, physicalReportFile } from "./physical.js";
 import { mcpResult } from "./mcp-result.js";
 import { referencePath } from "../documents/references.js";
 import { limits as storeLimits } from "./store.js";
+import { executeTinyTapeout, tinyTapeoutChecks } from "./tinytapeout.js";
 
 const native = new Set([
   "circuit",
@@ -37,6 +38,14 @@ const tool =
   (command, args = ["--version"]) =>
   async () => [[command, args]];
 export const adapters = {
+  tinytapeout: {
+    tools: async (t) => [
+      [t.options.python, ["--version"]],
+      [t.options.precheckPython, ["--version"]],
+      ["docker", ["--version"]],
+    ],
+  },
+  "program-image": { tools: async () => [] },
   circuit: {
     tools: async (task) =>
       task.options?.operation === "check" || task.options?.operation === "build"
@@ -214,6 +223,12 @@ export async function adapterInputs(task, root) {
   const add = (p) => {
     if (p) paths.push(localPath(p));
   };
+  if (task.adapter === "program-image") {
+    add(o.contract);
+    add(o.program);
+  }
+  if (task.adapter === "tinytapeout")
+    ["info.yaml", "src", "tt", "flow-pins.json"].forEach(add);
   if (task.adapter === "circuit") {
     for (const key of ["source", "stimulus", "cases", "rtl"]) add(o[key]);
   } else if (task.adapter === "hdl") {
@@ -281,6 +296,7 @@ export function capabilities(kind) {
       "model-session": ["model-session"],
       "circuit-session": ["connected-state", "sources", "waveform"],
       layout: ["external-layout"],
+      netlist: ["schematic"],
       "program-debug": ["report"],
       report: ["report"],
       comparison: ["report"],
@@ -308,6 +324,15 @@ export async function normalizeChecks(
     adapter = task.definition.adapter,
     o = task.definition.options || {};
   const success = execution.ok;
+  if (adapter === "program-image")
+    result.push({
+      name: "program-validation",
+      verdict: success ? "pass" : "fail",
+      scope:
+        "Declared control image encoding, explicit issue cycles and finite resource bounds; no hardware or protocol proof",
+      evidence: ["out/program-validation.json"],
+      assumptions: [],
+    });
   result.push(
     check(
       "execution",
@@ -484,6 +509,8 @@ export async function normalizeChecks(
   }
   if (adapter === "orfs")
     result.push(...(await physicalChecks(task, workspace, execution, inputs)));
+  if (adapter === "tinytapeout")
+    result.push(...(await tinyTapeoutChecks(task, workspace, execution)));
   if (adapter === "openroad-mcp") {
     let verdict = "inconclusive",
       detail =
@@ -555,6 +582,9 @@ export async function executeAdapter(task, context) {
     o = def.options || {},
     adapter = def.adapter;
   const path = (p) => join(workspace, localPath(p));
+  if (adapter === "tinytapeout") return executeTinyTapeout(task, context);
+  if (adapter === "program-image")
+    return (await import("./program-image.js")).buildImage(o, workspace);
   if (native.has(adapter)) {
     let r;
     if (adapter === "circuit") {

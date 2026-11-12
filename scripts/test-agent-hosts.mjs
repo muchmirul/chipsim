@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { workbenchTools } from "../src/workbench/schema.js";
 // Load native extensions through installed hosts, without sessions/providers.
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
@@ -32,7 +33,7 @@ try {
     assert.deepEqual(loaded.errors, [], host.name + " native load errors");
     assert.equal(loaded.extensions.length, 1);
     const native = loaded.extensions[0];
-    assert.equal(native.tools.size, 37);
+    assert.equal(native.tools.size, 37 + workbenchTools.length);
     assert.ok(native.commands.has("chipsim"));
     if (host.name === "prime" && !process.stdin.isTTY) {
       const messages = [];

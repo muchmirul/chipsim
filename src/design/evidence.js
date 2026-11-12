@@ -120,40 +120,54 @@ export async function publishAttempt(
   return record;
 }
 
-export async function verifyEvidence(store, id, seen = new Set()) {
+export async function verifyEvidence(
+  store,
+  id,
+  seen = new Set(),
+  blobs = new Set(),
+) {
+  const verifyBlob = async (blob) => {
+    const key = blob.sha256 + ":" + blob.bytes;
+    if (blobs.has(key)) return;
+    await store.verifyBlob(blob);
+    blobs.add(key);
+  };
   if (seen.has(id)) return;
   seen.add(id);
   const r = await store.get(id);
   if (r.format === "chipsim-artifact") {
     localPath(r.path);
-    await store.verifyBlob(r.payload);
-    if (r.snapshot) await verifyEvidence(store, r.snapshot, seen);
+    await verifyBlob(r.payload);
+    if (r.snapshot) await verifyEvidence(store, r.snapshot, seen, blobs);
     for (const input of r.inputs || []) {
-      if (input.artifact) await verifyEvidence(store, input.artifact, seen);
-      else if (input.sha256) await store.verifyBlob(input);
+      if (input.artifact)
+        await verifyEvidence(store, input.artifact, seen, blobs);
+      else if (input.sha256) await verifyBlob(input);
     }
-  } else if (r.format === "chipsim-input-snapshot") {
+  } else if (
+    ["chipsim-input-snapshot", "chipsim-workbench-revision"].includes(r.format)
+  ) {
     for (const file of r.inputs) {
       localPath(file.path);
-      await store.verifyBlob(file);
+      await verifyBlob(file);
     }
   } else if (r.format === "chipsim-check") {
     for (const artifact of r.evidence)
-      await verifyEvidence(store, artifact, seen);
+      await verifyEvidence(store, artifact, seen, blobs);
     if (r.subject.snapshot)
-      await verifyEvidence(store, r.subject.snapshot, seen);
+      await verifyEvidence(store, r.subject.snapshot, seen, blobs);
   } else if (r.format === "chipsim-execution-plan")
-    await verifyEvidence(store, r.snapshot, seen);
+    await verifyEvidence(store, r.snapshot, seen, blobs);
   else if (["chipsim-attempt", "chipsim-run"].includes(r.format)) {
-    if (r.snapshot) await verifyEvidence(store, r.snapshot, seen);
-    if (r.plan) await verifyEvidence(store, r.plan, seen);
+    if (r.snapshot) await verifyEvidence(store, r.snapshot, seen, blobs);
+    if (r.plan) await verifyEvidence(store, r.plan, seen, blobs);
     for (const ref of [
       ...(r.attempts || []),
       ...(r.artifacts || []),
       ...(r.checks || []),
       ...(r.reusedFrom ? [r.reusedFrom] : []),
     ])
-      await verifyEvidence(store, ref, seen);
+      await verifyEvidence(store, ref, seen, blobs);
   }
   return r;
 }
@@ -223,7 +237,11 @@ export async function exportEvidence(store, id, destination) {
       join(root, "records", recordId + ".json"),
     );
     if (r.payload) blobs.set(r.payload.sha256, r.payload);
-    if (r.format === "chipsim-input-snapshot")
+    if (
+      ["chipsim-input-snapshot", "chipsim-workbench-revision"].includes(
+        r.format,
+      )
+    )
       for (const file of r.inputs) blobs.set(file.sha256, file);
   }
   for (const blob of blobs.values()) {
@@ -289,7 +307,11 @@ export async function importEvidence(store, source) {
       const record = await incoming.get(id);
       if (record.payload)
         referenced.set(record.payload.sha256, record.payload.bytes);
-      if (record.format === "chipsim-input-snapshot")
+      if (
+        ["chipsim-input-snapshot", "chipsim-workbench-revision"].includes(
+          record.format,
+        )
+      )
         for (const file of record.inputs)
           referenced.set(file.sha256, file.bytes);
     }

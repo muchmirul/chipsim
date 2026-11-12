@@ -1,5 +1,7 @@
 # Starting a chip project: files and agent preparation
 
+For a complete text-only agent workflow, see [WORKBENCH_MCP.md](WORKBENCH_MCP.md). Declared `program-image` contracts can validate finite control programs and produce memory HEX; arbitrary assemblers/generators still use explicit command tasks. [TINYTAPEOUT.md](TINYTAPEOUT.md) documents native physical prerequisites and pinned flow inputs.
+
 For wiring-aware state transitions, `chipsim design guide circuit` describes
 connected JSON tables/equations and supported authoritative HDL import. See
 [CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md) for fixed paths, atomic old-state

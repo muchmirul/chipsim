@@ -1,6 +1,7 @@
 import { loadDesign, planDesign } from "./project.js";
 import { listJobs, evaluateChecks } from "./jobs.js";
 import { verifyEvidence } from "./evidence.js";
+import { identity } from "./store.js";
 
 export async function projectSummary(
   path,
@@ -228,16 +229,33 @@ export async function targetStatus(path, target) {
   };
 }
 
-export async function compareRuns(store, left, right) {
+function hasReportedContext(context) {
+  const hasValue = (value) => {
+    if (typeof value === "string") return value.trim().length > 0;
+    if (typeof value === "number") return Number.isFinite(value);
+    if (typeof value === "boolean") return true;
+    return value !== null && typeof value === "object"
+      ? Object.values(value).some(hasValue)
+      : false;
+  };
+  return (
+    context !== null &&
+    typeof context === "object" &&
+    !Array.isArray(context) &&
+    hasValue(context)
+  );
+}
+
+export async function compareRuns(store, left, right, rightStore = store) {
   const a = await verifyEvidence(store, left),
-    b = await verifyEvidence(store, right);
+    b = await verifyEvidence(rightStore, right);
   if (a.format !== "chipsim-run" || b.format !== "chipsim-run")
     throw new Error("Comparison requires two run IDs");
   const leftArtifacts = await Promise.all(
     a.artifacts.map((id) => store.get(id, "artifact")),
   );
   const rightArtifacts = await Promise.all(
-    b.artifacts.map((id) => store.get(id, "artifact")),
+    b.artifacts.map((id) => rightStore.get(id, "artifact")),
   );
   const key = (artifact) =>
     (artifact.producer?.task || "import") + ":" + artifact.path;
@@ -259,11 +277,109 @@ export async function compareRuns(store, left, right) {
       contexts: [l?.context, r?.context],
     });
   }
+  const leftChecks = await Promise.all(
+    (a.checks || []).map((id) => store.get(id, "check")),
+  );
+  const rightChecks = await Promise.all(
+    (b.checks || []).map((id) => rightStore.get(id, "check")),
+  );
+  const checkKey = (c) => c.subject.task + ":" + c.name;
+  const checks = [
+    ...new Set([...leftChecks, ...rightChecks].map(checkKey)),
+  ].map((key) => {
+    const l = leftChecks.find((c) => checkKey(c) === key),
+      r = rightChecks.find((c) => checkKey(c) === key);
+    const sameContext =
+      hasReportedContext(l?.context) &&
+      hasReportedContext(r?.context) &&
+      identity({ context: l.context, scope: l.scope }) ===
+        identity({ context: r.context, scope: r.scope });
+    return {
+      name: key,
+      left: l
+        ? {
+            id: l.id,
+            verdict: l.verdict,
+            metrics: l.metrics,
+            scope: l.scope,
+            context: l.context,
+          }
+        : null,
+      right: r
+        ? {
+            id: r.id,
+            verdict: r.verdict,
+            metrics: r.metrics,
+            scope: r.scope,
+            context: r.context,
+          }
+        : null,
+      matchingReportedContext: sameContext,
+      metrics:
+        Array.isArray(l?.metrics) && Array.isArray(r?.metrics)
+          ? l.metrics.map((m) => {
+              const n = r.metrics.find(
+                (n) => n.field === m.field && n.unit === m.unit,
+              );
+              const comparable =
+                sameContext &&
+                !!m.unit &&
+                !!n &&
+                Number.isFinite(m.observed) &&
+                Number.isFinite(n.observed);
+              return {
+                field: m.field,
+                unit: m.unit || null,
+                left: m.observed ?? null,
+                right: n?.observed ?? null,
+                comparable,
+                delta: comparable ? n.observed - m.observed : null,
+              };
+            })
+          : [],
+    };
+  });
+  const snapshots = await Promise.all(
+    [
+      [store, a],
+      [rightStore, b],
+    ].map(([s, r]) =>
+      r.snapshot ? s.get(r.snapshot, "input-snapshot") : null,
+    ),
+  );
+  const roles = Object.fromEntries(
+    ["hardware", "program", "tests", "constraints"].map((role) => {
+      const inventories = snapshots.map((s) => {
+        const declared = s?.config.engineering?.roles?.[role];
+        if (!declared?.length) return null;
+        const selected = declared.map((path) =>
+          s.inputs.find((f) => f.path === path),
+        );
+        return selected.every(Boolean)
+          ? selected
+              .map(({ path, sha256 }) => ({ path, sha256 }))
+              .sort((a, b) => a.path.localeCompare(b.path))
+          : null;
+      });
+      return [
+        role,
+        {
+          left: inventories[0],
+          right: inventories[1],
+          identical: inventories.every(Boolean)
+            ? identity(inventories[0]) === identity(inventories[1])
+            : null,
+        },
+      ];
+    }),
+  );
   return {
     left,
     right,
     artifacts: rows,
+    checks,
+    roles,
     scope:
-      "Artifact byte identity; timing metrics require matching units, stage, corner and constraints.",
+      "Verified artifact identity and named check metrics. Numeric deltas require explicit matching units and reported contexts; no aggregate score or inferred whole-design equivalence. Missing role inputs are unknown.",
   };
 }

@@ -1,12 +1,11 @@
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { mkdir, readdir, rm, writeFile, open, stat } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { atomic, json, identity, Store } from "./store.js";
 import {
   planDesign,
-  loadDesign,
   runtimeIdentity,
   toolIdentity,
   verifyDependencies,
@@ -14,6 +13,7 @@ import {
 import { executeAdapter } from "./adapters.js";
 import { publishAttempt, verifyEvidence } from "./evidence.js";
 import { processIdentity, alive, stopOwned, reapToken } from "./process.js";
+import { withProjectLock, problem } from "../workbench/files.js";
 
 const workerFile = fileURLToPath(
   new URL("../../scripts/design-worker.mjs", import.meta.url),
@@ -45,7 +45,41 @@ async function launch(root, store, state) {
   child.unref();
   return state;
 }
-export async function startJob(path, target, { reuse = true } = {}) {
+export async function startJob(path, target, { reuse = true, requestId } = {}) {
+  if (
+    requestId !== undefined &&
+    (typeof requestId !== "string" ||
+      !requestId.length ||
+      requestId.length > 128)
+  )
+    throw new Error("requestId must be a 1–128 character string");
+  // Accepted requests belong to the durable store, even while the current
+  // manifests are missing or invalid drafts. Only a new request needs a plan.
+  const root = resolve(path.endsWith(".json") ? dirname(path) : path),
+    store = new Store(root);
+  if (!(await stat(root)).isDirectory())
+    throw new Error("Expected an existing project directory");
+  return withProjectLock(root, async () => {
+    const binding =
+      requestId && join(store.root, "requests", identity(requestId) + ".json");
+    if (binding) {
+      const old = await json(binding).catch((e) => {
+        if (e.code === "ENOENT") return null;
+        throw e;
+      });
+      if (old) {
+        if (old.target !== target || old.reuse !== reuse)
+          throw problem(
+            "REQUEST_CONFLICT",
+            "requestId was already used with different target/options",
+          );
+        return { ...(await jobStatus(store, old.id)), deduplicated: true };
+      }
+    }
+    return startJobLocked(path, target, reuse, binding);
+  });
+}
+async function startJobLocked(path, target, reuse, binding) {
   const { root, store, plan, snapshot } = await planDesign(path, target);
   const state = {
     format: "chipsim-job",
@@ -65,6 +99,12 @@ export async function startJob(path, target, { reuse = true } = {}) {
     owner: null,
     reuse,
   };
+  // Persist the accepted job before its deduplication binding. A reconnect
+  // resolves the same job even if the server dies before replying or spawning.
+  if (binding) {
+    await atomic(join(jobPath(store, state.id), "state.json"), state);
+    await atomic(binding, { id: state.id, target, reuse });
+  }
   return launch(root, store, state);
 }
 async function reapChildren(path) {

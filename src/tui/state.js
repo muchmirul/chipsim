@@ -13,6 +13,7 @@ import { modelsForDocument, searchDocument } from "../documents/recognize.js";
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Workspace } from "./workspace.js";
+import { availableViews } from "./views.js";
 import { Stimulus } from "./stimulus.js";
 import { parseProgram } from "../program/parse.js";
 import { ProgramDebugger } from "../program/engine.js";
@@ -217,6 +218,12 @@ export class TuiState {
     return this.documents.find((d) => d.id === this.documentId);
   }
   setView(view) {
+    if (this.netlistGraph && !availableViews(this).includes(view)) {
+      this.setMessage(
+        "Static netlist: use Tab for inspection views, m for models or H/d to load recorded data.",
+      );
+      return;
+    }
     this.view = view;
     this.seek(this.tick);
     if (view === "states") {
@@ -288,12 +295,15 @@ export class TuiState {
   selectModel(id) {
     if (!this.models.some((m) => m.id === id))
       throw new Error("Unknown model " + id);
+    const leavingNetlist = !!this.netlistGraph;
+    this.netlistGraph = null;
     this.programDebugger = null;
     this.modelId = id;
     this.selected = 0;
     this.logIndex = 0;
     this.blockScroll = 0;
     this.rebuild();
+    if (leavingNetlist) this.view = "wave";
     this.selectModelDocument();
     this.setMessage("Loaded " + this.model.name);
   }
@@ -996,6 +1006,18 @@ export class TuiState {
       "Connected state · t rules · e one-step probe · o native observations · Tab waves",
     );
     return model;
+  }
+  async loadNetlistFile(path) {
+    const { netlistGraph } = await import("../workbench/inspect.js");
+    const graph = netlistGraph(
+      JSON.parse(
+        (await readBounded(path, debugLimits.fileBytes)).toString("utf8"),
+      ),
+    );
+    this.netlistGraph = graph;
+    this.netlistSelection = graph.objects[0]?.id;
+    this.playing = false;
+    this.setView("schematic");
   }
   async loadDebugFile(path) {
     const json = JSON.parse(

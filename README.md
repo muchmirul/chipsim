@@ -1,5 +1,7 @@
 # ChipSim
 
+Text-first chip engineering is available through the [shared workbench and optional MCP server](docs/WORKBENCH_MCP.md). Use `chipsim mcp --project PATH` after `npm ci --prefix extensions/mcp`; agents can create/edit candidates, run durable targets, inspect linked source/events/netlists and export evidence. The terminal adds `--view schematic` for HDL recordings and `--netlist YOSYS.json` for static synthesis connectivity. [Tiny Tapeout / LibreLane](docs/TINYTAPEOUT.md) provides a pinned native physical-flow adapter.
+
 **Design, simulate and inspect digital hardware from one terminal.** ChipSim combines a linked HDL debugger, a versioned design workbench, source-backed behavioral models and coding-agent tools. Its TUI and headless commands share the same execution and evidence checks.
 
 Start with Verilog/VHDL, a supplied architecture experiment, a supported datasheet or an explicitly authored model. Inspect source, hardware, signals and verification results together, then save the experiment and its provenance for review.

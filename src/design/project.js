@@ -38,6 +38,8 @@ import {
   adapters,
 } from "./adapters.js";
 import { validatePhysicalReports } from "./physical.js";
+import { validateEngineering } from "./engineering.js";
+import { validateTinyTapeout, requireTinyTapeoutLock } from "./tinytapeout.js";
 
 export const packageRoot = fileURLToPath(new URL("../../", import.meta.url));
 export function name(value) {
@@ -61,6 +63,7 @@ export async function loadDesign(path) {
   if (config.format !== "chipsim-design" || config.version !== 1)
     throw new Error("Expected chipsim-design version 1");
   name(config.id);
+  validateEngineering(config.engineering);
   object(config.tasks, "tasks");
   object(config.targets, "targets");
   if (
@@ -120,6 +123,7 @@ export async function loadDesign(path) {
       "coverage",
       "correspondence",
       "mcp",
+      "program-validation",
     ]);
     for (const check of task.checks || []) {
       name(check.name);
@@ -137,6 +141,7 @@ export async function loadDesign(path) {
     }
     if (task.options !== undefined) object(task.options, "options");
     validatePhysicalReports(task);
+    validateTinyTapeout(task);
     if (
       task.timeoutMs !== undefined &&
       (!Number.isSafeInteger(task.timeoutMs) ||
@@ -443,6 +448,7 @@ export async function planDesign(
     const dependencies = (lock.dependencies || []).filter(
       (dep) => !dep.tasks || dep.tasks.includes(id),
     );
+    requireTinyTapeoutLock(task, dependencies);
     await verifyDependencies(dependencies, root);
     const base = {
       task: id,

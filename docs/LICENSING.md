@@ -1,5 +1,7 @@
 # Licensing and public distribution
 
+The optional `extensions/mcp/` package pins the official TypeScript MCP SDK (MIT) with its own lockfile; installed transitive dependencies retain their notices and are excluded from ChipSim packages. The standalone CLI has no runtime npm dependencies. Tiny Tapeout template/support tools and LibreLane are external Apache-2.0 integrations; the IHP Open PDK and OCI toolchain remain separately installed dependencies with their upstream notices. The public acceptance runner copies public support-tool bytes only into a disposable workspace. See `docs/licensing/software.json` and [TINYTAPEOUT.md](TINYTAPEOUT.md).
+
 Original ChipSim source and documentation are [MIT licensed](../LICENSE),
 copyright 2026 Muchmirul Yusa Setiaji. Specific upstream files keep their own
 licenses. [Acknowledgments](../ACKNOWLEDGMENTS.md) credit the projects and

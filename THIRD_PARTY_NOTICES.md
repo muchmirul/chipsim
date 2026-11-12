@@ -1,5 +1,7 @@
 # Third-party notices
 
+Optional MCP installs use the official `@modelcontextprotocol/sdk` 1.32.2 (MIT; Copyright 2024 Anthropic, PBC) and its separately locked dependencies. They are not bundled into the standalone ChipSim package. Tiny Tapeout support/template code and LibreLane are external Apache-2.0 tools; IHP PDK/container licenses remain upstream. See [licensing inventory](docs/licensing/software.json).
+
 Original ChipSim code is [MIT licensed](LICENSE). These specific upstream
 materials retain their own terms. See [Acknowledgments](ACKNOWLEDGMENTS.md), the
 [licensing guide](docs/LICENSING.md), [software inventory](docs/licensing/software.json)

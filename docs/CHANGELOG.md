@@ -5,6 +5,147 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-11-12 — Resolve source freshness from captured HDL origins
+
+**Problem/use:** `workbench source` / `chipsim_source` treated every recording
+path as design-root-relative, so `sim/top.sv` could appear current because of an
+unrelated root-level `top.sv`. **Behavior:** Managed HDL sources resolve through
+the captured task's HDL manifest directory and consumed input inventory;
+`currentPath` identifies that design-relative path. Live manifest edits do not
+redirect the check. Missing, generated and unmapped inputs remain unknown, and
+captured source text and the inspected cursor are preserved.
+**Implementation/checks:** `src/workbench/service.js`; nested-source, root-name
+collision, invalid live draft, deletion and unmapped-source regressions in
+`test/workbench.test.js`. See [workbench inspection](WORKBENCH_MCP.md).
+
+## 2026-11-12 — Keep static netlist controls separate from preserved experiments
+
+**Problem/use:** After `--netlist` or opening a netlist artifact, pressing `1`
+showed the previous experiment's waveforms under a synthesized-netlist heading;
+Space could then replay that unrelated trace. **Behavior:** Static inspection
+allows object navigation, project views and explicit model/data loading.
+Simulation/view/edit/save/export shortcuts cannot act on the preserved hidden
+model, and the HDL menu omits comparison of that hidden trace. Selecting a model
+explicitly exits to Waveforms. Invalid model selections
+and failed netlist imports retain the current inspection.
+**Implementation/checks:** `src/tui/state.js`, `src/tui/schematic.js`;
+`test/workbench.test.js` checks trace/cursor/configuration preservation, and
+`scripts/test-netlist-pty.py` (included in `test:tui`) checks real shortcuts,
+model exit and terminal restoration at 80×24 and 120×40. See [TUI](TUI.md).
+
+## 2026-11-12 — Recover accepted requests independently of editable manifests
+
+**Problem/use:** Reconnecting with an accepted `job_start` request ID failed if
+the design or lock manifest was now an invalid draft. **Behavior:** Lookup of
+the durable request binding precedes current-manifest validation. Replays return
+the same job/run through missing or invalid manifests and removed targets;
+different target/reuse options still conflict. Only new requests validate and
+capture current inputs. Execution and explicit cancellation are unchanged.
+**Implementation/checks:** `src/design/jobs.js`; real managed-job regressions in
+`test/workbench.test.js` cover reconnects, missing/invalid design and lock files,
+conflicts and rejection of new requests without duplicate execution. See
+[managed design jobs](DESIGN.md) and [workbench tools](WORKBENCH_MCP.md).
+
+## 2026-11-12 — Treat absent metric context as unknown
+
+**Problem/use:** Comparing two run checks with no reported context incorrectly
+marked their unit-bearing metrics comparable. **Behavior:** Numeric deltas
+require explicit nonempty matching contexts, scopes, fields and units.
+Missing/null/empty context yields `comparable: false` and `delta: null`, while
+both observed values remain available. Matching explicit contexts still permit
+unitful deltas; no whole-design equivalence or aggregate score is inferred.
+**Implementation/checks:** `src/design/service.js`; regressions in
+`test/workbench.test.js` cover missing and empty nested metadata, matching
+contexts, and mismatched corners/scopes/units. See [evidence comparison](DESIGN.md).
+
+## 2026-11-11 — MCP discovery without host filesystem access
+
+**Context:** MCP-only clients could read the workflow overview but detailed guides
+and starter files still required direct filesystem access. **Behavior:** Resource
+discovery lists installed guides, topic recipes and each programmable starter
+file. A fixed resource whitelist prevents arbitrary installation-file reads.
+**Checks:** Official SDK acceptance bootstraps every project file by reading MCP
+resources and writing through MCP tools before native execution and repair.
+
+## 2026-11-11 — Bounded repeated payload verification
+
+**Context:** Physical runs publish many native artifacts sharing the same captured
+inputs. Closure verification repeatedly hashed those inputs for every artifact,
+delaying publication and holding the project execution lock. **Behavior:** Each
+verification query checks each unique SHA-256/byte-count pair once while still
+visiting every evidence record. The next query rechecks payload bytes, so later
+corruption is detected. Export still receives record IDs only. Captured source-revision bundles also retain and validate their complete payload inventory when reimported. **Checks:** Shared
+payload fanout, repeated queries and corruption regressions in
+`test/workbench.test.js`; managed native physical publication.
+
+## 2026-11-11 — Text-first project editing and optional MCP
+
+**Context:** An MCP-only agent could not author ChipSim projects, retain isolated
+multi-file candidates, or follow native HDL failures through a shared inspection
+API. **Use/behavior:** `chipsim workbench tools` and optional `chipsim mcp --project
+PATH` expose bounded file/search/CAS edits, candidate copies, captured revisions,
+validation/planning, durable jobs, evidence, linked graph/source/event queries and
+exports. The official SDK lives in separately locked `extensions/mcp/`; native
+extensions register the same schemas as `chipsim_workbench_TOOL`. Repeated
+`job_start` request IDs resolve the original job across clients/reconnects;
+conflicting parameters reject. Wait cancellation never cancels execution.
+**Limits/preservation:** Standalone CLI remains dependency-free. Root-bound text
+operations reject traversal/symlinks and preserve invalid drafts. Atomic writes
+cover one file; candidates isolate multiple changes. CAS/locks coordinate ChipSim
+clients, not uncooperative external writers. Dead mutation locks report ownership
+for explicit recovery. Captured evidence remains immutable and independently
+verified. No model providers, network listeners or submission upload are added.
+**Implementation/checks:** `src/workbench/`, `extensions/mcp/`, shared design jobs.
+Official SDK acceptance creates, runs, diagnoses and repairs native HDL using only
+MCP; covers concurrent deduplication, disconnect/reconnect, explicit cancellation,
+project isolation, immutable retries, synthesis and portable exports.
+
+## 2026-11-11 — Linked terminal schematic and netlist inspection
+
+**Use/behavior:** `--hdl-debug RUN/debug.json --view schematic` shows bounded real
+RTL blocks/ports/signals/connections and recorded values at the shared cursor.
+`--netlist YOSYS.json` and verified netlist artifacts expose static synthesized
+module/cell/bus connectivity. MCP hardware/trace/source/snapshot tools share IDs
+and rendering; source queries report current versus captured hashes. Mapped
+comparison queries retain stimulus/time coverage and explicit truncation.
+**Limits/preservation:** Static edges never establish observed writers or next
+state. Module definitions are labeled separately from elaborated hierarchy;
+unknown/X/Z values and partial capture remain visible. Invalid evidence does not
+replace a valid inspection. Existing project freshness/run/open controls preserve
+the current recording while source changes are assessed.
+**Implementation/checks:** `src/workbench/inspect.js`, `src/tui/schematic.js`;
+regressions compare MCP/TUI values, identities and exact frames at 80×24/120×40,
+partial captures, source staleness and payload corruption; native Yosys inspection.
+
+## 2026-11-11 — Fixed hardware, explicit control-image contracts and comparisons
+
+**Use/behavior:** Optional `engineering` metadata links requirements, role paths
+and capability contracts. `program-image` compiles explicit bounded instruction
+images to HEX and typed diagnostic reports, rejecting unsupported encodings,
+operands, memory overflow, implicit scheduling and resource conflicts before
+simulation. `examples/workbench/programmable` loads add and XOR programs into the
+same finite hardware. Run comparisons retain per-check verdicts, named/unitful
+metric contexts and captured role hashes; cross-candidate comparisons use their
+separate evidence stores. **Limits:** Contract consistency is not hardware or
+protocol proof; no compiler inserts stalls, rewrites hardware or selects an
+architecture. Numeric deltas require matching units/context; absent roles are
+unknown. **Checks:** Independent HDL result assertion, two-image hardware identity,
+negative contract cases, changed-program freshness and original-snapshot retry.
+
+## 2026-11-11 — Pinned Tiny Tapeout physical-flow adapter
+
+**Use/behavior:** `tinytapeout` runs captured official support tools, pinned
+LibreLane and a locked IHP PDK, packages native layout files and runs precheck.
+Normalized reports preserve source hashes, nonfinite metrics, resolved corners,
+SDCs and original artifacts. Separate timing/DRC/LVS/precheck verdicts gate target
+readiness. **Limits:** Explicit `ihp-sg13cmos5l` integration; unavailable, skipped,
+missing or corrupt results cannot pass. ChipSim does not install toolchains,
+change tile sizes, publish submissions or import private competition HDL. Native
+layout viewing stays in KLayout. **Implementation/checks:**
+`src/design/tinytapeout.js`, `scripts/tinytapeout-run.py`, explicit
+`npm run test:tinytapeout` disposable original counter/XOR fixture. See
+[TINYTAPEOUT.md](TINYTAPEOUT.md) for pins, prerequisites and evidence scopes.
+
 ## 2026-11-11 — Validate observer events before scope projection
 
 **Context:** Scoped normalization discarded unknown process/signal references and

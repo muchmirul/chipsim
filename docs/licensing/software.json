@@ -732,6 +732,57 @@
       ],
       "reviewed_on": "2026-10-18",
       "notes": "Asankhaya Sharma and OpenEvolve contributors. Separately installed evolutionary optimizer invoked through its public Python API in a supervised external process. Original ChipSim bridge only; no upstream implementation copied, bundled or installed."
+    },
+    {
+      "id": "mcp-sdk",
+      "name": "Model Context Protocol TypeScript SDK",
+      "license": "MIT",
+      "relationship": "optional separately installed runtime dependency",
+      "bundled_upstream_code": false,
+      "locations": [
+        "extensions/mcp/package.json",
+        "extensions/mcp/package-lock.json"
+      ],
+      "adapters": [],
+      "evidence": [
+        {
+          "url": "https://github.com/modelcontextprotocol/typescript-sdk/blob/v1.32.2/LICENSE"
+        }
+      ],
+      "reviewed_on": "2026-11-11",
+      "notes": "Official SDK pinned to 1.32.2 in an optional separately locked package; node_modules is excluded from the ChipSim distribution. Transitive package notices remain in the installed dependencies."
+    },
+    {
+      "id": "librelane",
+      "name": "LibreLane",
+      "license": "Apache-2.0",
+      "relationship": "external physical-flow process",
+      "bundled_upstream_code": false,
+      "locations": ["src/design/tinytapeout.js", "scripts/tinytapeout-run.py"],
+      "adapters": ["tinytapeout"],
+      "evidence": [
+        {
+          "url": "https://github.com/librelane/librelane/blob/3.1.0.dev3/LICENSE"
+        }
+      ],
+      "reviewed_on": "2026-11-11",
+      "notes": "External Python environment and pinned OCI image; no binaries or PDK data bundled. Container component notices require separate review for redistribution."
+    },
+    {
+      "id": "tinytapeout-support",
+      "name": "Tiny Tapeout templates and support tools",
+      "license": "Apache-2.0",
+      "relationship": "external project data and processes",
+      "bundled_upstream_code": false,
+      "locations": ["scripts/test-tinytapeout.mjs", "docs/TINYTAPEOUT.md"],
+      "adapters": ["tinytapeout"],
+      "evidence": [
+        {
+          "url": "https://github.com/TinyTapeout/tt-support-tools/blob/d66cf179e7bc4d296362ab7e2e3b344dc3c4f665/LICENSE"
+        }
+      ],
+      "reviewed_on": "2026-11-11",
+      "notes": "Public tracked source copied only into disposable acceptance workspaces with upstream notices preserved; not bundled in ChipSim. IHP PDK remains separately installed and locked."
     }
   ]
 }

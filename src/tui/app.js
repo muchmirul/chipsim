@@ -1,3 +1,4 @@
+import { schematicKey } from "./schematic.js";
 import { emitKeypressEvents } from "node:readline";
 import { spawn } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -851,6 +852,8 @@ export class TerminalApp {
         /* project/artifact controls share the same service as agents */
       } else if (circuitKey(this, k, key)) {
         /* Relation probes never advance or replace native observations. */
+      } else if (schematicKey(this, k, key)) {
+        /* Native synthesized connectivity; no simulated values are invented. */
       } else if (k === "O") s.setView("circuit");
       else if (k === "H") this.hdlPanel.menu();
       else if (this.debugPanel.handle(k, key)) {

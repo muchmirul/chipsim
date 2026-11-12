@@ -67,6 +67,8 @@ export async function prepareProject(pdf, output) {
       "AGENT_WORKFLOW.md",
       "AGENT_QUICKSTART.md",
       "AGENT_EXTENSIONS.md",
+      "WORKBENCH_MCP.md",
+      "TINYTAPEOUT.md",
       "AGENT_WORK.md",
       "EVOLUTION.md",
       "EVOLUTION_OBJECTIVES.md",

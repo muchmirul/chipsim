@@ -1,5 +1,7 @@
 # Versioned design workbench
 
+The [text-first workbench](WORKBENCH_MCP.md) adds shared file/candidate/revision services, optional MCP, stable linked inspection and request-id deduplication. Optional `engineering` metadata declares role paths and requirement links. `program-image` validates explicit finite control-image contracts without changing hardware. The [Tiny Tapeout adapter](TINYTAPEOUT.md) runs pinned native LibreLane/precheck flows and preserves physical reports. Run comparisons include check verdicts, named metrics with units/context, and captured hardware/program/test/constraint role identity; unknown context never produces an invented numeric score.
+
 The native `circuit` adapter captures connected-model sources and compiler
 identity, with explicit `check`, `build`, `run` or `verify` operations. It emits
 separate coverage/native simulation/correspondence checks and portable
@@ -97,6 +99,12 @@ a new attempt; start a new run to use edited sources. Worker crashes become
 `interrupted` on the next status/read. Owned child processes are identified by
 PID and Linux process start time before recovery terminates them. Staging remains
 available for diagnosis even when publication itself fails.
+
+Workbench/MCP `job_start` replays a previously accepted `requestId` from durable
+storage before reading the current manifests. Reconnects still recover the same
+job if the design or lock file is missing or an invalid draft. Different
+target/reuse parameters remain conflicts; a new request ID must validate the
+current inputs before execution. See [workbench tools](WORKBENCH_MCP.md).
 
 ## Project contract
 
@@ -320,6 +328,9 @@ their consumers stale. Missing, invalid, stale, failed or inconclusive required
 checks block readiness. A target with no required checks cannot be release-ready.
 Run comparison reports byte identity and preserved context, not numerical timing
 equivalence across different corners or constraints.
+Numeric metric deltas additionally require explicit nonempty matching reported
+contexts, scopes, fields and units. Absent/null/empty context is unknown, with
+`comparable: false` and `delta: null`; the observed quantities remain visible.
 
 Records and payloads live under `.chipsim/design/records` and `objects`, addressed
 by SHA-256. Staging and mutable job state live under `jobs`; successful result

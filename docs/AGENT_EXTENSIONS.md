@@ -1,5 +1,7 @@
 # ChipSim in Pi and prime-agent
 
+The shared text-first services are also registered as `chipsim_workbench_TOOL` (for example `chipsim_workbench_file_read` and `chipsim_workbench_job_start`). Each takes an explicit `project` plus the same bounded arguments as the corresponding MCP tool. File edits do not depend on host filesystem tools. See [WORKBENCH_MCP.md](WORKBENCH_MCP.md). Existing `chipsim_command` accepts the `workbench` family, and snapshots include `schematic`.
+
 Start with [AGENT_QUICKSTART.md](AGENT_QUICKSTART.md). `chipsim_command` accepts
 `evolution` and `circuit` literal argument arrays. Discover guide paths with
 `{args:["agent","help"]}`. For native ALU evaluation, allow its 300-second

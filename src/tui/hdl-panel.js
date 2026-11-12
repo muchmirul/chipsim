@@ -28,10 +28,14 @@ export class HdlPanel {
           label: "Run Verilog / VHDL project · source / RTL / signals",
           value: "run",
         },
-        {
-          label: "Compare current trace with VCD / trace JSON",
-          value: "compare",
-        },
+        ...(app.state.netlistGraph
+          ? []
+          : [
+              {
+                label: "Compare current trace with VCD / trace JSON",
+                value: "compare",
+              },
+            ]),
         { label: "Run waveform only · no debug recording", value: "wave-run" },
         { label: "Open debug recording / debug session", value: "debug-open" },
       ],

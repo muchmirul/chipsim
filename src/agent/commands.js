@@ -261,6 +261,8 @@ export async function agentCommand(args) {
             "AGENT_QUICKSTART.md",
             "AGENT_WORK.md",
             "AGENT_EXTENSIONS.md",
+            "WORKBENCH_MCP.md",
+            "TINYTAPEOUT.md",
             "EVOLUTION.md",
             "CONNECTED_CIRCUITS.md",
             "AGENT_CIRCUITS.md",

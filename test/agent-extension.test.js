@@ -1,3 +1,4 @@
+import { workbenchTools } from "../src/workbench/schema.js";
 import { referenceTest, extractReferencePDF } from "./reference-fixtures.js";
 const test = referenceTest([
   "native tool mappings cover every agent command and preserve literal text and zero offsets",
@@ -93,7 +94,7 @@ test("native tool mappings cover every agent command and preserve literal text a
     ),
     ["agent", "search", "--offset", "0", "--", ".", "--out $(touch NEVER)"],
   );
-  assert.equal(registry().tools.size, 37);
+  assert.equal(registry().tools.size, 37 + workbenchTools.length);
   assert.equal(
     nodeCommand({ CHIPSIM_NODE: "/opt/node" }, { bun: "1" }),
     "/opt/node",

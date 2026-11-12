@@ -1,5 +1,7 @@
 # Developing ChipSim
 
+Text-first project services live in `src/workbench/`; CLI, native extensions and the optional `extensions/mcp/` SDK transport share their schemas and execution/evidence services. `npm run test:mcp` exercises the official SDK and native HDL/Yosys; `npm run test:tinytapeout` runs the explicit external physical toolchain on disposable public fixtures. Neither runner substitutes archived results.
+
 `src/tables/` owns bounded CSV parsing, model-stimulus validation and the
 `table registers|stimulus` headless commands. Register CSV reuses the explicit
 register-bank interpreter and source/check gate, with CSV provenance and one

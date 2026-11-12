@@ -7,7 +7,12 @@ import {
 import { debugDetails } from "./debug-render.js";
 import { searchBits } from "../hdl/values.js";
 
-const paneForView = { wave: "signals", inspect: "hardware", program: "source" };
+const paneForView = {
+  wave: "signals",
+  inspect: "hardware",
+  program: "source",
+  schematic: "hardware",
+};
 export class DebugPanel {
   constructor(app) {
     this.app = app;

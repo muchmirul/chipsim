@@ -1,0 +1,9 @@
+read_verilog -sv engine.sv
+hierarchy -check -top control_engine
+proc
+opt
+memory
+opt
+check -assert
+write_json netlist.json
+stat
