@@ -10,6 +10,7 @@ import { validateModel } from "../model/validate.js";
 import { runChecks } from "../model/engine.js";
 import { AgentError, readJSON } from "./io.js";
 import { referencePath, referenceAvailable } from "../documents/references.js";
+import { documentationPaths, agentConnections } from "./discovery.js";
 
 const packageRoot = resolve(import.meta.dirname, "../..");
 const normalized = (value) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -222,6 +223,7 @@ export function buildProgrammingContext({
       source,
     },
     project,
+    connections: agentConnections(),
     chips: chips.map((chip) => ({
       id: chip.id,
       name: chip.title,
@@ -311,26 +313,7 @@ export function buildProgrammingContext({
           ? join(project, "examples", basename(example.path))
           : join(packageRoot, example.path),
     })),
-    documentation: Object.fromEntries(
-      [
-        "AGENT_CONTROL.md",
-        "AGENT_QUICKSTART.md",
-        "EVOLUTION.md",
-        "EVOLUTION_OBJECTIVES.md",
-        "AGENT_WORK.md",
-        "DESIGN_INPUTS.md",
-        "DESIGN.md",
-        "HDL.md",
-        "HDL_DEBUG.md",
-        "HDL_ENVIRONMENT.md",
-        "CONNECTED_CIRCUITS.md",
-        "AGENT_CIRCUITS.md",
-        "PROGRAMMING.md",
-        "MODEL_FORMAT.md",
-        "AGENT_WORKFLOW.md",
-        "EXISTING_SIMULATORS.md",
-      ].map((name) => [name, join(packageRoot, "docs", name)]),
-    ),
+    documentation: documentationPaths(),
     diagnostics,
   };
 }
@@ -419,6 +402,8 @@ export function programmingContextMarkdown(context) {
     "",
     "## Agent control and live progress",
     "",
+    `Connection guide: ${context.documentation["AGENT_CONNECTIONS.md"]}. Native extension: ${context.documentation["AGENT_EXTENSIONS.md"]}. Workbench/MCP: ${context.documentation["WORKBENCH_MCP.md"]}. Physical flow: ${context.documentation["TINYTAPEOUT.md"]}.`,
+    "The connections object in programming-context.json discovers CLI, native tools and MCP setup without probing or installing them. This model context remains limited to .chip experiments. For arbitrary RTL/design directories use workbench project or design status; for finite control images use design guide programmable, and for the pinned physical flow use design guide tinytapeout.",
     `Read the installed agent-control guide: ${context.documentation["AGENT_CONTROL.md"]}. Prepared projects also carry docs/AGENT_CONTROL.md and docs/AGENT_WORK.md.`,
     `Quickstart: ${context.documentation["AGENT_QUICKSTART.md"]}. Native benchmark CLI: ${context.documentation["EVOLUTION.md"]}. Separate multi-objective workflow runner: ${context.documentation["EVOLUTION_OBJECTIVES.md"]}. Prepared projects copy these guides into docs/.`,
     "Use chipsim agent help for current command/documentation and external evolution-example paths. Saved context is not an inventory of installed EDA tools.",

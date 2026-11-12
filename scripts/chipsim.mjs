@@ -59,7 +59,7 @@ export async function main(args = process.argv.slice(2)) {
   if (args.includes("--help") || args.includes("-h")) {
     process.stdout.write(usage);
     process.stdout.write(
-      "CSV tables: chipsim table registers|stimulus · table help.\nProject commands: chipsim design commands · design guide [TOPIC] · design status --project PROJECT · design help · job · artifact · checks.\nEvolution: chipsim evolution help · benchmarks, evaluation, reports, comparison and reproduction.\nCoding agents: chipsim agent help · local PDF search, validation and trace artifacts without a TTY.\n",
+      "Agent connections: chipsim agent help (connections, installed guides and examples).\nWorkbench tools: chipsim workbench tools · workbench TOOL --project DIRECTORY --input JSON.\nMCP stdio server: chipsim mcp --project DIRECTORY (optional SDK installation; see AGENT_CONNECTIONS.md).\nCSV tables: chipsim table registers|stimulus · table help.\nProject commands: chipsim design commands · design guide [TOPIC] · design status --project PROJECT · design help · job · artifact · checks.\nEvolution: chipsim evolution help · benchmarks, evaluation, reports, comparison and reproduction.\nModel context: chipsim agent context CHIP_OR_PREPARED_PROJECT · PDF search, validation and trace artifacts without a TTY.\n",
     );
     return;
   }

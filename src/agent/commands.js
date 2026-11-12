@@ -23,6 +23,7 @@ import {
 } from "./work.js";
 import metadata from "../../package.json" with { type: "json" };
 import { designGuidance } from "../design/guide.js";
+import { documentationPaths, agentConnections } from "./discovery.js";
 
 const commands = {
   help: { positionals: [], options: {} },
@@ -228,6 +229,7 @@ export async function agentCommand(args) {
         toolVersion: metadata.version,
         commands,
         designGuidance: designGuidance(),
+        connections: agentConnections(),
         work: {
           modes: ["task", "evolution"],
           eventKinds: [
@@ -254,33 +256,16 @@ export async function agentCommand(args) {
           retention:
             "Immutable records; capacity errors preserve existing sessions/events. No automatic deletion.",
         },
-        documentation: Object.fromEntries(
-          [
-            "AGENT_CONTROL.md",
-            "AGENT_WORKFLOW.md",
-            "AGENT_QUICKSTART.md",
-            "AGENT_WORK.md",
-            "AGENT_EXTENSIONS.md",
-            "WORKBENCH_MCP.md",
-            "TINYTAPEOUT.md",
-            "EVOLUTION.md",
-            "CONNECTED_CIRCUITS.md",
-            "AGENT_CIRCUITS.md",
-            "EVOLUTION_OBJECTIVES.md",
-            "DESIGN_INPUTS.md",
-            "LOCAL_REFERENCES.md",
-            "LICENSING.md",
-            "CSV_INPUTS.md",
-            "DESIGN.md",
-            "HDL.md",
-            "HDL_DEBUG.md",
-            "HDL_ENVIRONMENT.md",
-            "MODEL_FORMAT.md",
-            "PROGRAMMING.md",
-            "EXISTING_SIMULATORS.md",
-          ].map((name) => [name, join(packageRoot, "docs", name)]),
-        ),
+        documentation: documentationPaths(),
         examples: {
+          programmable: {
+            directory: join(packageRoot, "examples/workbench/programmable"),
+            guide: join(
+              packageRoot,
+              "examples/workbench/programmable/README.md",
+            ),
+            targets: ["simulation", "synthesis"],
+          },
           rtlVerification: {
             directory: join(packageRoot, "examples/design/ready-valid-fifo"),
             guide: join(

@@ -4,6 +4,17 @@ Start with [the agent quickstart](docs/AGENT_QUICKSTART.md) and
 [the control guide](docs/AGENT_CONTROL.md). These instructions are installed at
 the project root; guides live under `docs/`.
 
+Choose a connection using [docs/AGENT_CONNECTIONS.md](docs/AGENT_CONNECTIONS.md).
+Current `agent help` and `programming-context.json.connections` discover CLI,
+native extension and optional MCP setup; discovery installs nothing. Workbench
+file/candidate/job tools use the schemas from `workbench tools`. Native calls
+take `project`; MCP binds one existing project root and exposes the workbench
+family, not every CLI command. Read `docs/WORKBENCH_MCP.md` for CAS edits,
+request-ID recovery, candidate isolation and verified source/event/netlist queries.
+Use `design guide programmable` for finite control images and
+`design guide tinytapeout` / `docs/TINYTAPEOUT.md` for pinned physical inputs.
+Installed `examples.programmable` is discoverable through help, not copied here.
+
 Original hardware specifications can also use CSV register/stimulus inputs.
 See `docs/CSV_INPUTS.md` and `chipsim table help`. CSV register experiments need
 no PDF; this prepared project's existing model/program source gates remain

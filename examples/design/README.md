@@ -1,5 +1,11 @@
 # Artifact graph integration fixtures
 
+For fixed hardware with two explicit control images, use the separate
+[programmable fixture](../workbench/programmable/README.md), discoverable through
+`design guide programmable` and `agent help` → `examples.programmable`.
+The pinned Tiny Tapeout/LibreLane path uses `design guide tinytapeout` and
+[its physical guide](../../docs/TINYTAPEOUT.md), rather than the ORFS fixtures below.
+
 [`ready-valid-fifo`](ready-valid-fifo/README.md) is the complete memory-bearing
 RTL example: scoped observer debug, a three-configuration independent scoreboard,
 Yosys synthesis, generated-netlist simulation and EQY induction. Its acceptance

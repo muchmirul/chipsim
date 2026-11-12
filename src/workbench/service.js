@@ -20,6 +20,7 @@ import {
 import { checksForTarget, compareRuns } from "../design/service.js";
 import { adapters } from "../design/adapters.js";
 import { workbenchTools, validate } from "./schema.js";
+import { agentDocumentation } from "../agent/discovery.js";
 import {
   fileList,
   fileSearch,
@@ -44,6 +45,10 @@ export const guidePath = fileURLToPath(
   new URL("../../docs/WORKBENCH_MCP.md", import.meta.url),
 );
 const guides = {
+  connections: "AGENT_CONNECTIONS.md",
+  quickstart: "AGENT_QUICKSTART.md",
+  control: "AGENT_CONTROL.md",
+  native: "AGENT_EXTENSIONS.md",
   workbench: "WORKBENCH_MCP.md",
   design: "DESIGN.md",
   inputs: "DESIGN_INPUTS.md",
@@ -53,6 +58,7 @@ const guides = {
   circuit: "CONNECTED_CIRCUITS.md",
 };
 const starterFiles = [
+  "README.md",
   "chipsim.design.json",
   "chipsim.lock.json",
   "contract.json",
@@ -64,6 +70,11 @@ const starterFiles = [
   "synthesis.ys",
 ];
 export const workbenchResources = [
+  ...agentDocumentation.map((name) => ({
+    uri: "chipsim://docs/" + name,
+    name,
+    mimeType: "text/markdown",
+  })),
   ...Object.entries(guides).map(([topic, file]) => ({
     uri: "chipsim://guide/" + topic,
     name: file,
@@ -413,6 +424,18 @@ export async function createWorkbench(path) {
     const parsed = new URL(value);
     if (parsed.protocol !== "chipsim:")
       throw new Error("Expected chipsim resource URI");
+    if (
+      parsed.host === "docs" &&
+      agentDocumentation.includes(parsed.pathname.slice(1))
+    )
+      return {
+        uri: value,
+        mimeType: "text/markdown",
+        text: await readFile(
+          new URL("../../docs/" + parsed.pathname.slice(1), import.meta.url),
+          "utf8",
+        ),
+      };
     if (parsed.host === "guide" && parsed.pathname === "/recipes") {
       const { designGuide } = await import("../design/guide.js");
       for (const key of parsed.searchParams.keys())

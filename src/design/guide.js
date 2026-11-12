@@ -7,6 +7,83 @@ const input = (role, formats, whenMissing) => ({ role, formats, whenMissing });
 // Advisory knowledge, not another planner or an execution policy. Keep paths
 // relative to the installed package, so discovery works outside the checkout.
 const recipes = {
+  programmable: {
+    purpose:
+      "Keep fixed RTL separate from explicit finite control images and compare captured hardware/program roles.",
+    adapters: ["program-image", "hdl", "command"],
+    minimumInputs: [
+      input(
+        "Explicit capability contract",
+        ["chipsim-program-contract v1 JSON"],
+        "Declare wordWidth, depth, instruction encodings, cycle durations and finite resource capacities; validate against the actual RTL interface.",
+      ),
+      input(
+        "Control program",
+        ["chipsim-program v1 JSON"],
+        "Declare supported op/value words and exact consecutive issue cycles. No implicit waits, scheduling, native ISA inference or hardware rewriting.",
+      ),
+      input(
+        "Independent hardware and harness",
+        ["RTL", "HDL manifest/testbench"],
+        "Create the actual loader/engine and independent result assertions. Bind out/program.hex to the HDL manifest asset path; contract validation alone does not prove hardware behavior.",
+      ),
+    ],
+    tools: [
+      "Node.js for program-image",
+      "Icarus/GHDL observer tools for default HDL debug",
+      "Yosys for the starter's synthesis target",
+    ],
+    outputs: [
+      "out/program.hex",
+      "out/program-validation.json",
+      "recorded HDL evidence",
+      "Yosys JSON netlist",
+    ],
+    example: "examples/workbench/programmable",
+    commands: [
+      ["design", "run", "--project", "PROJECT", "--target", "simulation"],
+      ["--netlist", "YOSYS.json"],
+    ],
+    notes: [
+      "The starter runs two four-word images against unchanged hardware and independent assertions. Engineering role labels and matching image encodings do not establish whole-design equivalence or physical PPA.",
+    ],
+  },
+  tinytapeout: {
+    purpose:
+      "Run the pinned local Tiny Tapeout/LibreLane IHP physical flow and native precheck without uploading a submission.",
+    adapters: ["tinytapeout"],
+    minimumInputs: [
+      input(
+        "Project sources and flow configuration",
+        ["info.yaml", "src/", "tt/", "flow-pins.json"],
+        "Prepare the real top, RTL and explicit flow configuration; capture the reviewed public support-tool bytes and exact revision/image/version pins. Preserve the requested tile size.",
+      ),
+      input(
+        "Installed locked physical dependencies",
+        [
+          "ihp-sg13cmos5l PDK",
+          "LibreLane Python",
+          "precheck Python",
+          "digest-pinned container",
+        ],
+        "Locate compatible installed dependencies; inventory the PDK in chipsim.lock.json, declare python/precheckPython/pdkRoot, and follow docs/TINYTAPEOUT.md. No implicit downloads or tool installation.",
+      ),
+    ],
+    tools: [
+      "Explicit LibreLane and precheck Python environments",
+      "Docker with the pinned LibreLane image",
+      "Locked ihp-sg13cmos5l PDK",
+    ],
+    outputs: [
+      "native layout and submission files",
+      "metrics/resolved configuration/SDCs",
+      "precheck xUnit XML",
+      "separate timing/DRC/LVS/precheck verdicts",
+    ],
+    notes: [
+      "There is no bundled runnable PDK/project. The explicit test:tinytapeout runner prepares a disposable public fixture only after required external paths are supplied. Missing/skipped physical checks remain inconclusive; packaging submission files never publishes them.",
+    ],
+  },
   circuit: {
     purpose:
       "Inspect complete connected state/next-state rules and verify supported HDL correspondence.",
@@ -282,6 +359,7 @@ const recipes = {
     example: "examples/design/peripheral",
     notes: [
       "Configure timing/DRC/LVS report checks and run the corresponding flow stages. A GDS file or successful command alone is not physical verification or foundry signoff.",
+      "For the separate pinned IHP Tiny Tapeout/LibreLane adapter, use design guide tinytapeout and docs/TINYTAPEOUT.md; its input contract differs from ORFS.",
       "Bind an existing/generated ODB to finite OpenROAD-MCP calls if inspection is useful; this is optional and does not create a proof of correctness.",
     ],
   },
@@ -318,6 +396,13 @@ const recipes = {
 };
 
 const formats = [
+  {
+    extensions: [".json"],
+    role: "Explicit finite program/capability contract or static Yosys netlist",
+    support:
+      "program-image consumes chipsim-program and chipsim-program-contract v1 JSON. --netlist inspects Yosys modules/cells/ports without simulation values. Inspect the declared format; an arbitrary JSON file is not an executable chip.",
+    guide: "programmable",
+  },
   {
     extensions: [".csv"],
     role: "Developer-authored register maps or normalized model stimulus",
@@ -452,6 +537,9 @@ export function designGuide(topic = "overview") {
       circuit: installed("docs/CONNECTED_CIRCUITS.md"),
       circuitAgent: installed("docs/AGENT_CIRCUITS.md"),
       programming: installed("docs/PROGRAMMING.md"),
+      connections: installed("docs/AGENT_CONNECTIONS.md"),
+      workbench: installed("docs/WORKBENCH_MCP.md"),
+      tinytapeout: installed("docs/TINYTAPEOUT.md"),
     },
     argumentConvention:
       "Command arrays omit the chipsim executable. Uppercase placeholders are replaced with actual paths/IDs; never pass them literally. Commands are alternatives or suggestions, not an automatic sequence.",

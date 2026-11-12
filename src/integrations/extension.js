@@ -3,6 +3,7 @@ import { resolve, join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { chipsimCLI, nodeCommand, runChipSim } from "./process.js";
 import { workbenchTools } from "../workbench/schema.js";
+import { views } from "../tui/views.js";
 
 // Explicit mappings prevent shell interpretation and keep every path relative
 // to the current tool context, including after an agent changes projects.
@@ -378,7 +379,7 @@ export function commandArguments(args = []) {
           argv[argv.indexOf("--format") + 1] === "text")));
   if (!headless && !textOutput)
     throw new Error(
-      "Pass ChipSim arguments starting with agent, hdl, circuit, table, design, job, artifact, checks or evolution; use --snapshot for a terminal frame, or help for discovery. Open the interactive TUI with /chipsim.",
+      "Pass ChipSim arguments starting with workbench, agent, hdl, circuit, table, design, job, artifact, checks or evolution; use --snapshot for a terminal frame, or help for discovery. Launch the persistent MCP server through an MCP client; open the interactive TUI with /chipsim.",
     );
   return { args: argv, textOutput };
 }
@@ -427,6 +428,9 @@ function launchCommand(args) {
     .join(" ");
 }
 
+const tuiUsage =
+  "/chipsim [PROJECT | --agent PROJECT | --design PROJECT | --session FILE | --model ID | --vcd FILE | --hdl-debug FILE | --circuit FILE | --netlist FILE]";
+
 export function tuiArguments(input, cwd) {
   const text = input.trim();
   if (!text)
@@ -436,7 +440,7 @@ export function tuiArguments(input, cwd) {
         ? ["--watch", cwd]
         : [];
   const match =
-    /^(--session|--model|--vcd|--hdl-debug|--design|--agent)\s+(.+)$/s.exec(
+    /^(--session|--model|--vcd|--hdl-debug|--circuit|--netlist|--design|--agent)\s+(.+)$/s.exec(
       text,
     );
   if (match) {
@@ -451,10 +455,7 @@ export function tuiArguments(input, cwd) {
       resolve(cwd, value),
     ];
   }
-  if (text.startsWith("--"))
-    throw new Error(
-      "Use /chipsim [PROJECT | --agent PROJECT | --session FILE | --model ID | --vcd FILE].",
-    );
+  if (text.startsWith("--")) throw new Error("Use " + tuiUsage + ".");
   const project = resolve(cwd, unquote(text));
   if (existsSync(join(project, "chipsim.design.json")))
     return ["--design", project];
@@ -488,10 +489,31 @@ export function registerChipSim(
       },
       async execute(_id, params, signal, _update, ctx) {
         const { project, ...args } = params;
-        const { createWorkbench } = await import("../workbench/service.js");
-        const result = await (
-          await createWorkbench(resolve(ctx.cwd, project))
-        ).call(tool.name, args, { signal });
+        let result;
+        try {
+          // Use the same packaged Node boundary as the other tools. A compiled
+          // host's executable (for example Bun) is not the managed Node worker.
+          result = await run(
+            [
+              "workbench",
+              tool.name,
+              "--project",
+              resolve(ctx.cwd, project),
+              "--input",
+              "-",
+            ],
+            { cwd: ctx.cwd, signal, input: JSON.stringify(args) },
+          );
+        } catch (error) {
+          const failure = error.details?.result;
+          if (
+            error.details?.reason ||
+            failure?.format !== "chipsim-workbench-result" ||
+            failure.ok !== false
+          )
+            throw error;
+          result = failure;
+        }
         return {
           content: [{ type: "text", text: JSON.stringify(result) }],
           details: result,
@@ -503,7 +525,7 @@ export function registerChipSim(
     name: "chipsim_command",
     label: "ChipSim command",
     description:
-      'General ChipSim controller. Pass literal CLI arguments without the executable, e.g. {"args":["design","run","--project",".","--target","simulation"]}. Empty args or ["help"] lists usage; ["design","commands"] returns machine-readable commands and integration formats. Before preparing chip inputs, ["design","guide"] or ["design","guide","rtl"] gives optional recipes, minimum files, missing-input preparation and installed examples; inspect/reuse existing work, then create/find/prepare prerequisites instead of requiring generated outputs from the user. Guidance does not enforce a workflow or execute tools. design status --project PATH returns current checks and next actions. ["evolution","list"] and ["evolution","describe","--benchmark","alu8"] discover text-based RTL evaluation; use evolution report/compare/reproduce to inspect saved evidence and increase timeoutMs for ALU, formal or search. ["agent","help"] returns installed agent quickstart and evolution guide paths. ["circuit","help"] describes connected state models, rule coverage and native correspondence; ["table","help"] describes CSV register and stimulus inputs without a PDF; ["hdl","help"] and ["agent","help"] give other family details. Supports jobs, artifacts, checks and --snapshot. Paths resolve in the current call’s cwd. Start durable jobs without --wait; poll job status with --wait --timeout-ms 1000 and job logs using its cursor; job cancel explicitly cancels them. Uses the existing CLI validation and evidence gates.',
+      'General ChipSim controller. Workbench discovery and schemas: {"args":["workbench","tools"]}; use named chipsim_workbench_TOOL for file editing, candidates, durable request IDs and linked inspection. Pass literal CLI arguments without the executable, e.g. {"args":["design","run","--project",".","--target","simulation"]}. Empty args or ["help"] lists usage; ["design","commands"] returns machine-readable commands and integration formats. Before preparing chip inputs, ["design","guide"] or ["design","guide","rtl"] gives optional recipes, minimum files, missing-input preparation and installed examples; inspect/reuse existing work, then create/find/prepare prerequisites instead of requiring generated outputs from the user. Guidance does not enforce a workflow or execute tools. design status --project PATH returns current checks and next actions. ["evolution","list"] and ["evolution","describe","--benchmark","alu8"] discover text-based RTL evaluation; use evolution report/compare/reproduce to inspect saved evidence and increase timeoutMs for ALU, formal or search. ["agent","help"] returns installed agent quickstart and evolution guide paths. ["circuit","help"] describes connected state models, rule coverage and native correspondence; ["table","help"] describes CSV register and stimulus inputs without a PDF; ["hdl","help"] and ["agent","help"] give other family details. Supports jobs, artifacts, checks and --snapshot. Paths resolve in the current call’s cwd. Start durable jobs without --wait; poll job status with --wait --timeout-ms 1000 and job logs using its cursor; job cancel explicitly cancels them. Uses the existing CLI validation and evidence gates.',
     parameters: Type.Object(
       {
         args: Type.Optional(
@@ -590,7 +612,7 @@ export function registerChipSim(
     name: "chipsim_snapshot",
     label: "ChipSim terminal snapshot",
     description:
-      "Render a terminal frame from one model/session, waveform, HDL debug recording, design project or agent-work project. Use agent for reported live work, design for project/checks, or hdlDebug with atEvent for recorded debugging. Rendering does not execute jobs, publish events, or press TUI keys.",
+      "Render a terminal frame from one model/session, waveform, HDL debug recording, connected circuit, static Yosys netlist, design project or agent-work project. Use netlist for static connectivity (no event cursor), agent for reported live work, design for project/checks, or hdlDebug with atEvent for recorded debugging. Rendering does not execute jobs, publish events, or press TUI keys.",
     parameters: Type.Object(
       {
         model: Type.Optional(
@@ -604,30 +626,18 @@ export function registerChipSim(
               "VCD/waveform JSON path; mutually exclusive with model.",
           }),
         ),
-        view: Type.Optional(
-          Type.Union(
-            [
-              "wave",
-              "inspect",
-              "log",
-              "sources",
-              "model",
-              "registers",
-              "stimulus",
-              "activity",
-              "program",
-              "states",
-              "flow",
-              "compare",
-              "debug",
-              "schematic",
-              "project",
-              "pipeline",
-              "artifacts",
-              "checks",
-            ].map((v) => Type.Literal(v)),
-          ),
+        circuit: Type.Optional(
+          Type.String({
+            description: "Connected circuit source or session path.",
+          }),
         ),
+        netlist: Type.Optional(
+          Type.String({
+            description:
+              "Yosys JSON netlist; static connectivity without simulation values.",
+          }),
+        ),
+        view: Type.Optional(Type.Union(views.map((v) => Type.Literal(v)))),
         at: Type.Optional(Type.Integer({ minimum: 0 })),
         hdlDebug: Type.Optional(
           Type.String({
@@ -654,18 +664,22 @@ export function registerChipSim(
           params.model,
           params.waveform,
           params.hdlDebug,
+          params.circuit,
+          params.netlist,
           params.design,
           params.agent,
         ].filter(Boolean).length > 1
       )
         throw new Error(
-          "Choose model, waveform, HDL debug recording, design project, or agent-work project.",
+          "Choose one snapshot source: model, waveform, hdlDebug, circuit, netlist, design or agent.",
         );
       const args = ["--snapshot", "--no-color"];
       for (const key of [
         "model",
         "waveform",
         "hdlDebug",
+        "circuit",
+        "netlist",
         "atEvent",
         "design",
         "agent",
@@ -692,18 +706,30 @@ export function registerChipSim(
         details: {
           view:
             params.view ||
-            (params.agent ? "activity" : params.design ? "project" : "wave"),
+            (params.agent
+              ? "activity"
+              : params.design
+                ? "project"
+                : params.netlist
+                  ? "schematic"
+                  : params.circuit
+                    ? "circuit"
+                    : params.hdlDebug
+                      ? "debug"
+                      : "wave"),
         },
       };
     },
   });
   agent.registerCommand("chipsim", {
     description:
-      "Open ChipSim TUI or show a separate-terminal launch command: [PROJECT | --agent PROJECT | --session FILE | --model ID | --vcd FILE].",
+      "Open ChipSim TUI or show a separate-terminal launch command: " +
+      tuiUsage,
     async handler(args, ctx) {
       if (args.trim() === "--help") {
         ctx.ui.notify(
-          "/chipsim [PROJECT | --agent PROJECT | --session FILE | --model ID | --vcd FILE] · Pi/in-process: q returns to the agent; prime-agent daemon: separate-terminal command. Use chipsim_context first, then check/run tools.",
+          tuiUsage +
+            " · Pi/in-process: q returns to the agent; prime-agent daemon: separate-terminal command. Start with chipsim_help for connections; use workbench project for RTL directories and chipsim_context for models/prepared PDFs.",
           "info",
         );
         return;

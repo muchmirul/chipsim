@@ -63,7 +63,17 @@ list. Original bytes remain available. `timing` checks final setup/hold violatio
 counts across reported corners; `drc` checks KLayout's error count; `lvs` checks
 the flow LVS error count. `precheck` parses actual xUnit cases and fails on native
 failures; absent/skipped cases are inconclusive. Missing/disabled DRC does not
-pass. Select required checks explicitly in the target policy:
+pass.
+
+The separate `physical-metrics` check reports final standard-cell area in
+`um^2` and standard-cell count in `count`. It requires a finite area and completed,
+intact native reports to pass, but sets no optimization threshold or aggregate
+score; missing measured quantities remain null. Include it in the target policy
+when those measurements are required evidence. Connection/recipe discovery is
+available through [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md) and
+`design guide tinytapeout`.
+
+Select required checks explicitly in the target policy:
 
 ```json
 {

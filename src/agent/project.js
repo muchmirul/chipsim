@@ -2,6 +2,7 @@ import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { resolve, join } from "node:path";
 import { tmpdir } from "node:os";
+import { agentDocumentation } from "./discovery.js";
 import { extractPDFFile } from "../documents/extract-node.js";
 import { sourceBundle } from "../documents/recognize.js";
 import { analyzeDocument } from "../model/from-document.js";
@@ -61,34 +62,7 @@ export async function prepareProject(pdf, output) {
       diagnostics: analysis.diagnostics,
     });
     await mkdir(join(root, "docs"));
-    for (const file of [
-      "MODEL_FORMAT.md",
-      "AGENT_CONTROL.md",
-      "AGENT_WORKFLOW.md",
-      "AGENT_QUICKSTART.md",
-      "AGENT_EXTENSIONS.md",
-      "WORKBENCH_MCP.md",
-      "TINYTAPEOUT.md",
-      "AGENT_WORK.md",
-      "EVOLUTION.md",
-      "EVOLUTION_OBJECTIVES.md",
-      "CONNECTED_CIRCUITS.md",
-      "AGENT_CIRCUITS.md",
-      "CHANGELOG.md",
-      "TUI.md",
-      "VISUALIZATION.md",
-      "DEVELOPMENT.md",
-      "PROGRAMMING.md",
-      "EXISTING_SIMULATORS.md",
-      "HDL.md",
-      "HDL_DEBUG.md",
-      "HDL_ENVIRONMENT.md",
-      "DESIGN.md",
-      "DESIGN_INPUTS.md",
-      "LOCAL_REFERENCES.md",
-      "LICENSING.md",
-      "CSV_INPUTS.md",
-    ])
+    for (const file of agentDocumentation)
       await copyFile(join(packageRoot, "docs", file), join(root, "docs", file));
     await mkdir(join(root, "examples"));
     await copyFile(

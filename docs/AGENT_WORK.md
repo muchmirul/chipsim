@@ -8,6 +8,10 @@ search use the same journal. Any existing local directory works; no PDF or
 For the wider agent control surface, discovery and evidence workflow, start with
 [AGENT_CONTROL.md](AGENT_CONTROL.md). For native Pi/prime-agent calls, see
 [AGENT_EXTENSIONS.md](AGENT_EXTENSIONS.md).
+Choose the actual transport with [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md).
+The work-journal commands below are CLI/native tools. The MCP server exposes
+the workbench family for project files, durable jobs and evidence; it does not
+implicitly expose `work-start`, `work-event` or `work-status` as MCP tools.
 
 ## What this controls
 

@@ -15,6 +15,15 @@ flags; both use existing managed jobs/evidence and external OpenEvolve search.
 
 ## 1. Discover before acting
 
+Choose a transport with [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md).
+`agent help.connections` describes current CLI, native-tool and optional MCP
+entry points without configuring hosts or probing availability. Native
+`chipsim_workbench_TOOL` calls take an explicit project; MCP `chipsim_TOOL` calls
+use one bound existing root. Workbench `project` discovers any project directory,
+including an empty one; `agent context` remains for models/prepared PDFs.
+Read [WORKBENCH_MCP.md](WORKBENCH_MCP.md) for shared file/CAS/candidate/job/evidence
+schemas. MCP exposes that family, not all CLI commands or the work journal.
+
 For complete connected state/next-state modeling, use `circuit help` and
 [CONNECTED_CIRCUITS.md](CONNECTED_CIRCUITS.md), discoverable through `agent help`
 and `design guide circuit`. Keep static wiring, one-event probes, native
@@ -34,6 +43,7 @@ without creating a project or starting a hardware task:
 ```sh
 chipsim --help
 chipsim agent help
+chipsim workbench tools
 chipsim design commands
 chipsim design guide
 chipsim hdl help
@@ -45,6 +55,10 @@ result on stdout; preserve both that result and the process exit code. Treat
 stderr as diagnostics, not as another JSON response. Invalid arguments exit 2;
 validation, dependency or execution failures normally exit 1. A successful
 query or accepted job is not evidence of hardware correctness.
+Workbench service failures return `chipsim-workbench-result` with `ok: false`
+and exit 1. Workbench CLI bootstrap failures (missing project, malformed option
+pairs or invalid `--input` JSON) can fail on stderr before a service result is
+available. An MCP server uses protocol-only stdout, rather than one CLI result.
 
 Read the absolute path in `agent help` → `documentation["AGENT_CONTROL.md"]`
 for this installed guide. The same reply provides the other documentation paths
@@ -63,7 +77,7 @@ Read the project's own instructions and inspect existing files before creating
 anything. Confirm the requested output, allowed edits, target hardware, expected
 behavior, acceptance checks and permission to run tools. Input recipes from
 `design guide rtl`, `testbench`, `firmware`, `formal`, `physical`, `registers`,
-`waveform` or `model` are advisory, not a mandatory stage sequence. Create or
+`waveform`, `programmable`, `tinytapeout` or `model` are advisory, not a mandatory stage sequence. Create or
 find missing source files, manifests, tests and producers within the user's
 scope; do not fabricate generated evidence or require users to upload outputs
 that a configured task should generate.

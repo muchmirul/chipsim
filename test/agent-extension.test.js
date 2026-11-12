@@ -11,6 +11,8 @@ const test = referenceTest([
   "POSIX cancellation also kills an owned descendant that ignores SIGTERM",
   "snapshot CLI errors retain stderr in the error visible to the agent",
   "TUI slash command handles Pi/Prime modes and restores host after child failure",
+  "native workbench tools share the Node process boundary, literal arguments and structured failures",
+  "native inspection snapshots cover netlists and circuits with correct modes and exclusivity",
 ]);
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, writeFile, rm, access } from "node:fs/promises";
@@ -61,6 +63,193 @@ async function temporary(t) {
 }
 const invoke = (tools, name, params, cwd, signal) =>
   tools.get(name).execute("test", params, signal, undefined, { cwd });
+
+test("native workbench tools share the Node process boundary, literal arguments and structured failures", async (t) => {
+  const calls = [],
+    signal = new AbortController().signal;
+  const success = {
+    format: "chipsim-workbench-result",
+    version: 1,
+    ok: true,
+    result: {},
+  };
+  const mocked = registry({
+    run: async (args, options) => {
+      calls.push({ args, options });
+      return success;
+    },
+  }).tools;
+  const params = {
+    project: "chip project",
+    path: "rtl/top.sv",
+    text: "literal $(touch NEVER)\n",
+    expectedHash: null,
+  };
+  await invoke(
+    mocked,
+    "chipsim_workbench_file_write",
+    params,
+    "/tmp/first",
+    signal,
+  );
+  await invoke(
+    mocked,
+    "chipsim_workbench_project",
+    { project: "." },
+    "/tmp/second",
+  );
+  assert.deepEqual(calls[0].args.slice(0, 5), [
+    "workbench",
+    "file_write",
+    "--project",
+    "/tmp/first/chip project",
+    "--input",
+  ]);
+  assert.equal(calls[0].args[5], "-");
+  assert.deepEqual(JSON.parse(calls[0].options.input), {
+    path: params.path,
+    text: params.text,
+    expectedHash: null,
+  });
+  assert.equal(calls[0].options.signal, signal);
+  assert.equal(calls[0].options.cwd, "/tmp/first");
+  assert.equal(calls[1].args[3], "/tmp/second");
+  const failure = {
+    format: "chipsim-workbench-result",
+    version: 1,
+    ok: false,
+    error: { code: "EDIT_CONFLICT", message: "changed" },
+  };
+  const failing = registry({
+    run: async () => {
+      throw new ChipSimProcessError("failed", { result: failure });
+    },
+  }).tools;
+  const errorResult = await invoke(
+    failing,
+    "chipsim_workbench_file_write",
+    params,
+    "/tmp/first",
+  );
+  assert.deepEqual(errorResult.details, failure);
+  assert.equal(errorResult.isError, true);
+  const interrupted = registry({
+    run: async () => {
+      throw new ChipSimProcessError("cancelled", {
+        reason: "cancelled",
+        result: failure,
+      });
+    },
+  }).tools;
+  await assert.rejects(
+    () =>
+      invoke(
+        interrupted,
+        "chipsim_workbench_project",
+        { project: "." },
+        "/tmp/first",
+      ),
+    /cancelled/,
+  );
+  const broken = registry({
+    run: async () => {
+      throw new Error("missing Node");
+    },
+  }).tools;
+  await assert.rejects(
+    () =>
+      invoke(
+        broken,
+        "chipsim_workbench_project",
+        { project: "." },
+        "/tmp/first",
+      ),
+    /missing Node/,
+  );
+  const cwd = await temporary(t),
+    { tools } = registry();
+  const created = await invoke(
+    tools,
+    "chipsim_workbench_file_write",
+    { ...params, project: "." },
+    cwd,
+  );
+  assert.equal(created.details.ok, true);
+  assert.equal(await readFile(join(cwd, params.path), "utf8"), params.text);
+  const conflict = await invoke(
+    tools,
+    "chipsim_workbench_file_write",
+    { ...params, project: "." },
+    cwd,
+  );
+  assert.equal(conflict.details.error.code, "EDIT_CONFLICT");
+  assert.equal(conflict.isError, true);
+  const large = "x".repeat(1048576);
+  const largeResult = await invoke(
+    tools,
+    "chipsim_workbench_file_write",
+    { project: ".", path: "large.txt", text: large, expectedHash: null },
+    cwd,
+  );
+  assert.equal(largeResult.details.ok, true);
+  assert.equal(await readFile(join(cwd, "large.txt"), "utf8"), large);
+  const tooLarge = await invoke(
+    tools,
+    "chipsim_workbench_file_write",
+    {
+      project: ".",
+      path: "too-large.txt",
+      text: large + "x",
+      expectedHash: null,
+    },
+    cwd,
+  );
+  assert.equal(tooLarge.isError, true);
+});
+
+test("native inspection snapshots cover netlists and circuits with correct modes and exclusivity", async (t) => {
+  const cwd = await temporary(t),
+    file = join(cwd, "netlist.json");
+  await writeFile(
+    file,
+    JSON.stringify({
+      modules: { top: { ports: { q: { direction: "output", bits: [2] } } } },
+    }),
+  );
+  const { tools } = registry();
+  const frame = await invoke(
+    tools,
+    "chipsim_snapshot",
+    { netlist: file, columns: 80, rows: 24 },
+    cwd,
+  );
+  assert.match(frame.content[0].text, /synthesized netlist/);
+  assert.doesNotMatch(frame.content[0].text, /Selected: data/);
+  assert.equal(frame.details.view, "schematic");
+  const circuit = await invoke(
+    tools,
+    "chipsim_snapshot",
+    { circuit: join(root, "examples/connected-circuit/swap.json") },
+    cwd,
+  );
+  assert.equal(circuit.details.view, "circuit");
+  assert.match(circuit.content[0].text, /CONNECTED/);
+  await assert.rejects(
+    () =>
+      invoke(tools, "chipsim_snapshot", { netlist: file, model: "pio" }, cwd),
+    /Choose one snapshot source/,
+  );
+  await assert.rejects(
+    () =>
+      invoke(
+        tools,
+        "chipsim_snapshot",
+        { netlist: file, circuit: "circuit.json" },
+        cwd,
+      ),
+    /Choose one snapshot source/,
+  );
+});
 
 test("native tool mappings cover every agent command and preserve literal text and zero offsets", async () => {
   const help = await runChipSim(["agent", "help"], { cwd: root });
@@ -458,7 +647,7 @@ test("built-in program and terminal snapshot are controllable without an interac
   assert.match(snapshot.content[0].text, /CHIPSIM/);
   await assert.rejects(
     invoke(tools, "chipsim_snapshot", { model: "pio", waveform: "x.vcd" }, cwd),
-    /Choose model, waveform/,
+    /Choose one snapshot source/,
   );
 });
 
@@ -656,6 +845,11 @@ test("TUI slash command handles Pi/Prime modes and restores host after child fai
     "--model",
     resolve(cwd, "a path/session.json"),
   ]);
+  for (const flag of ["--netlist", "--circuit", "--hdl-debug", "--design"])
+    assert.deepEqual(tuiArguments(flag + " 'a path/input.json'", cwd), [
+      flag,
+      join(cwd, "a path/input.json"),
+    ]);
   await writeFile(join(cwd, "chipsim.project.json"), "{}");
   assert.deepEqual(tuiArguments("", cwd), ["--watch", cwd]);
   assert.throws(() => tuiArguments("--out something", cwd), /Use \/chipsim/);

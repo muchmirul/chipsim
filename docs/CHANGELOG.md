@@ -5,6 +5,39 @@ new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the
 changes below; it is not a reconstructed history of earlier features.
 
+## 2026-11-12 — Keep agent discovery and connection context current
+
+**Problem/use:** Agent guides described MCP as future work, programming context
+omitted new connection guides, and input recipes did not cover finite control
+images or Tiny Tapeout. **Behavior:** `agent help` and generated programming
+context expose `connections`; help, prepared projects and MCP documentation
+resources share `src/agent/discovery.js`. `AGENT_CONNECTIONS.md` routes CLI,
+native extension and MCP clients to their actual contracts. MCP lists all
+cataloged guides and the programmable starter README; `design guide programmable`
+and `tinytapeout` describe current inputs and limits. CLI help advertises both
+workbench and MCP entry points. Tiny Tapeout discovery includes its measured
+`physical-metrics` check alongside timing/DRC/LVS/precheck. Discovery does not probe tools, register clients
+or refresh old copied documentation. **Checks:** Source-free discovery/context,
+prepared-copy, installed-package and MCP resource tests verify real paths,
+content and tool/schema inventories.
+
+## 2026-11-12 — Align native tools with current inspection and worker runtimes
+
+**Problem/use:** Native snapshots lacked circuit/netlist sources, and workbench
+tools ran services inside the host runtime despite the existing Node CLI boundary.
+**Behavior:** `chipsim_snapshot` accepts `circuit` and `netlist`, shares the TUI
+view inventory, and reports source-appropriate default views. `/chipsim` accepts
+the corresponding circuit/netlist targets and advertises current launch forms.
+Workbench tools invoke the packaged Node CLI with current cwd, literal JSON arguments and
+cancellation; `CHIPSIM_NODE` handles compiled/Bun hosts. Workbench arguments
+stream over bounded UTF-8 stdin JSON (`--input -`), preserving the
+1 MiB file limit without operating-system argv limits. The transport accepts at
+most 8 MiB and retains the individual tool/schema bounds. Structured service
+failures retain their result envelope and `isError`; process failures still throw.
+Managed-job disconnect/cancel semantics are unchanged. **Checks:** Native tool
+process/argument/error tests, real workbench calls, host loader checks, snapshots
+and installed CLI acceptance; no provider/model turns or settings changes.
+
 ## 2026-11-12 — Resolve source freshness from captured HDL origins
 
 **Problem/use:** `workbench source` / `chipsim_source` treated every recording

@@ -1,5 +1,9 @@
 # ChipSim
 
+For agent setup, start with the [connection guide](docs/AGENT_CONNECTIONS.md):
+CLI subprocesses, Pi/prime-agent native tools and the optional MCP stdio server.
+`chipsim agent help` discovers current connection details, guides and examples.
+
 Text-first chip engineering is available through the [shared workbench and optional MCP server](docs/WORKBENCH_MCP.md). Use `chipsim mcp --project PATH` after `npm ci --prefix extensions/mcp`; agents can create/edit candidates, run durable targets, inspect linked source/events/netlists and export evidence. The terminal adds `--view schematic` for HDL recordings and `--netlist YOSYS.json` for static synthesis connectivity. [Tiny Tapeout / LibreLane](docs/TINYTAPEOUT.md) provides a pinned native physical-flow adapter.
 
 **Design, simulate and inspect digital hardware from one terminal.** ChipSim combines a linked HDL debugger, a versioned design workbench, source-backed behavioral models and coding-agent tools. Its TUI and headless commands share the same execution and evidence checks.
@@ -177,7 +181,16 @@ flowchart LR
 
 ## Coding-agent workflow
 
-Any agent with file access and process execution can use the CLI. **ChipSim supplies no LLM, provider account or API key.** Pi and prime-agent also have a shared native extension:
+Any agent with file access and process execution can use the CLI. **ChipSim supplies no LLM, provider account or API key.**
+
+MCP agents can author projects without host filesystem tools. Configure the
+process shown in [AGENT_CONNECTIONS.md](docs/AGENT_CONNECTIONS.md), then discover
+`chipsim_project`, the tool schemas and installed guide resources. CLI help and
+model context expose the same connection inventory; `agent context` remains for
+catalog models/prepared PDF projects, while workbench `project` discovers RTL
+directories. No connection is configured automatically.
+
+Pi and prime-agent also have a shared native extension:
 
 ```sh
 pi install /absolute/path/to/chipsim
@@ -194,7 +207,7 @@ chipsim_command({
 });
 ```
 
-`design commands` exposes validated arguments and integration formats. `design guide` supplies optional recipes for RTL, testbenches, waveforms, firmware, registers, formal, physical and model inputs; it writes nothing and executes no tools. `design status` returns current checks, readiness and suggested commands without running tool probes. Native design/job/artifact/check tools use the same CLI semantics and current call's working directory.
+`design commands` exposes validated arguments and integration formats. `design guide` supplies optional recipes for RTL, testbenches, waveforms, firmware, programmable control images, registers, formal, physical/Tiny Tapeout and model inputs; it writes nothing and executes no tools. `design status` returns current checks, readiness and suggested commands without running tool probes. Native design/job/artifact/check tools use the same CLI semantics and current call's working directory.
 
 In Pi, `/chipsim --model pio` borrows the terminal and `q` returns to the agent. Prime-agent's default daemon provides a separate-terminal command; `chipsim_snapshot` returns text. See [native extension setup](docs/AGENT_EXTENSIONS.md).
 

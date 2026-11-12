@@ -5,6 +5,12 @@ Use this playbook to operate the connected-state feature. Read
 and implementation acceptance results. Follow [AGENT_CONTROL.md](AGENT_CONTROL.md)
 for the general job/evidence lifecycle. These instructions require no provider,
 registration, tool installation or vendor PDF.
+Connection selection is in [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md).
+Direct `circuit` commands/probes use CLI or native `chipsim_command`. MCP agents
+can execute a configured connected-circuit managed target and inspect its checks
+and report artifacts through workbench tools; direct circuit commands are not
+implicitly MCP tool names. Static netlists and recorded HDL queries retain their
+separate abstraction and proof limits.
 
 ## Discover the active installation
 
@@ -34,14 +40,14 @@ when an agent starts from a catalog chip or prepared model project.
 
 ## Choose the representation before editing
 
-| User's task or input | Path to use |
-| --- | --- |
-| Explicit fixed wiring and complete binary rules/tables | Author `chipsim-circuit` JSON; check it and generate HDL from it. |
-| Existing supported SystemVerilog is authoritative | Import it through an existing Yosys; inspect the derived connections and original-RTL correspondence. |
-| One hypothetical old-state/input combination | `circuit step` with a complete explicit snapshot; this is a probe. |
-| Actual clock/input sequence and waveform | `circuit run` with explicit stimulus, or an existing HDL project. |
-| VHDL, async controls, latches, memories, multiple/gated clocks or X/Z | Use the appropriate native HDL workflow; connected v1 does not support these constructs. |
-| Existing ordinary JSON model with ordered actions | Preserve its semantics. Use a separate connected model if atomic register updates are needed. |
+| User's task or input                                                  | Path to use                                                                                           |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Explicit fixed wiring and complete binary rules/tables                | Author `chipsim-circuit` JSON; check it and generate HDL from it.                                     |
+| Existing supported SystemVerilog is authoritative                     | Import it through an existing Yosys; inspect the derived connections and original-RTL correspondence. |
+| One hypothetical old-state/input combination                          | `circuit step` with a complete explicit snapshot; this is a probe.                                    |
+| Actual clock/input sequence and waveform                              | `circuit run` with explicit stimulus, or an existing HDL project.                                     |
+| VHDL, async controls, latches, memories, multiple/gated clocks or X/Z | Use the appropriate native HDL workflow; connected v1 does not support these constructs.              |
+| Existing ordinary JSON model with ordered actions                     | Preserve its semantics. Use a separate connected model if atomic register updates are needed.         |
 
 Version 1 has one rising-edge clock, explicit initial clock zero and initialized
 binary state. State values update together from the same old-state snapshot.
@@ -77,7 +83,7 @@ chipsim circuit run circuit.json --stimulus stimulus.json --out new-recording
 For the installed swap example, a complete one-step snapshot is:
 
 ```json
-{"state":{"A":0,"B":1},"inputs":{"clk":1},"previousClock":0}
+{ "state": { "A": 0, "B": 1 }, "inputs": { "clk": 1 }, "previousClock": 0 }
 ```
 
 Its next state must be `A=1, B=0`. Every snapshot explicitly supplies **all**
@@ -129,17 +135,16 @@ logic and is not inferred from signal names.
 Preserve both exit status and the one JSON stdout result. Circuit commands use
 `format: "chipsim-circuit-result"`, version 1; errors normally have `error`, not
 the agent command family's `diagnostics` array. Exit 1 reports an unsuccessful
-evaluation/outcome; invalid arguments/files/schema may exit 2. Interrupts exit
-130. Inspect the payload as well as the code.
+evaluation/outcome; invalid arguments/files/schema may exit 2. Interrupts exit 130. Inspect the payload as well as the code.
 
-| Result | What an agent may conclude |
-| --- | --- |
-| `coverage.status: complete-scoped-proof` | All declared binary edge-domain cases have complete, agreeing winning rules. No reachability, temporal or RTL-equivalence proof follows. |
-| `status: built` | A checked representation was generated; no native run is implied. |
-| `status: simulation-only` | The stated native execution/correspondence scope passed. An exhaustive one-edge case set is still labeled simulation-only. |
-| `counterexample` | Inspect the supplied state/input snapshot or mismatch, including initialization failures; fix the authoritative source. |
-| `inconclusive` | A bound, unsupported construct, missing evidence or failed execution prevented the claimed result. It is not a pass. |
-| `circuit validate` with `ok: true` | Captured identities and scoped coverage validate. Also inspect `storedOutcome` and `evaluationStatus`; integrity validation does not turn a stored failure into success. |
+| Result                                   | What an agent may conclude                                                                                                                                               |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `coverage.status: complete-scoped-proof` | All declared binary edge-domain cases have complete, agreeing winning rules. No reachability, temporal or RTL-equivalence proof follows.                                 |
+| `status: built`                          | A checked representation was generated; no native run is implied.                                                                                                        |
+| `status: simulation-only`                | The stated native execution/correspondence scope passed. An exhaustive one-edge case set is still labeled simulation-only.                                               |
+| `counterexample`                         | Inspect the supplied state/input snapshot or mismatch, including initialization failures; fix the authoritative source.                                                  |
+| `inconclusive`                           | A bound, unsupported construct, missing evidence or failed execution prevented the claimed result. It is not a pass.                                                     |
+| `circuit validate` with `ok: true`       | Captured identities and scoped coverage validate. Also inspect `storedOutcome` and `evaluationStatus`; integrity validation does not turn a stored failure into success. |
 
 `inspect/check/step` return `coverage` and source identity; inspect adds
 `relation`/`initial`, and step adds `step`. Build/run/verify return `path` for the

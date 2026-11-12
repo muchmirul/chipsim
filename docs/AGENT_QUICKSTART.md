@@ -1,5 +1,12 @@
 # Start here: using ChipSim as a coding agent
 
+Choose CLI, native Pi/prime-agent tools or MCP using
+[AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md). `agent help` returns a current
+`connections` inventory and installed paths. Native `chipsim_workbench_TOOL`
+calls take `project`; MCP `chipsim_TOOL` calls use the server's bound root.
+Use `workbench tools` / MCP tool discovery for schemas, and workbench `project`
+for arbitrary RTL directories. `agent context` remains model/PDF-specific.
+
 For an MCP-only chip-development loop, read [WORKBENCH_MCP.md](WORKBENCH_MCP.md): create/read/edit project text, fork candidates, validate targets, start durable jobs, inspect real failures, repair and export evidence. The original programmable fixture separates fixed hardware from two control images.
 
 Read this guide together with the working project's `AGENTS.md`. Use the installed
@@ -13,14 +20,17 @@ Read [AGENT_CONTROL.md](AGENT_CONTROL.md) for the full operating procedure and
 
 ## Choose the workflow
 
-| User's task                                              | Start with                                                 | Read next                                                                |
-| -------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Repair or optimize one RTL file against fixed tests      | `chipsim evolution list`, then `describe --benchmark NAME` | [EVOLUTION.md](EVOLUTION.md)                                             |
-| Build hardware from an idea or partial files             | `chipsim design guide`, then `chipsim design commands`     | [DESIGN_INPUTS.md](DESIGN_INPUTS.md), [DESIGN.md](DESIGN.md)             |
-| Understand or program a document-backed model            | `chipsim agent context PROJECT --model MODEL_ID`           | [PROGRAMMING.md](PROGRAMMING.md), [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md) |
-| Create an experiment from authored register/stimulus CSV | `chipsim table help`                                       | [CSV_INPUTS.md](CSV_INPUTS.md)                                           |
-| Run an HDL testbench or inspect VCD                      | `chipsim hdl help`                                         | [HDL.md](HDL.md), [HDL_DEBUG.md](HDL_DEBUG.md)                           |
-| Show reported progress and candidate history             | `chipsim --agent PROJECT` in another terminal              | [AGENT_WORK.md](AGENT_WORK.md)                                           |
+| User's task                                                   | Start with                                                       | Read next                                                                          |
+| ------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Create/edit/run a project using MCP or native workbench tools | Workbench `project`, file tools and `job_start` with `requestId` | [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md), [WORKBENCH_MCP.md](WORKBENCH_MCP.md) |
+| Run finite control images on fixed hardware                   | `chipsim design guide programmable`                              | [WORKBENCH_MCP.md](WORKBENCH_MCP.md); installed `examples.programmable`            |
+| Run the pinned Tiny Tapeout physical flow                     | `chipsim design guide tinytapeout`                               | [TINYTAPEOUT.md](TINYTAPEOUT.md)                                                   |
+| Repair or optimize one RTL file against fixed tests           | `chipsim evolution list`, then `describe --benchmark NAME`       | [EVOLUTION.md](EVOLUTION.md)                                                       |
+| Build hardware from an idea or partial files                  | `chipsim design guide`, then `chipsim design commands`           | [DESIGN_INPUTS.md](DESIGN_INPUTS.md), [DESIGN.md](DESIGN.md)                       |
+| Understand or program a document-backed model                 | `chipsim agent context PROJECT --model MODEL_ID`                 | [PROGRAMMING.md](PROGRAMMING.md), [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md)           |
+| Create an experiment from authored register/stimulus CSV      | `chipsim table help`                                             | [CSV_INPUTS.md](CSV_INPUTS.md)                                                     |
+| Run an HDL testbench or inspect VCD                           | `chipsim hdl help`                                               | [HDL.md](HDL.md), [HDL_DEBUG.md](HDL_DEBUG.md)                                     |
+| Show reported progress and candidate history                  | `chipsim --agent PROJECT` in another terminal                    | [AGENT_WORK.md](AGENT_WORK.md)                                                     |
 
 For complete connected wiring/state rules, use `chipsim circuit help` and
 [AGENT_CIRCUITS.md](AGENT_CIRCUITS.md). `circuit` checks old-state simultaneous

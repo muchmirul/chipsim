@@ -1,5 +1,16 @@
 # Developing ChipSim
 
+`src/agent/discovery.js` is the shared installed documentation and agent
+connection inventory. Keep CLI help, generated programming context, copied
+prepared-project guides and MCP resources on that inventory; add topic recipes
+to `src/design/guide.js` when adapters need discoverable preparation guidance.
+Native workbench tools use the same Node CLI boundary as older named tools.
+Their JSON arguments use bounded stdin (`--input -`) to preserve file-size
+limits across operating-system argv limits.
+Tests must exercise current native workbench calls, snapshot source parity and
+MCP guide discovery, not only extension registration. See
+[AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md).
+
 Text-first project services live in `src/workbench/`; CLI, native extensions and the optional `extensions/mcp/` SDK transport share their schemas and execution/evidence services. `npm run test:mcp` exercises the official SDK and native HDL/Yosys; `npm run test:tinytapeout` runs the explicit external physical toolchain on disposable public fixtures. Neither runner substitutes archived results.
 
 `src/tables/` owns bounded CSV parsing, model-stimulus validation and the

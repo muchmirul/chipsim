@@ -1,5 +1,10 @@
 # ChipSim as a coding-agent tool
 
+[AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md) is the connection entry point.
+Installed help and generated model context expose `connections`; installed help,
+prepared-project copies and MCP guide resources share one documentation catalog.
+Use current installed help when an older prepared project's copies differ.
+
 For agents using only MCP, [WORKBENCH_MCP.md](WORKBENCH_MCP.md) describes root-bound file editing, isolated candidates, request-id deduplication, durable jobs and linked evidence inspection. `chipsim workbench tools` exposes the same typed contracts locally. Optional `chipsim mcp --project PATH` uses the separately installed official SDK; the standalone CLI still needs no runtime npm packages.
 
 For developer-authored CSV register maps and stimulus schedules, use
@@ -48,7 +53,8 @@ see [DESIGN.md](DESIGN.md) for native formats and verification limits.
 The coding agent reads a manual and authors a bounded behavioral model. ChipSim
 extracts sources, verifies quotations, executes acceptance cases, and produces
 waveforms and register traces. The same model opens in the TUI, ChipSim's only interactive frontend. No model provider,
-API key, MCP server, or embedded LLM is needed by ChipSim.
+API key or embedded LLM is needed. CLI/native use needs no MCP server; the
+optional MCP connection exposes the shared workbench family over stdio.
 
 For interpreting run artifacts, read [Visualization](VISUALIZATION.md): `g`
 shows state rules, `v` shows actual captures/assignments, and `Y`/`D` compares a
@@ -71,7 +77,8 @@ the TUI inside Pi; prime-agent's daemon returns a separate-terminal launch
 command. `chipsim_snapshot` supplies text in
 headless sessions. Other agents can continue using shell/Python commands.
 
-Use Node.js 22.13+ and Poppler (`pdfinfo`, `pdftotext`). From a local checkout:
+Use Node.js 22.13+; PDF preparation additionally needs Poppler (`pdfinfo`,
+`pdftotext`). RTL/project discovery does not require a PDF. From a local checkout:
 
 ```sh
 npm install --global --ignore-scripts /absolute/path/to/chipsim

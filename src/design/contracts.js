@@ -23,7 +23,7 @@ export const integrationContracts = [
       "native precheck XML",
       "submission files",
     ],
-    ["timing", "drc", "lvs", "precheck"],
+    ["timing", "drc", "lvs", "precheck", "physical-metrics"],
     "Explicit pinned local flow; submission files are not published. Missing/skipped physical checks remain inconclusive.",
   ],
   [

@@ -4,6 +4,15 @@ ChipSim is a local TUI hardware behavior workbench. The terminal is the only int
 
 ## Read first
 
+- `docs/AGENT_CONNECTIONS.md`: choose CLI, Pi/prime-agent native tools or the
+  optional MCP stdio server. Installed `agent help` returns current `connections`,
+  documentation and example paths. Keep `src/agent/discovery.js`, generated
+  context, prepared-project copies and MCP resources synchronized.
+- `docs/WORKBENCH_MCP.md`: project file edits/CAS, candidates, durable request
+  IDs, verified hardware/source/trace inspection and bounded MCP resources.
+- `docs/TINYTAPEOUT.md`: the separate pinned local physical adapter and native
+  precheck; external tools/PDK are explicit prerequisites.
+
 - `docs/LOCAL_REFERENCES.md`: public checkouts contain metadata, not vendor PDFs.
   Keep publisher originals outside the public tree, use CHIPSIM_REFERENCE_ROOT,
   preserve their bytes/hashes, and use the explicit private acceptance runner.
@@ -67,6 +76,11 @@ Read [the agent control guide](docs/AGENT_CONTROL.md) before driving a user task
 It covers both ordinary implementation and external evolutionary search. Start
 with `chipsim agent help` and `chipsim design commands`; use their installed
 paths and argument contracts rather than guessing flags or tool availability.
+Read [agent connections](docs/AGENT_CONNECTIONS.md) for transport selection.
+`workbench tools` discovers shared schemas; native names use
+`chipsim_workbench_TOOL`, MCP names use `chipsim_TOOL` in one bound project.
+The MCP tool list is not the complete CLI command list. Native tools invoke the
+packaged CLI through Node; do not run managed workers inside a host executable.
 
 - Identify the project, requested artifact, acceptance checks, allowed changes
   and resource limits. Inspect existing inputs before creating missing ones.

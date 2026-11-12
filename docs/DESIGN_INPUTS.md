@@ -20,6 +20,8 @@ chipsim design guide
 chipsim design guide rtl
 chipsim design guide testbench
 chipsim design guide firmware
+chipsim design guide programmable
+chipsim design guide tinytapeout
 chipsim design commands
 ```
 
@@ -27,7 +29,11 @@ Through the general agent tool, use
 `chipsim_command({args:["design","guide","rtl"]})`. The result is a versioned
 JSON guide with input roles, `whenMissing` preparation advice, tool requirements,
 outputs, limitations and absolute paths to installed examples/documentation.
-Other topics are `waveform`, `registers`, `formal`, `physical` and `model`.
+Other topics are `circuit`, `waveform`, `registers`, `formal`, `physical` and `model`.
+`programmable` describes finite program contracts, the real loader/testbench and
+installed two-image starter. `tinytapeout` describes the separate pinned IHP flow
+and prerequisites; `physical` retains the ORFS/OpenROAD contract. Connection setup
+is in [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md).
 The command reads no project, writes nothing and launches no tools.
 
 ## What the file extensions mean

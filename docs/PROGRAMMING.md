@@ -1,5 +1,12 @@
 # Programming and line debugging
 
+For agent connection/discovery, read [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md).
+Generated programming context includes current `connections` and installed guide
+paths, while retaining the model-specific source gates below. The separate
+`program-image` adapter (`design guide programmable`) compiles declared finite
+control words for an explicit RTL loader/engine. It is neither this `.chip`
+language nor an inferred native ISA. See [WORKBENCH_MCP.md](WORKBENCH_MCP.md).
+
 ChipSim accepts a small, local **experiment language** in `.chip` files. A program drives modeled inputs, issues declared register transactions, waits and checks observable values. It can be written by a person or an external coding agent. It does not execute arbitrary JavaScript, native assembly, ELF, BIN or vendor firmware.
 
 Verilog/VHDL designs and testbenches use the separate [HDL workflow](HDL.md), through Icarus Verilog and GHDL. Those runs produce recorded signals for inspection/comparison; `.chip` source stepping does not step HDL source or its event scheduler.

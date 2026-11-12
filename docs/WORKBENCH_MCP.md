@@ -10,6 +10,11 @@ and `capabilityContracts` paths. These labels do not establish verification.
 
 ## Install and connect
 
+Start with [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md) for CLI/native/MCP
+selection and a client process descriptor. MCP exposes the workbench family
+listed by tools/list, not all CLI families. Native tools use the packaged Node
+CLI and require no MCP SDK.
+
 The standalone CLI remains dependency-free. Install the optional, separately
 locked official MCP SDK package from the ChipSim installation:
 
@@ -36,11 +41,18 @@ chipsim workbench project --project .
 chipsim workbench file_read --project . --input '{"path":"engine.sv"}'
 ```
 
+For larger CLI arguments, `--input -` reads UTF-8 JSON from stdin, bounded to
+8 MiB before normal schema/file limits. Native workbench tools use this route
+automatically so valid 1 MiB file writes are not limited by argv size.
+
 Native Pi/prime-agent extensions expose `chipsim_workbench_TOOL` with the same
 schemas plus an explicit `project`; `chipsim_command` also accepts this family.
-`chipsim://guide/workbench` and `chipsim://schema/tools` expose the workflow and
-schemas. Resource discovery also lists the detailed design/HDL/debug/physical
-guides and all nine programmable starter files under
+`chipsim://guide/connections`, `chipsim://guide/workbench` and
+`chipsim://schema/tools` expose connection guidance, the workflow and
+schemas. All current agent guides are also listed under `chipsim://docs/NAME.md`,
+from the same inventory as installed help and prepared-project copies.
+Resource discovery also lists the detailed design/HDL/debug/physical
+guides and all ten programmable starter files (including README) under
 `chipsim://examples/programmable/FILE`. Read those resources to bootstrap a
 project entirely through MCP; recipe details use
 `chipsim://guide/recipes?topic=rtl`. Project file/evidence resources support `candidate`, `offset`, `limit`.

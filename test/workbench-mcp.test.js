@@ -61,7 +61,20 @@ test(
     const resources = (await client.listResources()).resources.filter((r) =>
       r.uri.startsWith("chipsim://examples/programmable/"),
     );
-    assert.equal(resources.length, 9);
+    assert.equal(resources.length, 10);
+    assert.ok(resources.some((r) => r.name.endsWith("README.md")));
+    for (const resource of (await client.listResources()).resources.filter(
+      (r) => r.uri.startsWith("chipsim://docs/"),
+    ))
+      assert.ok(
+        (await client.readResource({ uri: resource.uri })).contents[0].text
+          .length > 100,
+      );
+    assert.match(
+      (await client.readResource({ uri: "chipsim://guide/connections" }))
+        .contents[0].text,
+      /Connect an agent/,
+    );
     for (const resource of resources)
       await call("file_write", {
         path: resource.uri.split("/").at(-1),

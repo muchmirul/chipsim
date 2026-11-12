@@ -70,36 +70,136 @@ try {
         .details.ok,
       true,
     );
-    const program = context.examples.find(
-      (entry) => entry.modelId === "pio",
-    ).path;
-    assert.equal(
-      (await call("chipsim_program_check", { model: "pio", program })).details
-        .ok,
-      true,
-    );
-    const run = (
-      await call("chipsim_program_run", {
-        model: "pio",
-        program,
-        out: host.name + " run",
-      })
-    ).details;
-    const trace = JSON.parse(
-      await readFile(run.artifacts["trace.json"], "utf8"),
-    );
-    assert.equal(trace.trace.at(-1).registers.decoded, 179);
+    const help = (await call("chipsim_help", {})).details;
+    assert.ok(help.documentation["AGENT_CONNECTIONS.md"]);
+    assert.deepEqual(context.connections, help.connections);
+    for (const name of help.connections.native.workbenchTools)
+      assert.ok(native.tools.has(name));
+    const wb = async (name, args = {}) => {
+      const reply = await call("chipsim_workbench_" + name, {
+        project: cwd,
+        ...args,
+      });
+      assert.equal(reply.details.ok, true, JSON.stringify(reply.details));
+      return reply.details.result;
+    };
+    await wb("project");
+    const sources = {
+      "contract.json": {
+        format: "chipsim-program-contract",
+        version: 1,
+        wordWidth: 8,
+        depth: 1,
+        resources: {},
+        instructions: {
+          add: { opcode: 1, operandBits: 4, cycles: 1, resources: {} },
+        },
+      },
+      "program.json": {
+        format: "chipsim-program",
+        version: 1,
+        instructions: [{ op: "add", value: 1, cycle: 0 }],
+      },
+      "chipsim.design.json": {
+        format: "chipsim-design",
+        version: 1,
+        id: "native-host",
+        tasks: {
+          image: {
+            adapter: "program-image",
+            options: { contract: "contract.json", program: "program.json" },
+            outputs: [{ path: "out/program.hex", kind: "memory-image" }],
+          },
+        },
+        targets: {
+          image: {
+            tasks: ["image"],
+            requiredChecks: ["image:program-validation", "image:outputs"],
+          },
+        },
+      },
+      "chipsim.lock.json": {
+        format: "chipsim-lock",
+        version: 1,
+        dependencies: [],
+      },
+      "netlist.json": {
+        modules: { top: { ports: { q: { direction: "output", bits: [2] } } } },
+      },
+    };
+    for (const [path, value] of Object.entries(sources)) {
+      const previous = await call("chipsim_workbench_file_read", {
+        project: cwd,
+        path,
+      });
+      await wb("file_write", {
+        path,
+        text: JSON.stringify(value),
+        expectedHash: previous.details.ok
+          ? previous.details.result.sha256
+          : null,
+      });
+    }
+    const job = await wb("job_start", {
+      target: "image",
+      requestId: host.name + "-image",
+    });
+    let done;
+    for (let i = 0; i < 60; i++) {
+      done = await wb("job_status", { job: job.id, waitMs: 1000 });
+      if (
+        ["completed", "failed", "cancelled", "interrupted"].includes(done.state)
+      )
+        break;
+    }
+    assert.equal(done.state, "completed", JSON.stringify(done));
+    assert.equal((await wb("checks", { target: "image" })).ready, true);
+    const netlist = await call("chipsim_snapshot", {
+      netlist: join(cwd, "netlist.json"),
+    });
+    assert.match(netlist.content[0].text, /synthesized netlist/);
+    assert.equal(netlist.details.view, "schematic");
     assert.match(
-      (
-        await call("chipsim_snapshot", {
-          model: run.artifacts["session.json"],
-          view: "states",
-        })
-      ).content[0].text,
+      (await call("chipsim_snapshot", { model: "pio" })).content[0].text,
       /CHIPSIM/,
     );
+    // Source-free host acceptance is always available. Private program citations
+    // remain a separate gate; never synthesize substitute vendor evidence.
+    const privatePrograms = context.documents.every(
+      (document) => document.available,
+    );
+    if (privatePrograms) {
+      const program = context.examples.find(
+        (entry) => entry.modelId === "pio",
+      ).path;
+      assert.equal(
+        (await call("chipsim_program_check", { model: "pio", program })).details
+          .ok,
+        true,
+      );
+      const run = (
+        await call("chipsim_program_run", {
+          model: "pio",
+          program,
+          out: host.name + " run",
+        })
+      ).details;
+      const trace = JSON.parse(
+        await readFile(run.artifacts["trace.json"], "utf8"),
+      );
+      assert.equal(trace.trace.at(-1).registers.decoded, 179);
+      assert.match(
+        (
+          await call("chipsim_snapshot", {
+            model: run.artifacts["session.json"],
+            view: "states",
+          })
+        ).content[0].text,
+        /CHIPSIM/,
+      );
+    }
     console.log(
-      `${host.name}: native loader registered 37 tools and /chipsim; general command, PIO execution (decoded 179) and saved-session rendering passed.`,
+      `${host.name}: registered ${native.tools.size} tools and /chipsim; discovery, native workbench image job/checks and netlist snapshots passed. Private-source program acceptance: ${privatePrograms ? "passed" : "skipped (original references unavailable)"}.`,
     );
   }
 } finally {

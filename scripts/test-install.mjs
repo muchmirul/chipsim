@@ -455,6 +455,64 @@ try {
     assert.equal(frame.stderr, "");
   }
   assert.deepEqual(help.designGuidance.command, ["design", "guide"]);
+  const stdinCall = run(
+    binary,
+    ["workbench", "file_write", "--project", cwd, "--input", "-"],
+    { cwd },
+  );
+  stdinCall.child.stdin.end(
+    JSON.stringify({
+      path: "connection-check.txt",
+      text: "installed stdin JSON\n",
+      expectedHash: null,
+    }),
+  );
+  const stdinResult = JSON.parse((await stdinCall).stdout);
+  assert.equal(stdinResult.ok, true);
+  assert.equal(
+    await readFile(join(cwd, "connection-check.txt"), "utf8"),
+    "installed stdin JSON\n",
+  );
+  assert.equal(
+    help.connections.cli.script,
+    join(prefix, "lib/node_modules/chipsim/scripts/chipsim.mjs"),
+  );
+  assert.equal(
+    help.connections.mcp.dependencyInstall.args.at(-1),
+    join(prefix, "lib/node_modules/chipsim/extensions/mcp"),
+  );
+  for (const name of [
+    "AGENT_CONNECTIONS.md",
+    "WORKBENCH_MCP.md",
+    "TINYTAPEOUT.md",
+    "AGENT_EXTENSIONS.md",
+  ])
+    assert.ok((await readFile(help.documentation[name], "utf8")).length > 100);
+  assert.ok(
+    (await readFile(help.examples.programmable.guide, "utf8")).includes(
+      "two finite control images",
+    ),
+  );
+  for (const topic of ["programmable", "tinytapeout"]) {
+    const guide = JSON.parse(
+      (await run(binary, ["design", "guide", topic], { cwd })).stdout,
+    ).guide;
+    assert.ok(guide.recipe.minimumInputs.length);
+    assert.equal(
+      guide.documentation.connections,
+      help.documentation["AGENT_CONNECTIONS.md"],
+    );
+  }
+  const { createWorkbench } = await import(
+    pathToFileURL(
+      join(prefix, "lib/node_modules/chipsim/src/workbench/service.js"),
+    ).href
+  );
+  const workbench = await createWorkbench(cwd);
+  assert.equal(
+    (await workbench.resource("chipsim://guide/connections")).text,
+    await readFile(help.documentation["AGENT_CONNECTIONS.md"], "utf8"),
+  );
   assert.match(
     await readFile(help.examples.rtlVerification.guide, "utf8"),
     /Negative control/,

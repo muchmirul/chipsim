@@ -2,6 +2,9 @@
 
 Agents should first read [AGENT_QUICKSTART.md](AGENT_QUICKSTART.md) for workflow
 selection, a manual improvement loop, exit handling and session ownership.
+For connection routes, read [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md).
+This command family uses CLI subprocesses or native `chipsim_command`; the MCP
+server's workbench tool list does not automatically expose evolution commands.
 
 ChipSim evaluates one editable Verilog/SystemVerilog file against fixed tests,
 reports useful failures, and retains evidence. OpenEvolve supplies the optional

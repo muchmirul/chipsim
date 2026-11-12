@@ -1,5 +1,9 @@
 # ChipSim in Pi and prime-agent
 
+Choose a connection using [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md). This guide
+covers native host registration; the optional MCP transport is already available
+and is documented in [WORKBENCH_MCP.md](WORKBENCH_MCP.md).
+
 The shared text-first services are also registered as `chipsim_workbench_TOOL` (for example `chipsim_workbench_file_read` and `chipsim_workbench_job_start`). Each takes an explicit `project` plus the same bounded arguments as the corresponding MCP tool. File edits do not depend on host filesystem tools. See [WORKBENCH_MCP.md](WORKBENCH_MCP.md). Existing `chipsim_command` accepts the `workbench` family, and snapshots include `schematic`.
 
 Start with [AGENT_QUICKSTART.md](AGENT_QUICKSTART.md). `chipsim_command` accepts
@@ -56,8 +60,9 @@ commands can also borrow a host terminal when the extension runs in that process
 Prime-agent 0.9.8 normally runs extensions in its daemon, whose custom terminal
 UI is unavailable; its tools work, while `/chipsim` returns a separate-terminal
 launch command. This host limitation also applies to an MCP transport.
-MCP could serve additional clients later, but adds another transport and process
-lifecycle for these two hosts. Other agents can keep using the generic CLI.
+Other clients can use the optional MCP stdio server now; it exposes the shared
+workbench family with an explicit root and separately installed SDK. Native
+Pi/prime-agent tools need no MCP server/SDK. Other agents can also use the CLI.
 
 The common API is checked against Pi **1.1.0** and prime-agent **0.9.8**, without
 depending on newer host-specific structured-output APIs. Each host supplies
@@ -213,7 +218,8 @@ Omitted or empty `args` opens help. Pass arguments after the executable name as
 literal strings; each path containing spaces is one argument, without added shell
 quotes. The bridge directly invokes the packaged CLI. It uses the CLI's validation,
 source gates, evidence records, structured failures and process limits. It accepts
-`agent`, `hdl`, `design`, `job`, `artifact` and `checks`, plus help, profile listing
+`workbench`, `agent`, `hdl`, `circuit`, `table`, `design`, `job`, `artifact`,
+`checks` and `evolution`, plus help, profile listing
 and `--snapshot`. Interactive inspection uses `/chipsim`.
 
 Input is bounded to 128 arguments, 8192 characters per argument and 64 KiB total.
@@ -222,9 +228,19 @@ text. For long jobs, call `design run` without `--wait`, then `job status`/`logs
 stopping the call does not cancel an accepted job. Use `job cancel` explicitly.
 The typed tools below remain available for callers that prefer named parameters.
 
+The shared family `chipsim_workbench_TOOL` additionally covers project discovery,
+file list/search/read/write, candidates/revisions, validation/plans, durable jobs,
+artifacts/checks/comparisons, hardware/trace/source queries and snapshots. Call
+`chipsim_command({args:["workbench","tools"]})` for their exact shared schemas;
+add `project` on every native call. `job_start` requires a stable `requestId`;
+replay survives invalid/missing live manifests. Reuse the candidate ID on each
+candidate call. These names are `chipsim_TOOL` in MCP, whose server binds the
+project instead. The two transports are not interchangeable tool inventories.
+
 `design guide [TOPIC]` supplies optional recipes for required files, missing-input
 preparation and installed examples, without a project or tool execution. Topics
-include RTL, testbench, waveform, firmware, registers, formal, physical and model
+include circuit, RTL, testbench, waveform, firmware, programmable, registers,
+formal, physical, tinytapeout and model
 (use lowercase topic IDs). Agents can create/find/prepare missing prerequisites
 within the requested scope, then run the appropriate target. Read
 [DESIGN_INPUTS.md](DESIGN_INPUTS.md); these recipes are not a mandatory workflow.
@@ -235,36 +251,39 @@ next argument arrays without executing tool probes. For a brief wait, use
 `--wait --timeout-ms 1000` (maximum 60000); a timeout returns the still-running
 job. For incremental logs, retain the returned byte `cursor` even at current EOF.
 
-| Tool                    | Required fields               | Optional fields / purpose                                                                             |
-| ----------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `chipsim_command`       | none                          | Literal CLI `args` array; defaults to help                                                            |
-| `chipsim_help`          | none                          | Contract and installed documentation paths                                                            |
-| `chipsim_doctor`        | none                          | Node and Poppler availability                                                                         |
-| `chipsim_context`       | `target`                      | `project`, `model`; catalog/model or prepared PDF project, not arbitrary RTL directory                |
-| `chipsim_prepare`       | `manual`, `out`               | New source project                                                                                    |
-| `chipsim_search`        | `project`, `query`            | `offset`, `limit`; follow `nextOffset`                                                                |
-| `chipsim_page`          | `project`, `page`             | `offset`, `limit`; one-based PDF pages                                                                |
-| `chipsim_check`         | `model`, `project`            | Fresh source/schema/acceptance checks                                                                 |
-| `chipsim_run`           | `model`, `project`, `out`     | `params`, `inputs` JSON paths; `ticks`                                                                |
-| `chipsim_program_check` | `program`, `model`            | `project`; assertions execute later                                                                   |
-| `chipsim_program_run`   | `program`, `model`, `out`     | `project`, `ticks`, `steps`                                                                           |
-| `chipsim_note`          | `project`, `message`          | Explicit activity milestone                                                                           |
-| `chipsim_activity`      | `project`                     | `limit`                                                                                               |
-| `chipsim_work_start`    | `project`, `goal`             | `mode`: `task` (default) or `evolution`; save returned session ID                                     |
-| `chipsim_work_event`    | `project`, `session`, `event` | `event` is a bounded JSON file path; explicit report only                                             |
-| `chipsim_work_status`   | `project`                     | `session`, `limit` (1–200); newest-created session if omitted                                         |
-| `chipsim_hdl_doctor`    | none                          | Installed HDL tools                                                                                   |
-| `chipsim_hdl_import`    | `waveform`, `out`             | Import recorded digital data                                                                          |
-| `chipsim_hdl_run`       | `project`, `out`              | Explicitly execute an HDL manifest                                                                    |
-| `chipsim_hdl_compare`   | `left`, `right`, `map`        | Optional new `out`; explicit mappings                                                                 |
-| `chipsim_snapshot`      | none                          | One of `model`, `waveform`, `hdlDebug`, `design`, `agent`; `view`, `at`, `atEvent`, `columns`, `rows` |
+| Tool                    | Required fields               | Optional fields / purpose                                                                                                   |
+| ----------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `chipsim_command`       | none                          | Literal CLI `args` array; defaults to help                                                                                  |
+| `chipsim_help`          | none                          | Contract and installed documentation paths                                                                                  |
+| `chipsim_doctor`        | none                          | Node and Poppler availability                                                                                               |
+| `chipsim_context`       | `target`                      | `project`, `model`; catalog/model or prepared PDF project, not arbitrary RTL directory                                      |
+| `chipsim_prepare`       | `manual`, `out`               | New source project                                                                                                          |
+| `chipsim_search`        | `project`, `query`            | `offset`, `limit`; follow `nextOffset`                                                                                      |
+| `chipsim_page`          | `project`, `page`             | `offset`, `limit`; one-based PDF pages                                                                                      |
+| `chipsim_check`         | `model`, `project`            | Fresh source/schema/acceptance checks                                                                                       |
+| `chipsim_run`           | `model`, `project`, `out`     | `params`, `inputs` JSON/CSV paths; `ticks`                                                                                  |
+| `chipsim_program_check` | `program`, `model`            | `project`; assertions execute later                                                                                         |
+| `chipsim_program_run`   | `program`, `model`, `out`     | `project`, `ticks`, `steps`                                                                                                 |
+| `chipsim_note`          | `project`, `message`          | Explicit activity milestone                                                                                                 |
+| `chipsim_activity`      | `project`                     | `limit`                                                                                                                     |
+| `chipsim_work_start`    | `project`, `goal`             | `mode`: `task` (default) or `evolution`; save returned session ID                                                           |
+| `chipsim_work_event`    | `project`, `session`, `event` | `event` is a bounded JSON file path; explicit report only                                                                   |
+| `chipsim_work_status`   | `project`                     | `session`, `limit` (1–200); newest-created session if omitted                                                               |
+| `chipsim_hdl_doctor`    | none                          | Installed HDL tools                                                                                                         |
+| `chipsim_hdl_import`    | `waveform`, `out`             | Import recorded digital data                                                                                                |
+| `chipsim_hdl_run`       | `project`, `out`              | Explicitly execute an HDL manifest                                                                                          |
+| `chipsim_hdl_compare`   | `left`, `right`, `map`        | Optional new `out`; explicit mappings                                                                                       |
+| `chipsim_snapshot`      | none                          | One of `model`, `waveform`, `hdlDebug`, `circuit`, `netlist`, `design`, `agent`; `view`, `at`, `atEvent`, `columns`, `rows` |
 
 Choose at most one snapshot source: `model` is a built-in ID, model JSON or saved
 session; `waveform` is VCD/waveform JSON; `hdlDebug` is a recorded debug file or
-portable session; `design`/`agent` are project directories. `agent` opens Activity
+portable session; `circuit` is a connected source/session and `netlist` is static
+Yosys JSON; `design`/`agent` are project directories. `agent` opens Activity
 and `design` opens Project by default; `hdlDebug` uses the recorded debug views.
-Views: `wave`, `inspect`, `log`, `sources`, `model`, `registers`, `stimulus`,
-`activity`, `program`, `states`, `flow`, `compare`, `debug`, `project`, `pipeline`,
+`netlist` defaults to Schematic, `circuit` to Circuit and `hdlDebug` to Debug.
+A netlist has no event/tick cursor or simulated values. Views: `wave`, `inspect`, `log`, `sources`, `model`, `registers`, `stimulus`,
+`activity`, `program`, `states`, `flow`, `compare`, `debug`, `circuit`, `schematic`,
+`project`, `pipeline`,
 `artifacts`, `checks`. Use a view applicable to the chosen source. `atEvent` selects
 an HDL recording event; `at` selects a tick/sample. Document-backed loading still
 requires original sources wherever the existing loader requires them.
@@ -275,14 +294,19 @@ its returned payload path:
 Choose an event that exists. `/chipsim --hdl-debug PAYLOAD_PATH` opens the same
 recording interactively. Snapshots return text, not hardware proof.
 
-Results carry CLI JSON as text and host result details. Failures throw an error
+Legacy/general command results carry CLI JSON as text and host result details. Failures throw an error
 containing the CLI result, diagnostics and any fault artifact paths. An HDL
 comparison mismatch also fails even when parsing succeeds. Check outcomes;
 existing files alone do not establish success. Search/page remain bounded and
 paginated. The bridge never automatically retries a write.
 
-Each headless subprocess has a three-minute limit and combined four-MiB output
-limit. Cancellation terminates its owned process group on POSIX, including child
+Each headless subprocess defaults to a three-minute limit and combined four-MiB output;
+`chipsim_command.timeoutMs` can increase its wall-clock budget as described above.
+Workbench named tools preserve structured service failures as `details.ok: false`
+and `isError: true`; startup, cancellation and protocol failures still throw.
+All native tools invoke the packaged Node CLI rather than executing managed
+workers in the host runtime. `CHIPSIM_NODE` applies to that process boundary.
+Cancellation terminates its owned process group on POSIX, including child
 tools, escalating to SIGKILL after a short grace period. Windows terminates only
 the direct child. Interruptions can leave incomplete output: inspect it and use
 a new destination. Existing prepare/run directories are never overwritten;
@@ -298,11 +322,16 @@ Type in the agent's interactive terminal:
 /chipsim --model pio
 /chipsim --session /absolute/path/to/run/session.json
 /chipsim --vcd /absolute/path/to/trace.vcd
+/chipsim --hdl-debug /absolute/path/to/debug.json
+/chipsim --netlist /absolute/path/to/netlist.json
+/chipsim --circuit /absolute/path/to/circuit.json
+/chipsim --design /absolute/path/to/design-project
 /chipsim --help
 ```
 
-No arguments: a prepared current project opens Activity/watch mode; elsewhere
-the default architecture opens. A project path watches checked, completed runs.
+No arguments: a current design project opens Project; a prepared PDF project
+opens Activity/watch mode; elsewhere the default architecture opens. An explicit
+design-project path opens Project; a prepared-project path watches verified runs.
 A session opens its experiment; `--model` also accepts a model JSON path.
 Paths with spaces can be quoted, or supplied as the entire remaining argument.
 These forms accept one target, not arbitrary shell commands or extra CLI flags.
@@ -336,7 +365,10 @@ node scripts/test-agent-hosts.mjs --pi /path/to/pi/package --prime /path/to/prim
 python3 scripts/test-agent-extension-pty.py
 ```
 
-The loader check does not start agent sessions. The PTY check exercises actual
+The loader check does not start agent sessions. It exercises native
+workbench editing, managed program-image jobs and netlist snapshots without
+private documents; private-source program execution is explicitly skipped when
+the original references are unavailable. The PTY check exercises actual
 ChipSim handoff/restoration through an in-process host lifecycle harness at
 80×24 and 120×40; it does not claim daemon terminal support. Keep settings/providers
 out of tests. See [the change log](CHANGELOG.md) for behavior context and coverage.

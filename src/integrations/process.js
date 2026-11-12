@@ -28,9 +28,18 @@ export async function runChipSim(
     executable = nodeCommand(),
     cli = chipsimCLI,
     textOutput = false,
+    input,
     cleanupMs = 250,
   } = {},
 ) {
+  if (
+    input !== undefined &&
+    (typeof input !== "string" || Buffer.byteLength(input) > 8 * 1048576)
+  )
+    throw new ChipSimProcessError(
+      "ChipSim stdin input must be at most 8 MiB of UTF-8 JSON.",
+      {},
+    );
   if (signal?.aborted)
     throw new ChipSimProcessError("ChipSim cancelled before starting.", {
       cancelled: true,
@@ -39,7 +48,7 @@ export async function runChipSim(
     const child = spawn(executable, [cli, ...args], {
       cwd,
       shell: false,
-      stdio: ["ignore", "pipe", "pipe"],
+      stdio: [input === undefined ? "ignore" : "pipe", "pipe", "pipe"],
       detached: process.platform !== "win32",
       windowsHide: true,
     });
@@ -49,6 +58,13 @@ export async function runChipSim(
       stopped,
       killTimer,
       spawnError;
+    if (child.stdin) {
+      child.stdin.on("error", (error) => {
+        if (!["EPIPE", "ERR_STREAM_DESTROYED"].includes(error.code))
+          spawnError ??= error;
+      });
+      child.stdin.end(input);
+    }
     const kill = (signalName) => {
       try {
         if (process.platform !== "win32" && child.pid)

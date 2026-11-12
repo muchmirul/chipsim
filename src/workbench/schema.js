@@ -157,7 +157,7 @@ const definitions = [
   ],
   [
     "compare",
-    "Compare verified runs, contexts, checks and measured metrics. No invented aggregate competition score.",
+    "Compare verified runs, contexts, checks and measured metrics. Numeric deltas require explicit nonempty matching contexts, scopes and units; missing context stays noncomparable. No invented aggregate score.",
     { left: id, right: id, leftCandidate: uuid, rightCandidate: uuid },
     ["left", "right"],
     true,
@@ -212,7 +212,7 @@ const definitions = [
   ],
   [
     "source",
-    "Read the immutable source snapshot linked to a recording; includes current-file freshness without replacing the recording.",
+    "Read immutable captured source and current-file freshness. Managed HDL currentPath uses its captured manifest directory/input inventory; missing or unmapped sources stay unknown. Does not replace the recording.",
     { ...artifact, source: string(), ...textPaging },
     ["artifact", "source"],
     true,

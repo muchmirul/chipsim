@@ -1,5 +1,9 @@
 # Project-defined RTL evolution
 
+Choose a connection with [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md). This
+installed Python runner is a subprocess workflow, distinct from the MCP
+workbench tool inventory and from native benchmark command flags.
+
 ChipSim evaluates a fixed managed design; an external OpenEvolve installation
 owns candidate generation and selection. Use `chipsim agent help` to discover
 `examples.evolution.runner`, `examples.evolution.workflows` and this guide's
