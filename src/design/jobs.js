@@ -1,4 +1,5 @@
-import { spawn } from "node:child_process";
+import { spawn, execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { randomUUID } from "node:crypto";
 import { mkdir, readdir, rm, writeFile, open, stat } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
@@ -45,7 +46,20 @@ async function launch(root, store, state) {
   child.unref();
   return state;
 }
-export async function startJob(path, target, { reuse = true, requestId } = {}) {
+export async function startJob(path, target, options = {}) {
+  return startCapturedJob(path, target, {
+    ...options,
+    prepare: () => planDesign(path, target),
+  });
+}
+
+// Setup and release operations use the same durable worker, cancellation and
+// evidence lifecycle even before a user design manifest exists.
+export async function startCapturedJob(
+  path,
+  target,
+  { reuse = true, requestId, requestKey = null, prepare },
+) {
   if (
     requestId !== undefined &&
     (typeof requestId !== "string" ||
@@ -68,7 +82,11 @@ export async function startJob(path, target, { reuse = true, requestId } = {}) {
         throw e;
       });
       if (old) {
-        if (old.target !== target || old.reuse !== reuse)
+        if (
+          old.target !== target ||
+          old.reuse !== reuse ||
+          (old.requestKey || null) !== requestKey
+        )
           throw problem(
             "REQUEST_CONFLICT",
             "requestId was already used with different target/options",
@@ -76,11 +94,16 @@ export async function startJob(path, target, { reuse = true, requestId } = {}) {
         return { ...(await jobStatus(store, old.id)), deduplicated: true };
       }
     }
-    return startJobLocked(path, target, reuse, binding);
+    return startJobLocked(await prepare(), target, reuse, binding, requestKey);
   });
 }
-async function startJobLocked(path, target, reuse, binding) {
-  const { root, store, plan, snapshot } = await planDesign(path, target);
+async function startJobLocked(
+  { root, store, plan, snapshot },
+  target,
+  reuse,
+  binding,
+  requestKey,
+) {
   const state = {
     format: "chipsim-job",
     version: 1,
@@ -103,7 +126,7 @@ async function startJobLocked(path, target, reuse, binding) {
   // resolves the same job even if the server dies before replying or spawning.
   if (binding) {
     await atomic(join(jobPath(store, state.id), "state.json"), state);
-    await atomic(binding, { id: state.id, target, reuse });
+    await atomic(binding, { id: state.id, target, reuse, requestKey });
   }
   return launch(root, store, state);
 }
@@ -120,6 +143,30 @@ async function reapChildren(path) {
     await stopOwned(owner, "SIGKILL");
   }
 }
+async function reapJobContainers(path, token) {
+  if (!token) return;
+  let docker;
+  try {
+    ({ docker } = await json(join(path, "owners/containers.json")));
+  } catch (e) {
+    if (e.code === "ENOENT") return;
+    throw e;
+  }
+  const exec = promisify(execFile);
+  const { stdout } = await exec(
+    docker,
+    ["ps", "-aq", "--filter", "label=chipsim.job=" + token],
+    { timeout: 10000, maxBuffer: 65536 },
+  );
+  const ids = stdout.trim().split(/\s+/).filter(Boolean);
+  if (ids.some((id) => !/^[a-f0-9]{12,64}$/.test(id)))
+    throw new Error("Invalid owned Docker container identity");
+  if (ids.length)
+    await exec(docker, ["rm", "-f", ...ids], {
+      timeout: 10000,
+      maxBuffer: 65536,
+    });
+}
 export async function jobStatus(store, id) {
   const path = jobPath(store, id),
     state = await json(join(path, "state.json"));
@@ -130,9 +177,16 @@ export async function jobStatus(store, id) {
     if (dead) {
       await reapChildren(path);
       await reapToken(state.token);
+      let cleanupError;
+      try {
+        await reapJobContainers(path, state.token);
+      } catch (e) {
+        cleanupError = e.message;
+      }
       state.state = "interrupted";
       state.error =
-        "Worker stopped before final publication; retry uses the original snapshot.";
+        "Worker stopped before final publication; retry uses the original snapshot." +
+        (cleanupError ? " Container cleanup failed: " + cleanupError : "");
       state.updated = new Date().toISOString();
       await atomic(join(path, "state.json"), state);
     }
@@ -423,6 +477,7 @@ export async function runWorker(root, id) {
             throw new Error("Tool changed since snapshot: " + expected.command);
         }
         execution = await executeAdapter(task, {
+          projectRoot: root,
           workspace,
           signal: controller.signal,
           log: join(path, "log.txt"),
@@ -435,6 +490,7 @@ export async function runWorker(root, id) {
         execution = { ...execution, ok: false, reason: "cancelled" };
       await reapChildren(path);
       await reapToken(state.token);
+      await reapJobContainers(path, state.token);
       // Snapshot a bounded copy of the cumulative process log into this attempt.
       const { copyFile } = await import("node:fs/promises");
       try {
@@ -517,6 +573,12 @@ export async function runWorker(root, id) {
     process.off("SIGINT", stop);
     await reapChildren(path);
     await reapToken(state.token);
+    try {
+      await reapJobContainers(path, state.token);
+    } catch (e) {
+      state.state = "interrupted";
+      state.error = "Container cleanup failed: " + e.message;
+    }
     await save();
     if (ownsLock) await rm(lock, { recursive: true, force: true });
   }

@@ -774,15 +774,21 @@
       "license": "Apache-2.0",
       "relationship": "external project data and processes",
       "bundled_upstream_code": false,
-      "locations": ["scripts/test-tinytapeout.mjs", "docs/TINYTAPEOUT.md"],
-      "adapters": ["tinytapeout"],
+      "locations": [
+        "scripts/test-tinytapeout.mjs",
+        "docs/TINYTAPEOUT.md",
+        "src/manufacturing",
+        "scripts/manufacturing-setup.py",
+        "scripts/manufacturing-verify.py"
+      ],
+      "adapters": ["tinytapeout", "tinytapeout-verify"],
       "evidence": [
         {
           "url": "https://github.com/TinyTapeout/tt-support-tools/blob/d66cf179e7bc4d296362ab7e2e3b344dc3c4f665/LICENSE"
         }
       ],
       "reviewed_on": "2026-11-11",
-      "notes": "Public tracked source copied only into disposable acceptance workspaces with upstream notices preserved; not bundled in ChipSim. IHP PDK remains separately installed and locked."
+      "notes": "Public tracked source copied only into disposable acceptance workspaces with upstream notices preserved; not bundled in ChipSim. IHP PDK remains separately installed and locked. Explicit managed setup downloads hash-pinned upstream archives and hash-locked Python packages into a user-owned cache. No external binaries or PDK are bundled in ChipSim."
     }
   ]
 }

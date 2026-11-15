@@ -345,3 +345,7 @@ Original ChipSim code is [MIT licensed](LICENSE); [acknowledgments](ACKNOWLEDGME
 More: [design workbench](docs/DESIGN.md), [input guide](docs/DESIGN_INPUTS.md), [reference library](docs/references/README.md), [reviewed profiles](docs/DOCUMENT_PROFILES.md), [function tables](docs/FUNCTION_TABLES.md), [register banks](docs/REGISTER_BANKS.md), [behavior tables](docs/BEHAVIOR_TABLES.md), [development](docs/DEVELOPMENT.md) and [changelog](docs/CHANGELOG.md).
 
 Contributors: `npm ci`, `npm test`, `npm run verify`. Public checks explicitly skip private-original cases; use `CHIPSIM_REFERENCE_ROOT` with `npm run test:references -- --verify` for full source-backed acceptance. Separate suites cover `test:install`, `test:hdl`, `test:hdl-debug`, `test:eda`, `test:physical` and `test:licenses`. The terminal is the only interactive frontend; no web build is required.
+
+### Managed manufacturing delivery
+
+[Manufacturing through MCP](docs/MANUFACTURING.md) adds profile discovery, explicit pinned environment setup, project bootstrap, RTL/gate-level verification, release checks, archive packaging and binary retrieval. The initial Tiny Tapeout IHP profile passed real cold-cache MCP acceptance through validated archive retrieval. The workflow produces local submission files; manufacturer acceptance remains external.

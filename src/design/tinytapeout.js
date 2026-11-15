@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { writeFile, readFile } from "node:fs/promises";
 import { json, fileDigest } from "./store.js";
 import { execute } from "./process.js";
+import { dockerEnvironment } from "../manufacturing/docker.js";
 import { parseXunit } from "./xunit.js";
 
 export function validateTinyTapeout(task) {
@@ -66,12 +67,16 @@ export async function executeTinyTapeout(task, context) {
       env: {
         ...task.profile.env,
         ...o.env,
-        PATH: [dirname(task.tools[0].path), process.env.PATH].join(":"),
+        ...(await dockerEnvironment(
+          context,
+          [dirname(task.tools[0].path), process.env.PATH].join(":"),
+        )),
         PDK: o.pdk,
         PDK_ROOT: o.pdkRoot,
         LIBRELANE_TAG: o.librelaneVersion,
         LIBRELANE_IMAGE_OVERRIDE: o.image,
         CI: "1",
+        PYTHONDONTWRITEBYTECODE: "1",
       },
     },
   );

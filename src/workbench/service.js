@@ -1,8 +1,8 @@
-import { realpath, lstat, readFile } from "node:fs/promises";
+import { realpath, lstat, readFile, open } from "node:fs/promises";
 import { dirname, join, relative, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadDesign, planDesign } from "../design/project.js";
-import { Store, localPath, json } from "../design/store.js";
+import { Store, localPath, json, hash } from "../design/store.js";
 import {
   startJob,
   jobStatus,
@@ -55,6 +55,7 @@ const guides = {
   hdl: "HDL.md",
   debug: "HDL_DEBUG.md",
   physical: "TINYTAPEOUT.md",
+  manufacturing: "MANUFACTURING.md",
   circuit: "CONNECTED_CIRCUITS.md",
 };
 const starterFiles = [
@@ -162,6 +163,60 @@ export async function createWorkbench(path) {
     }
   }
   async function perform(name, a, active, store, signal) {
+    if (
+      [
+        "manufacturing_profiles",
+        "environment_setup",
+        "project_bootstrap",
+        "release_status",
+        "release_package",
+      ].includes(name)
+    ) {
+      const { manufacturingTool } = await import("../manufacturing/service.js");
+      return manufacturingTool(active, name, a);
+    }
+    if (name === "artifact_read") {
+      const artifact = await verifyEvidence(store, a.artifact);
+      if (artifact.format !== "chipsim-artifact")
+        throw problem(
+          "UNSUPPORTED_ARTIFACT",
+          "Expected a binary or text artifact",
+        );
+      const offset = a.offset ?? 0,
+        limit = a.limit ?? 65536;
+      if (offset > artifact.payload.bytes)
+        throw problem("BYTE_RANGE", "Offset exceeds artifact size");
+      const handle = await open(store.blobPath(artifact.payload.sha256), "r");
+      try {
+        const buffer = Buffer.alloc(
+          Math.min(limit, artifact.payload.bytes - offset),
+        );
+        const { bytesRead } = await handle.read(
+          buffer,
+          0,
+          buffer.length,
+          offset,
+        );
+        const chunk = buffer.subarray(0, bytesRead);
+        return {
+          artifact: artifact.id,
+          path: artifact.path,
+          sha256: artifact.payload.sha256,
+          bytes: artifact.payload.bytes,
+          offset,
+          length: bytesRead,
+          chunkSha256: hash(chunk),
+          encoding: "base64",
+          data: chunk.toString("base64"),
+          nextOffset:
+            offset + bytesRead < artifact.payload.bytes
+              ? offset + bytesRead
+              : null,
+        };
+      } finally {
+        await handle.close();
+      }
+    }
     if (name === "resource_read") return resource(a.uri);
     if (name === "project") {
       let config, diagnostic;

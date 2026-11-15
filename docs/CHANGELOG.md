@@ -1,5 +1,29 @@
 # ChipSim behavior changes
 
+## 2026-11-15 — Managed manufacturing setup, verification and delivery tools
+
+**Context:** Agents could edit and simulate RTL through MCP and separately run a
+physical adapter, but had no explicit setup/bootstrap or validated delivery
+contract. **Behavior:** Shared workbench operations discover pinned profiles,
+start durable pre-manifest setup jobs, bootstrap editable projects, inspect
+release blockers, package captured submission files and retrieve verified binary
+chunks. Setup verifies archived source trees and installed wheel records, repairing
+altered managed environments. Bootstrap preserves existing files and starts with a failing testbench.
+The release graph adds independent RTL and physical-netlist tests, synthesis and
+existing timing/DRC/LVS/precheck gates. Package jobs retain checksum manifests and
+companion evidence, and rerun native precheck on the extracted archive;
+missing/stale/inconclusive results block release. Labelled owned containers are
+stopped alongside their client processes on cancellation.
+**Limits:** Linux x86-64 host prerequisites, explicit downloads, pinned Tiny
+Tapeout IHP digital profile only. The original counter/XOR fixture passed the
+complete cold-cache MCP workflow, all 11 release gates, and all 10 native precheck
+cases after archive extraction; evidence identities are recorded in
+`docs/manufacturing-acceptance.json`. Local packages do not imply manufacturer acceptance. Ordinary export
+and existing physical-adapter pins remain available. **Implementation/checks:**
+`src/manufacturing/`, shared workbench/design worker, fast manufacturing tests
+and the explicit real `test:manufacturing` MCP runner. See
+[MANUFACTURING.md](MANUFACTURING.md).
+
 This log explains changes that affect users or coding agents: the problem, the
 new behavior, how to use it, and the boundaries to preserve when extending it.
 The topic guides describe the current interface. This log starts with the

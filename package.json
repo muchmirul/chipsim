@@ -51,7 +51,8 @@
     "agent": "node scripts/agent.mjs",
     "test:install": "node scripts/test-install.mjs",
     "test:mcp": "node scripts/test-mcp.mjs",
-    "test:tinytapeout": "node scripts/test-tinytapeout.mjs"
+    "test:tinytapeout": "node scripts/test-tinytapeout.mjs",
+    "test:manufacturing": "node scripts/test-manufacturing.mjs"
   },
   "devDependencies": {
     "prettier": "^3.9.9"

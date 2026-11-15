@@ -1,0 +1,110 @@
+{
+  "format": "chipsim-manufacturing-acceptance",
+  "version": 1,
+  "profiles": {
+    "tinytapeout-ihp-v1": {
+      "digest": "0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e",
+      "nativeAcceptance": true,
+      "validatedAt": "2026-11-15T15:57:58.042Z",
+      "command": "npm run test:manufacturing",
+      "scope": "Linux x86-64; cold managed cache; original counter/XOR fixture; local Tiny Tapeout IHP package validation. Manufacturer submission and acceptance remain external.",
+      "fixture": "test/fixtures/manufacturing.mjs",
+      "fixtureSha256": "ab80bcf46abb29cfa6a49f12ed52c793b67d1753ce8fa65a5c532c9f4856445f",
+      "runtime": {
+        "sha256": "459fad0cfb7ef8dd72eb04b8ffb1e5a9f56e58824eb1520c7fa66a7b923dffe7",
+        "node": "22.23.2",
+        "platform": "linux",
+        "arch": "x64"
+      },
+      "sourceRun": "76679193883b31e1ecff9f91315909f761f3ee1407f4f8d6eebb01acbea0f16b",
+      "packageRun": "36cd1d2a689f2fe27c055b0aae5e127b1eeb9ef88b89c141eb97d4458e2579ed",
+      "requiredChecks": [
+        {
+          "name": "rtl:tests",
+          "verdict": "pass",
+          "check": "2eecd4c35d4f374d3326fe8adbe646c2fd79c6232ae2569840840ecee647a054"
+        },
+        {
+          "name": "rtl:outputs",
+          "verdict": "pass",
+          "check": "ac4ac0534a32983bb5b0c952db52f844d0e4be0411210c08b38b6a2fbb127c00"
+        },
+        {
+          "name": "synthesis:synthesis",
+          "verdict": "pass",
+          "check": "45696690d0ba03ba2436e210990d5f85e8a02e73822e91c72d1f2cdab0270e52"
+        },
+        {
+          "name": "synthesis:outputs",
+          "verdict": "pass",
+          "check": "c8471dad0a12bfda7355bf0317a43c2f3fae0e683f6ec0330230524ef9d0f6e2"
+        },
+        {
+          "name": "physical:outputs",
+          "verdict": "pass",
+          "check": "fc22106af29df53a317059ef44daafa5e088de97944b94438371404b31670d1e"
+        },
+        {
+          "name": "physical:timing",
+          "verdict": "pass",
+          "check": "39733d33d5c216bf13b164e93464ea87bda089cf540cbebeb3cf75a1988b9dcc"
+        },
+        {
+          "name": "physical:drc",
+          "verdict": "pass",
+          "check": "08af5dd9987e655f7112c9052125911e53cbf5d18612f1c34dea3fa8115c0c8d"
+        },
+        {
+          "name": "physical:lvs",
+          "verdict": "pass",
+          "check": "3f32d5d5a075e618803786341cb9969f26278502ebc09ac0e6e312eae116c9a5"
+        },
+        {
+          "name": "physical:precheck",
+          "verdict": "pass",
+          "check": "41abc068c7a2313dff15cf95999c46bc6c190b562e5cd12369b9a173217202aa"
+        },
+        {
+          "name": "gate:tests",
+          "verdict": "pass",
+          "check": "2530c56c9eacc2917e202ff792f4f8de7c14f680dff9e0be1167bb2404d04d15"
+        },
+        {
+          "name": "gate:outputs",
+          "verdict": "pass",
+          "check": "fca880226a63b7ace46ae6f6a5b18b2507a72a34535a66e0c9f49587d2bbb0c8"
+        }
+      ],
+      "archive": {
+        "sha256": "fd1b6bd1ae95cf1812b5a4983520ed3f662fc0cadf9bc7e47370aa6424921176",
+        "bytes": 108174
+      },
+      "evidenceArchive": {
+        "path": "evidence.zip",
+        "sha256": "56749abdf6485479f82e41f0e59fcc12553cf2a53e7946fcdd465d2d45770275",
+        "bytes": 18245345
+      },
+      "archivePrecheck": {
+        "cases": 10,
+        "verdict": "pass",
+        "artifact": "710130377c44c8f501b7c17e6a8c4136027254f143a1abc694d4fe367dae17f8",
+        "sha256": "71752d28f8e85b1a5ba09752da3c1f0068f7c2896910e17794504e23a7fbb7c7"
+      },
+      "testLogSha256": "8c23b7e0b114c6e5da18d0f04ba3cf1d24327edbab916b79221a9c86d943cf63",
+      "scenarios": [
+        "empty-project-bootstrap",
+        "cold-managed-cache-setup",
+        "concurrent-setup-cancellation",
+        "reconnect-request-replay",
+        "RTL-defect-detection-and-repair",
+        "RTL-and-gate-level-tests",
+        "synthesis-timing-DRC-LVS-native-precheck",
+        "mandatory-policy-weakening-blocked",
+        "declared-proof-blocked-until-pass",
+        "archive-extraction-native-revalidation",
+        "MCP-binary-chunk-reconstruction",
+        "source-edit-stales-release"
+      ]
+    }
+  }
+}

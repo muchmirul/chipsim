@@ -419,3 +419,5 @@ Opening a recording/session does not run HDL. Source fingerprints identify the
 actual copied source, not vendor fidelity. Edit testbench/source and explicitly
 capture a new run to change the experiment. JSON preserves the complete event
 recording; VCD and waveform comparison coalesce to final values per timestamp.
+
+For an empty digital manufacturing project, use the shared [manufacturing workflow](MANUFACTURING.md). MCP exposes explicit setup, bootstrap, release checks, packaging and binary artifact retrieval. Keep the profile, environment run, design run and delivery job IDs in the handoff.

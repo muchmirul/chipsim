@@ -170,3 +170,7 @@ The cleanup rewrites reachable history to remove excluded material; old clones
 must not be merged/pushed into it. Use a fresh public clone. GitHub may retain
 unreachable cached views outside branch history; the [cleanup record](licensing/CLEANUP.md)
 describes that separate platform limitation and the required post-push audit.
+
+## Explicit managed manufacturing setup
+
+The manufacturing setup operation downloads pinned external upstream archives, containers and hash-locked Python packages to a user cache. These remain separately licensed installations; ChipSim distributes the lock metadata and original orchestration code. Preserve upstream notices in cached sources and generated submission packages. Full transitive binary notices are properties of the installed distributions and pinned container; the existing direct-integration inventory is not a replacement SBOM.

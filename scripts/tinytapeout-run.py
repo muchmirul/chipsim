@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Execute captured official Tiny Tapeout tools, retaining native evidence.
 
-The only Project overrides replace Git metadata unavailable in a content-addressed
-job workspace. They do not alter HDL, timing, physical configuration or checks.
+Project provenance comes from captured inputs. The adapter explicitly selects the
+locked manual PDK and lazily imports optional image rendering. HDL, timing,
+physical configuration and native check algorithms remain upstream.
 """
 import hashlib
 import json
@@ -26,12 +27,16 @@ def main():
     sources = (Path(options["pdkRoot"]) / options["pdk"] / "SOURCES").read_text()
     if options["pdkRevision"] not in sources.split():
         raise ValueError("PDK SOURCES revision differs from pin")
-    sys.path.insert(0, str(root / "tt"))
-    from project import Project
+    from tinytapeout_project import load_project
+    Project = load_project(root / "tt")
     project = Project(0, "chipsim", ".", options["pdk"], is_user_project=True)
     project.get_git_remote = lambda: "chipsim:captured-inputs"
     project.get_git_commit_hash = lambda: "chipsim-task:" + options["fingerprint"]
     project.get_tt_tools_version = lambda: options["supportRevision"]
+    # The raw, hash-locked PDK is already installed. New LibreLane releases
+    # default to Ciel and may otherwise fetch a different PDK during hardening.
+    if "--manual-pdk" not in project.tech.librelane_pdk_args:
+        project.tech.librelane_pdk_args += " --manual-pdk"
     # yowasp exposes the working directory, not the host absolute root.
     # Keep source spelling relative for the official port-validation command.
     project.src_dir = "src"
@@ -41,23 +46,10 @@ def main():
         project.harden(no_docker=False)
         project.create_tt_submission()
         gds = root / "tt_submission" / (project.get_macro_name() + ".gds")
-        # Precheck resolves its technology templates relative to tt/precheck.
-        # Its native KLayout subprocess uses the same pinned container as harden.
-        bindir = root / "out/bin"
-        bindir.mkdir(parents=True, exist_ok=True)
-        precheck_dir = root / "tt/precheck"
-        klayout = bindir / "klayout"
-        docker = ["docker", "run", "--rm", "--user", f"{os.getuid()}:{os.getgid()}",
-                  "-v", f"{root}:{root}", "-v", f"{options['pdkRoot']}:{options['pdkRoot']}:ro",
-                  "-e", f"PDK_ROOT={options['pdkRoot']}", "-w", str(precheck_dir),
-                  "--entrypoint", "klayout", options["image"]]
-        klayout.write_text("#!/usr/bin/env python3\nimport os, sys\nos.execvp('docker', " + repr(docker) + " + sys.argv[1:])\n")
-        klayout.chmod(0o755)
-        env = os.environ.copy()
-        env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
-        result = subprocess.run([options["precheckPython"], str(precheck_dir / "precheck.py"), "--gds", str(gds), "--tech", options["pdk"]], cwd=precheck_dir, env=env)
-        if result.returncode:
-            raise SystemExit(result.returncode)
+        from tinytapeout_precheck import run_precheck
+        returncode = run_precheck(root, options, gds)
+        if returncode:
+            raise SystemExit(returncode)
     finally:
         os.chdir(root)
         (root / "out").mkdir(exist_ok=True)

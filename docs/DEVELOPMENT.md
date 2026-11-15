@@ -315,3 +315,13 @@ Run `npm run test:hdl-debug` with both stock and instrumented simulators, alongs
 The new suite uses independent adder/handshake oracles, stock waveform comparison,
 real scheduling/logic/limit/failure captures, backward reconstruction and actual
 PTY controls/resize/cancellation. See [HDL_DEBUG.md](HDL_DEBUG.md) for the contract.
+
+## Managed manufacturing services
+
+`src/manufacturing/` supplies versioned profiles, explicit cache setup, project
+bootstrap, containerized digital verification and release validation/packaging.
+Services share the workbench schemas and ordinary durable design worker, including
+pre-manifest setup plans. Read [MANUFACTURING.md](MANUFACTURING.md) for inputs,
+limits, native acceptance and binary retrieval. A profile remains `candidate`
+until its actual integrated physical acceptance is demonstrated. New profile
+versions must pin and test the entire compatible tool/PDK/submission contract.

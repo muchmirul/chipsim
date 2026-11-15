@@ -29,6 +29,101 @@ export const resultSchema = {
 };
 const definitions = [
   [
+    "manufacturing_profiles",
+    "Discover versioned manufacturing profiles, setup prerequisites, release checks and native delivery contents.",
+    {},
+    [],
+    true,
+  ],
+  [
+    "environment_setup",
+    "Start an explicit pinned manufacturing environment setup job. Uses the ordinary job status, logs, cancellation and retry tools.",
+    { profile: string(128), requestId: { ...string(128), minLength: 1 } },
+    ["profile", "requestId"],
+    false,
+  ],
+  [
+    "project_bootstrap",
+    "Create an editable digital manufacturing project without overwriting existing files. Requires a verified environment setup run.",
+    {
+      profile: string(128),
+      environment: id,
+      metadata: {
+        type: "object",
+        properties: {
+          id: string(128),
+          title: string(128),
+          top: string(128),
+          author: string(256),
+          description: string(4096),
+          clockHz: integer(1000000000, 1),
+          tiles: string(16),
+          license: string(32768),
+          pinout: {
+            type: "object",
+            properties: {
+              ui: {
+                type: "array",
+                items: string(256),
+                minItems: 8,
+                maxItems: 8,
+              },
+              uo: {
+                type: "array",
+                items: string(256),
+                minItems: 8,
+                maxItems: 8,
+              },
+              uio: {
+                type: "array",
+                items: string(256),
+                minItems: 8,
+                maxItems: 8,
+              },
+            },
+            required: ["ui", "uo", "uio"],
+            additionalProperties: false,
+          },
+        },
+        required: [
+          "id",
+          "title",
+          "top",
+          "author",
+          "description",
+          "clockHz",
+          "tiles",
+          "license",
+          "pinout",
+        ],
+        additionalProperties: false,
+      },
+    },
+    ["profile", "environment", "metadata"],
+    false,
+  ],
+  [
+    "release_status",
+    "Evaluate profile minimum checks, source freshness, native submission contents and project-required proofs for a release run.",
+    { run: id },
+    [],
+    true,
+  ],
+  [
+    "release_package",
+    "Start a managed job producing a validated manufacturer archive, checksums and companion evidence from an eligible release run.",
+    { run: id, requestId: { ...string(128), minLength: 1 } },
+    ["run", "requestId"],
+    false,
+  ],
+  [
+    "artifact_read",
+    "Read a verified artifact as a bounded base64 byte chunk with whole-file SHA-256 and chunk SHA-256. Offsets count bytes.",
+    { ...artifact, offset: integer(2 ** 31), limit: integer(65536, 1) },
+    ["artifact"],
+    true,
+  ],
+  [
     "resource_read",
     "Read ChipSim guides, schemas, starter files or bounded project resources by URI. Start with chipsim://guide/connections and chipsim://guide/workbench when the host only exposes tools. Uses the same resource allowlist as MCP resources/read.",
     { uri: { ...string(), minLength: 1 } },
@@ -253,8 +348,16 @@ export const workbenchTools = definitions.map(
     annotations: {
       readOnlyHint: readOnly,
       destructiveHint: name === "file_write",
-      idempotentHint: readOnly || name === "job_start",
-      openWorldHint: ["job_start", "plan", "job_retry"].includes(name),
+      idempotentHint:
+        readOnly ||
+        ["job_start", "environment_setup", "release_package"].includes(name),
+      openWorldHint: [
+        "job_start",
+        "plan",
+        "job_retry",
+        "environment_setup",
+        "release_package",
+      ].includes(name),
     },
   }),
 );
@@ -292,6 +395,16 @@ export function validate(schema, value, path = "arguments") {
           throw new Error(path + "." + key + " is unknown");
       } else validate(schema.properties[key], value[key], path + "." + key);
     }
+  } else if (type === "array") {
+    if (
+      !Array.isArray(value) ||
+      value.length < (schema.minItems ?? 0) ||
+      value.length > (schema.maxItems ?? Infinity)
+    )
+      throw new Error(path + " must be a bounded array");
+    value.forEach((item, i) =>
+      validate(schema.items || {}, item, path + "[" + i + "]"),
+    );
   } else if (type === "integer") {
     if (
       !Number.isSafeInteger(value) ||

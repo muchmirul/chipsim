@@ -10,6 +10,7 @@ ChipSim is a local TUI hardware behavior workbench. The terminal is the only int
   context, prepared-project copies and MCP resources synchronized.
 - `docs/WORKBENCH_MCP.md`: project file edits/CAS, candidates, durable request
   IDs, verified hardware/source/trace inspection and bounded MCP resources.
+- `docs/MANUFACTURING.md`: explicit managed setup, profile-backed digital development, required release checks, validated submission archives and binary MCP retrieval.
 - `docs/TINYTAPEOUT.md`: the separate pinned local physical adapter and native
   precheck; external tools/PDK are explicit prerequisites.
 

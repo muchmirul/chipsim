@@ -38,6 +38,12 @@ const tool =
   (command, args = ["--version"]) =>
   async () => [[command, args]];
 export const adapters = {
+  "tinytapeout-verify": {
+    tools: async (t) => [
+      [t.options.python, ["--version"]],
+      ["docker", ["--version"]],
+    ],
+  },
   tinytapeout: {
     tools: async (t) => [
       [t.options.python, ["--version"]],
@@ -223,6 +229,14 @@ export async function adapterInputs(task, root) {
   const add = (p) => {
     if (p) paths.push(localPath(p));
   };
+  if (task.adapter === "tinytapeout-verify") {
+    for (const p of [
+      ...(o.sources || []),
+      "acceptance.json",
+      ...(o.operation === "synthesis" ? [] : ["test/tb.sv"]),
+    ])
+      add(p);
+  }
   if (task.adapter === "program-image") {
     add(o.contract);
     add(o.program);
@@ -507,6 +521,12 @@ export async function normalizeChecks(
       ),
     );
   }
+  if (adapter === "tinytapeout-verify")
+    result.push(
+      ...(await (
+        await import("../manufacturing/verify.js")
+      ).verificationChecks(task, workspace, execution)),
+    );
   if (adapter === "orfs")
     result.push(...(await physicalChecks(task, workspace, execution, inputs)));
   if (adapter === "tinytapeout")
@@ -582,6 +602,16 @@ export async function executeAdapter(task, context) {
     o = def.options || {},
     adapter = def.adapter;
   const path = (p) => join(workspace, localPath(p));
+  if (adapter === "tinytapeout-verify")
+    return (await import("../manufacturing/verify.js")).executeVerification(
+      task,
+      context,
+    );
+  if (adapter === "@manufacturing")
+    return (await import("../manufacturing/jobs.js")).executeManufacturing(
+      task,
+      context,
+    );
   if (adapter === "tinytapeout") return executeTinyTapeout(task, context);
   if (adapter === "program-image")
     return (await import("./program-image.js")).buildImage(o, workspace);

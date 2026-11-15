@@ -1,0 +1,148 @@
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { readFile, writeFile } from "node:fs/promises";
+import { execute } from "../design/process.js";
+import { dockerEnvironment } from "./docker.js";
+import { parseXunit } from "../design/xunit.js";
+import { localPath } from "../design/store.js";
+
+export function validateVerification(task) {
+  if (task.adapter !== "tinytapeout-verify") return;
+  const o = task.options || {};
+  if (
+    !["rtl", "gate", "synthesis"].includes(o.operation) ||
+    !/^tt_um_[A-Za-z0-9_]+$/.test(o.top || "") ||
+    !/^ghcr\.io\/librelane\/librelane@sha256:[a-f0-9]{64}$/.test(
+      o.image || "",
+    ) ||
+    !o.python ||
+    !o.pdkRoot
+  )
+    throw new Error(
+      "Tiny Tapeout verification requires an explicit operation, top, pinned container, Python and PDK",
+    );
+  if (
+    !Array.isArray(o.sources) ||
+    o.sources.length > 512 ||
+    (o.operation !== "gate" && !o.sources.length)
+  )
+    throw new Error("Declare the RTL source inventory");
+  for (const source of o.sources) {
+    localPath(source);
+    if (!/^[A-Za-z0-9_./-]+\.(v|sv)$/.test(source))
+      throw new Error("Unsupported Verilog source spelling");
+  }
+  if ((task.checks || []).some((c) => ["tests", "synthesis"].includes(c.name)))
+    throw new Error("Native verification check names are reserved");
+}
+
+export async function executeVerification(task, context) {
+  const request = join(context.workspace, "verification-request.json");
+  await writeFile(request, JSON.stringify(task.definition.options));
+  const result = await execute(
+    task.tools[0].path,
+    [
+      fileURLToPath(
+        new URL("../../scripts/manufacturing-verify.py", import.meta.url),
+      ),
+      request,
+    ],
+    {
+      ...context,
+      cwd: context.workspace,
+      timeoutMs: task.definition.timeoutMs || 120000,
+      env: {
+        ...(await dockerEnvironment(context)),
+        PYTHONDONTWRITEBYTECODE: "1",
+      },
+    },
+  );
+  const checks = await verificationChecks(task, context.workspace, result);
+  return checks.every((c) => c.verdict === "pass")
+    ? result
+    : {
+        ...result,
+        ok: false,
+        reason: checks.map((c) => c.diagnostic || c.verdict).join("; "),
+      };
+}
+export async function verificationChecks(task, workspace, execution) {
+  const synthesis = task.definition.options.operation === "synthesis";
+  const record = {
+    name: synthesis ? "synthesis" : "tests",
+    verdict: "inconclusive",
+    scope: synthesis
+      ? "Yosys synthesis and explicit Tiny Tapeout top-level port contract"
+      : "Executed project test cases; does not establish completeness of the authored specification",
+    evidence: [synthesis ? "synthesis.json" : "results.xml", "acceptance.json"],
+    assumptions: [],
+  };
+  try {
+    if (synthesis) {
+      const graph = JSON.parse(
+        await readFile(join(workspace, "synthesis.json"), "utf8"),
+      );
+      const ports = graph.modules[task.definition.options.top]?.ports;
+      const contract = {
+        clk: ["input", 1],
+        rst_n: ["input", 1],
+        ena: ["input", 1],
+        ui_in: ["input", 8],
+        uio_in: ["input", 8],
+        uo_out: ["output", 8],
+        uio_out: ["output", 8],
+        uio_oe: ["output", 8],
+      };
+      if (
+        !ports ||
+        Object.keys(ports).length !== Object.keys(contract).length ||
+        Object.entries(contract).some(
+          ([key, [direction, width]]) =>
+            ports[key]?.direction !== direction ||
+            ports[key]?.bits?.length !== width,
+        )
+      )
+        throw new Error(
+          "Synthesized top-level interface differs from the manufacturing contract",
+        );
+      record.verdict = execution.ok ? "pass" : "fail";
+    } else {
+      const expected = JSON.parse(
+        await readFile(join(workspace, "acceptance.json"), "utf8"),
+      ).cases;
+      if (
+        !Array.isArray(expected) ||
+        !expected.length ||
+        expected.length > 1024 ||
+        expected.some((s) => typeof s !== "string" || !s.trim()) ||
+        new Set(expected).size !== expected.length
+      )
+        throw new Error("Declare 1–1024 unique acceptance case names");
+      const cases = parseXunit(
+        await readFile(join(workspace, "results.xml"), "utf8"),
+      );
+      if (
+        cases.length !== expected.length ||
+        new Set(cases.map((c) => c.name)).size !== expected.length ||
+        cases.some((c) => !expected.includes(c.name))
+      )
+        throw new Error(
+          "Executed test cases differ from declared acceptance cases",
+        );
+      record.metrics = {
+        cases: cases.length,
+        failed: cases.filter((c) => c.verdict === "fail").length,
+        skipped: cases.filter((c) => c.verdict === "inconclusive").length,
+      };
+      record.verdict =
+        record.metrics.failed || !execution.ok
+          ? "fail"
+          : record.metrics.skipped
+            ? "inconclusive"
+            : "pass";
+    }
+  } catch (e) {
+    record.diagnostic = e.message;
+  }
+  return [record];
+}

@@ -14,6 +14,7 @@ export const agentDocumentation = [
   "AGENT_EXTENSIONS.md",
   "WORKBENCH_MCP.md",
   "TINYTAPEOUT.md",
+  "MANUFACTURING.md",
   "AGENT_WORK.md",
   "EVOLUTION.md",
   "EVOLUTION_OBJECTIVES.md",

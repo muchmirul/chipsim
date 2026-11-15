@@ -178,3 +178,14 @@ create/edit/run/inspect/repair/reproduce a design solely through MCP, including
 reconnection, concurrent clients, cancellation, synthesis and two control images.
 `test/workbench.test.js` covers CAS conflicts, root bounds, source freshness,
 partial/corrupt evidence, graph identity and both terminal sizes.
+
+## Manufacturing development and delivery
+
+[Manufacturing](MANUFACTURING.md) describes `manufacturing_profiles`, explicit
+managed `environment_setup`, `project_bootstrap`, `release_status` and
+`release_package`. Setup works before design manifests exist and uses the same
+job lifecycle. `artifact_read` returns base64 byte chunks, chunk SHA-256, full
+payload SHA-256 and the next byte offset (maximum 65,536 bytes per chunk).
+Only verified artifact IDs can be read; it does not open arbitrary host paths.
+Ordinary evidence export retains its existing meaning. A manufacturing package
+requires the selected profile's minimum checks and complete native files.

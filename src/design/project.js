@@ -40,6 +40,7 @@ import {
 import { validatePhysicalReports } from "./physical.js";
 import { validateEngineering } from "./engineering.js";
 import { validateTinyTapeout, requireTinyTapeoutLock } from "./tinytapeout.js";
+import { validateVerification } from "../manufacturing/verify.js";
 
 export const packageRoot = fileURLToPath(new URL("../../", import.meta.url));
 export function name(value) {
@@ -142,6 +143,7 @@ export async function loadDesign(path) {
     if (task.options !== undefined) object(task.options, "options");
     validatePhysicalReports(task);
     validateTinyTapeout(task);
+    validateVerification(task);
     if (
       task.timeoutMs !== undefined &&
       (!Number.isSafeInteger(task.timeoutMs) ||
@@ -381,6 +383,7 @@ export async function planDesign(
     all = new Map();
   const runtime = await runtimeIdentity();
   const toolCache = new Map();
+  const verifiedDependencies = new Set();
   const known = probe
     ? []
     : (await store.list("execution-plan")).flatMap((p) =>
@@ -449,7 +452,17 @@ export async function planDesign(
       (dep) => !dep.tasks || dep.tasks.includes(id),
     );
     requireTinyTapeoutLock(task, dependencies);
-    await verifyDependencies(dependencies, root);
+    const pendingDependencies = dependencies.filter(
+      (dep) =>
+        !verifiedDependencies.has(
+          identity({ path: resolve(root, dep.path), sha256: dep.sha256 }),
+        ),
+    );
+    await verifyDependencies(pendingDependencies, root);
+    for (const dep of pendingDependencies)
+      verifiedDependencies.add(
+        identity({ path: resolve(root, dep.path), sha256: dep.sha256 }),
+      );
     const base = {
       task: id,
       definition: task,

@@ -1,0 +1,73 @@
+{
+  "id": "tinytapeout-ihp-v1",
+  "version": 1,
+  "name": "Tiny Tapeout IHP digital submission",
+  "pdk": "ihp-sg13cmos5l",
+  "host": {
+    "os": "linux",
+    "arch": "x64",
+    "python": ["3.11", "3.12"],
+    "prerequisites": [
+      "Node.js >=22.13",
+      "Python 3.11 or 3.12 with venv",
+      "usable Docker engine"
+    ]
+  },
+  "pins": {
+    "templateRevision": "4b1204ab387b5ab94db1d57067051d8d89a2f83c",
+    "supportRevision": "9d13ff3e3e6202090740110438c6a10c1d62ca0f",
+    "pdkRevision": "2bbec755dc67ca3db0261c3d6163e15735d66710",
+    "image": "ghcr.io/librelane/librelane@sha256:b4f7c1e0f99a5d5b419571277a3e93bac37ea22eb7e4af3787d59927b73067c5",
+    "librelaneVersion": "3.1.0.dev4"
+  },
+  "sources": {
+    "template": {
+      "url": "https://codeload.github.com/TinyTapeout/ttihp-verilog-template/tar.gz/4b1204ab387b5ab94db1d57067051d8d89a2f83c",
+      "revision": "4b1204ab387b5ab94db1d57067051d8d89a2f83c",
+      "sha256": "7425010f812b9d24e9be82377bec34ac4eba06ce2d460bbd7cf2a1b3a4a0f41d"
+    },
+    "support": {
+      "url": "https://codeload.github.com/TinyTapeout/tt-support-tools/tar.gz/9d13ff3e3e6202090740110438c6a10c1d62ca0f",
+      "revision": "9d13ff3e3e6202090740110438c6a10c1d62ca0f",
+      "sha256": "c6712cffa8bdce0cf4092cd503a6c26087e7183e3b4b698e6cb260eec071244b"
+    },
+    "pdk": {
+      "url": "https://codeload.github.com/IHP-GmbH/IHP-Open-PDK/tar.gz/2bbec755dc67ca3db0261c3d6163e15735d66710",
+      "revision": "2bbec755dc67ca3db0261c3d6163e15735d66710",
+      "sha256": "8f06efd917022658f6425cd681bdc21ec0f23e9cb4ec124f297dba5b0e13b52f"
+    }
+  },
+  "locks": {
+    "support": "35aae0da590e381afa5bd41dae72e3bb3f27deb7c5bd4059edc5d3e0d7514b40",
+    "precheck": "7097aaf63aae85fe860553bb04616f799422bfbc93ac98fca4ef9b1606375a53"
+  },
+  "tiles": [
+    "1x1",
+    "1x2",
+    "2x2",
+    "3x2",
+    "4x2",
+    "6x2",
+    "8x2",
+    "3x4",
+    "4x4",
+    "5x4",
+    "6x4",
+    "8x4"
+  ],
+  "requiredChecks": [
+    "rtl:tests",
+    "rtl:outputs",
+    "synthesis:synthesis",
+    "synthesis:outputs",
+    "physical:outputs",
+    "physical:timing",
+    "physical:drc",
+    "physical:lvs",
+    "physical:precheck",
+    "gate:tests",
+    "gate:outputs"
+  ],
+  "submission": ["info.yaml", "LICENSE", "src/", "docs/", "tt_submission/"],
+  "scope": "Digital Tiny Tapeout macro submission; manufacturer acceptance and shuttle integration remain external."
+}

@@ -54,7 +54,12 @@ to label provenance `chipsim:captured-inputs` / `chipsim-task:FINGERPRINT` and t
 pinned support revision. The source directory is spelled relative to the managed workspace so yowasp
 can read it within its filesystem mapping. This does not synthesize a Git commit
 or modify the
-hardware/flow algorithms. `scripts/tinytapeout-run.py` documents these overrides.
+hardware/flow algorithms. `scripts/tinytapeout-run.py` documents these overrides. It explicitly selects the
+locked manual PDK to prevent LibreLane from fetching a different default during
+hardening. Optional PNG/SVG rendering is imported lazily; hardening does not
+require host Cairo or a Git executable. Native precheck selects its own pinned
+Python executable directory and explicit PDK environment in both physical and
+archive-validation jobs.
 
 The adapter retains original metrics, resolved configuration, SDCs, GDS/OAS,
 LEF, netlist, reports and precheck XML. Native non-finite metric values become
@@ -120,3 +125,15 @@ explicitly enables native KLayout DRC in its own fixture because the public
 template disables that step. It preserves the chosen tile size and other
 configuration. Container/PDK/runtime licenses remain those of their upstreams;
 none are bundled by ChipSim.
+
+## Managed manufacturing profile
+
+The additive `tinytapeout-ihp-v1` profile in [Manufacturing](MANUFACTURING.md)
+pins a newer LibreLane `3.1.0.dev4` combination with exact source/archive and
+Python package hashes. Its complete cold-cache MCP acceptance has passed;
+[the acceptance record](manufacturing-acceptance.json) binds the profile digest,
+runtime identity, required checks and delivered archive hashes. The explicit original adapter and its dev3
+acceptance fixture retain their pins for reproduction. Managed setup is an
+explicit MCP action; reading a guide or starting a physical target does not
+install dependencies. The profile adds independent RTL and gate-level test gates
+and a checked submission archive around the existing physical adapter.

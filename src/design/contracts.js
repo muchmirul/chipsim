@@ -2,6 +2,18 @@
 // bridge remains an explicit project setup action.
 export const integrationContracts = [
   [
+    "tinytapeout-verify",
+    [
+      "RTL or bound physical netlist",
+      "independent testbench",
+      "declared case names",
+      "pinned container and PDK",
+    ],
+    ["native xUnit report", "synthesized Verilog and netlist JSON"],
+    ["tests", "synthesis"],
+    "Project-authored digital verification; nonempty exact test inventory and actual simulator execution required. Gate simulation is not a formal equivalence proof.",
+  ],
+  [
     "program-image",
     ["finite program JSON", "explicit capability contract"],
     ["memory hex", "typed validation report"],
