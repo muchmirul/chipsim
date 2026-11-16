@@ -1,0 +1,18 @@
+{
+  "cases": [
+    "reset-and-idle",
+    "disabled-safe",
+    "minimum-startup-delay",
+    "startup-waits-for-power-good",
+    "startup-timeout-latches",
+    "power-good-at-timeout-boundary",
+    "fault-inhibit-and-latch",
+    "fault-clear-interlock",
+    "running-power-good-loss",
+    "all-sixteen-duty-levels",
+    "duty-updates-only-at-frame-boundary",
+    "stop-and-restart",
+    "enable-abort-and-independent-fault-capture",
+    "asynchronous-reset-dominates"
+  ]
+}

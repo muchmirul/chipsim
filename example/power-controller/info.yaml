@@ -1,0 +1,41 @@
+{
+  "project": {
+    "title": "ChipSim digital power controller",
+    "author": "ChipSim contributors",
+    "description": "Digital PWM with power-good startup supervision and latched shutdown for an external power stage",
+    "language": "Verilog",
+    "clock_hz": 50000000,
+    "tiles": "1x1",
+    "top_module": "tt_um_chipsim_power_controller",
+    "source_files": [
+      "project.v"
+    ]
+  },
+  "pinout": {
+    "ui[0]": "run_request",
+    "ui[1]": "power_good",
+    "ui[2]": "fault_in",
+    "ui[3]": "clear_fault",
+    "ui[4]": "duty_command[0]",
+    "ui[5]": "duty_command[1]",
+    "ui[6]": "duty_command[2]",
+    "ui[7]": "duty_command[3]",
+    "uo[0]": "pwm_out",
+    "uo[1]": "power_enable",
+    "uo[2]": "ready",
+    "uo[3]": "fault_latched",
+    "uo[4]": "reserved_zero",
+    "uo[5]": "reserved_zero",
+    "uo[6]": "reserved_zero",
+    "uo[7]": "reserved_zero",
+    "uio[0]": "unused",
+    "uio[1]": "unused",
+    "uio[2]": "unused",
+    "uio[3]": "unused",
+    "uio[4]": "unused",
+    "uio[5]": "unused",
+    "uio[6]": "unused",
+    "uio[7]": "unused"
+  },
+  "yaml_version": 6
+}

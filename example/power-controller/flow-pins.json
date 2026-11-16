@@ -1,0 +1,7 @@
+{
+  "templateRevision": "4b1204ab387b5ab94db1d57067051d8d89a2f83c",
+  "supportRevision": "9d13ff3e3e6202090740110438c6a10c1d62ca0f",
+  "pdkRevision": "2bbec755dc67ca3db0261c3d6163e15735d66710",
+  "image": "ghcr.io/librelane/librelane@sha256:b4f7c1e0f99a5d5b419571277a3e93bac37ea22eb7e4af3787d59927b73067c5",
+  "librelaneVersion": "3.1.0.dev4"
+}

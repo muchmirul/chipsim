@@ -789,6 +789,26 @@
       ],
       "reviewed_on": "2026-11-11",
       "notes": "Public tracked source copied only into disposable acceptance workspaces with upstream notices preserved; not bundled in ChipSim. IHP PDK remains separately installed and locked. Explicit managed setup downloads hash-pinned upstream archives and hash-locked Python packages into a user-owned cache. No external binaries or PDK are bundled in ChipSim."
+    },
+    {
+      "id": "ihp-open-pdk-power-example",
+      "name": "IHP Open PDK / SG13CMOS5L standard-cell technology",
+      "license": "Apache-2.0",
+      "relationship": "external-platform-and-generated-layout",
+      "bundled_upstream_code": false,
+      "locations": [
+        "example/power-controller/docs/THIRD_PARTY_NOTICES.md",
+        "example/power-controller/docs/licenses/IHP-Apache-2.0.txt"
+      ],
+      "adapters": ["tinytapeout"],
+      "evidence": [
+        {
+          "url": "https://github.com/IHP-GmbH/IHP-Open-PDK/blob/2bbec755dc67ca3db0261c3d6163e15735d66710/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ],
+      "reviewed_on": "2026-11-16",
+      "notes": "Original MIT power-controller sources remain separate from the generated layout standard-cell technology. The source PDK license bytes and attribution are retained with the example and submission documentation. Raw PDK/tools are external; tt/ and full captured-tool evidence.zip are ignored by Git."
     }
   ]
 }

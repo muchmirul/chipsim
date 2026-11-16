@@ -1,0 +1,195 @@
+{
+  "format": "chipsim-manufacturing-release",
+  "version": 1,
+  "profile": "tinytapeout-ihp-v1",
+  "profileDigest": "0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e",
+  "run": "b75f0c2ddd09a00369882772c549e200f01001811bcf8ab1b79019725d53e4b5",
+  "snapshot": "0c11b382c933f63c14d7d9a18e0a2c45497135ab3b115c52cfce588287b22b88",
+  "pins": {
+    "templateRevision": "4b1204ab387b5ab94db1d57067051d8d89a2f83c",
+    "supportRevision": "9d13ff3e3e6202090740110438c6a10c1d62ca0f",
+    "pdkRevision": "2bbec755dc67ca3db0261c3d6163e15735d66710",
+    "image": "ghcr.io/librelane/librelane@sha256:b4f7c1e0f99a5d5b419571277a3e93bac37ea22eb7e4af3787d59927b73067c5",
+    "librelaneVersion": "3.1.0.dev4"
+  },
+  "checks": [
+    {
+      "name": "rtl:tests",
+      "verdict": "pass",
+      "check": "eff67bee050de3522dfe1ae4fb16685eb416e6f197e6c9f8ca6fa50f16a349e3"
+    },
+    {
+      "name": "rtl:outputs",
+      "verdict": "pass",
+      "check": "f499eca748579298abf8fe8c5318b08bf0a934f2547a1f2dae6ae57032d6025c"
+    },
+    {
+      "name": "synthesis:synthesis",
+      "verdict": "pass",
+      "check": "5a8db8de19d1fb7a5713b664abd262e1a77af16e4ad02f460dafd943cbf8c7b0"
+    },
+    {
+      "name": "synthesis:outputs",
+      "verdict": "pass",
+      "check": "a3ec6fad3acd42f39c14193017cc69b0426a46bf6d1a07d7e49867272eb89314"
+    },
+    {
+      "name": "physical:outputs",
+      "verdict": "pass",
+      "check": "897c199d574fb7333e009545caa4a552c630bfa1a613aba4072935fcdd5e3db7"
+    },
+    {
+      "name": "physical:timing",
+      "verdict": "pass",
+      "check": "8f373674ca3348bca1df4cb4bb1c0570aef86b79365da7dc5e0701ad0aeb6d05"
+    },
+    {
+      "name": "physical:drc",
+      "verdict": "pass",
+      "check": "65677ead46f8f720bfa48cd03940146ea547a2a6011872e57cedcdba8ccbbac4"
+    },
+    {
+      "name": "physical:lvs",
+      "verdict": "pass",
+      "check": "290a52b33b6e1c9a9e62c137fa3bc40f9262f865c87f8220299dafbeaa055d44"
+    },
+    {
+      "name": "physical:precheck",
+      "verdict": "pass",
+      "check": "02ef864794dea00784bc45d19ee09aa1d8d35e0824e9a3c277d24b2c5f63cdc5"
+    },
+    {
+      "name": "gate:tests",
+      "verdict": "pass",
+      "check": "799729082b829e5141c82a342e76ab1b80b9c1a7e1777371a49fbc999a28326f"
+    },
+    {
+      "name": "gate:outputs",
+      "verdict": "pass",
+      "check": "5ef46af59ab4ed4c31cd3202fd173cadfe23cb70bf58f7095b31a1bdadf031c6"
+    }
+  ],
+  "sourceIdentity": "66242a3005b22742a74aa2e1f25288c7317cd4e6bc761c3cec495e95776658ef",
+  "members": [
+    {
+      "path": "acceptance.json",
+      "sha256": "71f2a32c37d47eca498f5ea51e70c196bf5511ba7392ca87cb64c74bbcefdb27",
+      "bytes": 472
+    },
+    {
+      "path": "docs/info.md",
+      "sha256": "f4744c791d8d7b2cc241356d9dac22a9907c5a84c532b253b26fb1e68a3a1369",
+      "bytes": 2767
+    },
+    {
+      "path": "docs/licenses/IHP-Apache-2.0.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357
+    },
+    {
+      "path": "docs/requirements.md",
+      "sha256": "0c13bccf8e4995b057290c3a2a2efd4830b2c0d1277cc57be0cb69aab0236b22",
+      "bytes": 3684
+    },
+    {
+      "path": "docs/THIRD_PARTY_NOTICES.md",
+      "sha256": "0f1a47f2d1c67bdc86df784fb6c283e7d5476bb5a6a40b5266ad0ea428a3833e",
+      "bytes": 1051
+    },
+    {
+      "path": "flow-pins.json",
+      "sha256": "eb2d0c68bf83d8b8f5dd85c000d34555a71860b06a02fe52ac5334efb603906c",
+      "bytes": 345
+    },
+    {
+      "path": "info.yaml",
+      "sha256": "83d52ae3d8e0a2f5fcbfc2dc7e36d855aba1959259b0a34e926138a262e7669d",
+      "bytes": 1092
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "7ff1bf380b66917f0d328cd84f5fc6c145d98e3566cb0fea47c09d289b03faaf",
+      "bytes": 1079
+    },
+    {
+      "path": "manufacturing.json",
+      "sha256": "afeb15e1319e8ad11c8dbb62390f9355e32cd4b538cfec3ec9fab2be727bd0b5",
+      "bytes": 2346
+    },
+    {
+      "path": "REPRODUCE.md",
+      "sha256": "802892f95a8813feff6fe96f66a0d25020198ca45c4f61ffa2c694feffd7511a",
+      "bytes": 608
+    },
+    {
+      "path": "src/config.json",
+      "sha256": "87d9cfb85a88e46df0f23c2f0f8035b45271ce9bcb265b282c8c70cab7f0cb9a",
+      "bytes": 718
+    },
+    {
+      "path": "src/project.v",
+      "sha256": "5425fb01023dd6b429605460867bceeafc5647945db1abe7a995212bfefb2410",
+      "bytes": 3723
+    },
+    {
+      "path": "test/tb.sv",
+      "sha256": "432e3530792bb46610f2bcf4d490e304553eff1db520b62c8079b12cab8534b5",
+      "bytes": 7609
+    },
+    {
+      "path": "tt_submission/commit_id.json",
+      "sha256": "1883aa7b4079fe9adcd781dbf9a7b101ee59f5a87c69ada187037326c7dbfa48",
+      "bytes": 223
+    },
+    {
+      "path": "tt_submission/pdk.json",
+      "sha256": "d2c555fc63d786dd6047ce8a35257cb44626a2b66bd6ba0c4c23dc7c1068fb42",
+      "bytes": 182
+    },
+    {
+      "path": "tt_submission/resolved.json",
+      "sha256": "55b80d5820d626529a4a88147ba4fac8baafc3cc3d5a8b544225771ecb69acbf",
+      "bytes": 22576
+    },
+    {
+      "path": "tt_submission/stats/metrics.csv",
+      "sha256": "1da3edd49c7df972c8350a271dcb658fa65154a43aca2e9fbaee9e6f6592e092",
+      "bytes": 8542
+    },
+    {
+      "path": "tt_submission/stats/synthesis-stats.txt",
+      "sha256": "cb435d8001ec1eb704ae64999d425624ecedbdff5be15d288958fdafee1a5cd2",
+      "bytes": 1788
+    },
+    {
+      "path": "tt_submission/tt_um_chipsim_power_controller.gds",
+      "sha256": "34a600248ced7fe42b2123c4d861c3fc45eaac88edf1267da9ffd0feabea42c0",
+      "bytes": 483772
+    },
+    {
+      "path": "tt_submission/tt_um_chipsim_power_controller.lef",
+      "sha256": "c89fd320f99c62b8d291e10f065b1f4b570e15b93e87e385f044228d6e53e219",
+      "bytes": 11401
+    },
+    {
+      "path": "tt_submission/tt_um_chipsim_power_controller.nom.spef",
+      "sha256": "e40b7da0f347246b67e226309112f2b4fbeed30e3fcf21772a924545973480e9",
+      "bytes": 213220
+    },
+    {
+      "path": "tt_submission/tt_um_chipsim_power_controller.oas",
+      "sha256": "31aa3df0c80c8e05c70431fd3b0ae5c9619bf5c6f237f95486a7c1e71a9de932",
+      "bytes": 27361
+    },
+    {
+      "path": "tt_submission/tt_um_chipsim_power_controller.v",
+      "sha256": "90cc9f567bf262aa1876735ca855431f77731d206ac9b73908e7a36c7195b47d",
+      "bytes": 104168
+    },
+    {
+      "path": "verification-summary.json",
+      "sha256": "df01d2a4399625d2e8ace1e55fc7da465948b819529e34e0c7ef29b6e5f7aab3",
+      "bytes": 4192
+    }
+  ]
+}

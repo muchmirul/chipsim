@@ -1,0 +1,26 @@
+{
+  "format": "chipsim-lock",
+  "version": 1,
+  "dependencies": [
+    {
+      "path": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/pdk",
+      "sha256": "549cb2253b8477c468d90e5c5909c3affcb054866b74726163e0066350bbb278"
+    },
+    {
+      "path": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/template",
+      "sha256": "ec8bc5806ad6896155839a3022a99fbadd2726184d9266f995fbe8dcbdc0033f"
+    },
+    {
+      "path": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/support",
+      "sha256": "4a5f38c4c2b096a715dbd25049cc26badda382fea35d7238a84cb702b7b8d2e8"
+    },
+    {
+      "path": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/support-venv",
+      "sha256": "52789191c925191cb0469ffe014e21ca175d31625eac97ab07c311a64cc0c332"
+    },
+    {
+      "path": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/precheck-venv",
+      "sha256": "b231b610afebcfdc017c283ba6890b561d41a83b0100f80f56b21f26fac235f1"
+    }
+  ]
+}

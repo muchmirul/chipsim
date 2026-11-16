@@ -1,5 +1,22 @@
 # ChipSim behavior changes
 
+## 2026-11-16 — Tiny Tapeout digital power-controller example
+
+**Context:** Agents needed a concrete chip-development example using the full MCP
+manufacturing path. **Behavior:** `example/power-controller` supplies original
+PWM/startup/fault RTL, 14 public-pin cases, source/constraint manifests, native
+Tiny Tapeout handoff files and an MCP-only reproduction helper. It uses one IHP
+1x1 tile at 50 MHz, a 256-slot PWM period, eight-clock minimum startup and
+256-clock power-good timeout. Fault clear requires a stopped request and a clear
+fault input. **Checks:** The same fixed tests run on RTL and the physical-flow
+netlist; timing/DRC/LVS/native precheck remain required. A separate candidate
+intentionally breaks the clear interlock and must fail the unchanged tests. Actual
+run IDs, artifact identities and check verdicts are retained in the example's
+`VALIDATION.json`; raw support tools and full captured-tool evidence are ignored
+by Git and regenerated through MCP. **Limits:** Digital supervision/control for
+an external power stage; synchronous control inputs, asynchronous reset, no
+analog regulation, gate driver or manufacturer acceptance claim.
+
 ## 2026-11-15 — Managed manufacturing setup, verification and delivery tools
 
 **Context:** Agents could edit and simulate RTL through MCP and separately run a

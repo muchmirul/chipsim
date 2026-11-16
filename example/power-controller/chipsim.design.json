@@ -1,0 +1,192 @@
+{
+  "format": "chipsim-design",
+  "version": 1,
+  "id": "power-controller",
+  "name": "ChipSim digital power controller",
+  "engineering": {
+    "roles": {
+      "hardware": [
+        "src/project.v"
+      ],
+      "tests": [
+        "test/tb.sv",
+        "acceptance.json"
+      ],
+      "constraints": [
+        "src/config.json"
+      ]
+    }
+  },
+  "tasks": {
+    "rtl": {
+      "adapter": "tinytapeout-verify",
+      "inputs": [
+        "src",
+        "manufacturing.json"
+      ],
+      "options": {
+        "operation": "rtl",
+        "sources": [
+          "src/project.v"
+        ],
+        "top": "tt_um_chipsim_power_controller",
+        "python": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/support-venv/bin/python",
+        "pdkRoot": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/pdk",
+        "image": "ghcr.io/librelane/librelane@sha256:b4f7c1e0f99a5d5b419571277a3e93bac37ea22eb7e4af3787d59927b73067c5"
+      },
+      "outputs": [
+        {
+          "path": "results.xml",
+          "kind": "test-report"
+        }
+      ]
+    },
+    "synthesis": {
+      "adapter": "tinytapeout-verify",
+      "inputs": [
+        "src",
+        "manufacturing.json"
+      ],
+      "options": {
+        "operation": "synthesis",
+        "sources": [
+          "src/project.v"
+        ],
+        "top": "tt_um_chipsim_power_controller",
+        "python": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/support-venv/bin/python",
+        "pdkRoot": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/pdk",
+        "image": "ghcr.io/librelane/librelane@sha256:b4f7c1e0f99a5d5b419571277a3e93bac37ea22eb7e4af3787d59927b73067c5"
+      },
+      "outputs": [
+        {
+          "path": "synthesis.json",
+          "kind": "netlist-graph"
+        },
+        {
+          "path": "synthesis.v",
+          "kind": "netlist"
+        }
+      ],
+      "needs": [
+        "rtl"
+      ]
+    },
+    "physical": {
+      "adapter": "tinytapeout",
+      "needs": [
+        "synthesis"
+      ],
+      "inputs": [
+        "manufacturing.json",
+        "docs",
+        "LICENSE",
+        "acceptance.json",
+        "test"
+      ],
+      "options": {
+        "templateRevision": "4b1204ab387b5ab94db1d57067051d8d89a2f83c",
+        "supportRevision": "9d13ff3e3e6202090740110438c6a10c1d62ca0f",
+        "pdkRevision": "2bbec755dc67ca3db0261c3d6163e15735d66710",
+        "image": "ghcr.io/librelane/librelane@sha256:b4f7c1e0f99a5d5b419571277a3e93bac37ea22eb7e4af3787d59927b73067c5",
+        "librelaneVersion": "3.1.0.dev4",
+        "pdk": "ihp-sg13cmos5l",
+        "pdkRoot": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/pdk",
+        "python": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/support-venv/bin/python",
+        "precheckPython": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/precheck-venv/bin/python"
+      },
+      "timeoutMs": 3600000,
+      "outputs": [
+        {
+          "path": "tt_submission/tt_um_chipsim_power_controller.gds",
+          "kind": "layout"
+        },
+        {
+          "path": "tt_submission/tt_um_chipsim_power_controller.oas",
+          "kind": "layout"
+        },
+        {
+          "path": "tt_submission/tt_um_chipsim_power_controller.lef",
+          "kind": "physical-abstract"
+        },
+        {
+          "path": "tt_submission/tt_um_chipsim_power_controller.v",
+          "kind": "netlist"
+        },
+        {
+          "path": "out/physical.json",
+          "kind": "physical-report"
+        },
+        {
+          "path": "tt/precheck/reports/results.xml",
+          "kind": "test-report"
+        }
+      ]
+    },
+    "gate": {
+      "adapter": "tinytapeout-verify",
+      "inputs": [
+        "src",
+        "manufacturing.json"
+      ],
+      "options": {
+        "operation": "gate",
+        "sources": [],
+        "top": "tt_um_chipsim_power_controller",
+        "python": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/support-venv/bin/python",
+        "pdkRoot": "/tmp/chipsim-manufacturing-cache-MLFWRe/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/pdk",
+        "image": "ghcr.io/librelane/librelane@sha256:b4f7c1e0f99a5d5b419571277a3e93bac37ea22eb7e4af3787d59927b73067c5"
+      },
+      "outputs": [
+        {
+          "path": "results.xml",
+          "kind": "test-report"
+        }
+      ],
+      "bindings": [
+        {
+          "task": "physical",
+          "output": "tt_submission/tt_um_chipsim_power_controller.v",
+          "path": "gate_level_netlist.v"
+        }
+      ]
+    }
+  },
+  "targets": {
+    "simulation": {
+      "tasks": [
+        "rtl"
+      ],
+      "requiredChecks": [
+        "rtl:tests",
+        "rtl:outputs"
+      ]
+    },
+    "synthesis": {
+      "tasks": [
+        "synthesis"
+      ],
+      "requiredChecks": [
+        "synthesis:synthesis",
+        "rtl:tests"
+      ]
+    },
+    "release": {
+      "tasks": [
+        "gate"
+      ],
+      "requiredChecks": [
+        "rtl:tests",
+        "rtl:outputs",
+        "synthesis:synthesis",
+        "synthesis:outputs",
+        "physical:outputs",
+        "physical:timing",
+        "physical:drc",
+        "physical:lvs",
+        "physical:precheck",
+        "gate:tests",
+        "gate:outputs"
+      ]
+    }
+  }
+}

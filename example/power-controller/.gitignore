@@ -1,0 +1,7 @@
+# Generated support checkout and local runs; source/pins stay tracked.
+.chipsim/
+.chipsim-agent/
+tt/
+.work/
+# Full evidence captures external support-tool sources; regenerate through MCP.
+delivery/evidence.zip

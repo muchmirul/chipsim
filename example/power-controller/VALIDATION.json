@@ -1,0 +1,365 @@
+{
+  "format": "chipsim-example-validation",
+  "version": 1,
+  "validatedAt": "2026-11-16T06:08:14.457027+00:00",
+  "design": {
+    "top": "tt_um_chipsim_power_controller",
+    "profile": "tinytapeout-ihp-v1",
+    "profileDigest": "0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e",
+    "process": "ihp-sg13cmos5l",
+    "tiles": "1x1",
+    "clockHz": 50000000,
+    "pdkRevision": "2bbec755dc67ca3db0261c3d6163e15735d66710"
+  },
+  "scope": "Digital PWM and power-good/fault supervision for an external power stage. Local Tiny Tapeout handoff validated; manufacturer submission and acceptance remain external.",
+  "sourceSha256": {
+    "src/project.v": "5425fb01023dd6b429605460867bceeafc5647945db1abe7a995212bfefb2410",
+    "src/config.json": "87d9cfb85a88e46df0f23c2f0f8035b45271ce9bcb265b282c8c70cab7f0cb9a",
+    "test/tb.sv": "432e3530792bb46610f2bcf4d490e304553eff1db520b62c8079b12cab8534b5",
+    "acceptance.json": "71f2a32c37d47eca498f5ea51e70c196bf5511ba7392ca87cb64c74bbcefdb27",
+    "info.yaml": "83d52ae3d8e0a2f5fcbfc2dc7e36d855aba1959259b0a34e926138a262e7669d",
+    "metadata.json": "2fd7e2a960ceb836de923f02c99609eaa42856a9a95872232b339a5235c26e7b",
+    "flow-pins.json": "eb2d0c68bf83d8b8f5dd85c000d34555a71860b06a02fe52ac5334efb603906c",
+    "manufacturing.json": "afeb15e1319e8ad11c8dbb62390f9355e32cd4b538cfec3ec9fab2be727bd0b5",
+    "chipsim.design.json": "c2f2b246453b304532aed372b74fadb0bbb962a0b2cd0f9cc731a20e14c63b9d",
+    "chipsim.lock.json": "af3125328f6a938ba7a678d44b6c5a2584fc5823241ddaa0084da9a336b5693e",
+    "docs/info.md": "f4744c791d8d7b2cc241356d9dac22a9907c5a84c532b253b26fb1e68a3a1369",
+    "docs/requirements.md": "0c13bccf8e4995b057290c3a2a2efd4830b2c0d1277cc57be0cb69aab0236b22",
+    "docs/THIRD_PARTY_NOTICES.md": "0f1a47f2d1c67bdc86df784fb6c283e7d5476bb5a6a40b5266ad0ea428a3833e",
+    "docs/licenses/IHP-Apache-2.0.txt": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "LICENSE": "7ff1bf380b66917f0d328cd84f5fc6c145d98e3566cb0fea47c09d289b03faaf"
+  },
+  "mcp": {
+    "transport": "Official MCP SDK Client and StdioClientTransport -> scripts/chipsim.mjs mcp --project PROJECT",
+    "workflow": [
+      "environment_setup",
+      "project_bootstrap",
+      "file_read",
+      "file_write",
+      "validate",
+      "job_start",
+      "job_status",
+      "release_status",
+      "release_package",
+      "artifacts",
+      "checks",
+      "artifact_read"
+    ],
+    "originalJobs": {
+      "setup": {
+        "job": "e32614f0-4838-4edb-aef0-f7e9cf510e31",
+        "run": "b16703a6bf5d948b3424a1eb4ebde8662cdd7cc76b81cbe847d2639172904478",
+        "state": "completed",
+        "ready": true
+      },
+      "simulation": {
+        "job": "ed0398b4-560b-4a79-9fa6-70cce35857c3",
+        "run": "753f84e9d6827e4104eab7e7dbbf4b67b8e5f5b441f2267c7ef3389a584ddcd3",
+        "state": "completed",
+        "ready": true
+      },
+      "release": {
+        "job": "38658d06-9734-4016-81d1-6c69985f2671",
+        "run": "b75f0c2ddd09a00369882772c549e200f01001811bcf8ab1b79019725d53e4b5",
+        "state": "completed",
+        "ready": true
+      },
+      "package": {
+        "job": "ee24307c-bceb-416e-a97b-c9e25a6dd561",
+        "run": "4b94aa64c35a8c161dcca68f2a1512ab396ed5b94714c6bda326cd20a612c585",
+        "state": "completed",
+        "ready": true
+      }
+    }
+  },
+  "release": {
+    "ready": true,
+    "blockers": [],
+    "required": [
+      {
+        "name": "rtl:tests",
+        "verdict": "pass",
+        "check": "eff67bee050de3522dfe1ae4fb16685eb416e6f197e6c9f8ca6fa50f16a349e3"
+      },
+      {
+        "name": "rtl:outputs",
+        "verdict": "pass",
+        "check": "f499eca748579298abf8fe8c5318b08bf0a934f2547a1f2dae6ae57032d6025c"
+      },
+      {
+        "name": "synthesis:synthesis",
+        "verdict": "pass",
+        "check": "5a8db8de19d1fb7a5713b664abd262e1a77af16e4ad02f460dafd943cbf8c7b0"
+      },
+      {
+        "name": "synthesis:outputs",
+        "verdict": "pass",
+        "check": "a3ec6fad3acd42f39c14193017cc69b0426a46bf6d1a07d7e49867272eb89314"
+      },
+      {
+        "name": "physical:outputs",
+        "verdict": "pass",
+        "check": "897c199d574fb7333e009545caa4a552c630bfa1a613aba4072935fcdd5e3db7"
+      },
+      {
+        "name": "physical:timing",
+        "verdict": "pass",
+        "check": "8f373674ca3348bca1df4cb4bb1c0570aef86b79365da7dc5e0701ad0aeb6d05"
+      },
+      {
+        "name": "physical:drc",
+        "verdict": "pass",
+        "check": "65677ead46f8f720bfa48cd03940146ea547a2a6011872e57cedcdba8ccbbac4"
+      },
+      {
+        "name": "physical:lvs",
+        "verdict": "pass",
+        "check": "290a52b33b6e1c9a9e62c137fa3bc40f9262f865c87f8220299dafbeaa055d44"
+      },
+      {
+        "name": "physical:precheck",
+        "verdict": "pass",
+        "check": "02ef864794dea00784bc45d19ee09aa1d8d35e0824e9a3c277d24b2c5f63cdc5"
+      },
+      {
+        "name": "gate:tests",
+        "verdict": "pass",
+        "check": "799729082b829e5141c82a342e76ab1b80b9c1a7e1777371a49fbc999a28326f"
+      },
+      {
+        "name": "gate:outputs",
+        "verdict": "pass",
+        "check": "5ef46af59ab4ed4c31cd3202fd173cadfe23cb70bf58f7095b31a1bdadf031c6"
+      }
+    ],
+    "testMetrics": {
+      "rtl": {
+        "cases": 14,
+        "failed": 0,
+        "skipped": 0
+      },
+      "gate": {
+        "cases": 14,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "nativeArchiveCases": {
+      "cases": 10,
+      "failed": 0,
+      "skipped": 0,
+      "names": [
+        "KLayout pin label overlapping drawing",
+        "KLayout SG13CMOS5L DRC",
+        "KLayout zero area",
+        "KLayout Checks",
+        "Pin check",
+        "Boundary check",
+        "Layer check",
+        "Cell name check",
+        "Analog pin check",
+        "Verilog syntax check"
+      ]
+    }
+  },
+  "delivery": {
+    "submission.zip": {
+      "artifact": "049e1efe7bf224557ad74e6d375dd3e5996cdc2fdf29e0700ceb982b3891e1f6",
+      "sha256": "c01ac25b5128932641548e09f99ff0232213d218cffd5f73f2b1d040db2c9348",
+      "bytes": 195092
+    },
+    "evidence.zip": {
+      "artifact": "42ec02b3d747a24de4eabbc3acf2035e2a7cf147ce7e413b70133602e3eb28f7",
+      "sha256": "72116a9832b6a41968dd5cafa864c213115f1e72e312fc6e361e43d6a8b75416",
+      "bytes": 19628108
+    },
+    "release-manifest.json": {
+      "artifact": "f44190aca0f2be68a77f6a6205a67562384c22b1284208859f653f86c56a8066",
+      "sha256": "26c77381956e66e1be25b95ed90f7ea9f1a54af8b28c285cdf2fa95ac566a88b",
+      "bytes": 6368
+    },
+    "SHA256SUMS": {
+      "artifact": "a73c312825fa6ecdf4dc98ae378733f29872b3c8fd7b0760d299d8f8b462b04b",
+      "sha256": "e80a26d0bce660d6d095e465097f840af275f537863abccd86481aa90fa02fff",
+      "bytes": 160
+    },
+    "archive-validation.xml": {
+      "artifact": "5fc89b07cec77372416f275a2c206d66297d1b5a1437531a6b7835c705711920",
+      "sha256": "f00ec1a75a8d9ae21450f558b261a7c660d6990be8f6cb6d7b9fbed36dced2c0",
+      "bytes": 628
+    },
+    "tt_um_chipsim_power_controller.gds": {
+      "artifact": "7d461c3acbed662db340e023e4f7c16e661834f45adba3cd0b32a3d84cca879a",
+      "sha256": "34a600248ced7fe42b2123c4d861c3fc45eaac88edf1267da9ffd0feabea42c0",
+      "bytes": 483772
+    },
+    "tt_um_chipsim_power_controller.oas": {
+      "artifact": "7a28fb5cd34ecc5053f2d47d8507e028f2a25046b33311f61faac876ccc046b6",
+      "sha256": "31aa3df0c80c8e05c70431fd3b0ae5c9619bf5c6f237f95486a7c1e71a9de932",
+      "bytes": 27361
+    }
+  },
+  "negativeControl": {
+    "candidate": "f34a6730-ec0d-489b-a1fa-4d6da33d84e4",
+    "job": "5283fced-2867-47ec-90d8-4f9bf06a4e72",
+    "run": "f790709d5ca30726b11bfa6467bbde0b299556d475d01a1d783cb0685a04605e",
+    "state": "failed",
+    "ready": false,
+    "mutation": "Replace if (!request_on && clear_fault) with if (clear_fault) in candidate RTL only.",
+    "unchangedTestbenchSha256": "432e3530792bb46610f2bcf4d490e304553eff1db520b62c8079b12cab8534b5",
+    "expectedFailingCase": "fault-clear-interlock",
+    "observedNativeFailure": "FATAL: test/tb.sv:36: Expected latched FAULT, got 00",
+    "diagnostics": [
+      {
+        "task": "rtl",
+        "message": "Empty or malformed test suite",
+        "artifact": "1212a5184da6e50cd392a1f584a09ae14b239f6a5448650818561b0773f4431c"
+      }
+    ],
+    "originalSourcePreserved": true
+  },
+  "reproduction": {
+    "profile": "tinytapeout-ihp-v1",
+    "environmentRun": "086670d87d10603ce834c9c0e8b7440104c6de9842037beb43d68ae7dff30988",
+    "simulationRun": "9303eea29419320f74fe9de1f94a5c294d0343051a9d9306da175b18e04e2463",
+    "releaseRun": "fd51b11c385981af77b1b7e36289293e67e6a62fd1da39116f6aeedd4702b1c3",
+    "packageRun": "c1a6baebc1bfe5e53b0c4bab01ce409757cb48e3e95e149f3a0dae73b1218e46",
+    "required": [
+      {
+        "name": "rtl:tests",
+        "verdict": "pass",
+        "check": "67db0703d19c6037cb9fa3323225a77a9199af1acbba0686c5d58a9cd3e5b1aa"
+      },
+      {
+        "name": "rtl:outputs",
+        "verdict": "pass",
+        "check": "23a4da3a5f2e3c3333d6517b697342d4b38b1457b4a3618d2bb16fb6cf7d6166"
+      },
+      {
+        "name": "synthesis:synthesis",
+        "verdict": "pass",
+        "check": "6f268c1f07f7857d1c5d50ce4ba5153cf5d98264e8371be5b2e673cc609dae84"
+      },
+      {
+        "name": "synthesis:outputs",
+        "verdict": "pass",
+        "check": "5531a20f252d2f205fc90a71446bc47ec39f723dc7f474f044ccc21bfe21a81f"
+      },
+      {
+        "name": "physical:outputs",
+        "verdict": "pass",
+        "check": "0a40d76401a98c0de573510ce7db13b50140f93083f66f000ee1144d2a262231"
+      },
+      {
+        "name": "physical:timing",
+        "verdict": "pass",
+        "check": "bf05b9ff84a83ca8357328c7daea7c5d59e2a9d5fdfe43f684f7c421602504b0"
+      },
+      {
+        "name": "physical:drc",
+        "verdict": "pass",
+        "check": "62b864b6b042c0b61b4ae5c94d2c0fe8288c9904b5d5c5b8f2c2c0ae3445f99a"
+      },
+      {
+        "name": "physical:lvs",
+        "verdict": "pass",
+        "check": "122ce2f8f2682d33301fc83a5924fc376d523113e0e9c272320f8f3951b9c1f6"
+      },
+      {
+        "name": "physical:precheck",
+        "verdict": "pass",
+        "check": "65fc3b95e5f04f9094f22c84e88bf570ccfd40b2aaf32a212441b9c7be8c1558"
+      },
+      {
+        "name": "gate:tests",
+        "verdict": "pass",
+        "check": "1db18f729b2b323c597ad98c0219771ba6bbaa3254d7a767cb9329f4a3b51d4f"
+      },
+      {
+        "name": "gate:outputs",
+        "verdict": "pass",
+        "check": "a2ea63dbbb0bb2ad9e36972ce6aa8bb7ff36c845db5383e63a6dd2d7f0079ad8"
+      }
+    ],
+    "downloads": {
+      "submission.zip": {
+        "artifact": "3d0519962e0870ede51b4506f9a27b124f68364a3bbb16401faff403da16b086",
+        "sha256": "6a0f24f7a61afb06fb5d1d0e3d85d3225a818e9ea6511e75a7b27ab9ee862612",
+        "bytes": 195118
+      },
+      "evidence.zip": {
+        "artifact": "1ab27d919f15ba476b51c16e801831025b6c5112e4bc80c5bf5205df3fc949e3",
+        "sha256": "ebbe6b08cdaa192e5b91633f0e705d7f3999509b91e1fbe9131171f95be22208",
+        "bytes": 19625621
+      },
+      "release-manifest.json": {
+        "artifact": "a5ec270e6eb7414a930847a463c26291c0ea0e7d1e1a55a2c0f002ecce67cc0b",
+        "sha256": "900463fe21b075f4a8c02ca526f57579b935790e735a4fcb0eec1dd0eaa44d3f",
+        "bytes": 6368
+      },
+      "SHA256SUMS": {
+        "artifact": "f2b12bddfc3bff6068a87332367c9a2013c32014e4883fb98be2948df231e1d4",
+        "sha256": "3c520679d3b6c0ca9b33db916a7d01c674869d7e18e5763bd7c70818d37f77c5",
+        "bytes": 160
+      },
+      "archive-validation.xml": {
+        "artifact": "a766a2a9d3ebaf0c0c2edb0b02e195d27a689115a3cefae14d53c49d0b353741",
+        "sha256": "f983fa747b8847dc85a3a56c1f033d27eca1213876cbd0cd3dbf03798f13337f",
+        "bytes": 628
+      }
+    },
+    "jobs": [
+      {
+        "job": "3ef7ea15-1df7-4d36-a4d4-9af5ba6a6a24",
+        "run": "086670d87d10603ce834c9c0e8b7440104c6de9842037beb43d68ae7dff30988",
+        "state": "completed",
+        "ready": true
+      },
+      {
+        "job": "17ff9436-12ce-4a26-afe1-f072c4685be9",
+        "run": "9303eea29419320f74fe9de1f94a5c294d0343051a9d9306da175b18e04e2463",
+        "state": "completed",
+        "ready": true
+      },
+      {
+        "job": "3b87fc72-74d0-4f72-b659-b15c3973e174",
+        "run": "fd51b11c385981af77b1b7e36289293e67e6a62fd1da39116f6aeedd4702b1c3",
+        "state": "completed",
+        "ready": true
+      },
+      {
+        "job": "234e3a51-f903-491f-8d68-86f74e7c8014",
+        "run": "c1a6baebc1bfe5e53b0c4bab01ce409757cb48e3e95e149f3a0dae73b1218e46",
+        "state": "completed",
+        "ready": true
+      }
+    ],
+    "invocation": "node example/power-controller/reproduce.mjs --out /tmp/chipsim-power-controller-reproduction-20261116 --cache /tmp/chipsim-manufacturing-cache-MLFWRe",
+    "nativeArchiveCases": {
+      "cases": 10,
+      "failed": 0,
+      "skipped": 0
+    },
+    "helperSha256": "7b40b3255a60e434b4b55d9d1e5ab8b38164c162ddbffa2979e208e784bb9389",
+    "note": "Fresh project and full native jobs with reuse:false; compatible managed tool/PDK cache reused. Paths and environment locks regenerated through MCP. Archive hashes may differ because manifests record run identities."
+  },
+  "repositoryChecks": {
+    "npm run verify": "pass (engine/source-free/terminal/PTY checks; private original-source cases explicitly skipped)",
+    "npm run test:licenses": "pass, 43 components, no unresolved findings",
+    "node --check example/power-controller/reproduce.mjs": "pass",
+    "git diff --check": "pass",
+    "retrievalAudit": "All MCP artifact chunk/full hashes verified; submission ZIP source and direct GDS/OAS match recorded files. Both archives passed 10 native prechecks."
+  },
+  "retention": {
+    "submission.zip": "committed",
+    "nativeGdsOas": "committed",
+    "evidence.zip": "local and Git-ignored; regenerated by reproduce.mjs because it includes external support-tool sources",
+    "rawPdkAndTools": "external managed cache; not vendored"
+  },
+  "limits": [
+    "Synchronous digital control inputs except asynchronous active-low reset.",
+    "No analog regulator, sensing, MOSFET gate driver, analog stability verification, CDC analysis or whole-design formal proof.",
+    "Gate-level tests use the actual physical-flow netlist and pinned cell models; static timing is a separate required release gate.",
+    "Local supported-profile checks do not establish manufacturer approval, shuttle admission, payment or fabrication."
+  ]
+}

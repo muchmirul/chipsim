@@ -1,0 +1,49 @@
+{
+  "format": "chipsim-manufacturing",
+  "version": 1,
+  "profile": "tinytapeout-ihp-v1",
+  "profileDigest": "0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e",
+  "environment": "b16703a6bf5d948b3424a1eb4ebde8662cdd7cc76b81cbe847d2639172904478",
+  "metadata": {
+    "id": "power-controller",
+    "title": "ChipSim digital power controller",
+    "top": "tt_um_chipsim_power_controller",
+    "author": "ChipSim contributors",
+    "description": "Digital PWM with power-good startup supervision and latched shutdown for an external power stage",
+    "clockHz": 50000000,
+    "tiles": "1x1",
+    "license": "MIT License\n\nCopyright (c) 2026 Muchmirul Yusa Setiaji\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n",
+    "pinout": {
+      "ui": [
+        "run_request",
+        "power_good",
+        "fault_in",
+        "clear_fault",
+        "duty_command[0]",
+        "duty_command[1]",
+        "duty_command[2]",
+        "duty_command[3]"
+      ],
+      "uo": [
+        "pwm_out",
+        "power_enable",
+        "ready",
+        "fault_latched",
+        "reserved_zero",
+        "reserved_zero",
+        "reserved_zero",
+        "reserved_zero"
+      ],
+      "uio": [
+        "unused",
+        "unused",
+        "unused",
+        "unused",
+        "unused",
+        "unused",
+        "unused",
+        "unused"
+      ]
+    }
+  }
+}
