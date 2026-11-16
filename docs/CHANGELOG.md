@@ -1,5 +1,16 @@
 # ChipSim behavior changes
 
+## 2026-11-16 — MCP reliability and workflow guidance
+
+Native verification now preserves simulator assertion diagnostics alongside malformed
+report findings. Profile support checks runtime and host identity. Workflow discovery
+and an official resumable SDK helper expose explicit preparation/run/delivery steps,
+durable requests and hash-verified downloads. Release summaries retain verification
+scope and optional requirement mappings. The native matrix adds FIFO/UART and the
+power controller to counter acceptance. See WORKBENCH_MCP.md, MANUFACTURING.md and
+MCP_RELIABILITY.md for commands, limits and test coverage. Existing evidence remains
+readable; a changed runtime needs new native acceptance before claiming support.
+
 ## 2026-11-16 — Tiny Tapeout digital power-controller example
 
 **Context:** Agents needed a concrete chip-development example using the full MCP

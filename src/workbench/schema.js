@@ -29,6 +29,13 @@ export const resultSchema = {
 };
 const definitions = [
   [
+    "workflow_status",
+    "Inspect persisted workflow state, release blockers and suggested explicit actions without starting jobs.",
+    { run: id, ...paging },
+    [],
+    true,
+  ],
+  [
     "manufacturing_profiles",
     "Discover versioned manufacturing profiles, setup prerequisites, release checks and native delivery contents.",
     {},

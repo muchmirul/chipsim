@@ -351,3 +351,5 @@ Contributors: `npm ci`, `npm test`, `npm run verify`. Public checks explicitly s
 [Manufacturing through MCP](docs/MANUFACTURING.md) adds profile discovery, explicit pinned environment setup, project bootstrap, RTL/gate-level verification, release checks, archive packaging and binary retrieval. The initial Tiny Tapeout IHP profile passed real cold-cache MCP acceptance through validated archive retrieval. The workflow produces local submission files; manufacturer acceptance remains external.
 
 An original [Tiny Tapeout power-controller chip](example/power-controller/README.md) demonstrates the complete MCP workflow with PWM, power-good startup supervision, latched faults, 14 public-pin acceptance cases and validated delivery archives.
+
+The [guided MCP workflow](docs/WORKBENCH_MCP.md#guided-workflow-and-resumable-client) adds workflow discovery, resumable SDK operations and evidence-linked failure diagnostics. See the [reliability coverage](docs/MCP_RELIABILITY.md) and `npm run test:manufacturing:matrix` for native validation across four digital designs.

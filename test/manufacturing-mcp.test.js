@@ -6,12 +6,12 @@ import { join } from "node:path";
 import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import {
-  manufacturingMetadata,
-  cases,
-  counterRTL,
-  counterTestbench,
-} from "./fixtures/manufacturing.mjs";
+import * as counter from "./fixtures/manufacturing.mjs";
+import { extraFixture } from "./fixtures/manufacturing-extra.mjs";
+const fixtureName = process.env.CHIPSIM_MANUFACTURING_FIXTURE || "counter";
+const fixture = fixtureName === "counter" ? counter : extraFixture(fixtureName);
+const { manufacturingMetadata, cases, counterRTL, counterTestbench } = fixture;
+const mutation = fixture.mutation || ["count + 1", "count + 2"];
 const enabled = process.env.CHIPSIM_TEST_MANUFACTURING === "1";
 test(
   "official SDK: empty project and managed setup through native manufacturing archive retrieval",
@@ -117,14 +117,18 @@ test(
     };
     await update("acceptance.json", JSON.stringify({ cases }));
     await update("test/tb.sv", counterTestbench);
-    await update("src/project.v", counterRTL.replace("count + 1", "count + 2"));
+    await update("src/project.v", counterRTL.replace(...mutation));
     const failure = await finish(
       await call("job_start", { target: "simulation", requestId: "broken" }),
     );
     assert.equal(failure.state, "failed");
     assert.equal((await call("checks", { target: "simulation" })).ready, false);
     const logs = await call("job_logs", { job: failure.id });
-    assert.match(logs.text, /counter\/wrap failed/);
+    assert.match(
+      logs.text,
+      new RegExp(fixture.failurePattern || "counter/wrap failed"),
+    );
+    assert.ok(failure.diagnostics.some((d) => d.category === "assertion"));
     await update("src/project.v", counterRTL);
     const released = await finish(
       await call("job_start", { target: "release", requestId: "release" }),
@@ -206,6 +210,29 @@ test(
       "import zipfile,sys,json,hashlib; z=zipfile.ZipFile(sys.argv[1]); assert z.testzip() is None; m=json.loads(z.read('release-manifest.json')); assert all(hashlib.sha256(z.read(f['path'])).hexdigest()==f['sha256'] for f in m['members']); assert any(n.endswith('.gds') for n in z.namelist())",
       retrieved,
     ]);
+    const { runtimeIdentity } = await import("../src/design/project.js");
+    const acceptance = {
+      fixture: fixtureName,
+      root,
+      cache,
+      runtime: await runtimeIdentity(),
+      profile: profiles.profiles[0].id,
+      digest: profiles.profiles[0].digest,
+      sourceSha256: createHash("sha256").update(counterRTL).digest("hex"),
+      testbenchSha256: createHash("sha256")
+        .update(counterTestbench)
+        .digest("hex"),
+      failure,
+      release: released,
+      package: packaged,
+      archive: { artifact: archive.id, sha256 },
+      readiness: await call("release_status", { run: released.run }),
+    };
+    await writeFile(
+      join(root, "acceptance-record.json"),
+      JSON.stringify(acceptance, null, 2),
+    );
+    console.log("Acceptance record:", join(root, "acceptance-record.json"));
     await update("src/project.v", counterRTL + "\n// changed after release\n");
     assert.equal(
       (await call("release_status", { run: released.run })).ready,

@@ -1,3 +1,5 @@
+import { workflowStatus } from "./workflow.js";
+import metadata from "../../package.json" with { type: "json" };
 import { realpath, lstat, readFile, open } from "node:fs/promises";
 import { dirname, join, relative, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -217,6 +219,7 @@ export async function createWorkbench(path) {
         await handle.close();
       }
     }
+    if (name === "workflow_status") return workflowStatus(active, a);
     if (name === "resource_read") return resource(a.uri);
     if (name === "project") {
       let config, diagnostic;
@@ -227,6 +230,8 @@ export async function createWorkbench(path) {
       }
       const current = await revision(active);
       return {
+        serverVersion: metadata.version,
+        toolInventorySha256: hash(JSON.stringify(workbenchTools)),
         root: active,
         candidate: a.candidate || null,
         id: config?.id,

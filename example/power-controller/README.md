@@ -38,12 +38,14 @@ profile, preserving clock, tile size, source, tests and constraints.
 Pass `--cache CACHE_ROOT` or set `CHIPSIM_MANUFACTURING_CACHE` to reuse a compatible
 managed cache. Missing dependencies are installed explicitly by the setup job.
 Ctrl-C requests cancellation and waits for the active managed job to stop.
-If the client is forcibly killed, its transcript and printed job IDs allow
-explicit status inspection/cancellation; disconnected jobs remain durable.
+If the client is forcibly killed, its journals retain request and job IDs for
+explicit status inspection/cancellation; disconnected jobs remain durable. Confirm
+the old client has stopped before removing its reported journal lock.
 
 The fresh output contains an MCP-created working project, native evidence under
-`.chipsim/`, and verified files in `delivery/`. A sibling `.mcp.jsonl` file records
-the actual tool calls. The helper verifies every binary chunk and complete file hash.
+`.chipsim/`, and verified files in `delivery/`. Sibling `.prepare.json`, `.simulation.json`, `.release.json` and `.delivery.json`
+journals retain durable request/job identities for the official helper. Resume an
+interrupted operation with `node extensions/mcp/workflow.mjs resume --state JOURNAL`. The helper verifies every binary chunk and complete file hash.
 The generated ZIP is extracted and passed through native precheck before release.
 
 The files in this checked-in project preserve the original run's manifests and
@@ -53,7 +55,10 @@ Python tool environments remain external dependencies.
 
 ## Delivery and evidence
 
-The recorded validation and deliverable identities are in `VALIDATION.json`.
+The original recorded validation and deliverable identities are in `VALIDATION.json`.
+[Current reliability revalidation](VALIDATION-reliability.json) records the updated
+runtime and official helper's fresh-project runs. The original committed delivery
+remains the historical snapshot; the new helper retrieves fresh delivery files.
 The `delivery/` directory contains `submission.zip`, checksums, release manifest
 and archive-validation XML. Full `evidence.zip` is generated locally and ignored
 by Git because it includes captured external support-tool sources; its checksum

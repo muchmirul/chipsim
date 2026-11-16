@@ -15,6 +15,7 @@ export const agentDocumentation = [
   "WORKBENCH_MCP.md",
   "TINYTAPEOUT.md",
   "MANUFACTURING.md",
+  "MCP_RELIABILITY.md",
   "AGENT_WORK.md",
   "EVOLUTION.md",
   "EVOLUTION_OBJECTIVES.md",

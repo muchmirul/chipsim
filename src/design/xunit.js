@@ -4,7 +4,13 @@ export function parseXunit(xml) {
   if (/<!DOCTYPE|<!ENTITY/i.test(xml))
     throw new Error("XML entities are unsupported");
   xml = xml
-    .replace(/<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>/g, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, (_, t) =>
+      t
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;"),
+    )
     .replace(/<\?xml\s[\s\S]*?\?>/, "");
   const stack = [],
     tests = [],
@@ -32,6 +38,10 @@ export function parseXunit(xml) {
   for (const match of xml.matchAll(tokens)) {
     if (stack.length === 0 && xml.slice(cursor, match.index).trim())
       throw new Error("Text outside xUnit root");
+    if (active && ["failure", "error"].includes(stack.at(-1)))
+      active.message = (
+        (active.message || "") + xml.slice(cursor, match.index)
+      ).slice(0, 4096);
     cursor = match.index + match[0].length;
     const text = match[0],
       closing = /^<\//.test(text),
@@ -73,7 +83,11 @@ export function parseXunit(xml) {
       }
       if (!active && ["failure", "error", "skipped"].includes(tag))
         throw new Error("xUnit result has no recorded test case");
-      if (active && ["failure", "error"].includes(tag)) active.verdict = "fail";
+      if (active && ["failure", "error"].includes(tag)) {
+        active.verdict = "fail";
+        const message = /\bmessage\s*=\s*(?:"([^"]*)"|'([^']*)')/.exec(text);
+        if (message) active.message = (message[1] ?? message[2]).slice(0, 4096);
+      }
       if (active && tag === "skipped" && active.verdict !== "fail")
         active.verdict = "inconclusive";
       if (!empty) stack.push(tag);

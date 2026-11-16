@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile, stat, open } from "node:fs/promises";
 import { execute } from "../design/process.js";
 import { dockerEnvironment } from "./docker.js";
 import { parseXunit } from "../design/xunit.js";
@@ -39,6 +39,9 @@ export function validateVerification(task) {
 export async function executeVerification(task, context) {
   const request = join(context.workspace, "verification-request.json");
   await writeFile(request, JSON.stringify(task.definition.options));
+  const logStart = await stat(context.log)
+    .then((s) => s.size)
+    .catch(() => 0);
   const result = await execute(
     task.tools[0].path,
     [
@@ -58,6 +61,44 @@ export async function executeVerification(task, context) {
     },
   );
   const checks = await verificationChecks(task, context.workspace, result);
+  if (!result.ok) {
+    const handle = await open(context.log, "r");
+    let excerpt;
+    try {
+      const end = (await handle.stat()).size;
+      const start = Math.max(logStart, end - 16384);
+      const buffer = Buffer.alloc(Math.max(0, end - start));
+      const { bytesRead } = await handle.read(buffer, 0, buffer.length, start);
+      excerpt = buffer.subarray(0, bytesRead).toString("utf8");
+    } finally {
+      await handle.close();
+    }
+    const message =
+      excerpt
+        .split(/\r?\n/)
+        .find((s) => /FATAL:|ERROR:|assertion.*fail/i.test(s)) ||
+      result.reason ||
+      "Native process failed";
+    const location = /(?:FATAL:|ERROR:)\s+(.+?):(\d+):/.exec(message);
+    return {
+      ...result,
+      diagnostic: message.slice(0, 2000),
+      failure: {
+        category: /FATAL:|assertion/i.test(message) ? "assertion" : "execution",
+        stage: task.definition.options.operation,
+        exitStatus: result.code ?? null,
+        message: message.slice(0, 2000),
+        testCase: null,
+        source: location
+          ? { path: location[1], line: Number(location[2]) }
+          : null,
+        excerpt,
+        reportDiagnostics: checks
+          .filter((c) => c.diagnostic)
+          .map((c) => c.diagnostic),
+      },
+    };
+  }
   return checks.every((c) => c.verdict === "pass")
     ? result
     : {
@@ -118,8 +159,15 @@ export async function verificationChecks(task, workspace, execution) {
         new Set(expected).size !== expected.length
       )
         throw new Error("Declare 1–1024 unique acceptance case names");
+      record.expectedCases = expected;
+      record.missingCases = null; // Unknown until a complete report parses.
       const cases = parseXunit(
         await readFile(join(workspace, "results.xml"), "utf8"),
+      );
+      record.cases = cases;
+      record.expectedCases = expected;
+      record.missingCases = expected.filter(
+        (name) => !cases.some((c) => c.name === name),
       );
       if (
         cases.length !== expected.length ||
@@ -129,6 +177,11 @@ export async function verificationChecks(task, workspace, execution) {
         throw new Error(
           "Executed test cases differ from declared acceptance cases",
         );
+      record.cases = cases;
+      record.expectedCases = expected;
+      record.missingCases = expected.filter(
+        (name) => !cases.some((c) => c.name === name),
+      );
       record.metrics = {
         cases: cases.length,
         failed: cases.filter((c) => c.verdict === "fail").length,

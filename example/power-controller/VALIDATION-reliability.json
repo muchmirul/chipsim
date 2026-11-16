@@ -1,0 +1,205 @@
+{
+  "format": "chipsim-example-revalidation",
+  "version": 1,
+  "validatedAt": "2026-11-16T07:07:04.081Z",
+  "runtime": {
+    "sha256": "12bdf176a1e50ac06d331804eb071d55762b3a05981d50163e15bb077c124c56",
+    "node": "22.23.2",
+    "platform": "linux",
+    "arch": "x64"
+  },
+  "matrix": {
+    "fixture": "power",
+    "sourceSha256": "5425fb01023dd6b429605460867bceeafc5647945db1abe7a995212bfefb2410",
+    "testbenchSha256": "432e3530792bb46610f2bcf4d490e304553eff1db520b62c8079b12cab8534b5",
+    "runtime": {
+      "sha256": "12bdf176a1e50ac06d331804eb071d55762b3a05981d50163e15bb077c124c56",
+      "node": "22.23.2",
+      "platform": "linux",
+      "arch": "x64"
+    },
+    "sourceRun": "6f556f7e7ab26bdbc3ce9983554001152fe474c2c8108f7baf7660a4efeb1a97",
+    "packageRun": "4185b98e371075e603a9603258ee14b8eb3cca2a9d4e8b47dea24bccb32f0292",
+    "requiredChecks": [
+      {
+        "name": "rtl:tests",
+        "verdict": "pass",
+        "check": "dd1662a927f37d2397c75c37b5265e744334532946a296c1aa378d38225e76a2"
+      },
+      {
+        "name": "rtl:outputs",
+        "verdict": "pass",
+        "check": "31359653f23326b4945e8b841e8045f378dd7334341ba5931e05ed8eb47ccb44"
+      },
+      {
+        "name": "synthesis:synthesis",
+        "verdict": "pass",
+        "check": "9d0f59e788b55f62788bf667a168250564ebca4ed42e4de27f41f591146f5054"
+      },
+      {
+        "name": "synthesis:outputs",
+        "verdict": "pass",
+        "check": "ee74ffdbee65322a9fc0de5835eb61651e93ba5efcb5bd90b807aa5f18f1478e"
+      },
+      {
+        "name": "physical:outputs",
+        "verdict": "pass",
+        "check": "e824a6097b05498e4d60a5711eb0211a4734c0d0af7a703bbb7b3374e89be603"
+      },
+      {
+        "name": "physical:timing",
+        "verdict": "pass",
+        "check": "313034eaeebb017a602003b8525e6e28d88c89187d005517f6ff733c489d2682"
+      },
+      {
+        "name": "physical:drc",
+        "verdict": "pass",
+        "check": "171677fb64a8e132a08fbb1bb6050772d7a2e2741bb5df603a3eb6e41b98870d"
+      },
+      {
+        "name": "physical:lvs",
+        "verdict": "pass",
+        "check": "f105b282a8b92263e885281dad7e6db30e7a422d7843738f125d4adf7cb75f9e"
+      },
+      {
+        "name": "physical:precheck",
+        "verdict": "pass",
+        "check": "ff70a38eb9ce147edfc57ea6da58519025ef7385d9bc5506a389f75ab0ea0052"
+      },
+      {
+        "name": "gate:tests",
+        "verdict": "pass",
+        "check": "9e11a2357657b987c95f50f49090233356c8de46ac479730e26cfcaa7986bb52"
+      },
+      {
+        "name": "gate:outputs",
+        "verdict": "pass",
+        "check": "f40b5db25893b8563c5e499ee638a26c3c00009d6f2875fdfa954c8d59d2d5d0"
+      }
+    ],
+    "tests": [
+      {
+        "task": "rtl",
+        "cases": 14,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "task": "gate",
+        "cases": 14,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
+    "negative": {
+      "job": "b648d337-a1ce-4950-9696-414f8b422782",
+      "run": "5c3b6fda3bd70dd013f9bdf930326f3d0df62ad610ea166aee589eb5d0c0a2bd",
+      "state": "failed",
+      "ready": false,
+      "diagnostics": [
+        {
+          "task": "rtl",
+          "category": "assertion",
+          "stage": "rtl",
+          "exitStatus": 1,
+          "message": "FATAL: test/tb.sv:36: Expected latched FAULT, got 00",
+          "testCase": null,
+          "source": {
+            "path": "test/tb.sv",
+            "line": 36
+          },
+          "excerpt": "VCD info: dumpfile waveform.vcd opened for output.\nPASS reset-and-idle\nPASS disabled-safe\nPASS minimum-startup-delay\nPASS startup-waits-for-power-good\nPASS startup-timeout-latches\nPASS power-good-at-timeout-boundary\nPASS fault-inhibit-and-latch\nFATAL: test/tb.sv:36: Expected latched FAULT, got 00\n       Time: 11792000  Scope: tb.expect_fault\nTraceback (most recent call last):\n  File \"/home/dev/chipsim/scripts/manufacturing-verify.py\", line 34, in <module>\n    main()\n  File \"/home/dev/chipsim/scripts/manufacturing-verify.py\", line 30, in main\n    tool('vvp', 'simulation.vvp')\n  File \"/home/dev/chipsim/scripts/manufacturing-verify.py\", line 14, in tool\n    subprocess.run(['docker', 'run', '--rm', '--user', f'{os.getuid()}:{os.getgid()}',\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['docker', 'run', '--rm', '--user', '1000:1000', '-v', '/tmp/chipsim-manufacturing-mcp-3kkdT4/.chipsim/design/jobs/b648d337-a1ce-4950-9696-414f8b422782/work/9e049e53-d6f3-415b-9d06-71dbdad4e41b:/tmp/chipsim-manufacturing-mcp-3kkdT4/.chipsim/design/jobs/b648d337-a1ce-4950-9696-414f8b422782/work/9e049e53-d6f3-415b-9d06-71dbdad4e41b', '-v', '/tmp/chipsim-matrix-cache-cIsd9h/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/pdk:/tmp/chipsim-matrix-cache-cIsd9h/0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e/pdk:ro', '-w', '/tmp/chipsim-manufacturing-mcp-3kkdT4/.chipsim/design/jobs/b648d337-a1ce-4950-9696-414f8b422782/work/9e049e53-d6f3-415b-9d06-71dbdad4e41b', '--entrypoint', 'vvp', 'ghcr.io/librelane/librelane@sha256:b4f7c1e0f99a5d5b419571277a3e93bac37ea22eb7e4af3787d59927b73067c5', 'simulation.vvp']' returned non-zero exit status 1.\n",
+          "reportDiagnostics": [
+            "Empty or malformed test suite"
+          ],
+          "artifact": "b5c8200b7392a519d2c4268d01fe5e9e98acdb054e32ecfdaa9018d720607f3a"
+        }
+      ]
+    },
+    "archive": {
+      "artifact": "6e0da4a7680b584830633835c167b3f509d03bb61c1b78e1a67f21ca223fb0de",
+      "sha256": "33d7ae135a3e574e8b6009a944c0b85d773852eb0c9bb79ba0c73a29ca18fea9",
+      "bytes": 227303
+    },
+    "evidenceArchive": {
+      "artifact": "47b160d25e2332d5a79b70408d282de723ce8c93d8b25e7eaee80c9484b4663b",
+      "sha256": "ae67e99d5ce612c991b1aff7565015373b19f2792ea6bbb2575212bbbc56960b",
+      "bytes": 19526742
+    },
+    "archivePrecheck": {
+      "cases": 10,
+      "verdict": "pass",
+      "artifact": "e43e564f34c2fff0843a60c5620ce2c652143e787703987fb7e1b887a592ac2b",
+      "sha256": "1e5677674a340bfd75c894d9035ffc9e9f96b6f798fd0bc755512e34e61f48e4",
+      "bytes": 629
+    }
+  },
+  "helper": {
+    "releaseRun": "db669e9bb37fa1070e7acd645e3cfc19171a730c252169aec51eb6ae21083283",
+    "packageRun": "a5c649ff6669e5aa444da5116b813e1b83755a46c2719899c70c60125699bbff",
+    "packageJob": "8d373f28-ca40-4049-92af-e4f28c4aef44",
+    "downloads": {
+      "package": {
+        "format": "chipsim-job",
+        "version": 1,
+        "id": "8d373f28-ca40-4049-92af-e4f28c4aef44",
+        "project": "/tmp/chipsim-reliability-helper-final",
+        "target": "manufacturing-package",
+        "plan": "e3788704e8a7b877599db42e061b2b668479fec02340effd38495b3388d4c18d",
+        "snapshot": "42164faa947f7787d4c3a3663cb274e4bc57072e6ca320f1d14e41fc1c762e28",
+        "state": "completed",
+        "created": "2026-11-16T06:46:13.963Z",
+        "updated": "2026-11-16T06:48:10.093Z",
+        "generation": 1,
+        "attempts": [
+          "8b85f801d1b786156c9eb04290a9228e7f2bf016cc7ed517be5a8072a3c4037d"
+        ],
+        "tasks": {
+          "service": {
+            "state": "completed",
+            "attempt": "8b85f801d1b786156c9eb04290a9228e7f2bf016cc7ed517be5a8072a3c4037d"
+          }
+        },
+        "diagnostics": [],
+        "owner": {
+          "pid": 306092,
+          "start": "21937334"
+        },
+        "reuse": false,
+        "token": "b80046c6-bb67-476f-9f6e-c0ae63f3160f",
+        "run": "a5c649ff6669e5aa444da5116b813e1b83755a46c2719899c70c60125699bbff",
+        "ready": true
+      },
+      "submission.zip": {
+        "artifact": "97ac75f7f87e4463fa1178d7196d48d8e90d87e53d3f0883c9cb56328a586cef",
+        "sha256": "ff25cd7d14a39e7b1a983bb9d1f796f5da520d68d61fd3216bce9a42ec0d173e"
+      },
+      "evidence.zip": {
+        "artifact": "85ddd9897f7cb60cabaa9917bceab0e3d30de16cb3c04819f4d84b359534d3dc",
+        "sha256": "bdb26b0dfdf75565c06c72709d0e57e0edf7402f6fc884d019d97a480b21d353"
+      },
+      "release-manifest.json": {
+        "artifact": "15840c0480d908b45fbf8d218ae71e3c9527215120b85db412372a7f938ea523",
+        "sha256": "fff4689ab5d2f1ef758e619b0add7ca76bd58ad064265bbeef2d7365af585d6a"
+      },
+      "SHA256SUMS": {
+        "artifact": "903eb1f89b003b047716755c999d380587d48d2c6aeb63b6a154bf59e6119790",
+        "sha256": "cc1510d47a5cca95c1b868fcfba091e3f613598b99fdec0a028c58dd355814c6"
+      },
+      "archive-validation.xml": {
+        "artifact": "f0ec50169d7d32169047f10fa154c1479e1989bbf8183cb05c349cdc52d78e7d",
+        "sha256": "2f6d3fba18f226c20929ce34133108464f5da5928970756a3e25b19bd457d100"
+      }
+    },
+    "interruption": {
+      "pid": 288684,
+      "partialBytes": 14090240,
+      "scenario": "abrupt client death during evidence download",
+      "time": 1794811714.0893407
+    },
+    "partialCorruptionRejected": true,
+    "duplicatePackageJobs": 0
+  },
+  "originalRecord": "VALIDATION.json",
+  "note": "Original committed delivery retained; new helper and current runtime validated in a fresh project. Full evidence remains local."
+}

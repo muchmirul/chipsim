@@ -72,3 +72,28 @@ plans for the ordinary design worker. `tinytapeout-verify` executes the pinned
 container's simulator and synthesizer and parses actual xUnit cases; the existing
 `tinytapeout` adapter supplies physical layout/precheck evidence. No provider or
 agent turns are started by ChipSim.
+
+## Acceptance freshness and verification detail
+
+Profile discovery compares the acceptance profile digest, runtime source hash,
+platform and architecture. Mismatches expose reasons and report `candidate`;
+candidate profiles remain executable for native validation. Node version remains
+recorded provenance, subject to the installation's supported engine range.
+
+`release_status.verification` preserves individual check scopes, assumptions,
+reported contexts (including timing corners), test cases and evidence IDs.
+Undeclared proofs are represented by an empty proof list. Analog behavior,
+requirement completeness and manufacturer acceptance remain unverified.
+Optional `acceptance.json.requirements` maps existing `engineering.requirements`
+IDs to arrays of declared case names. Unknown IDs/cases reject release; unmapped
+requirements are reported without inventing a completeness score or changing
+legacy projects' minimum policy.
+
+`npm run test:manufacturing:matrix` runs counter/XOR, power controller, four-entry
+eight-bit FIFO and synchronous 8N1 UART transmitter fixtures. Every fixture runs
+an intentional RTL defect against fixed tests, then actual RTL/gate tests,
+physical checks, packaging and verified archive retrieval. Default execution
+uses a new cache for the first design and shares it with subsequent designs.
+`CHIPSIM_MANUFACTURING_CACHE` explicitly selects a warm cache. Retained
+`acceptance-record.json` files identify actual runs; they do not automatically
+promote a profile. Update native acceptance only after the final runtime passes.

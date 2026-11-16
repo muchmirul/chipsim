@@ -207,6 +207,7 @@ test("worker crashes are recovered and retried without changing the input snapsh
   );
   const retried = await retryJob(f.store, job.id);
   assert.equal(retried.snapshot, job.snapshot);
+  assert.equal(retried.ready, false);
   assert.equal((await finish(f, retried)).ready, true);
 });
 

@@ -184,6 +184,7 @@ export async function jobStatus(store, id) {
         cleanupError = e.message;
       }
       state.state = "interrupted";
+      state.ready = false;
       state.error =
         "Worker stopped before final publication; retry uses the original snapshot." +
         (cleanupError ? " Container cleanup failed: " + cleanupError : "");
@@ -225,6 +226,7 @@ export async function retryJob(store, id) {
       throw new Error("Only a finished/interrupted job can be retried");
     await verifyEvidence(store, state.plan);
     state.state = "accepted";
+    state.ready = false;
     state.owner = null;
     state.generation++;
     state.updated = new Date().toISOString();
@@ -527,6 +529,7 @@ export async function runWorker(root, id) {
           text
         ).slice(0, 2000);
         const diagnostic = {
+          ...execution.failure,
           message,
           ...(artifact ? { artifact: artifact.id } : {}),
         };
@@ -542,6 +545,7 @@ export async function runWorker(root, id) {
           attempts.some((a) => !a.complete || !a.execution.ok)
         ? "failed"
         : "completed";
+    if (state.state !== "completed") readiness.ready = false;
     const record = await store.put("run", {
       job: id,
       generation,
@@ -565,6 +569,7 @@ export async function runWorker(root, id) {
       });
   } catch (error) {
     state.state = controller.signal.aborted ? "cancelled" : "interrupted";
+    state.ready = false;
     state.error = error.message;
   } finally {
     clearInterval(heartbeat);
@@ -577,6 +582,7 @@ export async function runWorker(root, id) {
       await reapJobContainers(path, state.token);
     } catch (e) {
       state.state = "interrupted";
+      state.ready = false;
       state.error = "Container cleanup failed: " + e.message;
     }
     await save();

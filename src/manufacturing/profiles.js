@@ -4,7 +4,27 @@ import { identity } from "../design/store.js";
 export const profileDirectory = fileURLToPath(
   new URL("./profiles/", import.meta.url),
 );
+export function acceptanceStatus(record, digest, runtime) {
+  const reasons = [];
+  if (!record?.nativeAcceptance) reasons.push("No native acceptance recorded");
+  if (record?.digest !== digest) reasons.push("Profile digest differs");
+  for (const key of ["sha256", "platform", "arch"])
+    if (record?.runtime?.[key] !== runtime[key])
+      reasons.push("Runtime " + key + " differs");
+  return {
+    status: reasons.length ? "candidate" : "supported",
+    acceptance: {
+      validatedAt: record?.validatedAt || null,
+      scope: record?.scope || null,
+      runtime: record?.runtime || null,
+      currentRuntime: runtime,
+      mismatchReasons: reasons,
+    },
+  };
+}
 export async function manufacturingProfiles() {
+  const { runtimeIdentity } = await import("../design/project.js");
+  const runtime = await runtimeIdentity();
   let acceptance = { profiles: {} };
   try {
     acceptance = JSON.parse(
@@ -30,10 +50,7 @@ export async function manufacturingProfiles() {
     profiles.push({
       ...profile,
       digest,
-      status:
-        verified?.digest === digest && verified?.nativeAcceptance === true
-          ? "supported"
-          : "candidate",
+      ...acceptanceStatus(verified, digest, runtime),
     });
   }
   return profiles;

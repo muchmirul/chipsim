@@ -189,3 +189,34 @@ payload SHA-256 and the next byte offset (maximum 65,536 bytes per chunk).
 Only verified artifact IDs can be read; it does not open arbitrary host paths.
 Ordinary evidence export retains its existing meaning. A manufacturing package
 requires the selected profile's minimum checks and complete native files.
+
+## Guided workflow and resumable client
+
+`workflow_status` inspects persisted jobs, the bound project/candidate, release
+blockers and suggested explicit actions. It does not start jobs or repair locks.
+YAML metadata requiring a configured parser is deferred to an explicit
+`release_status` call; workflow discovery does not execute that parser.
+`project` reports `serverVersion` and `toolInventorySha256` to diagnose a stale
+connection. Existing clients retain their existing fields and tools.
+
+Create an empty project directory before preparation; bootstrap preserves existing
+files. Install `extensions/mcp` dependencies and run `node extensions/mcp/workflow.mjs
+--help` for the official SDK helper. Use `prepare --project DIR --profile ID
+--metadata FILE --state JOURNAL`, `run --project DIR --target TARGET --state
+JOURNAL`, `deliver --project DIR --run RUN --out DIR --state JOURNAL`, or
+`resume --state JOURNAL`. Each operation uses a new journal outside design
+inputs. Preparation explicitly installs the pinned dependencies. Journals retain
+request identities before submission; replay never silently starts a replacement
+run. Downloads verify chunk and whole-file hashes, including existing partial
+bytes. Destination conflicts stop the operation. Ctrl-C requests cancellation;
+unexpected disconnection leaves jobs durable. Failed jobs require explicit retry.
+Preserve the original `CHIPSIM_MANUFACTURING_CACHE` for a setup resume; choosing
+a different cache changes the request parameters and is rejected as a conflict.
+An uncertain bootstrap response stops for inspection rather than overwriting
+existing files. A dead helper's exclusive journal lock must be removed only after
+confirming no client owns it; locks are never silently stolen.
+
+Native failures retain bounded current-task log excerpts, source locations when
+reported, exit status and report diagnostics. An unfinished xUnit report does
+not hide a simulator assertion or become a passing test. Unknown test identity
+remains null. Historical evidence lacking new diagnostic fields remains readable.

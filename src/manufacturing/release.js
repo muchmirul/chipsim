@@ -1,3 +1,4 @@
+import { requirementCoverage } from "./coverage.js";
 import { join } from "node:path";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { execFile } from "node:child_process";
@@ -11,7 +12,11 @@ import { parseXunit } from "../design/xunit.js";
 import { dockerEnvironment } from "./docker.js";
 import { manufacturingProfile } from "./profiles.js";
 
-export async function releaseStatus(root, runId) {
+export async function releaseStatus(
+  root,
+  runId,
+  { allowMetadataParser = true } = {},
+) {
   const blockers = [];
   const status = {
     ready: false,
@@ -40,6 +45,39 @@ export async function releaseStatus(root, runId) {
       snapshot = await store.get(run.snapshot, "input-snapshot");
     const checks = await checksForTarget(root, "release", run.id);
     status.required = checks.required;
+    status.verification = {
+      checks: (checks.checks || []).map((c) => ({
+        id: c.id,
+        name: c.name,
+        task: c.subject?.task,
+        verdict: c.verdict,
+        scope: c.scope,
+        assumptions: c.assumptions,
+        context: c.context,
+        evidence: c.evidence,
+        metrics: c.metrics,
+        cases: c.cases,
+        expectedCases: c.expectedCases,
+        missingCases: c.missingCases,
+      })),
+      proofs: Object.entries(config.tasks)
+        .filter(([, t]) => ["sby", "eqy"].includes(t.adapter))
+        .map(([task, t]) => ({
+          task,
+          adapter: t.adapter,
+          check:
+            checks.required.find(
+              (c) =>
+                c.name ===
+                task + ":" + (t.adapter === "sby" ? "formal" : "equivalence"),
+            ) || null,
+        })),
+      unverified: [
+        "Completeness of authored requirements and tests",
+        "Analog behavior",
+        "Manufacturer acceptance",
+      ],
+    };
     if (!checks.ready || captured.state !== "completed")
       blockers.push(
         "Required release checks have not all passed for the current project",
@@ -93,6 +131,10 @@ export async function releaseStatus(root, runId) {
       try {
         info = JSON.parse(raw);
       } catch {
+        if (!allowMetadataParser)
+          throw new Error(
+            "YAML metadata requires explicit release_status inspection; workflow discovery does not execute configured parsers",
+          );
         const result = await new Promise((resolve, reject) => {
           const child = execFile(
             physicalOptions.python,
@@ -166,6 +208,14 @@ export async function releaseStatus(root, runId) {
     )
       blockers.push(
         "Gate-level tests are not bound to the delivered physical netlist",
+      );
+    const acceptanceInput = snapshot.inputs.find(
+      (p) => p.path === "acceptance.json",
+    );
+    if (acceptanceInput)
+      status.verification.requirements = requirementCoverage(
+        await json(store.blobPath(acceptanceInput.sha256)),
+        config.engineering?.requirements || [],
       );
     const source = snapshot.inputs.find((p) => p.path === "manufacturing.json");
     if (

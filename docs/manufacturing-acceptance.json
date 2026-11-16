@@ -5,105 +5,109 @@
     "tinytapeout-ihp-v1": {
       "digest": "0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e",
       "nativeAcceptance": true,
-      "validatedAt": "2026-11-15T15:57:58.042Z",
-      "command": "npm run test:manufacturing",
-      "scope": "Linux x86-64; cold managed cache; original counter/XOR fixture; local Tiny Tapeout IHP package validation. Manufacturer submission and acceptance remain external.",
+      "validatedAt": "2026-11-16T07:07:04.081Z",
+      "command": "npm run test:manufacturing:matrix; fresh-cache npm run test:manufacturing; official helper interruption/resume validation",
+      "scope": "Four independent digital fixtures on the pinned Tiny Tapeout IHP profile; counter uses fresh managed cache. Manufacturer acceptance remains external.",
       "fixture": "test/fixtures/manufacturing.mjs",
       "fixtureSha256": "ab80bcf46abb29cfa6a49f12ed52c793b67d1753ce8fa65a5c532c9f4856445f",
       "runtime": {
-        "sha256": "459fad0cfb7ef8dd72eb04b8ffb1e5a9f56e58824eb1520c7fa66a7b923dffe7",
+        "sha256": "12bdf176a1e50ac06d331804eb071d55762b3a05981d50163e15bb077c124c56",
         "node": "22.23.2",
         "platform": "linux",
         "arch": "x64"
       },
-      "sourceRun": "76679193883b31e1ecff9f91315909f761f3ee1407f4f8d6eebb01acbea0f16b",
-      "packageRun": "36cd1d2a689f2fe27c055b0aae5e127b1eeb9ef88b89c141eb97d4458e2579ed",
+      "sourceRun": "e7dedbc31838666fcbff5e7ef2f0c675be09d8749ed89968a1d0683a9c6fc2c1",
+      "packageRun": "68e407d1e97a73a3c41a0d518d9c42c40fe139a2d804e17fabe3ab675f8670fe",
       "requiredChecks": [
         {
           "name": "rtl:tests",
           "verdict": "pass",
-          "check": "2eecd4c35d4f374d3326fe8adbe646c2fd79c6232ae2569840840ecee647a054"
+          "check": "dad875f9c6723faa877b8bdc306d7e57ffdfc0e527f29d01639b99f651f22dbe"
         },
         {
           "name": "rtl:outputs",
           "verdict": "pass",
-          "check": "ac4ac0534a32983bb5b0c952db52f844d0e4be0411210c08b38b6a2fbb127c00"
+          "check": "a18617c125c15338d6e86afdc2c51d59877f5dc107fe8aaadaf7eac2405b6869"
         },
         {
           "name": "synthesis:synthesis",
           "verdict": "pass",
-          "check": "45696690d0ba03ba2436e210990d5f85e8a02e73822e91c72d1f2cdab0270e52"
+          "check": "f2726ba44171ddb3422adcd586baa7cbc5a6b6bdfff7cf7bdc7c366391cd8c99"
         },
         {
           "name": "synthesis:outputs",
           "verdict": "pass",
-          "check": "c8471dad0a12bfda7355bf0317a43c2f3fae0e683f6ec0330230524ef9d0f6e2"
+          "check": "409c63649f5310a18ae9b7b92d90f3b6a1a903b0b1723ab3cb4c983a66912d19"
         },
         {
           "name": "physical:outputs",
           "verdict": "pass",
-          "check": "fc22106af29df53a317059ef44daafa5e088de97944b94438371404b31670d1e"
+          "check": "3b1dd3b0f0a1f6633ea2d3ec3a5e79685dcbe2531f8256e860d63ecf6e7754fa"
         },
         {
           "name": "physical:timing",
           "verdict": "pass",
-          "check": "39733d33d5c216bf13b164e93464ea87bda089cf540cbebeb3cf75a1988b9dcc"
+          "check": "7c8d0da8d6d1e03683db005a31df6fcf1c19fc1e0f21a860b6a5659083649bda"
         },
         {
           "name": "physical:drc",
           "verdict": "pass",
-          "check": "08af5dd9987e655f7112c9052125911e53cbf5d18612f1c34dea3fa8115c0c8d"
+          "check": "e35f443cd9e51f1309f19c108b3c9dd7084ed2dda55afbcb173be2ed049da2c8"
         },
         {
           "name": "physical:lvs",
           "verdict": "pass",
-          "check": "3f32d5d5a075e618803786341cb9969f26278502ebc09ac0e6e312eae116c9a5"
+          "check": "9de6296048f3e5e4bb3d7adde80ec28150c096a97de433396b7082bf85f31e97"
         },
         {
           "name": "physical:precheck",
           "verdict": "pass",
-          "check": "41abc068c7a2313dff15cf95999c46bc6c190b562e5cd12369b9a173217202aa"
+          "check": "33f3f316a85143819bd8974bbc653cb6734239263356faad26082ab45e36a3c4"
         },
         {
           "name": "gate:tests",
           "verdict": "pass",
-          "check": "2530c56c9eacc2917e202ff792f4f8de7c14f680dff9e0be1167bb2404d04d15"
+          "check": "b6813730d77781d27041f68576b51d4662b4311e4f25caa6a9e599ec455d5861"
         },
         {
           "name": "gate:outputs",
           "verdict": "pass",
-          "check": "fca880226a63b7ace46ae6f6a5b18b2507a72a34535a66e0c9f49587d2bbb0c8"
+          "check": "b439b351df49415a820213ab764906b76074bdac6e74f464d939d57e66e6be5a"
         }
       ],
       "archive": {
-        "sha256": "fd1b6bd1ae95cf1812b5a4983520ed3f662fc0cadf9bc7e47370aa6424921176",
-        "bytes": 108174
+        "artifact": "a1498cee4362bf3f1c485e591c89e7fbeb34eda931e75307c13ffe04b84b0c42",
+        "sha256": "447f415f6b33ed9d114348422bbec07c0a609916cdb97b8ed30d6fe2a92c034e",
+        "bytes": 146972
       },
       "evidenceArchive": {
-        "path": "evidence.zip",
-        "sha256": "56749abdf6485479f82e41f0e59fcc12553cf2a53e7946fcdd465d2d45770275",
-        "bytes": 18245345
+        "artifact": "2b39d56d7cf0ed906b02d450606e21b520f9ac17db3ee5995a1456809c149261",
+        "sha256": "01c8b67abfdccc0e67b2eb7c4fd5b2a057c51af3c8f35f8c0aa4c442cf548505",
+        "bytes": 18252669
       },
       "archivePrecheck": {
         "cases": 10,
         "verdict": "pass",
-        "artifact": "710130377c44c8f501b7c17e6a8c4136027254f143a1abc694d4fe367dae17f8",
-        "sha256": "71752d28f8e85b1a5ba09752da3c1f0068f7c2896910e17794504e23a7fbb7c7"
+        "artifact": "679a10b46e0ec0902f9d9cd13e6821c0afc50b6a60fd8d4bf741e68b50a31301",
+        "sha256": "d417f7bf62762bc565f5d9edf89de02294ce940063c4106f63ce5f9a51c04c80",
+        "bytes": 630
       },
-      "testLogSha256": "8c23b7e0b114c6e5da18d0f04ba3cf1d24327edbab916b79221a9c86d943cf63",
+      "testLogSha256": "e7e8332167300fc4b789f85d3e570c36e0660c231d61c6b8bf2986be373508f7",
+      "matrixRecord": "docs/manufacturing-reliability-acceptance.json",
       "scenarios": [
-        "empty-project-bootstrap",
-        "cold-managed-cache-setup",
-        "concurrent-setup-cancellation",
-        "reconnect-request-replay",
-        "RTL-defect-detection-and-repair",
-        "RTL-and-gate-level-tests",
-        "synthesis-timing-DRC-LVS-native-precheck",
-        "mandatory-policy-weakening-blocked",
-        "declared-proof-blocked-until-pass",
-        "archive-extraction-native-revalidation",
-        "MCP-binary-chunk-reconstruction",
-        "source-edit-stales-release"
+        "cold-managed-cache",
+        "four-independent-designs",
+        "intentional-RTL-defects",
+        "RTL-and-delivered-netlist-tests",
+        "timing-DRC-LVS-native-precheck",
+        "policy-and-declared-proof-blockers",
+        "source-freshness",
+        "archive-native-revalidation",
+        "helper-environment-forwarding",
+        "durable-request-replay",
+        "abrupt-client-death",
+        "verified-partial-download-resume",
+        "corrupted-partial-download-rejection"
       ]
     }
   }
