@@ -18,6 +18,7 @@ for (const fixture of ["counter", "power", "fifo", "uart"]) {
       env: {
         ...process.env,
         CHIPSIM_TEST_MANUFACTURING: "1",
+        CHIPSIM_TEST_MANUFACTURING_RACES: "1",
         CHIPSIM_MANUFACTURING_FIXTURE: fixture,
         CHIPSIM_MANUFACTURING_CACHE: cache,
       },
@@ -27,4 +28,23 @@ for (const fixture of ["counter", "power", "fifo", "uart"]) {
     process.exitCode = r.status ?? 1;
     break;
   }
+}
+
+if (!process.exitCode) {
+  const r = spawnSync(
+    process.execPath,
+    [
+      "--test",
+      new URL("../test/workflow-native.test.js", import.meta.url).pathname,
+    ],
+    {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        CHIPSIM_TEST_MANUFACTURING: "1",
+        CHIPSIM_MANUFACTURING_CACHE: cache,
+      },
+    },
+  );
+  if (r.status !== 0) process.exitCode = r.status ?? 1;
 }

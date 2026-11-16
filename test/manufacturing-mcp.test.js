@@ -115,6 +115,25 @@ test(
       const old = await call("file_read", { path });
       return call("file_write", { path, text, expectedHash: old.sha256 });
     };
+    let raceDependency;
+    if (
+      process.env.CHIPSIM_TEST_MANUFACTURING_RACES === "1" &&
+      fixtureName === "counter"
+    ) {
+      const { dependencyIdentity } = await import("../src/design/project.js");
+      raceDependency = await mkdtemp(
+        join(tmpdir(), "chipsim-native-race-dependency-"),
+      );
+      await writeFile(join(raceDependency, "data"), "original");
+      const lock = JSON.parse(
+        (await call("file_read", { path: "chipsim.lock.json" })).text,
+      );
+      lock.dependencies.push({
+        path: raceDependency,
+        sha256: await dependencyIdentity(raceDependency),
+      });
+      await update("chipsim.lock.json", JSON.stringify(lock));
+    }
     await update("acceptance.json", JSON.stringify({ cases }));
     await update("test/tb.sv", counterTestbench);
     await update("src/project.v", counterRTL.replace(...mutation));
@@ -163,6 +182,20 @@ test(
       proofBlocked.blockers.some((b) => b.includes("Declared proof must pass")),
     );
     await update("chipsim.design.json", originalConfig.text);
+    let raceScenarios = [];
+    if (
+      process.env.CHIPSIM_TEST_MANUFACTURING_RACES === "1" &&
+      fixtureName === "counter"
+    ) {
+      const { packagingRaces } =
+        await import("./fixtures/manufacturing-races.mjs");
+      raceScenarios = await packagingRaces(root, released.run, raceDependency);
+      const { nativeCancellation } =
+        await import("./fixtures/native-cancellation.mjs");
+      raceScenarios.push(
+        await nativeCancellation(call, root, profiles.profiles[0].pins.image),
+      );
+    }
     const packaged = await finish(
       await call("release_package", {
         run: released.run,
@@ -213,6 +246,7 @@ test(
     const { runtimeIdentity } = await import("../src/design/project.js");
     const acceptance = {
       fixture: fixtureName,
+      raceScenarios,
       root,
       cache,
       runtime: await runtimeIdentity(),

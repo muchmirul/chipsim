@@ -55,6 +55,7 @@ const definitions = [
     {
       profile: string(128),
       environment: id,
+      requestId: { ...string(128), minLength: 1 },
       metadata: {
         type: "object",
         properties: {

@@ -7,6 +7,7 @@ export async function projectSummary(
   path,
   {
     freshness = true,
+    recoverJobs = true,
     target,
     latestOnly = false,
     runId,
@@ -16,7 +17,7 @@ export async function projectSummary(
   const { config, store } = await loadDesign(path);
   if (target && !config.targets[target])
     throw new Error("Unknown target " + target);
-  const jobs = await listJobs(store),
+  const jobs = await listJobs(store, { recover: recoverJobs }),
     runs = (await store.list("run"))
       .sort((a, b) => (b.created || "").localeCompare(a.created || ""))
       .filter((r) => (runId ? r.id === runId : !target || r.target === target));

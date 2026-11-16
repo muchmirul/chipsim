@@ -210,13 +210,34 @@ request identities before submission; replay never silently starts a replacement
 run. Downloads verify chunk and whole-file hashes, including existing partial
 bytes. Destination conflicts stop the operation. Ctrl-C requests cancellation;
 unexpected disconnection leaves jobs durable. Failed jobs require explicit retry.
-Preserve the original `CHIPSIM_MANUFACTURING_CACHE` for a setup resume; choosing
-a different cache changes the request parameters and is rejected as a conflict.
-An uncertain bootstrap response stops for inspection rather than overwriting
-existing files. A dead helper's exclusive journal lock must be removed only after
+New helper journals capture the selected manufacturing cache and replay it even
+if the client's current environment changes. Journals also retain per-generation
+log cursors, bounded log tails and verified download byte progress. Root device
+and inode identities reject a project directory replaced at the same path.
+
+`project_bootstrap` accepts an optional `requestId`. A durable receipt records the
+intended file inventory before installation. Repeating the same request checks
+all existing owned files and installs missing whole top-level destinations after
+an interrupted bootstrap. Edited files, extra captured files, altered templates or changed
+request parameters stop reconciliation. Calls without a request ID retain the
+create-only contract. The official helper supplies a persistent bootstrap request
+ID and therefore reconciles a lost server response on resume. A server killed while
+owning the project mutation lock leaves that lock intact. Confirm its reported
+owner is dead and all project clients are stopped before explicitly removing it;
+resume then verifies the receipt. The helper never steals that lock.
+Legacy journals that lack that identity still require explicit inspection. A dead helper's exclusive journal lock must be removed only after
 confirming no client owns it; locks are never silently stolen.
 
 Native failures retain bounded current-task log excerpts, source locations when
 reported, exit status and report diagnostics. An unfinished xUnit report does
 not hide a simulator assertion or become a passing test. Unknown test identity
 remains null. Historical evidence lacking new diagnostic fields remains readable.
+
+Workflow stages distinguish profile selection, bootstrap, bootstrap recovery,
+active jobs, failures, implementation/verification, release, packaging and ready
+delivery. Suggested calls retain explicit request IDs and metadata requirements;
+inspection never executes configured tools or mutates orphan job state.
+
+Structured diagnostics use an explicit recorded failing case when available,
+list multiple failed cases, and leave unknown attribution null. Both native
+process failures and zero-exit reports containing failures remain nonpassing.

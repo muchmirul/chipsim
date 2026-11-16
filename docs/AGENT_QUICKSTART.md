@@ -7,6 +7,12 @@ calls take `project`; MCP `chipsim_TOOL` calls use the server's bound root.
 Use `workbench tools` / MCP tool discovery for schemas, and workbench `project`
 for arbitrary RTL directories. `agent context` remains model/PDF-specific.
 
+For guided digital manufacturing, call `workflow_status` on the bound project
+and follow its explicit next actions. The official `extensions/mcp/workflow.mjs`
+helper provides preparation, run, delivery and resume commands with durable
+journals outside the project. See [manufacturing](MANUFACTURING.md) for the pinned
+profile and [reliability](MCP_RELIABILITY.md) for acceptance coverage.
+
 For an MCP-only chip-development loop, read [WORKBENCH_MCP.md](WORKBENCH_MCP.md): create/read/edit project text, fork candidates, validate targets, start durable jobs, inspect real failures, repair and export evidence. The original programmable fixture separates fixed hardware from two control images.
 
 Read this guide together with the working project's `AGENTS.md`. Use the installed

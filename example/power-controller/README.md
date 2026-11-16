@@ -56,9 +56,12 @@ Python tool environments remain external dependencies.
 ## Delivery and evidence
 
 The original recorded validation and deliverable identities are in `VALIDATION.json`.
-[Current reliability revalidation](VALIDATION-reliability.json) records the updated
+[Earlier reliability revalidation](VALIDATION-reliability.json) records the updated
 runtime and official helper's fresh-project runs. The original committed delivery
 remains the historical snapshot; the new helper retrieves fresh delivery files.
+[Full-plan revalidation](VALIDATION-full-plan.json) records the completed recovery
+matrix and current helper journals, including bootstrap server-loss recovery and
+controlled packaging failures.
 The `delivery/` directory contains `submission.zip`, checksums, release manifest
 and archive-validation XML. Full `evidence.zip` is generated locally and ignored
 by Git because it includes captured external support-tool sources; its checksum

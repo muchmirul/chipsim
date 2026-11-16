@@ -234,7 +234,36 @@ test("bootstrap preserves existing projects and installs an explicit failing sta
   );
   await assert.rejects(() => readFile(join(root, "chipsim.design.json")));
   await rm(join(root, "LICENSE"));
-  assert.equal((await wb.call("project_bootstrap", args)).ok, true);
+  const replayArgs = { ...args, requestId: "bootstrap-recovery" };
+  assert.equal((await wb.call("project_bootstrap", replayArgs)).ok, true);
+  assert.equal((await wb.call("project_bootstrap", replayArgs)).ok, true);
+  // Simulate a crash after only some top-level destinations were installed.
+  await rm(join(root, "src"), { recursive: true });
+  assert.equal((await wb.call("project_bootstrap", replayArgs)).ok, true);
+  assert.match(await readFile(join(root, "src/project.v"), "utf8"), /module/);
+  const originalSource = await readFile(join(root, "src/project.v"), "utf8");
+  await writeFile(join(root, "src/project.v"), "user edit");
+  const conflict = await wb.call("project_bootstrap", replayArgs);
+  assert.equal(conflict.ok, false);
+  assert.match(conflict.error.message, /changed/);
+  assert.equal(
+    await readFile(join(root, "src/project.v"), "utf8"),
+    "user edit",
+  );
+  await writeFile(join(root, "src/project.v"), originalSource);
+  assert.equal(
+    (
+      await wb.call("project_bootstrap", {
+        ...replayArgs,
+        metadata: { ...args.metadata, title: "changed" },
+      })
+    ).ok,
+    false,
+  );
+  assert.equal(
+    (await wb.call("workflow_status")).result.stage,
+    "implement-and-verify",
+  );
   const design = await loadDesign(root);
   assert.ok(
     design.config.targets.release.requiredChecks.includes("physical:precheck"),
@@ -362,4 +391,24 @@ test("managed Python inventory rejects altered installed files and unpinned dist
   await writeFile(join(root, "original_fixture.py"), data);
   await writeFile(join(root, "requirements.lock"), "unrelated-package==1.0\n");
   await assert.rejects(run, /Unexpected cached Python distribution/);
+});
+
+test("complete duplicate, missing, contradictory and failed xUnit reports never falsely pass", async (t) => {
+  const { root } = await setup(t);
+  const task = { definition: { options: { operation: "rtl" } } };
+  await writeFile(
+    join(root, "acceptance.json"),
+    JSON.stringify({ cases: ["reset", "normal"] }),
+  );
+  for (const xml of [
+    '<testsuite><testcase name="reset"/><testcase name="reset"/></testsuite>',
+    '<testsuite><testcase name="reset"/></testsuite>',
+    '<testsuite tests="1"><testcase name="reset"/><testcase name="normal"/></testsuite>',
+    '<testsuite><testcase name="reset"><failure message="wrong"/></testcase><testcase name="normal"/></testsuite>',
+    '<testsuite><testcase><failure/></testcase><testcase name="normal"/></testsuite>',
+  ]) {
+    await writeFile(join(root, "results.xml"), xml);
+    const [check] = await verificationChecks(task, root, { ok: true });
+    assert.notEqual(check.verdict, "pass");
+  }
 });

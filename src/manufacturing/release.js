@@ -5,7 +5,7 @@ import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { Store, json, fileDigest, identity } from "../design/store.js";
 import { loadDesign } from "../design/project.js";
-import { checksForTarget } from "../design/service.js";
+import { checksForTarget, projectSummary } from "../design/service.js";
 import { verifyEvidence, exportEvidence } from "../design/evidence.js";
 import { execute } from "../design/process.js";
 import { parseXunit } from "../design/xunit.js";
@@ -15,7 +15,7 @@ import { manufacturingProfile } from "./profiles.js";
 export async function releaseStatus(
   root,
   runId,
-  { allowMetadataParser = true } = {},
+  { allowMetadataParser = true, inspectOnly = false } = {},
 ) {
   const blockers = [];
   const status = {
@@ -43,7 +43,14 @@ export async function releaseStatus(
     const captured = await verifyEvidence(store, run.id),
       plan = await store.get(run.plan, "execution-plan"),
       snapshot = await store.get(run.snapshot, "input-snapshot");
-    const checks = await checksForTarget(root, "release", run.id);
+    const summary = inspectOnly
+      ? await projectSummary(root, {
+          target: "release",
+          runId: run.id,
+          recoverJobs: false,
+        })
+      : undefined;
+    const checks = await checksForTarget(root, "release", run.id, summary);
     status.required = checks.required;
     status.verification = {
       checks: (checks.checks || []).map((c) => ({
@@ -51,6 +58,10 @@ export async function releaseStatus(
         name: c.name,
         task: c.subject?.task,
         verdict: c.verdict,
+        freshness:
+          checks.required.find((r) => r.check === c.id)?.verdict === "stale"
+            ? "stale"
+            : "captured",
         scope: c.scope,
         assumptions: c.assumptions,
         context: c.context,
@@ -454,6 +465,13 @@ export async function packageRelease(root, { run: runId }, context) {
       evidenceDigest.sha256 +
       "  evidence.zip\n",
   );
+  const final = await releaseStatus(root, runId);
+  if (!final.ready)
+    throw new Error(
+      "Release changed before package publication: " +
+        final.blockers.join("; "),
+    );
+  if (context.signal?.aborted) throw new Error("cancelled");
   return {
     profile: profile.id,
     sourceRun: runId,

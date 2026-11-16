@@ -97,3 +97,13 @@ uses a new cache for the first design and shares it with subsequent designs.
 `CHIPSIM_MANUFACTURING_CACHE` explicitly selects a warm cache. Retained
 `acceptance-record.json` files identify actual runs; they do not automatically
 promote a profile. Update native acceptance only after the final runtime passes.
+
+The matrix also exercises source/policy/locked-dependency mutations during
+packaging, a source edit after final checksum creation, cancellation while
+packaging, and actual owned-container cleanup with an unrelated container kept
+running. Test-only preload barriers make these boundaries deterministic and are
+never loaded by ordinary product commands. `CHIPSIM_TEST_MANUFACTURING_RACES=1`
+enables these scenarios for the single-counter `test:manufacturing` runner too.
+The matrix additionally runs native bootstrap server-crash recovery in both
+partial-install and lost-reply cases. Package freshness is checked again after
+all archive and checksum work, immediately before returning the deliverable.

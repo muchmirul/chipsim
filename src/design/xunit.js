@@ -77,7 +77,7 @@ export function parseXunit(xml) {
             /\bname\s*=\s*(?:"([^"]*)"|'([^']*)')/
               .exec(text)
               ?.slice(1)
-              .find(Boolean) || "test " + tests.length,
+              .find(Boolean) || null,
           verdict: "pass",
         };
       }

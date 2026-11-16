@@ -5,109 +5,123 @@
     "tinytapeout-ihp-v1": {
       "digest": "0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e",
       "nativeAcceptance": true,
-      "validatedAt": "2026-11-16T07:07:04.081Z",
-      "command": "npm run test:manufacturing:matrix; fresh-cache npm run test:manufacturing; official helper interruption/resume validation",
-      "scope": "Four independent digital fixtures on the pinned Tiny Tapeout IHP profile; counter uses fresh managed cache. Manufacturer acceptance remains external.",
-      "fixture": "test/fixtures/manufacturing.mjs",
-      "fixtureSha256": "ab80bcf46abb29cfa6a49f12ed52c793b67d1753ce8fa65a5c532c9f4856445f",
+      "validatedAt": "2026-11-16T08:39:02.893Z",
+      "command": "npm run test:manufacturing:matrix; official reproduction helper",
+      "scope": "Final-runtime cold-cache setup, four independent digital designs and required native release/archive gates; deterministic packaging races, owned-container cancellation, native bootstrap server-loss recovery and official helper delivery. Local Tiny Tapeout IHP handoff; manufacturer acceptance remains external.",
       "runtime": {
-        "sha256": "12bdf176a1e50ac06d331804eb071d55762b3a05981d50163e15bb077c124c56",
+        "sha256": "8764fa98a1e6f36ed286e1cfc3a2fbf6af82371159c94a3506bee9f6bb475204",
         "node": "22.23.2",
         "platform": "linux",
         "arch": "x64"
       },
-      "sourceRun": "e7dedbc31838666fcbff5e7ef2f0c675be09d8749ed89968a1d0683a9c6fc2c1",
-      "packageRun": "68e407d1e97a73a3c41a0d518d9c42c40fe139a2d804e17fabe3ab675f8670fe",
+      "fixture": "test/fixtures/manufacturing.mjs",
+      "fixtureSha256": "ab80bcf46abb29cfa6a49f12ed52c793b67d1753ce8fa65a5c532c9f4856445f",
+      "sourceRun": "9ba0392ff4b55094cb505a9e6555ac7378133fac8ca81d36b095eb5827b9ec28",
+      "packageRun": "9a5b18ec94cb334d4629b9b21b5ef762539afe510c47fe166b896a79bac0251f",
       "requiredChecks": [
         {
           "name": "rtl:tests",
           "verdict": "pass",
-          "check": "dad875f9c6723faa877b8bdc306d7e57ffdfc0e527f29d01639b99f651f22dbe"
+          "check": "4497ca21968b6e5c6c6400fc10565728e4d657e7157e4fd743a28301caad4630"
         },
         {
           "name": "rtl:outputs",
           "verdict": "pass",
-          "check": "a18617c125c15338d6e86afdc2c51d59877f5dc107fe8aaadaf7eac2405b6869"
+          "check": "f96bb14ac45ff2ac4eeae4cacff3efb146424c7637a804d547ff2b81b9a358b4"
         },
         {
           "name": "synthesis:synthesis",
           "verdict": "pass",
-          "check": "f2726ba44171ddb3422adcd586baa7cbc5a6b6bdfff7cf7bdc7c366391cd8c99"
+          "check": "a69b3042af6f3479de2dd5856dac57b55099f1e060124b6032d65a96020d9640"
         },
         {
           "name": "synthesis:outputs",
           "verdict": "pass",
-          "check": "409c63649f5310a18ae9b7b92d90f3b6a1a903b0b1723ab3cb4c983a66912d19"
+          "check": "5320dd2e64c7d98f2f4ff98a0d2face1132ea2d79a07c38a6b6e2c48e39c16cd"
         },
         {
           "name": "physical:outputs",
           "verdict": "pass",
-          "check": "3b1dd3b0f0a1f6633ea2d3ec3a5e79685dcbe2531f8256e860d63ecf6e7754fa"
+          "check": "4cf1d798078ecea709b74adc40957e9d887b6d2d2c3af307c4425778502fc6fd"
         },
         {
           "name": "physical:timing",
           "verdict": "pass",
-          "check": "7c8d0da8d6d1e03683db005a31df6fcf1c19fc1e0f21a860b6a5659083649bda"
+          "check": "af7d06845cf090c054405fb1c0e1f419c5cdbe59b8728c62901c5dd1e954e883"
         },
         {
           "name": "physical:drc",
           "verdict": "pass",
-          "check": "e35f443cd9e51f1309f19c108b3c9dd7084ed2dda55afbcb173be2ed049da2c8"
+          "check": "16ce19ca6edc52d0511810fbc9cc6605892edad131f89fe29bb3911609a07fdf"
         },
         {
           "name": "physical:lvs",
           "verdict": "pass",
-          "check": "9de6296048f3e5e4bb3d7adde80ec28150c096a97de433396b7082bf85f31e97"
+          "check": "33f422bf4bc1408a95aef231af1077e9ae8326b01da56194d07d9827e631e52f"
         },
         {
           "name": "physical:precheck",
           "verdict": "pass",
-          "check": "33f3f316a85143819bd8974bbc653cb6734239263356faad26082ab45e36a3c4"
+          "check": "5307646cd9d19431a34ee8e8a3ab0868bc5235c75ddf1a26ea2c4fdd1fc78b6c"
         },
         {
           "name": "gate:tests",
           "verdict": "pass",
-          "check": "b6813730d77781d27041f68576b51d4662b4311e4f25caa6a9e599ec455d5861"
+          "check": "3ade3ea94d3e5d83d9616bebccc45ab5b6b4169e7745236bce543d56e69383af"
         },
         {
           "name": "gate:outputs",
           "verdict": "pass",
-          "check": "b439b351df49415a820213ab764906b76074bdac6e74f464d939d57e66e6be5a"
+          "check": "1e5565bebd7a4bd03b9a46b394193041ea74a7231f0181186f40f7e2fd09c2cb"
         }
       ],
       "archive": {
-        "artifact": "a1498cee4362bf3f1c485e591c89e7fbeb34eda931e75307c13ffe04b84b0c42",
-        "sha256": "447f415f6b33ed9d114348422bbec07c0a609916cdb97b8ed30d6fe2a92c034e",
-        "bytes": 146972
+        "artifact": "55f96b48827a3cf911400561ed675c81df8dc40ee9a77b7cfc68546b7c416c91",
+        "sha256": "12b4692e0a89a05cbcec42e8feade25b74f8a35089e609dfeda010accea4dd86",
+        "bytes": 147098
       },
       "evidenceArchive": {
-        "artifact": "2b39d56d7cf0ed906b02d450606e21b520f9ac17db3ee5995a1456809c149261",
-        "sha256": "01c8b67abfdccc0e67b2eb7c4fd5b2a057c51af3c8f35f8c0aa4c442cf548505",
-        "bytes": 18252669
+        "artifact": "b73214fbbc284ef95bb7d5d9007b86e4e404b99ea16fe737e3f136677eada260",
+        "sha256": "014a2ef6576b3e7e16cb1fd844b099a89c662cbd342760f1940b955c001fb2b0",
+        "bytes": 18246086
       },
       "archivePrecheck": {
         "cases": 10,
         "verdict": "pass",
-        "artifact": "679a10b46e0ec0902f9d9cd13e6821c0afc50b6a60fd8d4bf741e68b50a31301",
-        "sha256": "d417f7bf62762bc565f5d9edf89de02294ce940063c4106f63ce5f9a51c04c80",
-        "bytes": 630
+        "artifact": "b9c0071f426def367eac5b049e4fde700a72e0b3dbc2188243d79501bd1e4ff0",
+        "sha256": "bfab2290670d150fbd4e5a0b0cc265aa2a6f4fde08ba4c4049c723b38021fed9",
+        "bytes": 628
       },
-      "testLogSha256": "e7e8332167300fc4b789f85d3e570c36e0660c231d61c6b8bf2986be373508f7",
+      "testLogSha256": "cd915d1da4c54202d0798439318439c1a036e75087259db994cee2a9cb5e3198",
       "matrixRecord": "docs/manufacturing-reliability-acceptance.json",
       "scenarios": [
-        "cold-managed-cache",
-        "four-independent-designs",
-        "intentional-RTL-defects",
-        "RTL-and-delivered-netlist-tests",
-        "timing-DRC-LVS-native-precheck",
-        "policy-and-declared-proof-blockers",
-        "source-freshness",
-        "archive-native-revalidation",
-        "helper-environment-forwarding",
-        "durable-request-replay",
-        "abrupt-client-death",
-        "verified-partial-download-resume",
-        "corrupted-partial-download-rejection"
+        "queued cancellation",
+        "running cancellation",
+        "unrelated process preservation",
+        "concurrent retries",
+        "source/policy/dependency changes during execution",
+        "worker crash before publication",
+        "worker crash after publication",
+        "dead mutation lock",
+        "response limits",
+        "disconnect after first chunk",
+        "partial chunk prefix",
+        "corrupted prefix",
+        "corrupted chunk",
+        "changed identity",
+        "invalid cursor",
+        "destination conflict",
+        "exclusive destination publication",
+        "symlinked partial file",
+        "source",
+        "policy",
+        "dependency",
+        "late-source",
+        "cancel",
+        "native-owned-container-cancellation",
+        "partial-bootstrap-server-death",
+        "completed-bootstrap-lost-reply",
+        "four-design-native-release-and-package"
       ]
     }
   }

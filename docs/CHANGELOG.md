@@ -1,5 +1,20 @@
 # ChipSim behavior changes
 
+## 2026-11-16 — Complete MCP workflow recovery and failure matrix
+
+**Context:** The reliability plan still lacked automated publication/packaging
+races and complete helper recovery. **Behavior:** Request-bound bootstrap receipts
+reconcile interrupted installation without replacing edited files. SDK journals
+retain log cursors, download progress, project identity and the original cache.
+Workflow inspection exposes preparation/recovery stages without orphan cleanup.
+Diagnostics retain explicit failing cases, and packaging rechecks freshness after
+checksum creation. **Checks:** Deterministic job and native packaging barriers,
+bootstrap server death, partial/corrupt downloads, concurrent retries, stale locks,
+source/policy/dependency edits and owned-container cancellation. See
+MCP_RELIABILITY.md for executable coverage and recorded native acceptance.
+**Limits:** Explicit retries and acceptance gates remain required; incomplete or
+corrupt evidence never establishes a passing release.
+
 ## 2026-11-16 — MCP reliability and workflow guidance
 
 Native verification now preserves simulator assertion diagnostics alongside malformed

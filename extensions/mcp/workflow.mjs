@@ -9,14 +9,133 @@ import {
   open,
   unlink,
   realpath,
+  stat,
+  lstat,
 } from "node:fs/promises";
-import { resolve, join, dirname } from "node:path";
+import { resolve, join, dirname, relative, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
+import { constants } from "node:fs";
 import { createHash, randomUUID } from "node:crypto";
 const digest = (b) => createHash("sha256").update(b).digest("hex");
 const readJSON = async (p) => JSON.parse(await readFile(p, "utf8"));
+// Transport-neutral byte retrieval shared by the official SDK helper and fault
+// injection tests. Every resumed prefix is verified against immutable MCP bytes.
+export async function downloadArtifact(
+  call,
+  artifact,
+  target,
+  progress = async () => {},
+  interrupted = () => false,
+) {
+  const partial = target + ".partial";
+  for (const path of [target, partial]) {
+    const info = await lstat(path).catch((e) => {
+      if (e.code !== "ENOENT") throw e;
+      return null;
+    });
+    if (info && !info.isFile())
+      throw Error("Expected regular download file: " + path);
+  }
+  const first = await call("artifact_read", {
+    artifact: artifact.id,
+    offset: 0,
+    limit: 65536,
+  });
+  const existing = await readFile(target).catch((e) => {
+    if (e.code !== "ENOENT") throw e;
+    return null;
+  });
+  if (existing) {
+    if (existing.length !== artifact.bytes || digest(existing) !== first.sha256)
+      throw Error("Conflicting destination: " + target);
+    return {
+      artifact: artifact.id,
+      sha256: first.sha256,
+      bytes: existing.length,
+    };
+  }
+  const old = await readFile(partial).catch((e) => {
+    if (e.code !== "ENOENT") throw e;
+    return Buffer.alloc(0);
+  });
+  const handle = await open(
+    partial,
+    constants.O_WRONLY |
+      constants.O_CREAT |
+      constants.O_APPEND |
+      constants.O_NOFOLLOW,
+  );
+  const hash = createHash("sha256");
+  let position = 0;
+  try {
+    for (;;) {
+      if (interrupted())
+        throw Error("Download interrupted; resume with the same journal");
+      const p =
+        position === 0
+          ? first
+          : await call("artifact_read", {
+              artifact: artifact.id,
+              offset: position,
+              limit: 65536,
+            });
+      const b = Buffer.from(p.data, "base64");
+      if (
+        (!b.length && artifact.bytes !== 0) ||
+        digest(b) !== p.chunkSha256 ||
+        p.sha256 !== first.sha256
+      )
+        throw Error("Artifact integrity mismatch");
+      const overlap = Math.min(b.length, Math.max(0, old.length - position));
+      if (
+        !old
+          .subarray(position, position + overlap)
+          .equals(b.subarray(0, overlap))
+      )
+        throw Error("Partial download differs");
+      if (overlap < b.length) await handle.writeFile(b.subarray(overlap));
+      hash.update(b);
+      position += b.length;
+      if (p.nextOffset !== null && p.nextOffset !== position)
+        throw Error("Invalid artifact cursor");
+      await progress({
+        artifact: artifact.id,
+        sha256: first.sha256,
+        verifiedBytes: position,
+        totalBytes: artifact.bytes,
+      });
+      if (p.nextOffset === null) break;
+    }
+    if (
+      old.length > position ||
+      position !== artifact.bytes ||
+      hash.digest("hex") !== first.sha256
+    )
+      throw Error("Complete artifact mismatch");
+  } finally {
+    await handle.close();
+  }
+  const { link } = await import("node:fs/promises");
+  await link(partial, target);
+  await unlink(partial);
+  return { artifact: artifact.id, sha256: first.sha256, bytes: position };
+}
 export async function runWorkflow(operation, options) {
   const journal = resolve(options.state || options.project + ".workflow.json");
+  if (operation !== "resume") {
+    if (!options.project) throw Error("--project required");
+    const root = await realpath(options.project),
+      rel = relative(root, journal);
+    if (!rel.startsWith("../") && !isAbsolute(rel))
+      throw Error("Workflow journal must be outside project inputs");
+    const required = {
+      prepare: ["profile", "metadata"],
+      run: ["target"],
+      deliver: ["run", "out"],
+    }[operation];
+    if (!required || required.some((k) => !options[k]))
+      throw Error("Missing required workflow arguments");
+  }
   const lock = await open(journal + ".lock", "wx");
   let client,
     state,
@@ -53,6 +172,13 @@ export async function runWorkflow(operation, options) {
         options: { ...options, project: root },
         requests: {},
         results: {},
+        projectIdentity: await stat(root).then((s) => ({
+          dev: s.dev,
+          ino: s.ino,
+        })),
+        logs: {},
+        downloads: {},
+        cache: process.env.CHIPSIM_MANUFACTURING_CACHE || null,
       };
       if (operation === "prepare")
         state.metadata = await readJSON(options.metadata);
@@ -62,6 +188,18 @@ export async function runWorkflow(operation, options) {
     }
     if ((await realpath(state.root)) !== state.root)
       throw Error("Project root identity changed");
+    const rootStat = await stat(state.root);
+    if (
+      state.projectIdentity &&
+      (state.projectIdentity.dev !== rootStat.dev ||
+        state.projectIdentity.ino !== rootStat.ino)
+    )
+      throw Error("Project directory was replaced");
+    const journalRelative = relative(state.root, journal);
+    if (!journalRelative.startsWith("../") && !isAbsolute(journalRelative))
+      throw Error("Workflow journal must be outside project inputs");
+    state.logs ||= {};
+    state.downloads ||= {};
     const installation = fileURLToPath(new URL("../../", import.meta.url));
     client = new Client(
       { name: "chipsim-workflow", version: "1" },
@@ -75,7 +213,12 @@ export async function runWorkflow(operation, options) {
         "--project",
         state.root,
       ],
-      env: { ...process.env },
+      env: {
+        ...process.env,
+        ...(Object.hasOwn(state, "cache")
+          ? { CHIPSIM_MANUFACTURING_CACHE: state.cache || undefined }
+          : {}),
+      },
       stderr: "pipe",
     });
     transport.stderr?.on("data", (b) => process.stderr.write(b));
@@ -106,6 +249,27 @@ export async function runWorkflow(operation, options) {
           cancellationRequested = true;
         }
         const s = await call("job_status", { job: active, waitMs: 10000 });
+        const logKey = s.id + ":" + s.generation;
+        const log = (state.logs[logKey] ||= {
+          cursor: 0,
+          text: "",
+          truncated: false,
+        });
+        let page;
+        do {
+          page = await call("job_logs", {
+            job: s.id,
+            offset: log.cursor,
+            limit: 16384,
+          });
+          if (page.cursor < log.cursor)
+            throw Error("Job log cursor moved backwards");
+          log.cursor = page.cursor;
+          const text = log.text + page.text;
+          log.truncated ||= text.length > 16384;
+          log.text = text.slice(-16384);
+          await save();
+        } while (page.nextOffset !== null);
         state.results[key] = s;
         await save();
         if (
@@ -127,15 +291,11 @@ export async function runWorkflow(operation, options) {
       });
       if (interrupted) throw Error("Interrupted before bootstrap");
       if (!state.results.bootstrap) {
-        // An uncertain bootstrap response requires explicit inspection; never
-        // overwrite a partially prepared or conflicting project on resume.
-        if (state.bootstrapPending)
-          throw Error(
-            "Bootstrap response uncertain: inspect project files before continuing",
-          );
+        state.requests.bootstrap ||= randomUUID();
         state.bootstrapPending = true;
         await save();
         state.results.bootstrap = await call("project_bootstrap", {
+          requestId: state.requests.bootstrap,
           profile: o.profile,
           environment: environment.run,
           metadata: state.metadata,
@@ -177,73 +337,17 @@ export async function runWorkflow(operation, options) {
           );
         const a = artifacts.find((a) => a.path === name);
         if (!a) throw Error("Missing artifact: " + name);
-        const target = join(out, name),
-          partial = target + ".partial";
-        const first = await call("artifact_read", {
-          artifact: a.id,
-          offset: 0,
-          limit: 65536,
-        });
-        const existing = await readFile(target).catch((e) => {
-          if (e.code !== "ENOENT") throw e;
-          return null;
-        });
-        if (existing) {
-          if (digest(existing) !== first.sha256)
-            throw Error("Conflicting destination: " + target);
-          continue;
-        }
-        const old = await readFile(partial).catch((e) => {
-          if (e.code !== "ENOENT") throw e;
-          return Buffer.alloc(0);
-        });
-        const h = await open(partial, "a");
-        let position = 0;
-        const hash = createHash("sha256");
-        try {
-          for (;;) {
-            const p =
-              position === 0
-                ? first
-                : await call("artifact_read", {
-                    artifact: a.id,
-                    offset: position,
-                    limit: 65536,
-                  });
-            const b = Buffer.from(p.data, "base64");
-            if (digest(b) !== p.chunkSha256 || p.sha256 !== first.sha256)
-              throw Error("Artifact integrity mismatch");
-            const overlap = Math.min(
-              b.length,
-              Math.max(0, old.length - position),
-            );
-            if (
-              !old
-                .subarray(position, position + overlap)
-                .equals(b.subarray(0, overlap))
-            )
-              throw Error("Partial download differs");
-            if (overlap < b.length) await h.write(b.subarray(overlap));
-            hash.update(b);
-            position += b.length;
-            if (p.nextOffset === null) break;
-            if (p.nextOffset !== position)
-              throw Error("Invalid artifact cursor");
-          }
-          if (
-            old.length > position ||
-            position !== a.bytes ||
-            hash.digest("hex") !== first.sha256
-          )
-            throw Error("Complete artifact mismatch");
-        } finally {
-          await h.close();
-        }
-        // Exclusive destination publication preserves files another client created.
-        const { link } = await import("node:fs/promises");
-        await link(partial, target);
-        await unlink(partial);
-        state.results[name] = { artifact: a.id, sha256: first.sha256 };
+        const result = await downloadArtifact(
+          call,
+          a,
+          join(out, name),
+          async (progress) => {
+            state.downloads[name] = progress;
+            await save();
+          },
+          () => interrupted,
+        );
+        state.results[name] = result;
         await save();
       }
     }
@@ -253,9 +357,12 @@ export async function runWorkflow(operation, options) {
   } finally {
     process.off("SIGINT", stop);
     process.off("SIGTERM", stop);
-    await client?.close();
-    await lock.close();
-    await unlink(journal + ".lock");
+    try {
+      await client?.close();
+    } finally {
+      await lock.close();
+      await unlink(journal + ".lock");
+    }
   }
 }
 if (

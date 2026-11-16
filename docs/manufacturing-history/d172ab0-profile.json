@@ -1,0 +1,114 @@
+{
+  "format": "chipsim-manufacturing-acceptance",
+  "version": 1,
+  "profiles": {
+    "tinytapeout-ihp-v1": {
+      "digest": "0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e",
+      "nativeAcceptance": true,
+      "validatedAt": "2026-11-16T07:07:04.081Z",
+      "command": "npm run test:manufacturing:matrix; fresh-cache npm run test:manufacturing; official helper interruption/resume validation",
+      "scope": "Four independent digital fixtures on the pinned Tiny Tapeout IHP profile; counter uses fresh managed cache. Manufacturer acceptance remains external.",
+      "fixture": "test/fixtures/manufacturing.mjs",
+      "fixtureSha256": "ab80bcf46abb29cfa6a49f12ed52c793b67d1753ce8fa65a5c532c9f4856445f",
+      "runtime": {
+        "sha256": "12bdf176a1e50ac06d331804eb071d55762b3a05981d50163e15bb077c124c56",
+        "node": "22.23.2",
+        "platform": "linux",
+        "arch": "x64"
+      },
+      "sourceRun": "e7dedbc31838666fcbff5e7ef2f0c675be09d8749ed89968a1d0683a9c6fc2c1",
+      "packageRun": "68e407d1e97a73a3c41a0d518d9c42c40fe139a2d804e17fabe3ab675f8670fe",
+      "requiredChecks": [
+        {
+          "name": "rtl:tests",
+          "verdict": "pass",
+          "check": "dad875f9c6723faa877b8bdc306d7e57ffdfc0e527f29d01639b99f651f22dbe"
+        },
+        {
+          "name": "rtl:outputs",
+          "verdict": "pass",
+          "check": "a18617c125c15338d6e86afdc2c51d59877f5dc107fe8aaadaf7eac2405b6869"
+        },
+        {
+          "name": "synthesis:synthesis",
+          "verdict": "pass",
+          "check": "f2726ba44171ddb3422adcd586baa7cbc5a6b6bdfff7cf7bdc7c366391cd8c99"
+        },
+        {
+          "name": "synthesis:outputs",
+          "verdict": "pass",
+          "check": "409c63649f5310a18ae9b7b92d90f3b6a1a903b0b1723ab3cb4c983a66912d19"
+        },
+        {
+          "name": "physical:outputs",
+          "verdict": "pass",
+          "check": "3b1dd3b0f0a1f6633ea2d3ec3a5e79685dcbe2531f8256e860d63ecf6e7754fa"
+        },
+        {
+          "name": "physical:timing",
+          "verdict": "pass",
+          "check": "7c8d0da8d6d1e03683db005a31df6fcf1c19fc1e0f21a860b6a5659083649bda"
+        },
+        {
+          "name": "physical:drc",
+          "verdict": "pass",
+          "check": "e35f443cd9e51f1309f19c108b3c9dd7084ed2dda55afbcb173be2ed049da2c8"
+        },
+        {
+          "name": "physical:lvs",
+          "verdict": "pass",
+          "check": "9de6296048f3e5e4bb3d7adde80ec28150c096a97de433396b7082bf85f31e97"
+        },
+        {
+          "name": "physical:precheck",
+          "verdict": "pass",
+          "check": "33f3f316a85143819bd8974bbc653cb6734239263356faad26082ab45e36a3c4"
+        },
+        {
+          "name": "gate:tests",
+          "verdict": "pass",
+          "check": "b6813730d77781d27041f68576b51d4662b4311e4f25caa6a9e599ec455d5861"
+        },
+        {
+          "name": "gate:outputs",
+          "verdict": "pass",
+          "check": "b439b351df49415a820213ab764906b76074bdac6e74f464d939d57e66e6be5a"
+        }
+      ],
+      "archive": {
+        "artifact": "a1498cee4362bf3f1c485e591c89e7fbeb34eda931e75307c13ffe04b84b0c42",
+        "sha256": "447f415f6b33ed9d114348422bbec07c0a609916cdb97b8ed30d6fe2a92c034e",
+        "bytes": 146972
+      },
+      "evidenceArchive": {
+        "artifact": "2b39d56d7cf0ed906b02d450606e21b520f9ac17db3ee5995a1456809c149261",
+        "sha256": "01c8b67abfdccc0e67b2eb7c4fd5b2a057c51af3c8f35f8c0aa4c442cf548505",
+        "bytes": 18252669
+      },
+      "archivePrecheck": {
+        "cases": 10,
+        "verdict": "pass",
+        "artifact": "679a10b46e0ec0902f9d9cd13e6821c0afc50b6a60fd8d4bf741e68b50a31301",
+        "sha256": "d417f7bf62762bc565f5d9edf89de02294ce940063c4106f63ce5f9a51c04c80",
+        "bytes": 630
+      },
+      "testLogSha256": "e7e8332167300fc4b789f85d3e570c36e0660c231d61c6b8bf2986be373508f7",
+      "matrixRecord": "docs/manufacturing-reliability-acceptance.json",
+      "scenarios": [
+        "cold-managed-cache",
+        "four-independent-designs",
+        "intentional-RTL-defects",
+        "RTL-and-delivered-netlist-tests",
+        "timing-DRC-LVS-native-precheck",
+        "policy-and-declared-proof-blockers",
+        "source-freshness",
+        "archive-native-revalidation",
+        "helper-environment-forwarding",
+        "durable-request-replay",
+        "abrupt-client-death",
+        "verified-partial-download-resume",
+        "corrupted-partial-download-rejection"
+      ]
+    }
+  }
+}

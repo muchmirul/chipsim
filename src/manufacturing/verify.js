@@ -61,51 +61,60 @@ export async function executeVerification(task, context) {
     },
   );
   const checks = await verificationChecks(task, context.workspace, result);
-  if (!result.ok) {
-    const handle = await open(context.log, "r");
-    let excerpt;
-    try {
-      const end = (await handle.stat()).size;
-      const start = Math.max(logStart, end - 16384);
-      const buffer = Buffer.alloc(Math.max(0, end - start));
-      const { bytesRead } = await handle.read(buffer, 0, buffer.length, start);
-      excerpt = buffer.subarray(0, bytesRead).toString("utf8");
-    } finally {
-      await handle.close();
-    }
-    const message =
-      excerpt
-        .split(/\r?\n/)
-        .find((s) => /FATAL:|ERROR:|assertion.*fail/i.test(s)) ||
-      result.reason ||
-      "Native process failed";
-    const location = /(?:FATAL:|ERROR:)\s+(.+?):(\d+):/.exec(message);
-    return {
-      ...result,
-      diagnostic: message.slice(0, 2000),
-      failure: {
-        category: /FATAL:|assertion/i.test(message) ? "assertion" : "execution",
-        stage: task.definition.options.operation,
-        exitStatus: result.code ?? null,
-        message: message.slice(0, 2000),
-        testCase: null,
-        source: location
-          ? { path: location[1], line: Number(location[2]) }
-          : null,
-        excerpt,
-        reportDiagnostics: checks
-          .filter((c) => c.diagnostic)
-          .map((c) => c.diagnostic),
-      },
-    };
+  if (result.ok && checks.every((c) => c.verdict === "pass")) return result;
+  const handle = await open(context.log, "r");
+  let excerpt;
+  try {
+    const end = (await handle.stat()).size,
+      start = Math.max(logStart, end - 16384);
+    const buffer = Buffer.alloc(Math.max(0, end - start));
+    const { bytesRead } = await handle.read(buffer, 0, buffer.length, start);
+    excerpt = buffer.subarray(0, bytesRead).toString("utf8");
+  } finally {
+    await handle.close();
   }
-  return checks.every((c) => c.verdict === "pass")
-    ? result
-    : {
-        ...result,
-        ok: false,
-        reason: checks.map((c) => c.diagnostic || c.verdict).join("; "),
-      };
+  const failure = verificationFailure(task, result, checks, excerpt);
+  return { ...result, ok: false, diagnostic: failure.message, failure };
+}
+export function verificationFailure(task, execution, checks, excerpt) {
+  const failed = checks
+    .flatMap((c) => c.cases || [])
+    .filter((c) => c.verdict === "fail");
+  const native = excerpt
+    .split(/\r?\n/)
+    .find((s) => /FATAL:|ERROR:|assertion.*fail/i.test(s));
+  const reports = checks.filter((c) => c.diagnostic).map((c) => c.diagnostic);
+  const message = (
+    native ||
+    failed[0]?.message ||
+    reports[0] ||
+    execution.reason ||
+    "Native process failed"
+  ).slice(0, 2000);
+  const location = /(?:FATAL:|ERROR:)\s+(.+?):(\d+):/.exec(message);
+  return {
+    category:
+      execution.reason === "timeout"
+        ? "timeout"
+        : execution.reason === "cancelled"
+          ? "cancelled"
+          : failed.length || /FATAL:|assertion/i.test(message)
+            ? "assertion"
+            : execution.ok
+              ? "report"
+              : "execution",
+    stage: task.definition.options.operation,
+    exitStatus: execution.code ?? null,
+    message,
+    testCase: failed.length === 1 ? failed[0].name : null,
+    failedCases: failed.map((c) => ({
+      name: c.name,
+      message: c.message || null,
+    })),
+    source: location ? { path: location[1], line: Number(location[2]) } : null,
+    excerpt,
+    reportDiagnostics: reports,
+  };
 }
 export async function verificationChecks(task, workspace, execution) {
   const synthesis = task.definition.options.operation === "synthesis";
@@ -177,11 +186,6 @@ export async function verificationChecks(task, workspace, execution) {
         throw new Error(
           "Executed test cases differ from declared acceptance cases",
         );
-      record.cases = cases;
-      record.expectedCases = expected;
-      record.missingCases = expected.filter(
-        (name) => !cases.some((c) => c.name === name),
-      );
       record.metrics = {
         cases: cases.length,
         failed: cases.filter((c) => c.verdict === "fail").length,

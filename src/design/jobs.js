@@ -194,7 +194,7 @@ export async function jobStatus(store, id) {
   }
   return state;
 }
-export async function listJobs(store) {
+export async function listJobs(store, { recover = true } = {}) {
   let names;
   try {
     names = await readdir(join(store.root, "jobs"));
@@ -204,7 +204,11 @@ export async function listJobs(store) {
   }
   const result = [];
   for (const id of names.filter((n) => /^[0-9a-f-]{36}$/.test(n)))
-    result.push(await jobStatus(store, id));
+    result.push(
+      recover
+        ? await jobStatus(store, id)
+        : await json(join(jobPath(store, id), "state.json")),
+    );
   return result.sort((a, b) => b.created.localeCompare(a.created));
 }
 export async function cancelJob(store, id) {
@@ -529,6 +533,16 @@ export async function runWorker(root, id) {
           text
         ).slice(0, 2000);
         const diagnostic = {
+          category:
+            execution.reason === "timeout"
+              ? "timeout"
+              : execution.reason === "cancelled"
+                ? "cancelled"
+                : "execution",
+          stage: task.definition.options?.operation || task.task,
+          exitStatus: execution.code ?? null,
+          testCase: null,
+          source: null,
           ...execution.failure,
           message,
           ...(artifact ? { artifact: artifact.id } : {}),

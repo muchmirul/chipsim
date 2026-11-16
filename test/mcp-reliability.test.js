@@ -88,7 +88,7 @@ test("official workflow journal replays completed work and rejects conflicting o
   await mkdir(root);
   await writeFile(
     join(root, "task.mjs"),
-    "import {writeFile} from 'node:fs/promises'; if(process.env.CHIPSIM_HELPER_TEST_TOKEN!=='forwarded') throw Error('Transport environment missing'); await writeFile('result.json',JSON.stringify({passed:true}));",
+    "import {writeFile} from 'node:fs/promises'; if(process.env.CHIPSIM_HELPER_TEST_TOKEN!=='forwarded') throw Error('Transport environment missing'); await writeFile('result.json',JSON.stringify({passed:true}));console.log('x'.repeat(20000));",
   );
   await writeFile(
     join(root, "chipsim.design.json"),
@@ -140,6 +140,10 @@ test("official workflow journal replays completed work and rejects conflicting o
   });
   assert.equal(first.complete, true);
   const id = first.results.run.id;
+  const logKey = id + ":" + first.results.run.generation;
+  assert.equal(first.logs[logKey].truncated, true);
+  assert.ok(first.logs[logKey].cursor >= 20000);
+  assert.ok(first.logs[logKey].text.length <= 16384);
   const wb = await createWorkbench(root);
   const discovery = await wb.call("workflow_status");
   assert.equal(discovery.ok, true);
@@ -148,6 +152,25 @@ test("official workflow journal replays completed work and rejects conflicting o
   const replay = await runWorkflow("resume", { state: journal });
   assert.equal(replay.results.run.id, id);
   assert.deepEqual(replay.requests, first.requests);
+  assert.equal(replay.logs[logKey].cursor, first.logs[logKey].cursor);
+  const { rename } = await import("node:fs/promises");
+  await rename(root, root + ".saved");
+  await mkdir(root);
+  await assert.rejects(
+    runWorkflow("resume", { state: journal }),
+    /directory was replaced/,
+  );
+  await rm(root, { recursive: true });
+  await rename(root + ".saved", root);
+  await assert.rejects(
+    runWorkflow("run", {
+      project: root,
+      target: "simulation",
+      state: join(root, "inside.json"),
+    }),
+    /outside project/,
+  );
+  await assert.rejects(readFile(join(root, "inside.json")), { code: "ENOENT" });
   const h = await open(journal + ".lock", "wx");
   await h.close();
   await assert.rejects(runWorkflow("resume", { state: journal }), {
@@ -255,4 +278,88 @@ test("helper resumes an accepted job after abrupt client death without duplicate
   assert.equal(resumed.results.run.id, accepted.id);
   assert.equal(resumed.results.run.ready, true);
   assert.equal((await readdir(join(root, ".chipsim/design/jobs"))).length, 1);
+});
+
+test("structured verification failures retain explicit cases and independent report errors", async () => {
+  const { verificationFailure } =
+    await import("../src/manufacturing/verify.js");
+  const task = { definition: { options: { operation: "rtl" } } };
+  const check = {
+    cases: [{ name: "interlock", verdict: "fail", message: "pin mismatch" }],
+    diagnostic: "Missing required case",
+  };
+  const d = verificationFailure(
+    task,
+    { ok: false, code: 1 },
+    [check],
+    "FATAL: test/tb.sv:36: wrong pin\n",
+  );
+  assert.equal(d.testCase, "interlock");
+  assert.equal(d.category, "assertion");
+  assert.equal(d.exitStatus, 1);
+  assert.deepEqual(d.source, { path: "test/tb.sv", line: 36 });
+  assert.deepEqual(d.reportDiagnostics, ["Missing required case"]);
+  const report = verificationFailure(task, { ok: true, code: 0 }, [check], "");
+  assert.equal(report.testCase, "interlock");
+  assert.equal(report.message, "pin mismatch");
+  assert.equal(
+    verificationFailure(task, { ok: false, reason: "timeout" }, [], "")
+      .category,
+    "timeout",
+  );
+  assert.equal(
+    verificationFailure(task, { ok: false, code: 1 }, [], "FATAL: unknown")
+      .testCase,
+    null,
+  );
+});
+
+test("workflow guidance exposes active and failed stages without recovering dead jobs", async (t) => {
+  const { mkdir } = await import("node:fs/promises");
+  const root = await mkdtemp(join(tmpdir(), "chipsim-guidance-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const id = "12345678-1234-1234-1234-123456789abc",
+    path = join(root, ".chipsim/design/jobs", id);
+  await mkdir(path, { recursive: true });
+  const state = {
+    id,
+    target: "manufacturing-setup",
+    state: "running",
+    generation: 1,
+    updated: "2000-01-01T00:00:00.000Z",
+    owner: { pid: 2147483647, start: "dead" },
+  };
+  await writeFile(join(path, "state.json"), JSON.stringify(state));
+  const wb = await createWorkbench(root);
+  const active = await wb.call("workflow_status");
+  assert.equal(active.ok, true);
+  assert.equal(active.result.stage, "job-active");
+  assert.equal(active.result.nextActions[0].tool, "job_status");
+  const { readFile } = await import("node:fs/promises");
+  assert.deepEqual(JSON.parse(await readFile(join(path, "state.json"))), state);
+  await writeFile(
+    join(path, "state.json"),
+    JSON.stringify({ ...state, state: "failed" }),
+  );
+  const failed = await wb.call("workflow_status");
+  assert.equal(failed.result.stage, "setup-failed");
+});
+
+test("suggested workflow actions retain candidate isolation", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "chipsim-guidance-candidate-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const wb = await createWorkbench(root);
+  await wb.call("file_write", {
+    path: "note.txt",
+    text: "source",
+    expectedHash: null,
+  });
+  const c = await wb.call("candidate_create", { label: "isolated" });
+  assert.equal(c.ok, true);
+  const s = await wb.call("workflow_status", { candidate: c.result.id });
+  assert.equal(s.ok, true);
+  assert.equal(s.result.candidate, c.result.id);
+  assert.ok(
+    s.result.nextActions.every((a) => a.arguments.candidate === c.result.id),
+  );
 });
