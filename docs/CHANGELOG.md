@@ -1,5 +1,19 @@
 # ChipSim behavior changes
 
+## 2026-11-18 — Verified Rust prime-agent MCP compatibility
+
+**Context:** Native-extension acceptance covered TypeScript prime-agent, while
+Rust 0.10 uses the Python MCP bridge. **Behavior:** The source-checkout
+`test/prime-mcp-acceptance.py` exercises the installed `rlm.mcp` client against
+real ChipSim stdio servers with isolated configuration replies and temporary
+projects. **Checks:** All 32 tools, guide access, structured errors/results, CAS,
+project isolation, managed jobs, client reload/replay and binary checksums passed.
+The registered descriptor's schemas matched the checkout in a read-only probe.
+The report records the validation time, runner checksum and job/run IDs. **Limits:** No
+model/provider turns or global configuration writes; the test does not exercise
+the Rust daemon/UI. AGENT_CONNECTIONS.md documents error exceptions, connection
+reload and explicit environment references for custom manufacturing caches.
+
 ## 2026-11-16 — Complete MCP workflow recovery and failure matrix
 
 **Context:** The reliability plan still lacked automated publication/packaging

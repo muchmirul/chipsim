@@ -1,0 +1,33 @@
+{
+  "format": "chipsim-prime-mcp-acceptance",
+  "version": 1,
+  "primeVersion": "0.10.0",
+  "primeBinarySha256": "9bdf281e37b55f16ec4ed83979d27d6218eb52257501e3318098906906f263fd",
+  "runtimeClientSha256": "43cc5437558b1d48669096e17d2d9f1a7b58688dd21ef24c3fa4d9551ba24aa2",
+  "registeredConnection": {
+    "toolCount": 32,
+    "project": "<registered-project>",
+    "scope": "Read-only probe using the existing registered stdio descriptor"
+  },
+  "toolCount": 32,
+  "toolInventorySha256": "d9554ef36b0d5876a4add98a1b536a3c78e1c8d6f5e604a5d4c69667478d8d43",
+  "project": "<temporary-directory>/chipsim-test",
+  "job": "8ff3a8c1-9277-4746-8b3d-b0883d1666a6",
+  "run": "c49d69d7d9b6cbb4bb5f8d08ea1ff4f946c1e9666501fdbd9ab232b122779dfc",
+  "scenarios": [
+    "tools-only-guide-access",
+    "all-workbench-schemas",
+    "manufacturing-discovery",
+    "structured-results",
+    "CAS-error-propagation",
+    "isolated-project-roots",
+    "managed-job",
+    "client-reload-durable-request-replay",
+    "readiness",
+    "verified-binary-retrieval"
+  ],
+  "scope": "Installed prime-agent rlm.mcp client and MCP transport; config RPC supplied by isolated harness. No model turn, provider call or user-settings mutation. Lifecycle fixture is not native EDA validation.",
+  "validatedAt": "2026-11-18T02:42:14.243234+00:00",
+  "testSha256": "d81c81f9346a10f25c4751604fd2a965cd138ebc5ab32f8501ed00906063cf34",
+  "command": "/path/to/prime-kernel/bin/python test/prime-mcp-acceptance.py --prime /path/to/prime-agent --registered-settings /path/to/settings.json"
+}

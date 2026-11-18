@@ -51,7 +51,9 @@ and native tool paths may differ if two versions are installed; check before
 changing registration. The agent's existing file tools author model JSON,
 stimulus and `.chip` programs. ChipSim does not provide an LLM or run another agent.
 
-Rust prime-agent **0.10** uses a different host implementation. The native
+Rust prime-agent **0.10** uses a different host implementation. Its installed
+Python MCP client is verified by the [prime-agent MCP acceptance](AGENT_CONNECTIONS.md#verified-prime-agent-010-python-client),
+including the complete shared tool inventory, errors and durable reconnects. The native
 extension compatibility checks below apply to **0.9.8**; use the stdio MCP
 registration in [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md) for 0.10.
 

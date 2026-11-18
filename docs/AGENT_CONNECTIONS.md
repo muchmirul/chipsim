@@ -144,6 +144,59 @@ This returns the same allowlisted resource content as `resources/read`, inside
 `{format, version, ok, result: {uri, mimeType, text}}`; inspect `ok` and parse
 `text` as JSON only when its MIME type is JSON. Codex can use this tool too.
 
+### Verified prime-agent 0.10 Python client
+
+The installed Rust prime-agent **0.10.0** Python MCP client has passed ChipSim's
+[host compatibility acceptance](prime-agent-mcp-acceptance.json): all 32 shared
+tools, tools-only guide access, structured results, CAS errors, isolated projects,
+managed execution, client reload/durable request replay and verified binary
+retrieval. A read-only probe of the registered `chipsim` descriptor confirmed
+that its tool schemas match the checkout.
+This verifies the installed `rlm.mcp` client with isolated host-config replies;
+it does not start a model turn or claim an end-to-end Rust daemon/UI test.
+
+Prime-agent raises `rlm.mcp_base.McpToolError` when ChipSim returns `isError`.
+Successful calls return the structured envelope directly; do not apply
+`json.loads` to it. Catch the exception to inspect an `EDIT_CONFLICT` or other
+failure, reread the source and decide whether a new action is appropriate.
+To refresh this Python client's server connection and live schema inventory:
+
+```python
+await mcp.reload("chipsim")
+tools = await mcp.list_tools("chipsim")
+```
+
+Reloading the connection leaves accepted ChipSim jobs durable. It is distinct
+from `chipsim_job_cancel`, which explicitly stops an owned job.
+
+Prime-agent's stdio client forwards only a small safe environment by default.
+For a custom manufacturing cache, configure an explicit environment reference
+(the right-hand side of `--env` is a variable name, not a literal path):
+
+```sh
+export CHIPSIM_MANUFACTURING_CACHE=/absolute/cache
+prime-agent mcp add chipsim-cache --env CHIPSIM_MANUFACTURING_CACHE=CHIPSIM_MANUFACTURING_CACHE -- /absolute/node /absolute/chipsim/scripts/chipsim.mjs mcp --project /absolute/project
+```
+
+Without this override ChipSim uses its ordinary per-user cache. The referenced
+variable must be available to the prime-agent process. Add references similarly
+for any other explicitly selected ChipSim environment settings. These registration
+commands change user settings; the compatibility test does not run them.
+
+From a source checkout, run the acceptance with the Python interpreter used by
+prime-agent's kernel (with its MCP dependencies installed):
+
+```sh
+/path/to/prime-kernel/bin/python test/prime-mcp-acceptance.py --prime /absolute/prime-agent
+```
+
+`--runtime-src` supports installations with a different runtime location. Optional
+`--registered-settings /path/to/settings.json` additionally probes the existing
+`chipsim` descriptor and compares its tool schemas against the checkout. The
+runner writes `acceptance.json` beside the temporary projects with the validation
+time, runner checksum and job/run IDs. It leaves the registered project and
+settings untouched.
+
 Read `chipsim://guide/connections`, then `chipsim://guide/workbench`. List tools
 and resources: tools are named `chipsim_TOOL`, installed agent guides are listed
 under `chipsim://docs/NAME.md`, schemas under `chipsim://schema/tools`, project
