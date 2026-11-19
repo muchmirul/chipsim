@@ -13,9 +13,9 @@ from feedback import read_report, render_report, compare, render_comparison, cle
 from verification import verify_report, reproduction_inputs
 
 
-def parser():
-    p = argparse.ArgumentParser(description="Text-based hardware evaluation and external evolution")
-    p.add_argument("mode", choices=["list", "describe", "validate", "evaluate", "evolve", "report", "compare", "reproduce"])
+def parser(standalone=False):
+    p = argparse.ArgumentParser(description="Evaluate fixed RTL benchmarks" if standalone else "Text-based hardware evaluation and external evolution", epilog="Use evaluate --workflow FILE for weighted Verilog or VHDL workflows." if standalone else None)
+    p.add_argument("mode", choices=["list", "describe", "validate", "evaluate", "report", "compare", "reproduce"] + ([] if standalone else ["evolve"]))
     p.add_argument("reports", nargs="*")
     p.add_argument("--project", type=Path, help="existing work directory")
     p.add_argument("--benchmark", default="counter", help="counter,alu8 or a benchmark JSON file")
@@ -48,9 +48,13 @@ def output(value, args, ok=True, legacy=False):
               "command": args.mode, "ok": ok, "result": value}, indent=2, allow_nan=False))
 
 
-def main(argv=None, legacy=False):
-    p = parser()
+def main(argv=None, legacy=False, standalone=False):
+    p = parser(standalone)
     args = p.parse_args(argv)
+    if standalone and (args.mode == "evolve" or args.session):
+        p.error("benchmark operates on individual evaluations; use Pi Durable for search")
+    if args.mode == "evolve":
+        print("Deprecated: move evolutionary search to Pi Durable.", file=sys.stderr)
     bridge = None
     owned = False
     search = None
@@ -125,7 +129,11 @@ def main(argv=None, legacy=False):
             config["reproduction"] = {"report": reports[0]["report_evidence"], "case": args.case}
         bridge = Bridge(config)
         owned = args.session is None
-        if owned:
+        if standalone:
+            import uuid
+            config.update(standalone=True, session=str(uuid.uuid4()))
+            bridge = Bridge(config)
+        elif owned:
             config["session"] = bridge.cli("agent", "work-start", args.project, "--goal", definition["description"], "--mode", "evolution")["session"]["id"]
             bridge = Bridge(config)
         if args.mode == "reproduce":

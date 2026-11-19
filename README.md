@@ -10,6 +10,8 @@ Text-first chip engineering is available through the [shared workbench and optio
 
 Start with Verilog/VHDL, a supplied architecture experiment, a supported datasheet or an explicitly authored model. Inspect source, hardware, signals and verification results together, then save the experiment and its provenance for review.
 
+For hardware evaluation from any local MCP harness, register `chipsim mcp --project /absolute/project`. Use the optional `pi-durable-mcp` connection for goals that continue after the harness closes. [Connection guide](docs/AGENT_CONNECTIONS.md#two-direct-connections-from-any-local-mcp-client)
+
 ## Import CSV register maps and stimulus
 
 For a register-map or stimulus spreadsheet, use the [CSV workflow](docs/CSV_INPUTS.md):

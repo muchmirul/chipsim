@@ -176,6 +176,10 @@ export async function jobStatus(store, id) {
       : Date.now() - Date.parse(state.updated) > 30000;
     if (dead) {
       await reapChildren(path);
+      if (state.target === "benchmark-evaluate") {
+        const { stopBenchmarkStages } = await import("../benchmark/service.js");
+        await stopBenchmarkStages(state.tasks.evaluate?.workspace);
+      }
       await reapToken(state.token);
       let cleanupError;
       try {
@@ -491,6 +495,13 @@ export async function runWorker(root, id) {
         });
       } catch (error) {
         execution = { ok: false, reason: error.message };
+      }
+      if (
+        state.target === "benchmark-evaluate" &&
+        (!execution.ok || controller.signal.aborted)
+      ) {
+        const { stopBenchmarkStages } = await import("../benchmark/service.js");
+        await stopBenchmarkStages(workspace);
       }
       if (controller.signal.aborted)
         execution = { ...execution, ok: false, reason: "cancelled" };

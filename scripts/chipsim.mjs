@@ -26,8 +26,11 @@ export async function main(args = process.argv.slice(2)) {
     }
     return module.start(args.slice(1));
   }
-  if (args[0] === "evolution")
-    return (await import("../src/evolution/cli.js")).main(args.slice(1));
+  if (args[0] === "evolution" || args[0] === "benchmark")
+    return (await import("../src/evolution/cli.js")).main(
+      args.slice(1),
+      args[0] === "benchmark",
+    );
   if (args[0] === "circuit")
     return (await import("../src/circuit/commands.js")).main(args.slice(1));
   if (args[0] === "table")
@@ -59,7 +62,7 @@ export async function main(args = process.argv.slice(2)) {
   if (args.includes("--help") || args.includes("-h")) {
     process.stdout.write(usage);
     process.stdout.write(
-      "Agent connections: chipsim agent help (connections, installed guides and examples).\nWorkbench tools: chipsim workbench tools · workbench TOOL --project DIRECTORY --input JSON.\nMCP stdio server: chipsim mcp --project DIRECTORY (optional SDK installation; see AGENT_CONNECTIONS.md).\nCSV tables: chipsim table registers|stimulus · table help.\nProject commands: chipsim design commands · design guide [TOPIC] · design status --project PROJECT · design help · job · artifact · checks.\nEvolution: chipsim evolution help · benchmarks, evaluation, reports, comparison and reproduction.\nModel context: chipsim agent context CHIP_OR_PREPARED_PROJECT · PDF search, validation and trace artifacts without a TTY.\n",
+      "Agent connections: chipsim agent help (connections, installed guides and examples).\nWorkbench tools: chipsim workbench tools · workbench TOOL --project DIRECTORY --input JSON.\nMCP stdio server: chipsim mcp --project DIRECTORY (optional SDK installation; see AGENT_CONNECTIONS.md).\nCSV tables: chipsim table registers|stimulus · table help.\nProject commands: chipsim design commands · design guide [TOPIC] · design status --project PROJECT · design help · job · artifact · checks.\nBenchmarks: chipsim benchmark help · benchmarks, evaluation, reports, comparison and reproduction.\nModel context: chipsim agent context CHIP_OR_PREPARED_PROJECT · PDF search, validation and trace artifacts without a TTY.\n",
     );
     return;
   }

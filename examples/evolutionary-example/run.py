@@ -16,7 +16,7 @@ from support import SearchDeadline, write_json
 from workflow import freeze_workflow, load_workflow
 
 
-def main():
+def main(standalone=False):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=["evaluate", "evolve"])
     parser.add_argument("--project", required=True, type=Path,
@@ -39,10 +39,14 @@ def main():
     parser.add_argument("--debug", action="store_true", help="require Icarus observers for built-in examples")
     parser.add_argument("--chipsim", help="installed chipsim executable; default packaged Node CLI")
     args = parser.parse_args()
+    if standalone and (args.mode != "evaluate" or args.session):
+        parser.error("Use benchmark evaluate for a standalone weighted workflow")
     if not 1 <= args.timeout <= 300 or not 1 <= args.iterations <= 100 or not 1 <= args.search_timeout <= 86400:
         parser.error("timeout must be 1..300; iterations 1..100; search-timeout 1..86400")
     if args.generation is not None and not 0 <= args.generation <= 2**53 - 1:
         parser.error("generation must be a nonnegative safe integer")
+    if args.mode == "evolve":
+        print("Deprecated: move evolutionary search to Pi Durable.", file=sys.stderr)
     if args.mode == "evolve" and (not args.config or args.session or args.parent or args.generation is not None):
         parser.error("evolve requires --config, owns its session and imports optimizer lineage")
     if args.workflow and args.debug:
@@ -71,7 +75,9 @@ def main():
               "timeout": args.timeout, "debug": args.debug}
     bridge = Bridge(config)
     owned = args.session is None
-    if owned:
+    if standalone:
+        config.update(standalone=True, session=str(uuid.uuid4()))
+    elif owned:
         config["session"] = bridge.cli("agent", "work-start", project, "--goal",
             workflow["goal"] if workflow else example["goal"], "--mode", "evolution")["session"]["id"]
     else:
@@ -138,7 +144,11 @@ def main():
             result = bridge.evaluate(candidate, parent=args.parent, generation=args.generation)
             if owned:
                 bridge.finish("completed" if result["status"] == "passed" else "failed", "Manual candidate evaluation finished; no search was performed")
-            print(json.dumps({"session": bridge.session, "invocation": config["invocation"], **result}, indent=2))
+            report = {"session": bridge.session, "invocation": config["invocation"], **result}
+            if standalone:
+                report = {"format": "chipsim-evolution-result", "version": 1, "command": "evaluate",
+                          "ok": result["status"] == "passed", "result": report}
+            print(json.dumps(report, indent=2))
             return 0 if result["status"] == "passed" else 1
         search = subprocess.Popen([
             sys.executable, str(HERE / "search.py"), str(config_path), str(optimizer_config),

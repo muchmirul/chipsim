@@ -6,7 +6,7 @@ const entry = fileURLToPath(
   new URL("../../examples/evolution/command.py", import.meta.url),
 );
 
-export async function main(args) {
+export async function main(args, standalone = false) {
   const textOutput =
     args.includes("--format=text") ||
     (args.includes("--format") &&
@@ -18,7 +18,12 @@ export async function main(args) {
     args[0] === "help";
   const child = spawn(
     process.env.PYTHON || "python3",
-    [entry, ...(help ? ["--help"] : args)],
+    [
+      standalone
+        ? fileURLToPath(new URL("../benchmark/cli.py", import.meta.url))
+        : entry,
+      ...(help ? ["--help"] : args),
+    ],
     {
       shell: false,
       detached: process.platform !== "win32",

@@ -415,11 +415,17 @@ export async function agentCommand(args) {
         events: events.slice(-limit),
       };
     } else if (command === "work-start") {
+      process.stderr.write(
+        "Deprecated agent activity writer; use your external goal controller for new sessions.\n",
+      );
       result = {
         project: resolve(positional[0]),
         session: await startWork(positional[0], options),
       };
     } else if (command === "work-event") {
+      process.stderr.write(
+        "Deprecated agent activity writer; use your external goal controller for new sessions.\n",
+      );
       result = {
         project: resolve(positional[0]),
         sessionId: positional[1],

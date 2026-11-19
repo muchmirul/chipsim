@@ -365,13 +365,14 @@ export function commandArguments(args = []) {
     "artifact",
     "checks",
     "evolution",
+    "benchmark",
   ].includes(argv[0]);
   const textOutput =
     (!headless &&
       ["--help", "-h", "--snapshot", "--list-profiles"].some((flag) =>
         argv.includes(flag),
       )) ||
-    (argv[0] === "evolution" &&
+    (["benchmark", "evolution"].includes(argv[0]) &&
       (argv.length === 1 ||
         argv.includes("--format=text") ||
         ["help", "--help", "-h"].some((flag) => argv.includes(flag)) ||
@@ -379,7 +380,7 @@ export function commandArguments(args = []) {
           argv[argv.indexOf("--format") + 1] === "text")));
   if (!headless && !textOutput)
     throw new Error(
-      "Pass ChipSim arguments starting with workbench, agent, hdl, circuit, table, design, job, artifact, checks or evolution; use --snapshot for a terminal frame, or help for discovery. Launch the persistent MCP server through an MCP client; open the interactive TUI with /chipsim.",
+      "Pass ChipSim arguments starting with workbench, agent, hdl, circuit, table, design, job, artifact, checks, benchmark or evolution; use --snapshot for a terminal frame, or help for discovery. Launch the persistent MCP server through an MCP client; open the interactive TUI with /chipsim.",
     );
   return { args: argv, textOutput };
 }
@@ -525,7 +526,7 @@ export function registerChipSim(
     name: "chipsim_command",
     label: "ChipSim command",
     description:
-      'General ChipSim controller. Workbench discovery and schemas: {"args":["workbench","tools"]}; use named chipsim_workbench_TOOL for file editing, candidates, durable request IDs and linked inspection. Pass literal CLI arguments without the executable, e.g. {"args":["design","run","--project",".","--target","simulation"]}. Empty args or ["help"] lists usage; ["design","commands"] returns machine-readable commands and integration formats. Before preparing chip inputs, ["design","guide"] or ["design","guide","rtl"] gives optional recipes, minimum files, missing-input preparation and installed examples; inspect/reuse existing work, then create/find/prepare prerequisites instead of requiring generated outputs from the user. Guidance does not enforce a workflow or execute tools. design status --project PATH returns current checks and next actions. ["evolution","list"] and ["evolution","describe","--benchmark","alu8"] discover text-based RTL evaluation; use evolution report/compare/reproduce to inspect saved evidence and increase timeoutMs for ALU, formal or search. ["agent","help"] returns installed agent quickstart and evolution guide paths. ["circuit","help"] describes connected state models, rule coverage and native correspondence; ["table","help"] describes CSV register and stimulus inputs without a PDF; ["hdl","help"] and ["agent","help"] give other family details. Supports jobs, artifacts, checks and --snapshot. Paths resolve in the current call’s cwd. Start durable jobs without --wait; poll job status with --wait --timeout-ms 1000 and job logs using its cursor; job cancel explicitly cancels them. Uses the existing CLI validation and evidence gates.',
+      'General ChipSim controller. Workbench discovery and schemas: {"args":["workbench","tools"]}; use named chipsim_workbench_TOOL for file editing, candidates, durable request IDs and linked inspection. Pass literal CLI arguments without the executable, e.g. {"args":["design","run","--project",".","--target","simulation"]}. Empty args or ["help"] lists usage; ["design","commands"] returns machine-readable commands and integration formats. Before preparing chip inputs, ["design","guide"] or ["design","guide","rtl"] gives optional recipes, minimum files, missing-input preparation and installed examples; inspect/reuse existing work, then create/find/prepare prerequisites instead of requiring generated outputs from the user. Guidance does not enforce a workflow or execute tools. design status --project PATH returns current checks and next actions. ["benchmark","list"] and ["benchmark","describe","--benchmark","alu8"] discover text-based RTL evaluation; use evolution report/compare/reproduce to inspect saved evidence and increase timeoutMs for ALU, formal or search. ["agent","help"] returns installed agent quickstart and evolution guide paths. ["circuit","help"] describes connected state models, rule coverage and native correspondence; ["table","help"] describes CSV register and stimulus inputs without a PDF; ["hdl","help"] and ["agent","help"] give other family details. Supports jobs, artifacts, checks and --snapshot. Paths resolve in the current call’s cwd. Start durable jobs without --wait; poll job status with --wait --timeout-ms 1000 and job logs using its cursor; job cancel explicitly cancels them. Uses the existing CLI validation and evidence gates.',
     parameters: Type.Object(
       {
         args: Type.Optional(
@@ -555,7 +556,9 @@ export function registerChipSim(
         ...(params.timeoutMs !== undefined
           ? { timeout: params.timeoutMs }
           : {}),
-        ...(args[0] === "evolution" ? { cleanupMs: 20000 } : {}),
+        ...(["benchmark", "evolution"].includes(args[0])
+          ? { cleanupMs: 20000 }
+          : {}),
       });
       return {
         content: [

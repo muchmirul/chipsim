@@ -130,8 +130,12 @@ export async function createWorkbench(path) {
   const root = await realpath(path);
   if (!(await lstat(root)).isDirectory())
     throw new Error("--project requires an existing project directory");
-  const uri = (kind, id, candidate) =>
-    `chipsim://project/${kind}/${encodeURIComponent(id)}${candidate ? "?candidate=" + candidate : ""}`;
+  const uri = (kind, id, candidate, benchmarkJob) => {
+    const args = new URLSearchParams();
+    if (candidate) args.set("candidate", candidate);
+    if (benchmarkJob) args.set("benchmarkJob", benchmarkJob);
+    return `chipsim://project/${kind}/${encodeURIComponent(id)}${args.size ? "?" + args : ""}`;
+  };
   async function call(name, args = {}, { signal } = {}) {
     try {
       const tool = workbenchTools.find((t) => t.name === name);
@@ -142,8 +146,16 @@ export async function createWorkbench(path) {
       } catch (e) {
         throw problem("INVALID_ARGUMENTS", e.message);
       }
-      const active = await candidateRoot(root, args.candidate),
-        store = new Store(active);
+      let active = await candidateRoot(root, args.candidate);
+      if (args.benchmarkJob) {
+        const { benchmarkResult } = await import("../benchmark/service.js");
+        const result = await benchmarkResult(
+          new Store(active),
+          args.benchmarkJob,
+        );
+        active = result.evidence.project;
+      }
+      const store = new Store(active);
       const output = await perform(name, args, active, store, signal);
       if (Buffer.byteLength(JSON.stringify(output)) > 524288)
         throw problem(
@@ -165,6 +177,13 @@ export async function createWorkbench(path) {
     }
   }
   async function perform(name, a, active, store, signal) {
+    if (name.startsWith("benchmark_")) {
+      const { prepareBenchmark, startBenchmark, benchmarkResult } =
+        await import("../benchmark/service.js");
+      if (name === "benchmark_prepare") return prepareBenchmark(active, a);
+      if (name === "benchmark_start") return startBenchmark(active, a);
+      return benchmarkResult(store, a.job);
+    }
     if (
       [
         "manufacturing_profiles",
@@ -290,10 +309,25 @@ export async function createWorkbench(path) {
         requestId: a.requestId,
         reuse: a.reuse ?? true,
       });
-    if (name === "job_status")
+    if (name === "job_status") {
+      if (!!a.job === !!a.requestId)
+        throw new Error("Specify exactly one of job or requestId");
+      let id = a.job;
+      if (a.requestId) {
+        const { identity } = await import("../design/store.js");
+        const binding = await json(
+          join(store.root, "requests", identity(a.requestId) + ".json"),
+        ).catch((e) => {
+          if (e.code === "ENOENT") return null;
+          throw e;
+        });
+        if (!binding) return { state: "unknown" };
+        id = binding.id;
+      }
       return a.waitMs
-        ? waitJob(store, a.job, { timeoutMs: a.waitMs, signal })
-        : jobStatus(store, a.job);
+        ? waitJob(store, id, { timeoutMs: a.waitMs, signal })
+        : jobStatus(store, id);
+    }
     if (name === "job_logs") return jobLogs(store, a.job, a);
     if (name === "job_cancel") return cancelJob(store, a.job);
     if (name === "job_retry") return retryJob(store, a.job);
@@ -312,7 +346,7 @@ export async function createWorkbench(path) {
           kind: r.kind,
           bytes: r.payload.bytes,
           snapshot: r.snapshot,
-          resource: uri("artifacts", r.id, a.candidate),
+          resource: uri("artifacts", r.id, a.candidate, a.benchmarkJob),
         })),
         a.offset,
         a.limit,
@@ -555,9 +589,11 @@ export async function createWorkbench(path) {
     const id = decodeURIComponent(parts.join("/"));
     const args = {};
     for (const [key, val] of parsed.searchParams) {
-      if (!["candidate", "offset", "limit"].includes(key))
+      if (!["candidate", "offset", "limit", "benchmarkJob"].includes(key))
         throw new Error("Unknown resource parameter");
-      args[key] = key === "candidate" ? val : Number(val);
+      args[key] = ["candidate", "benchmarkJob"].includes(key)
+        ? val
+        : Number(val);
     }
     const response =
       kind === "files"

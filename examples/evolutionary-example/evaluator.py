@@ -52,6 +52,8 @@ class Bridge:
             if str(uuid.UUID(invocation)) != invocation:
                 raise ValueError("invocation must be a canonical UUID")
             self.directory = self.directory / "invocations" / invocation
+        if config.get("managed_directory"):
+            self.directory = Path(config["managed_directory"])
         if self.directory:
             self.directory.mkdir(parents=True, exist_ok=True)
         self.cancel_file = self.directory / "CANCEL" if self.directory else None
@@ -81,6 +83,8 @@ class Bridge:
         return reply
 
     def event(self, kind, message, **fields):
+        if self.config.get("standalone"):
+            return
         event = {"kind": kind, "message": message, **fields}
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", encoding="utf-8") as f:
             json.dump(event, f, allow_nan=False)

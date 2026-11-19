@@ -399,7 +399,12 @@ try {
       cwd,
       maxBuffer: 2 * 1048576,
     });
-    assert.equal(result.stderr, "");
+    if (["work-start", "work-event"].includes(args[0]))
+      assert.equal(
+        result.stderr,
+        "Deprecated agent activity writer; use your external goal controller for new sessions.\n",
+      );
+    else assert.equal(result.stderr, "");
     const parsed = JSON.parse(result.stdout);
     assert.equal(parsed.format, "chipsim-agent-result");
     assert.equal(parsed.version, 1);

@@ -11,6 +11,10 @@ viewer. ChipSim does not supply an LLM, configure a provider or start agent turn
 | Pi / prime-agent extension | `extensions/chipsim.ts`                         | Named tools, the general `chipsim_command`, snapshots and `/chipsim` terminal handoff.           |
 | MCP client                 | `chipsim mcp --project /absolute/project`       | The shared workbench tool family over stdio, including file edits without host filesystem tools. |
 
+## Two direct connections from any local MCP client
+
+Use the ChipSim stdio command `chipsim mcp --project /absolute/project` for hardware tools. A separately installed Pi Durable helper exposes `pi-durable-mcp` over stdio for persistent goals. Configure both commands in the harness and list their tools. Use `command -v chipsim` and `pi-durable-mcp --print-command` to get absolute paths. Each program works independently. Choose the same bound project in the helper's ChipSim connection when a persistent job will evaluate hardware. A client may close and another may retrieve the job by ID.
+
 ## Discover the actual installation
 
 Use Node.js 22.13+. Install the CLI from a stable checkout or an offline npm

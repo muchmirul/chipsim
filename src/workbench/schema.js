@@ -29,6 +29,32 @@ export const resultSchema = {
 };
 const definitions = [
   [
+    "benchmark_prepare",
+    "Capture fixed benchmark inputs for a built-in or project-relative definition.",
+    { benchmark: string(1024), formal: { type: "boolean" } },
+    ["benchmark"],
+    false,
+  ],
+  [
+    "benchmark_start",
+    "Evaluate one candidate using the captured context. Replay a request to recover its job.",
+    {
+      context: id,
+      candidateHash: id,
+      content: string(65536),
+      requestId: string(128),
+    },
+    ["context", "candidateHash", "content", "requestId"],
+    false,
+  ],
+  [
+    "benchmark_result",
+    "Verify and read the measurement and evidence of a completed benchmark job.",
+    { job: uuid },
+    ["job"],
+    true,
+  ],
+  [
     "workflow_status",
     "Inspect persisted workflow state, release blockers and suggested explicit actions without starting jobs.",
     { run: id, ...paging },
@@ -219,8 +245,8 @@ const definitions = [
   [
     "job_status",
     "Read durable job status; optional bounded wait stops without cancelling the job.",
-    { job: uuid, waitMs: integer(10000) },
-    ["job"],
+    { job: uuid, requestId: string(128), waitMs: integer(10000) },
+    [],
     true,
   ],
   [
@@ -342,13 +368,27 @@ const definitions = [
     true,
   ],
 ];
+const benchmarkInspection = new Set([
+  "artifact_read",
+  "artifacts",
+  "evidence",
+  "hardware",
+  "source",
+  "snapshot",
+  "trace",
+  "differences",
+]);
 export const workbenchTools = definitions.map(
   ([name, description, properties, required, readOnly]) => ({
     name,
     description,
     inputSchema: {
       type: "object",
-      properties: { candidate: uuid, ...properties },
+      properties: {
+        candidate: uuid,
+        ...(benchmarkInspection.has(name) ? { benchmarkJob: uuid } : {}),
+        ...properties,
+      },
       required,
       additionalProperties: false,
     },
@@ -358,8 +398,15 @@ export const workbenchTools = definitions.map(
       destructiveHint: name === "file_write",
       idempotentHint:
         readOnly ||
-        ["job_start", "environment_setup", "release_package"].includes(name),
+        [
+          "job_start",
+          "environment_setup",
+          "release_package",
+          "benchmark_start",
+          "benchmark_prepare",
+        ].includes(name),
       openWorldHint: [
+        "benchmark_start",
         "job_start",
         "plan",
         "job_retry",

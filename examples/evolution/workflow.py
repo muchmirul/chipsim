@@ -107,6 +107,10 @@ def complete(bridge, directory, result, deadline, fields):
         for name, record in result["stages"].items():
             metadata = stage_metadata(bridge, directory, record)
             record.update(metadata)
+            # A later stage (such as formal) can finish after the selected waveform.
+            # Bind the waveform to the run that actually captured it before sealing.
+            if result["evidence"].get("artifact") in record.get("artifacts", {}).values():
+                result["evidence"].update({key: record[key] for key in ("project", "job", "run")})
             record["outcome"] = "passed" if record.get("ready") else "failed" if any(c["verdict"] == "fail" for c in metadata["checks"]) else "inconclusive"
             for tool in metadata["tools"]:
                 # Absolute installation path is not an optimization parameter.

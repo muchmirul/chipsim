@@ -16,6 +16,14 @@ For multiple weighted measured objectives or VHDL, use the separate
 `chipsim-evolution-workflow` definition and `--workflow` flags are distinct from
 this command family's `chipsim-evolution-benchmark` and `--benchmark`.
 
+## Standalone benchmarking and durable search
+
+Use `chipsim benchmark list|describe|validate|evaluate|report|compare|reproduce` for native benchmarks. For weighted Verilog and VHDL goals, use `chipsim benchmark evaluate --workflow workflow.json --project WORK`. Standalone evaluations store the hardware evidence independently of an activity journal. The two older search launchers and manual journal writers are deprecated for one release. They still execute in this release. Their planned retirement depends on the released Pi/ChipSim integration passing the hardware and recovery tests. Historical reports and activity sessions remain readable.
+
+Over MCP, call `chipsim_benchmark_prepare` with a built-in ID or a project-relative definition and optional `formal`. Save the returned context and candidate path. Call `chipsim_benchmark_start` with the context, candidate text in `content`, its UTF-8 SHA-256 in `candidateHash`, and a stable `requestId`. Poll the ordinary `chipsim_job_status` by job UUID, or by request ID after a lost reply. Reusing a request with changed inputs raises a conflict. Every new benchmark job performs fresh stage executions.
+
+Read `chipsim_benchmark_result` for a completed measurement. Its `accepted` field describes hardware acceptance. Failed behavioral observations return a measured rejection. An interrupted evaluation, missing tool, or invalid evidence cannot yield acceptance. Use ordinary job logs and cancellation, and inspect the full report through its returned artifact ID. To inspect native stage artifacts through the same connection, pass the returned `benchmarkJob` with `artifacts`, `evidence`, `artifact_read`, `hardware`, `source`, `trace`, or `snapshot`. The stage run IDs select the measured results.
+
 ## Commands
 
 ```sh

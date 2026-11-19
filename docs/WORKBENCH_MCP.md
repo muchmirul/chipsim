@@ -101,6 +101,10 @@ clients and remove that stale lock before retrying; ChipSim never silently steal
 it. Candidate edits are isolated files, not an atomic multi-file edit of the
 original root. Select a candidate directory for continued development.
 
+Benchmark evaluation uses the same managed jobs and supports recovery by request ID. See [standalone benchmarking and durable search](EVOLUTION.md#standalone-benchmarking-and-durable-search) for capture, measurement and report inspection.
+
+To read a native report or waveform through the same MCP connection, pass the returned `evidence.benchmarkJob` to `chipsim_artifacts` with the stage run ID. Pass that same `benchmarkJob` to `chipsim_artifact_read` with the selected artifact ID. The server verifies the outer job and its captured stage evidence before opening the stage workspace.
+
 ## Linked inspection
 
 `chipsim_hardware` returns real elaborated RTL or Yosys module definitions, not

@@ -259,9 +259,10 @@ test("helper resumes an accepted job after abrupt client death without duplicate
       const names = await readdir(join(root, ".chipsim/design/requests")).catch(
         () => [],
       );
-      if (names.length) {
+      const receipt = names.find((name) => name.endsWith(".json"));
+      if (receipt) {
         accepted = JSON.parse(
-          await readFile(join(root, ".chipsim/design/requests", names[0])),
+          await readFile(join(root, ".chipsim/design/requests", receipt)),
         );
         break;
       }
