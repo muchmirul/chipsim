@@ -15,6 +15,11 @@ import { executeAdapter } from "./adapters.js";
 import { publishAttempt, verifyEvidence } from "./evidence.js";
 import { processIdentity, alive, stopOwned, reapToken } from "./process.js";
 import { withProjectLock, problem } from "../workbench/files.js";
+import {
+  evaluateRequirements,
+  requirementCoverage,
+  summarizeRequirementEvidence,
+} from "../manufacturing/coverage.js";
 
 const workerFile = fileURLToPath(
   new URL("../../scripts/design-worker.mjs", import.meta.url),
@@ -290,11 +295,12 @@ export async function jobLogs(store, id, { offset = 0, limit = 16384 } = {}) {
   }
 }
 
-export async function evaluateChecks(store, plan, attempts) {
+export async function evaluateChecks(store, plan, attempts, current) {
   const checks = [];
   for (const a of attempts)
     for (const id of a.checks) checks.push(await store.get(id, "check"));
-  const required = plan.policy.requiredChecks || [];
+  const policy = current?.policy ?? plan.policy;
+  const required = policy.requiredChecks || [];
   const results = [];
   for (const key of required) {
     const found = checks.filter((c) => c.subject.task + ":" + c.name === key);
@@ -315,9 +321,52 @@ export async function evaluateChecks(store, plan, attempts) {
       ...(error ? { error } : {}),
     });
   }
+  const snapshot = await store.get(plan.snapshot, "input-snapshot");
+  const declared = snapshot.config.engineering?.requirements ?? [];
+  let capturedResults = [],
+    requirementResults = [];
+  if (
+    plan.policy.evidencePolicy !== undefined ||
+    policy.evidencePolicy !== undefined
+  ) {
+    const entry = snapshot.inputs.find((f) => f.path === "acceptance.json");
+    if (entry) await store.verifyBlob(entry);
+    const acceptance = entry
+      ? await json(store.blobPath(entry.sha256))
+      : { cases: [] };
+    const attributed = checks
+      .filter((c) => c.evidence.length)
+      .map((c) => ({ ...c, task: c.subject.task }));
+    const evaluate = (rules, requirements) =>
+      rules === undefined
+        ? []
+        : evaluateRequirements(
+            rules,
+            requirementCoverage(acceptance, requirements),
+            attributed,
+          );
+    capturedResults = evaluate(plan.policy.evidencePolicy, declared);
+    requirementResults = current
+      ? evaluate(policy.evidencePolicy, current.requirements)
+      : capturedResults;
+    for (const id of new Set(
+      [...capturedResults, ...requirementResults]
+        .map((r) => r.check)
+        .filter(Boolean),
+    ))
+      await verifyEvidence(store, id);
+  }
   return {
-    ready: required.length > 0 && results.every((r) => r.verdict === "pass"),
-    policy: plan.policy,
+    requirementCoverage: summarizeRequirementEvidence(
+      declared,
+      capturedResults,
+    ),
+    requirementResults,
+    ready:
+      required.length > 0 &&
+      results.every((r) => r.verdict === "pass") &&
+      requirementResults.every((r) => r.verdict !== "missing"),
+    policy,
     required: results,
     checks,
   };
@@ -571,27 +620,71 @@ export async function runWorker(root, id) {
         ? "failed"
         : "completed";
     if (state.state !== "completed") readiness.ready = false;
-    const record = await store.put("run", {
-      job: id,
-      generation,
-      target: state.target,
-      plan: state.plan,
-      snapshot: state.snapshot,
-      state: state.state,
-      provenance: "captured",
-      attempts: attempts.map((a) => a.id),
-      artifacts: [...new Set(attempts.flatMap((a) => a.artifacts))],
-      checks: [...new Set(attempts.flatMap((a) => a.checks))],
-      readiness,
-      created: new Date().toISOString(),
-    });
-    await verifyEvidence(store, record.id);
-    state.run = record.id;
-    state.ready = readiness.ready;
-    if (state.state === "completed" && readiness.ready)
-      await atomic(join(store.root, "latest", state.target + ".json"), {
-        run: record.id,
+    const publish = async () => {
+      const record = await store.put("run", {
+        job: id,
+        generation,
+        target: state.target,
+        plan: state.plan,
+        snapshot: state.snapshot,
+        state: state.state,
+        provenance: "captured",
+        attempts: attempts.map((a) => a.id),
+        artifacts: [...new Set(attempts.flatMap((a) => a.artifacts))],
+        checks: [...new Set(attempts.flatMap((a) => a.checks))],
+        readiness,
+        created: new Date().toISOString(),
       });
+      await verifyEvidence(store, record.id);
+      state.run = record.id;
+      state.ready = readiness.ready;
+      if (state.state === "completed" && readiness.ready)
+        await atomic(join(store.root, "latest", state.target + ".json"), {
+          run: record.id,
+        });
+    };
+    const packaging = plan.tasks.find(
+      (t) =>
+        t.definition.adapter === "@manufacturing" &&
+        t.definition.options?.operation === "package",
+    );
+    if (packaging && readiness.ready) {
+      const { withProjectLock } = await import("../workbench/files.js");
+      const { releaseStatus } = await import("../manufacturing/release.js");
+      await withProjectLock(root, async () => {
+        const current = await releaseStatus(
+          root,
+          packaging.definition.options.request.run,
+        );
+        const artifacts = await Promise.all(
+          attempts
+            .flatMap((a) => a.artifacts)
+            .map((id) => store.get(id, "artifact")),
+        );
+        const manifest = artifacts.find(
+          (a) => a.path === "release-manifest.json",
+        );
+        const packed =
+          manifest && (await json(store.blobPath(manifest.payload.sha256)));
+        if (
+          !current.ready ||
+          !packed ||
+          identity(packed.policy) !== identity(current.comparison) ||
+          controller.signal.aborted
+        ) {
+          state.state = controller.signal.aborted ? "cancelled" : "failed";
+          state.ready = false;
+          state.diagnostics.push({
+            task: packaging.task,
+            category: "readiness",
+            message: "Release changed before publication",
+            blockers: current.blockers,
+          });
+          return;
+        }
+        await publish();
+      });
+    } else await publish();
   } catch (error) {
     state.state = controller.signal.aborted ? "cancelled" : "interrupted";
     state.ready = false;

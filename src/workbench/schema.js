@@ -30,7 +30,7 @@ export const resultSchema = {
 const definitions = [
   [
     "benchmark_prepare",
-    "Capture a built-in or project-relative benchmark and return its immutable context, candidate path and fixed input hashes. Weighted workflows declare proofs in their target.",
+    "Capture a built-in or project-relative benchmark and return context, candidatePath, candidateHash, fixedHashes and a readable baseline candidateResource. Weighted workflows declare proofs in their target.",
     { benchmark: string(1024), formal: { type: "boolean" } },
     ["benchmark"],
     false,
@@ -49,7 +49,7 @@ const definitions = [
   ],
   [
     "benchmark_result",
-    "Verify and read a completed benchmark measurement. Check accepted, score, metrics, units and evidence. Pass evidence.benchmarkJob when inspecting native stage artifacts.",
+    "Read the verified terminal report, including failed proof diagnostics. Only rank measured results. Use artifact for the outer report and evidence.benchmarkJob for native stage artifacts.",
     { job: uuid },
     ["job"],
     true,
@@ -206,8 +206,50 @@ const definitions = [
   [
     "candidate_create",
     "Copy project sources into an isolated candidate with a captured base revision. Pass its candidate ID to subsequent tools.",
-    { label: string(128) },
+    { label: string(128), requestId: string(128) },
     ["label"],
+    false,
+  ],
+  [
+    "evidence_import",
+    "Upload a verified evidence ZIP in bounded resumable chunks. Query by omitting data, finalize with finish.",
+    {
+      requestId: { ...string(128), minLength: 1 },
+      sha256: id,
+      bytes: integer(2 ** 31, 1),
+      offset: integer(2 ** 31),
+      data: string(87384),
+      finish: { type: "boolean" },
+    },
+    ["requestId", "sha256", "bytes"],
+    false,
+  ],
+  [
+    "environment_check",
+    "Inspect target tools, observer capabilities and manufacturing cache without running setup or a job.",
+    { target: string(128), profile: string(128) },
+    [],
+    true,
+  ],
+  [
+    "candidate_list",
+    "List durable candidate records or recover a creation request.",
+    { ...paging, requestId: string(128) },
+    [],
+    true,
+  ],
+  [
+    "candidate_diff",
+    "Export paged changes from the candidate base revision.",
+    paging,
+    ["candidate"],
+    true,
+  ],
+  [
+    "candidate_apply",
+    "Apply candidate changes to its parent at its captured base revision.",
+    { expectedRevision: id, expectedCandidateRevision: id },
+    ["candidate", "expectedRevision"],
     false,
   ],
   [
@@ -286,7 +328,7 @@ const definitions = [
   ],
   [
     "checks",
-    "Inspect current target readiness, including stale/failed/missing/inconclusive checks.",
+    "Inspect current target readiness and, separately, requirement coverage under the selected run’s captured declarations and evidence policy. Waivers are not passing evidence.",
     { target: string(128), run: id },
     ["target"],
     true,
@@ -378,6 +420,190 @@ const benchmarkInspection = new Set([
   "trace",
   "differences",
 ]);
+// The result envelope stays versioned independently from each tool payload.
+const object = { type: "object" };
+const text = { type: "string" },
+  boolean = { type: "boolean" },
+  count = { type: "integer" };
+const array = (items = object) => ({ type: "array", items });
+const payload = (properties, required = Object.keys(properties)) => ({
+  type: "object",
+  properties,
+  required,
+});
+const nullable = (schema) => ({ anyOf: [schema, { type: "null" }] });
+const pageResult = {
+  items: array({}),
+  total: count,
+  nextOffset: nullable(count),
+};
+const jobResult = payload(
+  { id: uuid, state: text, ready: boolean, generation: count },
+  ["id", "state"],
+);
+const planResult = payload({
+  valid: boolean,
+  plan: nullable(id),
+  snapshot: id,
+  target: text,
+  policy: object,
+  tasks: array(),
+});
+const checksResult = payload(
+  {
+    ready: boolean,
+    run: id,
+    comparison: object,
+    required: array(),
+    changes: array(),
+    requirementResults: array(),
+    requirementCoverage: payload({
+      status: {
+        enum: [
+          "not-declared",
+          "unverified",
+          "partial",
+          "covered",
+          "unavailable",
+        ],
+      },
+      declared: nullable(count),
+      covered: array(text),
+      unverified: array(text),
+    }),
+  },
+  ["ready", "requirementCoverage"],
+);
+const results = {
+  benchmark_prepare: payload({
+    context: id,
+    candidateHash: id,
+    candidateResource: text,
+    candidatePath: text,
+    fixedHashes: object,
+  }),
+  benchmark_start: jobResult,
+  benchmark_result: payload({
+    jobState: text,
+    measured: boolean,
+    accepted: boolean,
+    score: nullable({ type: "number" }),
+    run: id,
+    artifact: id,
+    metrics: object,
+    evidence: object,
+    stages: object,
+  }),
+  workflow_status: payload({
+    stage: text,
+    prepared: boolean,
+    nextActions: array(),
+    jobs: array(),
+  }),
+  manufacturing_profiles: payload({ profiles: array() }),
+  environment_setup: jobResult,
+  environment_check: payload({
+    adapters: array(text),
+    observer: object,
+    targets: array(),
+  }),
+  project_bootstrap: payload({
+    profile: text,
+    environment: id,
+    targets: array(text),
+    files: array(text),
+  }),
+  release_status: payload({
+    ready: boolean,
+    run: nullable(id),
+    blockers: array(text),
+    required: array(),
+  }),
+  release_package: jobResult,
+  artifact_read: payload({
+    artifact: id,
+    sha256: id,
+    chunkSha256: id,
+    data: text,
+    offset: count,
+    bytes: count,
+    length: count,
+    nextOffset: nullable(count),
+  }),
+  evidence_import: payload({
+    complete: boolean,
+    sha256: id,
+    bytes: count,
+    nextOffset: count,
+  }),
+  resource_read: payload({ uri: text, mimeType: text, text }),
+  project: payload({
+    root: text,
+    revision: id,
+    capabilities: object,
+    targets: object,
+  }),
+  file_list: payload(pageResult),
+  file_search: payload(pageResult),
+  file_read: payload({ path: text, text, sha256: id, resource: text }),
+  file_write: payload({ path: text, sha256: id, bytes: count }),
+  candidate_create: payload({ id: uuid, revision: id, baseRevision: id }),
+  candidate_list: payload(pageResult),
+  candidate_diff: payload({ ...pageResult, baseRevision: id, revision: id }),
+  candidate_apply: payload({ revision: id, baseRevision: id }),
+  revision: payload({ revision: id, fileCount: count }),
+  validate: planResult,
+  plan: planResult,
+  job_start: jobResult,
+  job_retry: jobResult,
+  job_cancel: jobResult,
+  job_status: payload({ state: text, id: uuid }, ["state"]),
+  job_logs: payload({
+    text,
+    offset: count,
+    cursor: count,
+    nextOffset: nullable(count),
+  }),
+  artifacts: payload(pageResult),
+  evidence: {
+    anyOf: [
+      payload({ record: object }),
+      payload({ artifact: object, checks: array() }),
+    ],
+  },
+  checks: checksResult,
+  compare: payload({
+    left: id,
+    right: id,
+    artifacts: array(),
+    checks: array(),
+  }),
+  differences: payload({ ...pageResult, artifact: id }),
+  export: payload({ id, bundle: text, records: count, objects: count }),
+  hardware: payload({ ...pageResult, artifact: id }),
+  trace: payload({ ...pageResult, artifact: id }),
+  source: payload({ artifact: id, text, source: text }),
+  snapshot: payload({ artifact: id, text, columns: count, rows: count }),
+};
+function outputContract(name) {
+  if (!results[name]) throw Error("Missing result schema for " + name);
+  return {
+    ...resultSchema,
+    properties: { ...resultSchema.properties, result: results[name] },
+    anyOf: [
+      {
+        type: "object",
+        properties: { ok: { const: true } },
+        required: ["result", "ok"],
+      },
+      {
+        type: "object",
+        properties: { ok: { const: false } },
+        required: ["error", "ok"],
+      },
+    ],
+  };
+}
 export const workbenchTools = definitions.map(
   ([name, description, properties, required, readOnly]) => ({
     name,
@@ -392,7 +618,7 @@ export const workbenchTools = definitions.map(
       required,
       additionalProperties: false,
     },
-    outputSchema: resultSchema,
+    outputSchema: outputContract(name),
     annotations: {
       readOnlyHint: readOnly,
       destructiveHint: name === "file_write",
@@ -431,7 +657,6 @@ export function validate(schema, value, path = "arguments") {
       })
     )
       throw new Error(path + " does not match an allowed type");
-    return;
   }
   if (schema.const !== undefined && value !== schema.const)
     throw new Error(path + " has an invalid constant");
@@ -460,7 +685,9 @@ export function validate(schema, value, path = "arguments") {
     value.forEach((item, i) =>
       validate(schema.items || {}, item, path + "[" + i + "]"),
     );
-  } else if (type === "integer") {
+  } else if (type === "number" && !Number.isFinite(value))
+    throw new Error(path + " must be a finite number");
+  else if (type === "integer") {
     if (
       !Number.isSafeInteger(value) ||
       value < schema.minimum ||

@@ -183,7 +183,13 @@ API. The worker retains checkpoints under
 `evaluations/SESSION/invocations/INVOCATION/openevolve` and writes `selected.sv`
 beside that directory (`.v`/`.vhd`/`.vhdl` follow custom workflow suffixes).
 `evaluator.py` returns `EvaluationResult`.
-The verified release is 0.4.0; incompatible APIs fail explicitly.
+OpenEvolve 0.4.1 is verified with the counter's manual queue, a retained checkpoint
+and a fresh finalist evaluation. Install that release in the Python environment
+used to invoke the runner. The original demonstrations above preserve their 0.4.0
+provenance. Incompatible APIs fail explicitly.
+
+OpenEvolve 0.4.1 exposes `checkpoint_path` on `run_evolution`. The ChipSim search
+wrapper currently starts a new invocation and retains its checkpoints for inspection.
 
 The supervisor imports actual checkpoint parent/generation matched to evaluator
 identity and exact source hashes; callbacks alone supply no ancestry. Different

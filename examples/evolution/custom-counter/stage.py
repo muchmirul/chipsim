@@ -5,7 +5,7 @@ from oracle import score
 
 report = score(json.loads(Path('waveform.json').read_text()))
 cases = [{"check": "counter recurrence", "cycle": f["cycle"],
-          "inputs": {"cycle": f["cycle"], "reset": int(f["cycle"] in (0, 27, 55)), "enable": int(f["cycle"] % 7 not in (3, 4))},
+          "inputs": f["inputs"],
           "expected": f["expected"], "observed": f["observed"]} for f in report['failures']]
 Path('out').mkdir(exist_ok=True)
 Path('out/stage.json').write_text(json.dumps({"format": "chipsim-evolution-stage", "version": 1,

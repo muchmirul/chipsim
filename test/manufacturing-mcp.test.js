@@ -97,6 +97,10 @@ test(
     );
     await call("job_cancel", { job: waitingSetup.id }, otherClient);
     const cancelledSetup = await finish(waitingSetup, otherClient);
+    if (cancelledSetup.state === "failed") {
+      const log = await call("job_logs", { job: waitingSetup.id }, otherClient);
+      assert.fail("Concurrent setup failed before cancellation: " + log.text);
+    }
     assert.equal(cancelledSetup.state, "cancelled");
     await client.close();
     client = await connect();
@@ -160,6 +164,25 @@ test(
     const originalConfig = await call("file_read", {
       path: "chipsim.design.json",
     });
+    const expanded = JSON.parse(originalConfig.text);
+    expanded.tasks.review = {
+      adapter: "command",
+      options: { command: process.execPath, args: ["-e", "process.exit(1)"] },
+    };
+    expanded.targets.release.tasks.push("review");
+    await update("chipsim.design.json", JSON.stringify(expanded));
+    assert.equal(
+      (await call("release_status", { run: released.run })).ready,
+      false,
+    );
+    const blocked = await finish(
+      await call("release_package", {
+        run: released.run,
+        requestId: "stale-graph",
+      }),
+    );
+    assert.equal(blocked.state, "failed");
+    await update("chipsim.design.json", originalConfig.text);
     const weakened = JSON.parse(originalConfig.text);
     weakened.targets.release.requiredChecks = ["physical:outputs"];
     await update("chipsim.design.json", JSON.stringify(weakened));
@@ -214,6 +237,51 @@ test(
       artifacts.push(...page.items);
       offset = page.nextOffset;
     } while (offset !== null);
+    let importReceipt;
+    if (fixtureName === "counter") {
+      const bundle = artifacts.find((a) => a.path === "evidence.zip");
+      assert.ok(bundle);
+      let offset = 0,
+        receiver = otherClient;
+      let receipt;
+      do {
+        const chunk = await call("artifact_read", {
+          artifact: bundle.id,
+          offset,
+          limit: 65536,
+        });
+        const input = {
+          sha256: chunk.sha256,
+          bytes: chunk.bytes,
+          requestId: "receive-evidence",
+        };
+        receipt = await call(
+          "evidence_import",
+          {
+            ...input,
+            offset,
+            data: chunk.data,
+            finish: chunk.nextOffset === null,
+          },
+          receiver,
+        );
+        if (offset === 0 && chunk.nextOffset !== null) {
+          receiver = await connect(otherRoot);
+          assert.equal(
+            (await call("evidence_import", input, receiver)).nextOffset,
+            chunk.nextOffset,
+          );
+        }
+        offset = chunk.nextOffset;
+      } while (offset !== null);
+      assert.equal(receipt.complete, true);
+      importReceipt = receipt;
+      assert.equal(receipt.id, released.run);
+      assert.equal(
+        (await call("evidence", { id: released.run }, receiver)).record.id,
+        released.run,
+      );
+    }
     const archive = artifacts.find((a) => a.path === "submission.zip");
     assert.ok(archive);
     const chunks = [];
@@ -247,6 +315,7 @@ test(
     const acceptance = {
       fixture: fixtureName,
       raceScenarios,
+      ...(importReceipt ? { importReceipt } : {}),
       root,
       cache,
       runtime: await runtimeIdentity(),

@@ -26,6 +26,18 @@ def run(*args, **kwargs):
     subprocess.run(args, check=True, **kwargs)
 
 
+def ensure_image(image):
+    command = ['docker', 'image', 'inspect', image]
+    found = subprocess.run(command, capture_output=True, text=True)
+    if found.returncode:
+        run('docker', 'pull', image)
+        found = subprocess.run(command, check=True, capture_output=True, text=True)
+    details, = json.loads(found.stdout)
+    if (image not in (details.get('RepoDigests') or []) or
+            (details.get('Os'), details.get('Architecture')) != ('linux', 'amd64')):
+        raise ValueError('Docker image differs from the pinned digest or platform')
+
+
 def unpack(source, destination):
     # GitHub archives have one prefix. Extract to staging using the stdlib's
     # data filter; absolute/traversal links and special files are rejected.
@@ -80,7 +92,7 @@ def main():
     cache.mkdir(parents=True, exist_ok=True)
     with (cache / 'setup.lock').open('w') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        run('docker', 'pull', profile['pins']['image'])
+        ensure_image(profile['pins']['image'])
         downloads = cache / 'downloads'
         downloads.mkdir(exist_ok=True)
         for name, source in profile['sources'].items():

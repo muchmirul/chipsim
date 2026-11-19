@@ -4,16 +4,12 @@
   "primeVersion": "0.10.0",
   "primeBinarySha256": "9bdf281e37b55f16ec4ed83979d27d6218eb52257501e3318098906906f263fd",
   "runtimeClientSha256": "43cc5437558b1d48669096e17d2d9f1a7b58688dd21ef24c3fa4d9551ba24aa2",
-  "registeredConnection": {
-    "toolCount": 32,
-    "project": "<registered-project>",
-    "scope": "Read-only probe using the existing registered stdio descriptor"
-  },
-  "toolCount": 32,
-  "toolInventorySha256": "d9554ef36b0d5876a4add98a1b536a3c78e1c8d6f5e604a5d4c69667478d8d43",
+  "registeredConnection": null,
+  "toolCount": 40,
+  "toolInventorySha256": "1e9c9bbfdb9e9419bc080b211beaa7856de467f73af19cdaac0d00d85caf37b7",
   "project": "<temporary-directory>/chipsim-test",
-  "job": "8ff3a8c1-9277-4746-8b3d-b0883d1666a6",
-  "run": "c49d69d7d9b6cbb4bb5f8d08ea1ff4f946c1e9666501fdbd9ab232b122779dfc",
+  "job": "fbffb82d-1a03-4751-894f-195e5ecdd25e",
+  "run": "b59731ecd5e56645a27cc5d982188dc9877e91478fd13f0e699a035a29ba1b48",
   "scenarios": [
     "tools-only-guide-access",
     "all-workbench-schemas",
@@ -27,7 +23,12 @@
     "verified-binary-retrieval"
   ],
   "scope": "Installed prime-agent rlm.mcp client and MCP transport; config RPC supplied by isolated harness. No model turn, provider call or user-settings mutation. Lifecycle fixture is not native EDA validation.",
-  "validatedAt": "2026-11-18T02:42:14.243234+00:00",
+  "validatedAt": "2026-11-19T06:42:37.529253+00:00",
   "testSha256": "d81c81f9346a10f25c4751604fd2a965cd138ebc5ab32f8501ed00906063cf34",
-  "command": "/path/to/prime-kernel/bin/python test/prime-mcp-acceptance.py --prime /path/to/prime-agent --registered-settings /path/to/settings.json"
+  "runtime": {
+    "sha256": "1d68064e60719e5271153ea5b0aed1c6c529ec68793da75a75616e15a47f793e",
+    "node": "22.23.2",
+    "platform": "linux",
+    "arch": "x64"
+  }
 }

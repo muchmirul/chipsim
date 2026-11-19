@@ -4,6 +4,9 @@ For recovery instructions on the running server, start with `chipsim_project`, `
 
 | Guarantee | Executable coverage |
 | --- | --- |
+| Retryable pending vs invalid digest, measured vs diagnostic reports, scoped proof artifacts and corruption | benchmark-proof.test.js (`CHIPSIM_TEST_BENCHMARK=1`) |
+| Selected target readiness vs captured requirement evidence and waivers | requirement-coverage.test.js |
+| Hold-at-maximum and enabled wrap on the counter waveform | evolution.test.js |
 | CAS conflicts and invalid drafts | workbench.test.js |
 | Request replay after reconnect, simultaneous submission | workbench-mcp.test.js |
 | Explicit cancellation, independent project/candidate roots | workbench-mcp.test.js |
@@ -56,3 +59,33 @@ The native portions of this audit require the matrix runner. A source-free pass
 alone is insufficient. Acceptance records preserve the exact runtime, fixture
 hashes, run/check IDs and archive identities rather than treating this table as
 proof by itself.
+
+## Reproducing the November 19 audit fixes
+
+| Question | Regression |
+| --- | --- |
+| Can an earlier green run authorize a changed release? | `test/design.test.js` changes task membership and dependencies. `test/manufacturing-mcp.test.js` adds a failing task to an already-green native target, checks readiness and attempts to package it. |
+| Can a policy change reuse verified evidence? | `test/reliability.test.js` checks proof type, depth, property, named pin cases and clock coverage. A package records the captured and current graph and policy identities. |
+| Can two agents review and exchange work? | `test/workbench-mcp.test.js` uses two stdio clients to recover candidates, read selected resources, inspect diffs and detect an apply conflict. The native counter test uploads the evidence ZIP to another project, reconnects during transfer and verifies the original run there. |
+| Do checkout and installed clients agree? | `npm run test:mcp:installed` compares runtime identities and tool schemas, retries a checkout snapshot from the package and changes an adapter to verify invalidation. |
+| Does an uninterrupted transfer recheck the entire archive for every page? | `test/reliability.test.js` counts closure reads over 128 pages and changes a backing block during a transfer. `test/workflow-download.test.js` covers interrupted downloads and destination verification. |
+| Does a passing result exercise the intended behavior? | The native XOR bench rejects constant-high, OR and disconnected-bit designs. The PicoRV32 RTL and Renode targets independently reject incorrect firmware writes. Native formal checks report the SBY mode, bound, properties and trace inventory. |
+
+The [original audit](reviews/2026-11-19-agent-chipmaking.md) describes the reproductions on the earlier revision. The [release qualification procedure](DEVELOPMENT.md#qualification-lanes) lists the source and native commands.
+
+## Qualification on 19 November 2026
+
+The equipped Linux x86-64 runner qualified runtime `1d68064e60719e5271153ea5b0aed1c6c529ec68793da75a75616e15a47f793e` for the local Tiny Tapeout IHP profile. All four corrected designs passed the 11 required checks. Each deliberately incorrect design failed RTL simulation, and each extracted submission passed 10 native archive prechecks.
+
+| Fixture | RTL / gate cases | Submission SHA-256 |
+| --- | ---: | --- |
+| counter | 5 / 5 | `b3deceb377b35130adceaab8d8e04391ab824f6d95a97fafe32b68d2132ea23e` |
+| power | 14 / 14 | `a2718ed444a572aa153e7e9acffd1d62e34f7d6b483027853f34d6e2de9a5c41` |
+| fifo | 1 / 1 | `57cc90682faa639de7271ac47596ff78f6e60ca234ce2a1b959e704cb7535667` |
+| uart | 1 / 1 | `13c4edbe7f5ee8d687ca37eb7594604a7e8a9fb3be6114e0555dab69266d530a` |
+
+The counter passed all 65,536 input byte pairs at RTL and gate level. The final STA reports identify the clock and a timed path group at each of three corners. They omit an unconstrained-endpoint count, which ChipSim reports as unknown. A policy requiring the observed clock passed and allowed repackaging. Requiring an absent clock blocked readiness.
+
+The source suite passed 263 tests and skipped 164. The overlapping source-backed suite verified 34 private reference fingerprints, passed 371 tests and skipped 56. The official SDK passed five lifecycle tests, and the installed Prime client exercised 40 tools. The SKY130 failure control correctly blocked readiness on LVS.
+
+The [qualification record](manufacturing-reliability-acceptance.json) contains run IDs, archive identities, timing, packaging races, receiving-project import and the SDK delivery receipt. The [previous profile record](manufacturing-history/8764fa98-profile.json) and its [reliability evidence](manufacturing-history/8764fa98-reliability.json) preserve the earlier runtime.

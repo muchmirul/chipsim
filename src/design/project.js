@@ -167,9 +167,16 @@ export async function loadDesign(path) {
       throw new Error("requiredChecks must be an array of TASK:CHECK names");
   }
   const root = dirname(file);
-  const lock = await json(join(root, "chipsim.lock.json"), 1048576);
+  const lock = await json(join(root, "chipsim.lock.json"), 1048576).catch(
+    (error) => {
+      error.projectFile = "chipsim.lock.json";
+      throw error;
+    },
+  );
   if (lock.format !== "chipsim-lock" || lock.version !== 1)
-    throw new Error("Expected chipsim-lock version 1");
+    throw Object.assign(new Error("Expected chipsim-lock version 1"), {
+      projectFile: "chipsim.lock.json",
+    });
   return { root, file, config, lock, store: new Store(root) };
 }
 export async function initDesign(path) {
@@ -315,9 +322,15 @@ export async function runtimeIdentity() {
     "docs/references/manifest.json",
     "docs/references/catalog.json",
   ]))
-    entries.push({ path, ...(await fileDigest(join(packageRoot, path))) });
+    if (
+      /\.(?:js|mjs|ts|py|json|lock|sh|cc|c|h|adb|ads|inc)$/.test(path) &&
+      !path.startsWith("scripts/test-") &&
+      !path.startsWith("scripts/verify") &&
+      !path.split("/").includes("__pycache__")
+    )
+      entries.push({ path, ...(await fileDigest(join(packageRoot, path))) });
   return {
-    sha256: identity(entries),
+    sha256: identity({ version: 2, entries }),
     node: process.versions.node,
     platform: process.platform,
     arch: process.arch,

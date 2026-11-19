@@ -237,7 +237,7 @@ test("dependency outputs are materialized from verified artifacts and changes in
   const current = (await projectSummary(f.root)).runs[0];
   assert.deepEqual(current.taskFreshness, [
     { task: "sim", stale: false },
-    { task: "consume", stale: true },
+    { task: "consume", stale: true, reason: "fingerprint" },
   ]);
   const next = await finish(f, await startJob(f.root, "sim"));
   assert.equal(next.tasks.sim.state, "reused");
@@ -441,6 +441,31 @@ test("headless commands are structured, bounded and do not execute on import/ins
   assert.equal((await designCommand(["design", "run"])).exitCode, 2);
 });
 
+test("target membership gates current readiness even when all named checks passed", async (t) => {
+  const f = await fixture(t);
+  const run = await finish(f, await startJob(f.root, "sim"));
+  f.config.tasks.extra = {
+    adapter: "command",
+    options: { command: process.execPath, args: ["-e", "process.exit(1)"] },
+  };
+  f.config.targets.sim.tasks.push("extra");
+  await writeFile(
+    join(f.root, "chipsim.design.json"),
+    JSON.stringify(f.config),
+  );
+  const result = await checksForTarget(f.root, "sim", run.run);
+  assert.equal(result.ready, false);
+  assert.equal(result.reasonCode, "STALE_PLAN");
+  assert.deepEqual(
+    result.changes.map((c) => [c.task, c.reason]),
+    [["extra", "added"]],
+  );
+  assert.equal(
+    (await finish(f, await startJob(f.root, "sim"))).state,
+    "failed",
+  );
+});
+
 test("freshness inspection never executes configured version commands and applies the current policy", async (t) => {
   const f = await fixture(t);
   const run = await finish(f, await startJob(f.root, "sim"));
@@ -626,4 +651,35 @@ test("controller discovers contracts, waits briefly without cancelling, and resu
   const changed = await targetStatus(f.root, "sim");
   assert.equal(changed.ready, false);
   assert.equal(changed.required[0].verdict, "stale");
+});
+
+test("policy-only edits recheck captured evidence while a changed dependency blocks the whole target", async (t) => {
+  const f = await fixture(t);
+  f.config.tasks.aux = {
+    adapter: "command",
+    options: { command: process.execPath, args: ["-e", "process.exit(0)"] },
+  };
+  f.config.targets.sim.tasks.push("aux");
+  const manifest = join(f.root, "chipsim.design.json");
+  const save = () => writeFile(manifest, JSON.stringify(f.config));
+  await save();
+  const job = await finish(f, await startJob(f.root, "sim"));
+  f.config.targets.sim.requiredChecks.push("aux:execution");
+  f.config.targets.unrelated = { tasks: ["aux"] };
+  await save();
+  const valid = await checksForTarget(f.root, "sim", job.run);
+  assert.equal(valid.ready, true);
+  assert.equal(valid.comparison.capturedGraph, valid.comparison.currentGraph);
+  assert.notEqual(
+    valid.comparison.capturedPolicy,
+    valid.comparison.currentPolicy,
+  );
+  f.config.tasks.aux.needs = ["sim"];
+  await save();
+  const stale = await checksForTarget(f.root, "sim", job.run);
+  assert.equal(stale.ready, false);
+  assert.deepEqual(
+    stale.changes.map((c) => [c.task, c.reason]),
+    [["aux", "dependencies"]],
+  );
 });

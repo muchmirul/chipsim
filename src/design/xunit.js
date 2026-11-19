@@ -1,5 +1,33 @@
 // Small bounded xUnit reader. It validates nesting and test counts rather than
 // trusting a summary attribute or a process exit code. No external entities.
+function decode(value) {
+  return value.replace(
+    /&(?:amp;|lt;|gt;|quot;|apos;|#(?:x[0-9a-fA-F]+|[0-9]+);)?/g,
+    (ref) => {
+      const predefined = {
+        "&amp;": "&",
+        "&lt;": "<",
+        "&gt;": ">",
+        "&quot;": '"',
+        "&apos;": "'",
+      };
+      if (Object.hasOwn(predefined, ref)) return predefined[ref];
+      const n = ref.startsWith("&#x")
+        ? parseInt(ref.slice(3, -1), 16)
+        : Number(ref.slice(2, -1));
+      if (!(
+        n === 9 ||
+        n === 10 ||
+        n === 13 ||
+        (n >= 32 && n <= 0xd7ff) ||
+        (n >= 0xe000 && n <= 0xfffd) ||
+        (n >= 0x10000 && n <= 0x10ffff)
+      ))
+        throw Error("Invalid XML reference");
+      return String.fromCodePoint(n);
+    },
+  );
+}
 export function parseXunit(xml) {
   if (/<!DOCTYPE|<!ENTITY/i.test(xml))
     throw new Error("XML entities are unsupported");
@@ -40,7 +68,7 @@ export function parseXunit(xml) {
       throw new Error("Text outside xUnit root");
     if (active && ["failure", "error"].includes(stack.at(-1)))
       active.message = (
-        (active.message || "") + xml.slice(cursor, match.index)
+        (active.message || "") + decode(xml.slice(cursor, match.index))
       ).slice(0, 4096);
     cursor = match.index + match[0].length;
     const text = match[0],
@@ -74,10 +102,12 @@ export function parseXunit(xml) {
           throw new Error("Malformed testcase");
         active = {
           name:
-            /\bname\s*=\s*(?:"([^"]*)"|'([^']*)')/
-              .exec(text)
-              ?.slice(1)
-              .find(Boolean) || null,
+            decode(
+              /\bname\s*=\s*(?:"([^"]*)"|'([^']*)')/
+                .exec(text)
+                ?.slice(1)
+                .find(Boolean) || "",
+            ) || null,
           verdict: "pass",
         };
       }
@@ -86,7 +116,8 @@ export function parseXunit(xml) {
       if (active && ["failure", "error"].includes(tag)) {
         active.verdict = "fail";
         const message = /\bmessage\s*=\s*(?:"([^"]*)"|'([^']*)')/.exec(text);
-        if (message) active.message = (message[1] ?? message[2]).slice(0, 4096);
+        if (message)
+          active.message = decode(message[1] ?? message[2]).slice(0, 4096);
       }
       if (active && tag === "skipped" && active.verdict !== "fail")
         active.verdict = "inconclusive";

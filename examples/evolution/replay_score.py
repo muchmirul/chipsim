@@ -35,7 +35,8 @@ def score(kind, wave, case):
         expected = 0
         for i in range(cycle + 1):
             sample((i * 10 + 6) * 10**6)
-            reset, enable = i in (0, 27, 55), i % 7 not in (3, 4)
+            reset = i in (0, 27, 55)
+            enable = i == 24 or (i != 22 and i % 7 not in (3, 4))
             for name, value in (("clk", 1), ("reset", int(reset)), ("enable", int(enable))):
                 if integer("counter_tb." + name, 1) != value:
                     raise ValueError("Changed counter replay history")

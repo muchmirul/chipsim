@@ -325,3 +325,9 @@ pre-manifest setup plans. Read [MANUFACTURING.md](MANUFACTURING.md) for inputs,
 limits, native acceptance and binary retrieval. A profile remains `candidate`
 until its actual integrated physical acceptance is demonstrated. New profile
 versions must pin and test the entire compatible tool/PDK/submission contract.
+
+## Qualification lanes
+
+GitHub Actions runs the source suite, the official SDK lifecycle checks with `CHIPSIM_TEST_BENCHMARK=1 npm run test:mcp`, the install smoke test and `npm run test:mcp:installed`. The installed test packages the working tree, installs the shipped SDK lock and retries a captured checkout job through the installed stdio server.
+
+For a release, use an equipped Linux x86-64 Docker host. Run `npm run test:hdl`, `npm run test:hdl-debug`, `npm run test:eda -- --digital`, `npm run test:physical -- --mcp` and `npm run test:manufacturing:matrix`. Use an empty ChipSim cache for initial setup and share it with the following fixtures. The counter harness transfers the final evidence bundle between two independent SDK clients. Run the installed Prime client acceptance harness and retain its result. Archive the exact runtime/profile digests, negative controls, check IDs, submission ZIPs, bootstrap recovery and import receipts before refreshing the profile acceptance record.

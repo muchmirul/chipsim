@@ -38,10 +38,12 @@ export async function workflowStatus(root, args) {
   );
   let design = null,
     diagnostic = null;
+  let diagnosticPath = "chipsim.design.json";
   try {
     design = await loadDesign(root);
   } catch (e) {
     diagnostic = e.message;
+    diagnosticPath = e.projectFile || diagnosticPath;
   }
   let stage = "profile-selection",
     nextActions = [action("manufacturing_profiles")],
@@ -118,7 +120,7 @@ export async function workflowStatus(root, args) {
       await json(join(root, "chipsim.design.json"));
       if (diagnostic) {
         stage = "repair-manifest";
-        nextActions = [action("file_read", { path: "chipsim.design.json" })];
+        nextActions = [action("file_read", { path: diagnosticPath })];
       }
     } catch (e) {
       if (e.code !== "ENOENT" && !preparation.environment) {
@@ -152,9 +154,23 @@ export async function workflowStatus(root, args) {
         try {
           const r = await verifyEvidence(store, packaged.run);
           const p = await store.get(r.plan, "execution-plan");
-          matches = p.tasks.some(
-            (t) => t.definition.options?.request?.run === release.run,
-          );
+          if (
+            p.tasks.some(
+              (t) => t.definition.options?.request?.run === release.run,
+            )
+          ) {
+            const artifacts = await Promise.all(
+              r.artifacts.map((id) => store.get(id, "artifact")),
+            );
+            const delivery = artifacts.find(
+              (a) => a.path === "release-manifest.json",
+            );
+            const manifest =
+              delivery && (await json(store.blobPath(delivery.payload.sha256)));
+            matches =
+              !!manifest?.policy &&
+              identity(manifest.policy) === identity(release.comparison);
+          }
         } catch (e) {
           diagnostic = e.message;
         }
@@ -187,13 +203,22 @@ export async function workflowStatus(root, args) {
             }),
           )
         : null;
-      stage = simulation?.ready ? "release" : "implement-and-verify";
+      stage = simulation?.ready
+        ? design.config.targets.release
+          ? "release"
+          : "verified"
+        : "implement-and-verify";
       const runTarget =
         simulation?.ready && design.config.targets.release ? "release" : target;
-      nextActions = [
-        action("validate", { target: runTarget }),
-        action("job_start", { target: runTarget, reuse: false }, ["requestId"]),
-      ];
+      nextActions =
+        stage === "verified"
+          ? []
+          : [
+              action("validate", { target: runTarget }),
+              action("job_start", { target: runTarget, reuse: false }, [
+                "requestId",
+              ]),
+            ];
     }
   }
   if (!active && preparation.pendingBootstrapRequests.length) {

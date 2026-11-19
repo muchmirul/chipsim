@@ -1,9 +1,16 @@
+import { receiveEvidence } from "./evidence-import.js";
+import { artifactReader } from "./artifact-transfer.js";
 import { workflowStatus } from "./workflow.js";
 import metadata from "../../package.json" with { type: "json" };
 import { realpath, lstat, readFile, open } from "node:fs/promises";
 import { dirname, join, relative, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadDesign, planDesign } from "../design/project.js";
+import {
+  loadDesign,
+  planDesign,
+  orderTasks,
+  executable,
+} from "../design/project.js";
 import { Store, localPath, json, hash } from "../design/store.js";
 import {
   startJob,
@@ -31,6 +38,9 @@ import {
   revision,
   candidateRoot,
   createCandidate,
+  listCandidates,
+  candidateDiff,
+  applyCandidate,
   safePath,
   problem,
   withProjectLock,
@@ -133,6 +143,7 @@ export async function createWorkbench(path) {
   const root = await realpath(path);
   if (!(await lstat(root)).isDirectory())
     throw new Error("--project requires an existing project directory");
+  const readArtifact = artifactReader();
   const uri = (kind, id, candidate, benchmarkJob) => {
     const args = new URLSearchParams();
     if (candidate) args.set("candidate", candidate);
@@ -151,12 +162,11 @@ export async function createWorkbench(path) {
       }
       let active = await candidateRoot(root, args.candidate);
       if (args.benchmarkJob) {
-        const { benchmarkResult } = await import("../benchmark/service.js");
-        const result = await benchmarkResult(
-          new Store(active),
-          args.benchmarkJob,
+        const { benchmarkInspectionProject } = await import("../benchmark/service.js");
+        args = { ...args };
+        active = await benchmarkInspectionProject(
+          new Store(active), args.benchmarkJob, name, args,
         );
-        active = result.evidence.project;
       }
       const store = new Store(active);
       const output = await perform(name, args, active, store, signal);
@@ -183,7 +193,17 @@ export async function createWorkbench(path) {
     if (name.startsWith("benchmark_")) {
       const { prepareBenchmark, startBenchmark, benchmarkResult } =
         await import("../benchmark/service.js");
-      if (name === "benchmark_prepare") return prepareBenchmark(active, a);
+      if (name === "benchmark_prepare") {
+        const prepared = await prepareBenchmark(active, a);
+        return {
+          ...prepared,
+          candidateResource: uri(
+            "benchmark-baseline",
+            prepared.context,
+            a.candidate,
+          ),
+        };
+      }
       if (name === "benchmark_start") return startBenchmark(active, a);
       return benchmarkResult(store, a.job);
     }
@@ -199,50 +219,60 @@ export async function createWorkbench(path) {
       const { manufacturingTool } = await import("../manufacturing/service.js");
       return manufacturingTool(active, name, a);
     }
-    if (name === "artifact_read") {
-      const artifact = await verifyEvidence(store, a.artifact);
-      if (artifact.format !== "chipsim-artifact")
-        throw problem(
-          "UNSUPPORTED_ARTIFACT",
-          "Expected a binary or text artifact",
-        );
-      const offset = a.offset ?? 0,
-        limit = a.limit ?? 65536;
-      if (offset > artifact.payload.bytes)
-        throw problem("BYTE_RANGE", "Offset exceeds artifact size");
-      const handle = await open(store.blobPath(artifact.payload.sha256), "r");
-      try {
-        const buffer = Buffer.alloc(
-          Math.min(limit, artifact.payload.bytes - offset),
-        );
-        const { bytesRead } = await handle.read(
-          buffer,
-          0,
-          buffer.length,
-          offset,
-        );
-        const chunk = buffer.subarray(0, bytesRead);
-        return {
-          artifact: artifact.id,
-          path: artifact.path,
-          sha256: artifact.payload.sha256,
-          bytes: artifact.payload.bytes,
-          offset,
-          length: bytesRead,
-          chunkSha256: hash(chunk),
-          encoding: "base64",
-          data: chunk.toString("base64"),
-          nextOffset:
-            offset + bytesRead < artifact.payload.bytes
-              ? offset + bytesRead
-              : null,
-        };
-      } finally {
-        await handle.close();
+    if (name === "evidence_import") return receiveEvidence(active, store, a);
+    if (name === "environment_check") {
+      const result = {
+        adapters: Object.keys(adapters),
+        targets: [],
+        observer: await (await import("../hdl/debug/tools.js")).debugTools(),
+      };
+      if (a.target) {
+        const { config } = await loadDesign(active);
+        for (const id of orderTasks(config, a.target)) {
+          const definition = config.tasks[id],
+            profile = config.tools?.[definition.tool];
+          const entry = { task: id, adapter: definition.adapter, tools: [] };
+          try {
+            const command = profile?.command || definition.options?.command;
+            const commands = command
+              ? [[command]]
+              : await adapters[definition.adapter].tools(definition, active);
+            for (const [command] of commands) {
+              const path = await executable(command);
+              entry.tools.push({
+                command,
+                path: path || null,
+                available: !!path,
+              });
+            }
+          } catch (error) {
+            entry.diagnostic = error.message;
+          }
+          result.targets.push(entry);
+        }
       }
+      if (a.profile) {
+        const { manufacturingProfile } =
+          await import("../manufacturing/profiles.js");
+        const p = await manufacturingProfile(a.profile);
+        const { homedir } = await import("node:os");
+        const cache = join(
+          process.env.CHIPSIM_MANUFACTURING_CACHE ||
+            join(homedir(), ".cache/chipsim/manufacturing"),
+          p.digest,
+        );
+        result.cache = {
+          profile: p.id,
+          path: cache,
+          present:
+            (await lstat(cache).catch(() => null))?.isDirectory() || false,
+        };
+      }
+      return result;
     }
+    if (name === "artifact_read") return readArtifact(store, a);
     if (name === "workflow_status") return workflowStatus(active, a);
-    if (name === "resource_read") return resource(a.uri);
+    if (name === "resource_read") return resource(a.uri, a.candidate);
     if (name === "project") {
       let config, diagnostic;
       try {
@@ -290,7 +320,11 @@ export async function createWorkbench(path) {
       };
     }
     if (name === "file_write") return writeText(active, a);
-    if (name === "candidate_create") return createCandidate(root, a.label);
+    if (name === "candidate_create")
+      return createCandidate(root, a.label, a.candidate, a.requestId);
+    if (name === "candidate_list") return listCandidates(root, a.candidate, a);
+    if (name === "candidate_diff") return candidateDiff(root, a);
+    if (name === "candidate_apply") return applyCandidate(root, a);
     if (name === "revision") {
       const r = await withProjectLock(active, () =>
         revision(active, { capture: true }),
@@ -518,7 +552,7 @@ export async function createWorkbench(path) {
     }
     throw problem("UNKNOWN_TOOL", name);
   }
-  async function resource(value) {
+  async function resource(value, candidate) {
     const parsed = new URL(value);
     if (parsed.protocol !== "chipsim:")
       throw new Error("Expected chipsim resource URI");
@@ -597,6 +631,27 @@ export async function createWorkbench(path) {
       args[key] = ["candidate", "benchmarkJob"].includes(key)
         ? val
         : Number(val);
+    }
+    if (candidate && args.candidate && args.candidate !== candidate)
+      throw problem(
+        "CANDIDATE_CONFLICT",
+        "Candidate argument and resource URI disagree",
+      );
+    if (candidate) args.candidate = candidate;
+    if (kind === "benchmark-baseline") {
+      const store = new Store(await candidateRoot(root, args.candidate));
+      const context = await store.get(id, "benchmark-context");
+      const entry = context.inputs.find(
+        (e) => e.path === "assets/" + context.definition.candidate,
+      );
+      if (!entry || entry.bytes > 65536)
+        throw Error("Invalid benchmark baseline");
+      await store.verifyBlob(entry);
+      return {
+        uri: value,
+        mimeType: "text/plain",
+        text: await readFile(store.blobPath(entry.sha256), "utf8"),
+      };
     }
     const response =
       kind === "files"

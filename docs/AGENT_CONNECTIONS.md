@@ -136,6 +136,11 @@ prime-agent mcp get chipsim
 The project directory must exist. These commands change each client's user MCP
 settings; use a different connection name for a different project. Restart the
 client/session after registration. No model provider configuration is needed.
+After a ChipSim update, compare the running server's `serverVersion` and
+`toolInventorySha256` from `chipsim_project` with the expected values in
+`chipsim://guide/workbench`. Reconnect and refresh discovery when the values
+differ or when the server was started before the update. The same project root
+lets you recover accepted jobs by their existing IDs.
 Codex can inspect its connections with `/mcp`. In prime-agent's Python tool:
 
 ```python
@@ -154,7 +159,10 @@ This returns the same allowlisted resource content as `resources/read`, inside
 
 ### Verified prime-agent 0.10 Python client
 
-The recorded Rust prime-agent **0.10.0** Python client acceptance covered the 32-tool inventory at its validation date. It exercised tools-only guide access, structured results, CAS errors, isolated projects, managed execution, reload and request replay, and verified binary retrieval. The attached result identifies that exact inventory. For the running version, read `chipsim_project` and refresh `tools/list`. [Host compatibility acceptance](prime-agent-mcp-acceptance.json)
+The Rust prime-agent **0.10.0** Python client acceptance records the tool count
+and fingerprint it verified. It exercised tools-only guide access, structured
+results, CAS errors, isolated projects, managed execution, reload and request
+replay, and verified binary retrieval. [Host compatibility acceptance](prime-agent-mcp-acceptance.json)
 This verifies the installed `rlm.mcp` client with isolated host-config replies;
 it does not start a model turn or claim an end-to-end Rust daemon/UI test.
 

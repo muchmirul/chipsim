@@ -1,5 +1,20 @@
 # ChipSim behavior changes
 
+## 2026-11-19 — Inspect benchmark failures and requirement coverage
+
+- `benchmark_result` separates the job state, a usable measurement and design acceptance. A failed job with a verifiable diagnostic report exposes the outer report and native proof artifacts without a rankable score. EQY traces from an unknown outcome do not by themselves establish a counterexample. A pending result and a wrong proposal digest now have distinct error codes; replay with the same request ID is unchanged.
+- The bundled counter retains 80 observations and now checks hold at 15 immediately before an enabled wrap. Prepare a fresh context for the changed fixed inputs. A separate candidate passes the finite simulation but fails to establish required equivalence; the benchmark regressions exercise both failure paths.
+- The run-scoped `checks` response distinguishes passing the selected target from evidence for declared project requirements. A declaration alone does not count as verified. See [the workbench guide](WORKBENCH_MCP.md) for the coverage summary and [the benchmark guide](EVOLUTION.md) for result and retry semantics.
+
+## 2026-11-19 — MCP version context after an update
+
+Running stdio servers can retain an earlier tool inventory under the same
+package version. Read `chipsim://guide/workbench` on the active connection and
+compare its expected version and tool fingerprint with `chipsim_project`.
+The guide describes the current candidate, evidence transfer and release
+operations and how to reconnect to the same project. The agent discovery test
+checks the guide against the installed contract and project response.
+
 ## Standalone benchmarking and MCP guide discovery
 
 Current ChipSim provides `chipsim benchmark` and the `chipsim_benchmark_*` MCP tools for scoring one candidate with frozen inputs and verifiable reports. Agents can read `chipsim://guide/evolution` and `chipsim://guide/evolution-objectives` directly from the installed service. Pi Durable handles explicitly requested persistent search through its own MCP connection. The two legacy search launchers and manual Activity writers remain available with deprecation warnings this release.

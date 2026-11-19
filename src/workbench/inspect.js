@@ -129,7 +129,9 @@ export function netlistGraph(data) {
               ? "drives"
               : direction === "input"
                 ? "reads"
-                : "direction-unknown",
+                : direction === "inout"
+                  ? "bidirectional"
+                  : "direction-unknown",
             [{ port, index: i }],
           ),
         );
@@ -209,6 +211,8 @@ export function graphWindow(
     items = model.connections.filter(
       (c) =>
         !object ||
+        (c.kind === "bidirectional" &&
+          (c.from === object || c.to === object)) ||
         (relation === "fanin"
           ? c.to === object
           : relation === "fanout"

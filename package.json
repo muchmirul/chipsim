@@ -50,6 +50,7 @@
     "document": "node scripts/document.mjs",
     "agent": "node scripts/agent.mjs",
     "test:install": "node scripts/test-install.mjs",
+    "test:mcp:installed": "node scripts/test-installed-mcp.mjs",
     "test:mcp": "node scripts/test-mcp.mjs",
     "test:tinytapeout": "node scripts/test-tinytapeout.mjs",
     "test:manufacturing:matrix": "node scripts/test-manufacturing-matrix.mjs",

@@ -52,6 +52,10 @@ export async function releaseStatus(
       : undefined;
     const checks = await checksForTarget(root, "release", run.id, summary);
     status.required = checks.required;
+    status.comparison = checks.comparison;
+    status.changes = checks.changes;
+    if (checks.reasonCode)
+      blockers.push(checks.reasonCode + ": " + checks.reason);
     status.verification = {
       checks: (checks.checks || []).map((c) => ({
         id: c.id,
@@ -228,6 +232,18 @@ export async function releaseStatus(
         await json(store.blobPath(acceptanceInput.sha256)),
         config.engineering?.requirements || [],
       );
+    status.verification.requirementResults = checks.requirementResults || [];
+    for (const entry of status.verification.requirementResults)
+      if (entry.verdict === "missing")
+        blockers.push(
+          "Missing " +
+            entry.kind +
+            " evidence for requirement " +
+            entry.id +
+            " (" +
+            entry.cases.join(", ") +
+            ")",
+        );
     const source = snapshot.inputs.find((p) => p.path === "manufacturing.json");
     if (
       !source ||
@@ -353,6 +369,7 @@ export async function packageRelease(root, { run: runId }, context) {
     snapshot: run.snapshot,
     pins: profile.pins,
     checks: status.required,
+    policy: status.comparison,
     sourceIdentity: identity(snapshot.inputs),
     members: [...members].sort((a, b) => a.path.localeCompare(b.path)),
   };
@@ -434,7 +451,10 @@ export async function packageRelease(root, { run: runId }, context) {
   // Recheck mutable source and policy after assembly; only captured bytes are
   // packaged, but a concurrent source edit must not publish a current release.
   const fresh = await releaseStatus(root, runId);
-  if (!fresh.ready)
+  if (
+    !fresh.ready ||
+    identity(fresh.comparison) !== identity(status.comparison)
+  )
     throw new Error(
       "Release changed while packaging: " + fresh.blockers.join("; "),
     );
@@ -466,7 +486,10 @@ export async function packageRelease(root, { run: runId }, context) {
       "  evidence.zip\n",
   );
   const final = await releaseStatus(root, runId);
-  if (!final.ready)
+  if (
+    !final.ready ||
+    identity(final.comparison) !== identity(status.comparison)
+  )
     throw new Error(
       "Release changed before package publication: " +
         final.blockers.join("; "),

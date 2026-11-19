@@ -11,7 +11,8 @@ module counter_tb;
     $dumpvars(0, counter_tb);
     for (cycle = 0; cycle < 80; cycle = cycle + 1) begin
       reset = (cycle == 0 || cycle == 27 || cycle == 55);
-      enable = (cycle % 7 != 3 && cycle % 7 != 4);
+      // Hold at 15 on edge 22, wrap on 23, then resume the original count on 24.
+      enable = (cycle == 24 || (cycle != 22 && cycle % 7 != 3 && cycle % 7 != 4));
       #5 clk = 1;
       #5 clk = 0;
     end

@@ -35,6 +35,18 @@ export async function publishAttempt(
     // Retain native build directories but avoid registering thousands of
     // generated compiler objects unless explicitly requested.
     if (/\.(o|a|d)$/.test(path) && !outputs.has(path)) continue;
+    if (
+      !execution.ok &&
+      task.definition.adapter === "@manufacturing" &&
+      task.definition.options?.operation === "package" &&
+      [
+        "submission.zip",
+        "evidence.zip",
+        "release-manifest.json",
+        "SHA256SUMS",
+      ].includes(path)
+    )
+      continue;
     const declaration = outputs.get(path),
       kind = declaration?.kind || payloadKind(path, task.definition.adapter);
     const payload = await store.putFile(join(workspace, path));
@@ -280,8 +292,9 @@ export async function importEvidence(store, source) {
   } catch (e) {
     if (e.code !== "ENOENT") throw e;
   }
-  if (manifest) {
+  if (manifest !== undefined) {
     if (
+      !manifest ||
       manifest.format !== "chipsim-evidence-bundle" ||
       manifest.version !== 1 ||
       !Array.isArray(manifest.records) ||

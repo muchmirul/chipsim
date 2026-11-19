@@ -109,3 +109,20 @@ enables these scenarios for the single-counter `test:manufacturing` runner too.
 The matrix additionally runs native bootstrap server-crash recovery in both
 partial-install and lost-reply cases. Package freshness is checked again after
 all archive and checksum work, immediately before returning the deliverable.
+
+## Project evidence requirements
+
+A target can opt in to `evidencePolicy`. Each entry refers to a declared engineering requirement. RTL and gate rules use the case names linked by `acceptance.json`. Formal rules name the task, proof kind and optionally a property from the executed model. A BMC rule may also require a minimum depth. Timing rules name a clock that must appear in the native clock and timed path-group reports across all recorded corners. Missing coverage stays unknown and blocks a requirement that needs it.
+
+```json
+{
+  "evidencePolicy": [
+    {"id":"COUNTER-WRAP","kind":"rtl"},
+    {"id":"COUNTER-WRAP","kind":"gate"},
+    {"id":"RESET","kind":"bmc","task":"resetProof","minDepth":16},
+    {"id":"CLOCK","kind":"timing","clock":"clk"}
+  ]
+}
+```
+
+Supported kinds are `rtl`, `gate`, `bmc`, `prove`, `cover`, `equivalence` and `timing`. A project waiver is a nonempty `waiver` reason on a rule. Release status lists the rule, matching check or missing evidence, and any waiver. The pinned manufacturing profile always enforces its own minimum checks. Submission manifests include the captured and evaluated policy digests.

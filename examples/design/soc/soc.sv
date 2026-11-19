@@ -1,6 +1,6 @@
 // Minimal test SoC: PicoRV32, 4 KiB byte memory and two memory-mapped words.
 // The simulation ROM image comes from the separate firmware task.
-module soc(input clk, resetn, output trap, output reg [31:0] word0, word1);
+module soc(input clk, resetn, output trap, output reg done, output reg [31:0] word0, word1);
   wire valid, instr;
   wire [31:0] addr, wdata;
   wire [3:0] wstrb;
@@ -19,10 +19,11 @@ module soc(input clk, resetn, output trap, output reg [31:0] word0, word1);
     .pcpi_wr(1'b0), .pcpi_rd(32'b0), .pcpi_wait(1'b0), .pcpi_ready(1'b0), .irq(32'b0)
   );
   always @(posedge clk) begin
-    if (!resetn) begin word0 <= 0; word1 <= 0; end
+    if (!resetn) begin word0 <= 0; word1 <= 0; done <= 0; end
     else if (valid && |wstrb) begin
       if (addr == 32'h10000000) word0 <= wdata;
       else if (addr == 32'h10000004) word1 <= wdata;
+      else if (addr == 32'h10000008) done <= wdata == 1;
       else if (addr < 4096) begin
         if (wstrb[0]) memory[{addr[11:2],2'b00}] <= wdata[7:0];
         if (wstrb[1]) memory[{addr[11:2],2'b00}+1] <= wdata[15:8];

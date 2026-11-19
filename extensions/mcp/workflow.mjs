@@ -41,26 +41,35 @@ export async function downloadArtifact(
     offset: 0,
     limit: 65536,
   });
-  const existing = await readFile(target).catch((e) => {
-    if (e.code !== "ENOENT") throw e;
-    return null;
+  const existing = await open(
+    target,
+    constants.O_RDONLY | constants.O_NOFOLLOW,
+  ).catch((e) => {
+    if (e.code === "ENOENT") return null;
+    throw e;
   });
   if (existing) {
-    if (existing.length !== artifact.bytes || digest(existing) !== first.sha256)
-      throw Error("Conflicting destination: " + target);
+    const hash = createHash("sha256");
+    try {
+      for await (const data of existing.createReadStream({ autoClose: false }))
+        hash.update(data);
+      if (
+        (await existing.stat()).size !== artifact.bytes ||
+        hash.digest("hex") !== first.sha256
+      )
+        throw Error("Conflicting destination: " + target);
+    } finally {
+      await existing.close();
+    }
     return {
       artifact: artifact.id,
       sha256: first.sha256,
-      bytes: existing.length,
+      bytes: artifact.bytes,
     };
   }
-  const old = await readFile(partial).catch((e) => {
-    if (e.code !== "ENOENT") throw e;
-    return Buffer.alloc(0);
-  });
   const handle = await open(
     partial,
-    constants.O_WRONLY |
+    constants.O_RDWR |
       constants.O_CREAT |
       constants.O_APPEND |
       constants.O_NOFOLLOW,
@@ -68,6 +77,7 @@ export async function downloadArtifact(
   const hash = createHash("sha256");
   let position = 0;
   try {
+    const oldLength = (await handle.stat()).size;
     for (;;) {
       if (interrupted())
         throw Error("Download interrupted; resume with the same journal");
@@ -86,12 +96,14 @@ export async function downloadArtifact(
         p.sha256 !== first.sha256
       )
         throw Error("Artifact integrity mismatch");
-      const overlap = Math.min(b.length, Math.max(0, old.length - position));
+      const overlap = Math.min(b.length, Math.max(0, oldLength - position));
+      const prefix = Buffer.alloc(overlap);
       if (
-        !old
-          .subarray(position, position + overlap)
-          .equals(b.subarray(0, overlap))
+        overlap &&
+        (await handle.read(prefix, 0, overlap, position)).bytesRead !== overlap
       )
+        throw Error("Partial download differs");
+      if (!prefix.equals(b.subarray(0, overlap)))
         throw Error("Partial download differs");
       if (overlap < b.length) await handle.writeFile(b.subarray(overlap));
       hash.update(b);
@@ -107,7 +119,7 @@ export async function downloadArtifact(
       if (p.nextOffset === null) break;
     }
     if (
-      old.length > position ||
+      oldLength > position ||
       position !== artifact.bytes ||
       hash.digest("hex") !== first.sha256
     )

@@ -19,7 +19,10 @@
         ]
       },
       "outputs": [
-        { "path": "out/firmware.elf", "kind": "firmware" },
+        {
+          "path": "out/firmware.elf",
+          "kind": "firmware"
+        },
         {
           "path": "out/firmware.hex",
           "kind": "memory-image",
@@ -29,7 +32,10 @@
     },
     "soc": {
       "adapter": "hdl",
-      "options": { "project": "sim.project.json" },
+      "options": {
+        "project": "sim.project.json",
+        "debug": false
+      },
       "bindings": [
         {
           "task": "firmware",
@@ -37,17 +43,50 @@
           "path": "firmware.hex"
         }
       ],
-      "outputs": [{ "path": "out/waveform.json", "kind": "waveform" }]
+      "outputs": [
+        {
+          "path": "out/waveform.json",
+          "kind": "waveform"
+        }
+      ]
     },
     "renode": {
       "adapter": "renode",
       "inputs": ["platform.repl"],
-      "options": { "script": "run.resc" },
+      "options": {
+        "script": "run.resc"
+      },
       "bindings": [
         {
           "task": "firmware",
           "output": "out/firmware.elf",
           "path": "firmware.elf"
+        }
+      ],
+      "checks": [
+        {
+          "name": "complete",
+          "path": "out/mmio.json",
+          "field": "complete",
+          "operator": "eq",
+          "value": 1,
+          "scope": "Renode MMIO readback after the firmware completion write"
+        },
+        {
+          "name": "word0",
+          "path": "out/mmio.json",
+          "field": "word0",
+          "operator": "eq",
+          "value": 4660,
+          "scope": "Renode MMIO readback after the firmware completion write"
+        },
+        {
+          "name": "word1",
+          "path": "out/mmio.json",
+          "field": "word1",
+          "operator": "eq",
+          "value": 4661,
+          "scope": "Renode MMIO readback after the firmware completion write"
         }
       ]
     }
@@ -63,7 +102,13 @@
     },
     "software": {
       "tasks": ["renode"],
-      "requiredChecks": ["firmware:outputs", "renode:execution"]
+      "requiredChecks": [
+        "firmware:outputs",
+        "renode:execution",
+        "renode:complete",
+        "renode:word0",
+        "renode:word1"
+      ]
     }
   }
 }

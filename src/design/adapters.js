@@ -391,7 +391,7 @@ export async function normalizeChecks(
           ["native-result.json"],
         ),
       );
-  } else if (execution.nativeResult) {
+  } else if (native.has(adapter) && execution.nativeResult) {
     const r = execution.nativeResult;
     if (adapter === "hdl" && r.simulation)
       result.push(
@@ -478,6 +478,7 @@ export async function normalizeChecks(
     const dir = o.output || "out";
     let verdict = "inconclusive";
     const evidence = [];
+    const proofTasks = [];
     if (adapter === "sby") {
       try {
         const statuses = (await files(join(workspace, dir))).filter(
@@ -489,6 +490,57 @@ export async function normalizeChecks(
             (await boundedText(join(workspace, dir, p))).trim().split(/\s/)[0],
           );
           evidence.push(join(dir, p));
+          const folder = dirname(p),
+            resolved = join(dir, folder, "config.sby");
+          const config = await boundedText(join(workspace, resolved)).catch(
+            () => "",
+          );
+          const sections = {};
+          let section = "";
+          for (const raw of config.split(/\r?\n/)) {
+            const line = raw.replace(/#.*/, "").trim();
+            const header = /^\[([^\]]+)\]$/.exec(line);
+            if (header) section = header[1];
+            else if (line) (sections[section] ||= []).push(line);
+          }
+          const option = (key) =>
+            sections.options
+              ?.find((l) => l.split(/\s+/)[0] === key)
+              ?.split(/\s+/)[1];
+          const depth = option("depth");
+          const traces = (await files(join(workspace, dir, folder)))
+            .filter((f) => /^(?:engine_\d+\/)?trace[^/]*\.(?:vcd|yw)$/.test(f))
+            .map((f) => join(dir, folder, f));
+          if (config) evidence.push(resolved);
+          evidence.push(...traces);
+          const inventoryPath = join(dir, folder, "model/design.json");
+          const inventory = await json(join(workspace, inventoryPath)).catch(
+            () => null,
+          );
+          const properties =
+            inventory?.modules?.flatMap((m) =>
+              (m.cell_sorts || [])
+                .filter((s) => ["$check", "$assert", "$cover"].includes(s.type))
+                .flatMap((s) =>
+                  s.cells.map((c) => ({
+                    name: m.name + "." + c.name,
+                    kind: c.parameters?.FLAVOR || s.type.slice(1),
+                    source: c.attributes?.src || null,
+                  })),
+                ),
+            ) ?? null;
+          if (properties) evidence.push(inventoryPath);
+          proofTasks.push({
+            properties: properties?.slice(0, 256) ?? null,
+            propertyCount: properties?.length ?? null,
+            task: folder === "." ? o.tasks?.[0] || task.task : folder,
+            mode: option("mode") || null,
+            depth: depth && /^\d+$/.test(depth) ? Number(depth) : null,
+            engines: sections.engines || [],
+            scope: o.scope || "Properties selected by " + resolved,
+            verdict: values.at(-1),
+            counterexamples: traces,
+          });
         }
         verdict = values.includes("FAIL")
           ? "fail"
@@ -520,6 +572,10 @@ export async function normalizeChecks(
         o.assumptions || [],
       ),
     );
+    result.at(-1).context = {
+      kind: adapter === "eqy" ? "equivalence" : "formal",
+      tasks: proofTasks,
+    };
   }
   if (adapter === "tinytapeout-verify")
     result.push(
@@ -561,13 +617,20 @@ export async function normalizeChecks(
   for (const spec of task.definition.checks || []) {
     const path = localPath(spec.path);
     let verdict = "inconclusive",
-      detail = spec.scope || spec.name;
+      detail = spec.scope || spec.name,
+      observed = null;
     try {
       const report = await json(join(workspace, path));
       const value = String(spec.field || "")
         .split(".")
         .filter(Boolean)
         .reduce((v, key) => v?.[key], report);
+      if (
+        typeof value === "number" ||
+        typeof value === "boolean" ||
+        (typeof value === "string" && value.length <= 4096)
+      )
+        observed = value;
       if (spec.operator === "eq")
         verdict = value === spec.value ? "pass" : "fail";
       else if (
@@ -585,9 +648,18 @@ export async function normalizeChecks(
     } catch (e) {
       detail += ": " + e.message;
     }
-    result.push(
-      check(spec.name, verdict, detail, [path], spec.assumptions || []),
-    );
+    result.push({
+      ...check(spec.name, verdict, detail, [path], spec.assumptions || []),
+      metrics: [
+        {
+          field: spec.field,
+          operator: spec.operator,
+          value: spec.value,
+          observed,
+          unit: spec.unit || null,
+        },
+      ],
+    });
   }
   return result;
 }
@@ -886,8 +958,12 @@ export async function executeAdapter(task, context) {
     }
     return result;
   }
-  if (adapter === "renode")
-    return invoke(cmd, ["--disable-xwt", "--console", o.script]);
+  if (adapter === "renode") {
+    await mkdir(path("out"), { recursive: true });
+    return invoke(cmd, ["--disable-xwt", "--console", o.script], {
+      CHIPSIM_TASK_WORKSPACE: workspace,
+    });
+  }
   throw new Error("Configure options.command and args for this task");
 }
 

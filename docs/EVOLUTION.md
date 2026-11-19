@@ -19,10 +19,11 @@ Use `chipsim benchmark list|describe|validate|evaluate|report|compare|reproduce`
 ### Score a candidate over MCP
 
 1. Use `chipsim_project({})` to confirm the bound root. Call `chipsim_benchmark_prepare({benchmark: "counter", formal: true})` for the bundled counter with equivalence. Use `"alu8"` or a project-relative definition for other benchmarks. For a weighted workflow, declare required proofs in its design target and omit `formal`.
-2. Save `context`, `candidatePath` and `fixedHashes`. When the response includes `candidateResource` and `candidateHash`, read that URI with `resources/read` or `chipsim_resource_read` for the exact baseline. Otherwise read the original RTL from your project or use the packaged built-in baseline beside `examples.nativeEvolution.runner` in `chipsim agent help` (`counter.sv` or `alu8/alu.sv)). Keep the context for every comparable proposal.
+2. Save `context`, `candidatePath` and `fixedHashes`. When the response includes `candidateResource` and `candidateHash`, read that URI with `resources/read` or `chipsim_resource_read` for the exact baseline. Otherwise read the original RTL from your project or use the packaged built-in baseline beside `examples.nativeEvolution.runner` in `chipsim agent help` (`counter.sv` or `alu8/alu.sv`). Keep the context for every comparable proposal.
 3. Call `chipsim_benchmark_start` with `context`, candidate text in `content` (UTF-8 up to 64 KiB), its exact SHA-256 in `candidateHash` and a stable `requestId`. Resubmit identical arguments to reconcile a lost reply. A changed candidate or context needs a new request ID. Every new benchmark job runs fresh stages.
 4. Poll `chipsim_job_status` with the returned `job` ID or the original `requestId`. Use `chipsim_job_logs` for progress and `chipsim_job_cancel` to stop owned execution. Keep the outer project candidate ID in these calls if you prepared and started the job in that candidate.
-5. Call `chipsim_benchmark_result({job})` after completion. Read `accepted`, `score`, `metrics`, `units`, `feedback`, `formal` when present and the evidence links. A usable measurement may reject the candidate. An interrupted evaluation, missing tool or invalid evidence leaves no accepted measurement.
+5. Call `chipsim_benchmark_result({job})` once the job is terminal, even if it failed. An early read returns `BENCHMARK_PENDING`; poll the existing job, do not submit another. `CANDIDATE_HASH_MISMATCH` at submission is permanent: correct the content or digest. A terminal `BENCHMARK_UNAVAILABLE` is not a reason to keep polling.
+6. Read `jobState`, `measured` and `accepted` separately. A completed measurement can reject the RTL. A failed job with a verified diagnostic report can return `ok: true`, `measured: false`, `accepted: false` and `score: null`. Do not rank that result or substitute zero. With formal enabled, inspect `formal.verdict` and any linked diagnostics: a recorded counterexample differs from a tool that could not finish the proof. Neither passes.
 
 Read the full outer report using its top-level `artifact` ID and `chipsim_artifact_read`. To inspect a native stage, use the stage run ID from `stages` or `evidence.run` with `chipsim_artifacts({run, benchmarkJob})`. Pass the returned `evidence.benchmarkJob` with the selected native artifact in `chipsim_artifact_read`, `chipsim_hardware`, `chipsim_source`, `chipsim_trace` or `chipsim_snapshot`. Keep the same outer candidate scope. This gives a second client access to the reports and waveforms through the same project-bound MCP connection.
 
@@ -82,6 +83,8 @@ X/Z values remain failures rather than being coerced to zero. Missing tools,
 timeouts, invalid evidence, and incomplete runs cannot establish correctness.
 Stage reports retain their detailed native context. OpenEvolve receives the same
 readable feedback, bounded to 8 KiB, plus evidence links.
+
+The bundled counter includes a disabled clock at count 15 followed by an enabled wrap to zero. This changes the frozen stimulus: prepare a new context and baseline rather than comparing candidate scores across harness versions.
 
 The counter keeps `checks_passed / 80` as repair progress even when it is not
 accepted. The ALU earns `1 / (1 + cell_count)` only after all required checks pass.

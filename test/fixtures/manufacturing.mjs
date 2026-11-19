@@ -40,7 +40,7 @@ module tb;
 reg [7:0] ui_in=0, uio_in=0;
 reg ena=0,clk=0,rst_n=0;
 wire [7:0] uo_out,uio_out,uio_oe;
-integer i, expected, result;
+integer i, j, expected, result;
 ${manufacturingMetadata.top} dut(.ui_in(ui_in),.uio_in(uio_in),.uo_out(uo_out),.uio_out(uio_out),.uio_oe(uio_oe),.ena(ena),.clk(clk),.rst_n(rst_n));
 always #10 clk=~clk;
 initial begin
@@ -56,9 +56,9 @@ initial begin
   if(uo_out !== expected[7:0]) $fatal(1,"counter/wrap failed at %0d",i);
  end
  ena=0;
- for(i=0;i<256;i=i+1) begin
-  ui_in=i; uio_in=255-i; #1;
-  if(uio_out !== 8'hff) $fatal(1,"xor failed");
+ for(i=0;i<256;i=i+1) for(j=0;j<256;j=j+1) begin
+  ui_in=i; uio_in=j; #1;
+  if(uio_out !== (ui_in ^ uio_in)) $fatal(1,"xor failed");
   if(uio_oe !== 8'hff) $fatal(1,"output enable failed");
  end
  repeat(3) @(negedge clk);

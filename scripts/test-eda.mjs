@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
-import { mkdtemp, cp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, cp, rm, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { startJob, waitJob } from "../src/design/jobs.js";
@@ -70,6 +70,35 @@ try {
     });
     await run(soc, "simulation");
     await run(soc, "software");
+    const firmwarePath = join(soc, "main.c");
+    const firmware = await readFile(firmwarePath, "utf8");
+    assert.ok(firmware.includes("0x1234"));
+    await writeFile(firmwarePath, firmware.replace("0x1234", "0x5555"));
+    for (const target of ["simulation", "software"]) {
+      const broken = await startJob(soc, target, { reuse: false });
+      const state = await waitJob(new Store(soc), broken.id, {
+        timeoutMs: 180000,
+      });
+      assert.equal(
+        state.ready,
+        false,
+        target + " should reject the wrong MMIO result",
+      );
+      if (target === "simulation") assert.equal(state.state, "failed");
+      else {
+        const { checksForTarget } = await import("../src/design/service.js");
+        const result = await checksForTarget(soc, target, state.run);
+        for (const [name, value] of [
+          ["word0", 0x5555],
+          ["word1", 0x5556],
+        ]) {
+          const check = result.checks.find((c) => c.name === name);
+          assert.equal(check.verdict, "fail");
+          assert.equal(check.metrics[0].observed, value);
+        }
+      }
+      console.log("PASS wrong-firmware control rejected by " + target);
+    }
     if (!args.includes("--digital")) {
       if (!process.env.CHIPSIM_ORFS_ROOT)
         throw new Error(

@@ -19,12 +19,13 @@ function run(args, timeout = 30000) {
   assert.ifError(result.error);
   return result;
 }
-function waveform() {
+function waveform(increment = (enable) => enable) {
   let count = 0;
   const events = [];
   for (let cycle = 0; cycle < 80; cycle++) {
     const reset = [0, 27, 55].includes(cycle);
-    const enable = ![3, 4].includes(cycle % 7);
+    const enable =
+      cycle === 24 || (cycle !== 22 && ![3, 4].includes(cycle % 7));
     events.push({
       time: String(cycle * 10000),
       changes: {
@@ -33,7 +34,7 @@ function waveform() {
         "counter_tb.enable": String(Number(enable)),
       },
     });
-    count = reset ? 0 : (count + Number(enable)) % 16;
+    count = reset ? 0 : (count + Number(increment(enable, count))) % 16;
     events.push({
       time: String(cycle * 10000 + 5000),
       changes: {
@@ -90,6 +91,40 @@ test("evolution trusted waveform scorer checks observations, completeness, stimu
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test("counter scorer rejects a disabled wrap at 15 and replays its first failing edge", async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), "chipsim-counter-boundary-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const source = join(directory, "waveform.json"),
+    result = join(directory, "result.json"),
+    caseFile = join(directory, "case.json"),
+    benchmark = resolve("examples/evolution");
+  // Model the audit mutant: even without enable, count == 15 increments.
+  const wave = waveform((enable, count) => enable || count === 15);
+  await writeFile(source, JSON.stringify(wave));
+  const scored = run([join(benchmark, "trusted/score.py"), source, result]);
+  assert.equal(scored.status, 0, scored.stderr);
+  const metrics = JSON.parse(await readFile(result, "utf8"));
+  assert.equal(metrics.checks_passed, 75);
+  assert.equal(metrics.checks_total, 80);
+  const failure = metrics.failures[0];
+  assert.deepEqual(failure, {
+    cycle: 22,
+    inputs: { cycle: 22, clk: 1, reset: 0, enable: 0 },
+    expected: 15,
+    observed: "0000",
+  });
+  await writeFile(caseFile, JSON.stringify(failure));
+  const replayed = run([
+    join(benchmark, "replay_score.py"),
+    "counter",
+    source,
+    caseFile,
+    result,
+  ]);
+  assert.equal(replayed.status, 0, replayed.stderr);
+  assert.equal(JSON.parse(await readFile(result, "utf8")).reproduced, true);
 });
 
 test("evolution offline help/import has no OpenEvolve dependency", () => {

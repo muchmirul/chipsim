@@ -37,7 +37,7 @@ def score(wave):
             values.update(events[cursor]["changes"])
             cursor += 1
         reset = cycle in (0, 27, 55)
-        enable = cycle % 7 not in (3, 4)
+        enable = cycle == 24 or (cycle != 22 and cycle % 7 not in (3, 4))
         # Validate actual fixed stimulus, not just a candidate-reported result.
         for key, value in (("clk", 1), ("reset", int(reset)),
                            ("enable", int(enable))):

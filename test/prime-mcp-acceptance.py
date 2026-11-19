@@ -84,6 +84,20 @@ async def acceptance(args, runtime):
         for guide in ('connections', 'workbench'):
             reply = await call('resource_read', {'uri': 'chipsim://guide/' + guide})
             assert reply['mimeType'] == 'text/markdown' and reply['text']
+            if guide == 'workbench':
+                project = await call('project')
+                assert project['toolInventorySha256'] in reply['text']
+                assert f"**{len(tools)} MCP tools**" in reply['text']
+        # The exception on a tools-only host still carries the service's code.
+        ctx = await call('benchmark_prepare', {'benchmark': 'counter'})
+        rtl = (await call('resource_read', {'uri': ctx['candidateResource']}))['text']
+        try:
+            await call('benchmark_start', {'context': ctx['context'], 'content': rtl,
+                                           'candidateHash': '0' * 64, 'requestId': 'bad-digest'})
+            raise AssertionError('A mismatched candidate digest must fail before dispatch')
+        except McpToolError as error:
+            problem = json.loads(str(error))['error']
+            assert problem['code'] == 'CANDIDATE_HASH_MISMATCH' and not problem['details']['retryable']
         profiles = await call('manufacturing_profiles')
         assert profiles['profiles'][0]['id'] == 'tinytapeout-ihp-v1'
         assert (await call('project'))['root'] == str(roots[connection])
@@ -96,6 +110,7 @@ async def acceptance(args, runtime):
                           "await writeFile('result.json',JSON.stringify({value}));",
             'chipsim.design.json': json.dumps({
                 'format': 'chipsim-design', 'version': 1, 'id': 'prime-mcp-test',
+                'engineering': {'requirements': [{'id': 'two-inputs'}]},
                 'tasks': {'run': {
                     'adapter': 'command', 'inputs': ['input.txt', 'worker.mjs'],
                     'options': {'command': node, 'args': ['worker.mjs']},
@@ -135,7 +150,9 @@ async def acceptance(args, runtime):
             if state['state'] in ('completed', 'failed', 'cancelled', 'interrupted'):
                 break
         assert state['state'] == 'completed' and state['ready'], state
-        assert (await call('checks', {'target': 'simulation', 'run': state['run']}))['ready']
+        checks = await call('checks', {'target': 'simulation', 'run': state['run']})
+        assert checks['ready'] and checks['requirementCoverage']['status'] == 'unverified', checks
+        assert checks['requirementCoverage']['unverified'] == ['two-inputs'], checks
         page = await call('artifacts', {'run': state['run'], 'limit': 200})
         artifact = next(a for a in page['items'] if a['path'] == 'result.json')
         chunk = await call('artifact_read', {'artifact': artifact['id'], 'offset': 0, 'limit': 65536})
@@ -153,7 +170,8 @@ async def acceptance(args, runtime):
                           'manufacturing-discovery', 'structured-results',
                           'CAS-error-propagation', 'isolated-project-roots',
                           'managed-job', 'client-reload-durable-request-replay',
-                          'readiness', 'verified-binary-retrieval'],
+                          'target-vs-requirement-coverage', 'guide-inventory-match',
+                          'candidate-digest-error', 'verified-binary-retrieval'],
             'scope': 'Installed prime-agent rlm.mcp client and MCP transport; config RPC supplied by isolated harness. No model turn, provider call or user-settings mutation. Lifecycle fixture is not native EDA validation.',
             'validatedAt': datetime.now(timezone.utc).isoformat(),
             'testSha256': digest(Path(__file__).read_bytes()),

@@ -92,6 +92,13 @@ export async function packagingRaces(root, run, dependency) {
       );
       const published = state.run ? await store.get(state.run, "run") : null;
       assert.ok(!published?.readiness.ready);
+      for (const id of published?.artifacts || []) {
+        const artifact = await store.get(id, "artifact");
+        assert.ok(
+          !["submission.zip", "evidence.zip"].includes(artifact.path),
+          scenario + " exposed " + artifact.path,
+        );
+      }
       results.push({
         scenario,
         job: job.id,

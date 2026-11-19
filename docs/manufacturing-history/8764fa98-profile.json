@@ -1,0 +1,128 @@
+{
+  "format": "chipsim-manufacturing-acceptance",
+  "version": 1,
+  "profiles": {
+    "tinytapeout-ihp-v1": {
+      "digest": "0bb747d594079d6c104c8407a8fc3c4624d527e6e3b76267959cf11c688b991e",
+      "nativeAcceptance": true,
+      "validatedAt": "2026-11-16T08:39:02.893Z",
+      "command": "npm run test:manufacturing:matrix; official reproduction helper",
+      "scope": "Final-runtime cold-cache setup, four independent digital designs and required native release/archive gates; deterministic packaging races, owned-container cancellation, native bootstrap server-loss recovery and official helper delivery. Local Tiny Tapeout IHP handoff; manufacturer acceptance remains external.",
+      "runtime": {
+        "sha256": "8764fa98a1e6f36ed286e1cfc3a2fbf6af82371159c94a3506bee9f6bb475204",
+        "node": "22.23.2",
+        "platform": "linux",
+        "arch": "x64"
+      },
+      "fixture": "test/fixtures/manufacturing.mjs",
+      "fixtureSha256": "ab80bcf46abb29cfa6a49f12ed52c793b67d1753ce8fa65a5c532c9f4856445f",
+      "sourceRun": "9ba0392ff4b55094cb505a9e6555ac7378133fac8ca81d36b095eb5827b9ec28",
+      "packageRun": "9a5b18ec94cb334d4629b9b21b5ef762539afe510c47fe166b896a79bac0251f",
+      "requiredChecks": [
+        {
+          "name": "rtl:tests",
+          "verdict": "pass",
+          "check": "4497ca21968b6e5c6c6400fc10565728e4d657e7157e4fd743a28301caad4630"
+        },
+        {
+          "name": "rtl:outputs",
+          "verdict": "pass",
+          "check": "f96bb14ac45ff2ac4eeae4cacff3efb146424c7637a804d547ff2b81b9a358b4"
+        },
+        {
+          "name": "synthesis:synthesis",
+          "verdict": "pass",
+          "check": "a69b3042af6f3479de2dd5856dac57b55099f1e060124b6032d65a96020d9640"
+        },
+        {
+          "name": "synthesis:outputs",
+          "verdict": "pass",
+          "check": "5320dd2e64c7d98f2f4ff98a0d2face1132ea2d79a07c38a6b6e2c48e39c16cd"
+        },
+        {
+          "name": "physical:outputs",
+          "verdict": "pass",
+          "check": "4cf1d798078ecea709b74adc40957e9d887b6d2d2c3af307c4425778502fc6fd"
+        },
+        {
+          "name": "physical:timing",
+          "verdict": "pass",
+          "check": "af7d06845cf090c054405fb1c0e1f419c5cdbe59b8728c62901c5dd1e954e883"
+        },
+        {
+          "name": "physical:drc",
+          "verdict": "pass",
+          "check": "16ce19ca6edc52d0511810fbc9cc6605892edad131f89fe29bb3911609a07fdf"
+        },
+        {
+          "name": "physical:lvs",
+          "verdict": "pass",
+          "check": "33f422bf4bc1408a95aef231af1077e9ae8326b01da56194d07d9827e631e52f"
+        },
+        {
+          "name": "physical:precheck",
+          "verdict": "pass",
+          "check": "5307646cd9d19431a34ee8e8a3ab0868bc5235c75ddf1a26ea2c4fdd1fc78b6c"
+        },
+        {
+          "name": "gate:tests",
+          "verdict": "pass",
+          "check": "3ade3ea94d3e5d83d9616bebccc45ab5b6b4169e7745236bce543d56e69383af"
+        },
+        {
+          "name": "gate:outputs",
+          "verdict": "pass",
+          "check": "1e5565bebd7a4bd03b9a46b394193041ea74a7231f0181186f40f7e2fd09c2cb"
+        }
+      ],
+      "archive": {
+        "artifact": "55f96b48827a3cf911400561ed675c81df8dc40ee9a77b7cfc68546b7c416c91",
+        "sha256": "12b4692e0a89a05cbcec42e8feade25b74f8a35089e609dfeda010accea4dd86",
+        "bytes": 147098
+      },
+      "evidenceArchive": {
+        "artifact": "b73214fbbc284ef95bb7d5d9007b86e4e404b99ea16fe737e3f136677eada260",
+        "sha256": "014a2ef6576b3e7e16cb1fd844b099a89c662cbd342760f1940b955c001fb2b0",
+        "bytes": 18246086
+      },
+      "archivePrecheck": {
+        "cases": 10,
+        "verdict": "pass",
+        "artifact": "b9c0071f426def367eac5b049e4fde700a72e0b3dbc2188243d79501bd1e4ff0",
+        "sha256": "bfab2290670d150fbd4e5a0b0cc265aa2a6f4fde08ba4c4049c723b38021fed9",
+        "bytes": 628
+      },
+      "testLogSha256": "cd915d1da4c54202d0798439318439c1a036e75087259db994cee2a9cb5e3198",
+      "matrixRecord": "docs/manufacturing-reliability-acceptance.json",
+      "scenarios": [
+        "queued cancellation",
+        "running cancellation",
+        "unrelated process preservation",
+        "concurrent retries",
+        "source/policy/dependency changes during execution",
+        "worker crash before publication",
+        "worker crash after publication",
+        "dead mutation lock",
+        "response limits",
+        "disconnect after first chunk",
+        "partial chunk prefix",
+        "corrupted prefix",
+        "corrupted chunk",
+        "changed identity",
+        "invalid cursor",
+        "destination conflict",
+        "exclusive destination publication",
+        "symlinked partial file",
+        "source",
+        "policy",
+        "dependency",
+        "late-source",
+        "cancel",
+        "native-owned-container-cancellation",
+        "partial-bootstrap-server-death",
+        "completed-bootstrap-lost-reply",
+        "four-design-native-release-and-package"
+      ]
+    }
+  }
+}

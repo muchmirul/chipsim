@@ -439,3 +439,129 @@ test(
     );
   },
 );
+
+test(
+  "stdio candidate selectors, durable handoff and conflict detection",
+  { skip: !enabled },
+  async (t) => {
+    const root = await mkdtemp(join(tmpdir(), "chipsim-candidate-sdk-"));
+    t.after(() => rm(root, { recursive: true, force: true }));
+    const a = await connect(root, t),
+      b = await connect(root, t);
+    const original = await a.call("file_write", {
+      path: "design.v",
+      text: "root",
+      expectedHash: null,
+    });
+    const created = await a.call("candidate_create", {
+      label: "one",
+      requestId: "create",
+    });
+    const candidate = created.id;
+    const edited = await b.call("file_write", {
+      candidate,
+      path: "design.v",
+      text: "candidate",
+      expectedHash: original.sha256,
+    });
+    assert.equal(
+      (await b.call("candidate_create", { label: "one", requestId: "create" }))
+        .id,
+      candidate,
+    );
+    assert.equal(
+      (await b.call("candidate_list", { requestId: "create" })).items[0].id,
+      candidate,
+    );
+    const uri = "chipsim://project/files/design.v";
+    assert.equal(
+      JSON.parse((await b.call("resource_read", { candidate, uri })).text)
+        .result.sha256,
+      edited.sha256,
+    );
+    const child = (
+      await b.call("candidate_create", { candidate, label: "child" })
+    ).id;
+    assert.equal(
+      (await b.call("file_read", { candidate: child, path: "design.v" }))
+        .sha256,
+      edited.sha256,
+    );
+    assert.equal(
+      (
+        await a.raw("resource_read", {
+          candidate,
+          uri: uri + "?candidate=" + child,
+        })
+      ).error.code,
+      "CANDIDATE_CONFLICT",
+    );
+    const delta = await b.call("candidate_diff", { candidate });
+    assert.equal(delta.items[0].before.sha256, original.sha256);
+    const changed = await a.call("file_write", {
+      path: "design.v",
+      text: "other",
+      expectedHash: original.sha256,
+    });
+    const apply = {
+      candidate,
+      expectedRevision: delta.baseRevision,
+      expectedCandidateRevision: delta.revision,
+    };
+    assert.equal(
+      (await b.raw("candidate_apply", apply)).error.code,
+      "EDIT_CONFLICT",
+    );
+    await a.call("file_write", {
+      path: "design.v",
+      text: "root",
+      expectedHash: changed.sha256,
+    });
+    assert.equal(
+      (await b.call("candidate_apply", apply)).revision,
+      delta.revision,
+    );
+    assert.equal(
+      (await a.call("file_read", { path: "design.v" })).sha256,
+      edited.sha256,
+    );
+  },
+);
+
+test(
+  "tools-only benchmark baseline is readable and can be run without authoring RTL",
+  { skip: !enabled || process.env.CHIPSIM_TEST_BENCHMARK !== "1" },
+  async (t) => {
+    const root = await mkdtemp(join(tmpdir(), "chipsim-baseline-sdk-"));
+    t.after(() => rm(root, { recursive: true, force: true }));
+    const { client, call } = await connect(root, t);
+    const { resourceTemplates } = await client.listResourceTemplates();
+    assert.ok(
+      resourceTemplates.some(
+        (template) =>
+          template.uriTemplate ===
+          "chipsim://project/benchmark-baseline/{context}{?candidate}",
+      ),
+    );
+    const prepared = await call("benchmark_prepare", { benchmark: "counter" });
+    const { text } = await call("resource_read", {
+      uri: prepared.candidateResource,
+    });
+    const { createHash } = await import("node:crypto");
+    assert.equal(
+      createHash("sha256").update(text).digest("hex"),
+      prepared.candidateHash,
+    );
+    const job = await call("benchmark_start", {
+      context: prepared.context,
+      candidateHash: prepared.candidateHash,
+      content: text,
+      requestId: "baseline",
+    });
+    assert.equal((await finish(call, job.id)).state, "completed");
+    assert.equal(
+      (await call("benchmark_result", { job: job.id })).accepted,
+      false, // The built-in counter is a deliberately failing starting candidate.
+    );
+  },
+);

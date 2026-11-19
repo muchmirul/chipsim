@@ -48,6 +48,19 @@ test("installed help, model context and MCP resources share every current topic 
   assert.deepEqual(context.documentation, help.documentation);
   assert.deepEqual(context.connections, help.connections);
   assert.deepEqual(help.connections, agentConnections());
+  const { text: guide } = (
+    await wb.call("resource_read", {
+      uri: help.connections.mcp.resources.workflow,
+    })
+  ).result;
+  const { serverVersion, toolInventorySha256 } = (await wb.call("project", {}))
+    .result;
+  assert.ok(
+    guide.includes(
+      `ChipSim \`${serverVersion}\` with **${workbenchTools.length} MCP tools**`,
+    ),
+  );
+  assert.ok(guide.includes(`\`toolInventorySha256\` \`${toolInventorySha256}\``));
   for (const name of agentDocumentation) {
     assert.equal(help.documentation[name], join(packageRoot, "docs", name));
     const resource = workbenchResources.find(

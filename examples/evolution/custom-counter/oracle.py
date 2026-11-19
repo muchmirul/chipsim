@@ -37,7 +37,7 @@ def score(wave):
             values.update(events[cursor]["changes"])
             cursor += 1
         reset = cycle in (0, 27, 55)
-        enable = cycle % 7 not in (3, 4)
+        enable = cycle == 24 or (cycle != 22 and cycle % 7 not in (3, 4))
         # Validate actual fixed stimulus, not just a candidate-reported result.
         for key, value in (("clk", 1), ("reset", int(reset)),
                            ("enable", int(enable))):
@@ -49,7 +49,8 @@ def score(wave):
         if actual == expected:
             passed += 1
         elif len(failures) < 12:
-            failures.append({"cycle": cycle, "expected": expected, "observed": bits})
+            failures.append({"cycle": cycle, "inputs": {"cycle": cycle, "reset": int(reset), "enable": int(enable)},
+                             "expected": expected, "observed": bits})
     return {"combined_score": passed / CYCLES, "checks_passed": passed,
             "checks_total": CYCLES, "failures": failures,
             "scope": "80 fixed sampled counter observations; no equivalence or PPA claim"}

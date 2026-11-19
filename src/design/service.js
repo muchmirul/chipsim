@@ -2,6 +2,20 @@ import { loadDesign, planDesign } from "./project.js";
 import { listJobs, evaluateChecks } from "./jobs.js";
 import { verifyEvidence } from "./evidence.js";
 import { identity } from "./store.js";
+import { summarizeRequirementEvidence } from "../manufacturing/coverage.js";
+
+function graphIdentity(plan) {
+  if (!plan) return null;
+  return identity(
+    plan.tasks
+      .map(({ task, fingerprint, needs }) => ({
+        task,
+        fingerprint,
+        needs: [...needs].sort(),
+      }))
+      .sort((a, b) => a.task.localeCompare(b.task)),
+  );
+}
 
 export async function projectSummary(
   path,
@@ -47,6 +61,7 @@ export async function projectSummary(
     }
     let stale = run.provenance === "unknown" ? "unknown" : false;
     const tasks = [];
+    let comparison;
     if (run.plan && valid) {
       const old = await store.get(run.plan, "execution-plan"),
         current = targetPlans.get(run.target);
@@ -58,12 +73,48 @@ export async function projectSummary(
           (!now ||
             now.fingerprint !== task.fingerprint ||
             task.needs.some((d) => changed.has(d)));
-        if (outdated) changed.add(task.task);
-        tasks.push({ task: task.task, stale: outdated });
+        const dependenciesChanged =
+          now &&
+          identity([...now.needs].sort()) !== identity([...task.needs].sort());
+        const reason = !now
+          ? "removed"
+          : dependenciesChanged
+            ? "dependencies"
+            : now.fingerprint !== task.fingerprint
+              ? "fingerprint"
+              : outdated
+                ? "upstream"
+                : null;
+        if (freshness && reason) changed.add(task.task);
+        tasks.push({
+          task: task.task,
+          stale: freshness && !!reason,
+          ...(freshness && reason ? { reason } : {}),
+        });
       }
-      stale = freshness && (!current || tasks.some((t) => t.stale));
+      if (freshness) {
+        const captured = new Set(old.tasks.map((t) => t.task));
+        for (const task of current?.tasks || [])
+          if (!captured.has(task.task))
+            tasks.push({ task: task.task, stale: true, reason: "added" });
+        comparison = {
+          capturedGraph: graphIdentity(old),
+          currentGraph: graphIdentity(current),
+          capturedPolicy: identity(old.policy),
+          currentPolicy: current ? identity(current.policy) : null,
+        };
+        stale =
+          !current || comparison.capturedGraph !== comparison.currentGraph;
+      }
     }
-    summaries.push({ ...run, valid, error, stale, taskFreshness: tasks });
+    summaries.push({
+      ...run,
+      valid,
+      error,
+      stale,
+      comparison,
+      taskFreshness: tasks,
+    });
   }
   return {
     project: { id: config.id, name: config.name },
@@ -89,6 +140,7 @@ export async function checksForTarget(path, target, runId, existingSummary) {
   if (!run?.plan)
     return {
       ready: false,
+      requirementCoverage: summarizeRequirementEvidence(null, []),
       reason: "No captured run for target",
       required: (config.targets[target]?.requiredChecks || []).map((name) => ({
         name,
@@ -99,6 +151,7 @@ export async function checksForTarget(path, target, runId, existingSummary) {
     return {
       ready: false,
       run: run.id,
+      requirementCoverage: summarizeRequirementEvidence(null, []),
       reason: run.error,
       required: (config.targets[target].requiredChecks || []).map((name) => ({
         name,
@@ -109,13 +162,10 @@ export async function checksForTarget(path, target, runId, existingSummary) {
   const attempts = await Promise.all(
     run.attempts.map((id) => store.get(id, "attempt")),
   );
-  const currentPolicy = config.targets[run.target];
-  if (!currentPolicy) return { ready: false, reason: "Target was removed" };
-  const evaluated = await evaluateChecks(
-    store,
-    { ...plan, policy: currentPolicy },
-    attempts,
-  );
+  const evaluated = await evaluateChecks(store, plan, attempts, {
+    policy: config.targets[target],
+    requirements: config.engineering?.requirements ?? [],
+  });
   for (const required of evaluated.required) {
     const task = required.name.slice(0, required.name.indexOf(":"));
     if (run.taskFreshness.find((t) => t.task === task)?.stale)
@@ -124,9 +174,16 @@ export async function checksForTarget(path, target, runId, existingSummary) {
   }
   return {
     ...evaluated,
+    comparison: run.comparison,
+    changes: run.taskFreshness.filter((t) => t.stale),
+    ...(run.stale
+      ? { reason: "Target execution graph changed", reasonCode: "STALE_PLAN" }
+      : {}),
     run: run.id,
     ready:
+      evaluated.ready &&
       run.valid &&
+      run.stale === false &&
       run.state === "completed" &&
       evaluated.required.length > 0 &&
       evaluated.required.every((r) => r.verdict === "pass"),
@@ -198,6 +255,7 @@ export async function targetStatus(path, target) {
     target,
     targets: Object.keys(config.targets),
     ready: checks.ready,
+    requirementCoverage: checks.requirementCoverage,
     required: checks.required,
     reason: checks.reason,
     errors: summary.errors,

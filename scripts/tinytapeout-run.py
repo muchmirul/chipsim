@@ -8,6 +8,7 @@ physical configuration and native check algorithms remain upstream.
 import hashlib
 import json
 import math
+import re
 import os
 from pathlib import Path
 import subprocess
@@ -61,10 +62,30 @@ def main():
             for key in nonfinite:
                 data[key] = None
             inventory = []
-            for path in [native, resolved, *sorted((root / "runs/wokwi/final").rglob("*.sdc"))]:
+            corners = json.loads(resolved.read_text()).get("STA_CORNERS") or []
+            coverage = {}
+            sta_files = []
+            for corner in corners:
+                sets = sorted(native.parent.parent.glob("*-openroad-stapostpnr/" + corner))
+                if len(sets) != 1:
+                    continue
+                clocks, checks = sets[0] / "clock.rpt", sets[0] / "checks.rpt"
+                if clocks.is_file() and checks.is_file():
+                    sta_files.extend([clocks, checks])
+                    text = checks.read_text()
+                    count = re.search(r'There (?:are|is) (\d+) unconstrained endpoint', text, re.I)
+                    coverage[corner] = {
+                        "clocks": re.findall(r'^Clock: (\S+)', clocks.read_text(), re.M),
+                        "timedPathGroups": sorted(set(re.findall(r'^Path Group: (\S+)', text, re.M))),
+                        "unconstrainedEndpoints": int(count[1]) if count else None,
+                    }
+            exceptions = []
+            for path in [native, resolved, *sta_files, *sorted((root / "runs/wokwi/final").rglob("*.sdc"))]:
                 content = path.read_bytes()
+                if path.suffix == ".sdc":
+                    exceptions.extend(re.findall(r'^set_(?:false_path|multicycle_path|clock_groups|max_delay|min_delay)\b[^\n]*', content.decode(), re.M))
                 inventory.append({"path": str(path.relative_to(root)), "bytes": len(content), "sha256": hashlib.sha256(content).hexdigest()})
-            report = {"metrics": data, "nonfinite": nonfinite, "sources": inventory, "corners": json.loads(resolved.read_text()).get("STA_CORNERS")}
+            report = {"metrics": data, "nonfinite": nonfinite, "sources": inventory, "corners": corners, "clockCoverage": coverage, "timingExceptions": exceptions}
             (root / "out/physical.json").write_text(json.dumps(report, indent=2, allow_nan=False))
 
 

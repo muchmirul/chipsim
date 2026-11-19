@@ -40,7 +40,11 @@ export async function start(args) {
     const result = await workbench.call(name, request.params.arguments || {}, {
       signal: extra.signal,
     });
-    validate(resultSchema, result);
+    validate(
+      workbench.tools.find((tool) => tool.name === name)?.outputSchema ||
+        resultSchema,
+      result,
+    );
     return {
       content: [{ type: "text", text: JSON.stringify(result) }],
       structuredContent: result,
@@ -84,6 +88,11 @@ export async function start(args) {
           "chipsim://project/artifacts/{id}{?candidate,benchmarkJob,offset,limit}",
         name: "Verified evidence",
         mimeType: "application/json",
+      },
+      {
+        uriTemplate: "chipsim://project/benchmark-baseline/{context}{?candidate}",
+        name: "Frozen benchmark baseline",
+        mimeType: "text/plain",
       },
     ],
   }));

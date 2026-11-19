@@ -10,7 +10,38 @@ and `capabilityContracts` paths. These labels do not establish verification.
 
 ## Install and connect
 
-Open `chipsim_project({})` first. Confirm the returned `root` before editing or starting a job. Use `serverVersion`, `toolInventorySha256` and the live MCP `tools/list` schemas to identify the actual server. Check `diagnostic` when targets are missing or the manifest is an invalid draft. For one-file scoring read `chipsim://guide/evolution`. For persistent search and goal tracking, use the separately registered Pi Durable connection when requested.
+Open `chipsim_project({})` first. Confirm the returned `root` before editing or starting a job. Check `diagnostic` when targets are missing or the manifest is an invalid draft. For one-file scoring read `chipsim://guide/evolution`. For persistent search and goal tracking, use the separately registered Pi Durable connection when requested.
+
+### Check your connection's version
+
+This guide describes ChipSim `0.3.0` with **40 MCP tools** and
+`toolInventorySha256` `c60f0c84932a2ad70116c61df48a773308e06dc1d2400b86199e50ddaae596f5`.
+Compare both `serverVersion` and `toolInventorySha256` in the `chipsim_project`
+result. Source checkouts can change their tools within the same package version.
+A running stdio server keeps the tool definitions it loaded at startup, while
+a guide read can pick up newer files from disk.
+
+If either value differs, reconnect the ChipSim MCP session so the client starts
+a fresh server from the intended installation. Call `chipsim_project` again
+and refresh discovery with `tools/list`. On a tools-only host, read
+`chipsim://schema/tools` through `chipsim_resource_read` for the server's
+current schemas. Confirm the same project root and resume jobs with their
+existing request IDs or job IDs. If the client manages the connection, ask it
+to reload the MCP session before using any newly advertised operation.
+
+### Changes in this inventory
+
+- Use `chipsim_environment_check` to inspect prerequisites before setup.
+- Recover isolated work with `chipsim_candidate_list`, review it with
+  `chipsim_candidate_diff`, and apply it with `chipsim_candidate_apply`.
+- Transfer a verified evidence bundle to another project with
+  `chipsim_evidence_import`. Use the original request ID to resume an upload.
+- Use `candidateResource` from `chipsim_benchmark_prepare` to read the frozen
+  baseline. The resource works through both resource APIs.
+- Read `comparison` and `changes` in release discovery. A changed task graph
+  blocks packaging. Policy-only changes re-evaluate verified evidence and may
+  require a new package. Inspect the structured requirement, proof and timing
+  fields before reporting readiness.
 
 Start with [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md) for CLI/native/MCP
 selection and a client process descriptor. MCP exposes the workbench family
@@ -80,6 +111,8 @@ Use the `chipsim_` prefixes for the operations in this table. The live inventory
 
 Read successful results from `structuredContent` where the client exposes it. Some tools-only clients return the decoded object directly. Other clients expose the equivalent JSON text content. Read `ok` and then `result` or `error.code` and `error.message`. MCP reports `isError` when `ok` is false. For `EDIT_CONFLICT`, reread and reconcile the edit. For `REQUEST_CONFLICT`, distinguish recovery of the existing action from a genuinely new request.
 
+For `benchmark_result`, `BENCHMARK_PENDING` means the original job is still running; poll it. A `CANDIDATE_HASH_MISMATCH` on `benchmark_start` will not resolve by retrying. A failed benchmark job can still have a verified diagnostic report. Read the returned `artifact` without `benchmarkJob` for the full outer report; use `evidence.benchmarkJob` with a native stage artifact from `formal.diagnostics`. Do not treat diagnostics (`measured: false`, `score: null`) as a scored design. See [EVOLUTION.md](EVOLUTION.md#score-a-candidate-over-mcp).
+
 ## Agent loop
 
 1. Discover `chipsim_project`, list/search/read files. Build `chipsim.design.json`
@@ -105,6 +138,8 @@ Read successful results from `structuredContent` where the client exposes it. So
    tests and declared constraints fixed. A failure is evidence, not permission to
    weaken acceptance criteria. Export includes captured sources/configuration,
    tool/dependency identities and native outputs; install those tools to reproduce.
+
+For a selected run, read `checks.ready` as a verdict on that target, not on the whole project. `requirementCoverage` summarizes the declarations and evidence policy captured **for that run**: `covered` and `unverified` list requirement IDs. A declared ID needs applicable evidence rules and verified passing evidence for each; a waiver is not proof. For example, `ready: true` with `requirementCoverage.status: "unverified"` means the target passed but no declared requirement was demonstrated. `not-declared` is not a verification pass, and `unavailable` means no usable captured run. Inspect `requirementResults` and `comparison` separately when evaluating current policy.
 
 For example, use these arguments for an explicitly authorized run when `project` lists a target named `simulation`. Replace the example request ID with a unique value for this run. If working in an isolated candidate, include the same `candidate` ID from inspection through evidence retrieval.
 
@@ -270,3 +305,15 @@ inspection never executes configured tools or mutates orphan job state.
 Structured diagnostics use an explicit recorded failing case when available,
 list multiple failed cases, and leave unknown attribution null. Both native
 process failures and zero-exit reports containing failures remain nonpassing.
+
+## Readiness and handoff between clients
+
+`checks` and `release_status` compare the captured target's full execution graph with the current graph. Inspect `comparison` for captured and current graph and policy digests and `changes` for the affected tasks. An added independent task requires a passing run of the changed target. A change confined to the target policy can reuse captured checks that satisfy the new policy. A completed simulation-only project reaches the terminal `verified` stage.
+
+Use `environment_check` before selecting a target or starting manufacturing setup. Its observer section describes locally installed debug capabilities. Supplying a target inspects its executable paths without running configured version commands. A profile cache reported present still needs the ordinary pinned setup verification.
+
+Use `candidate_create` with a stable `requestId` to recover the same candidate after a lost reply. A candidate selector on creation identifies its parent. `candidate_list` accepts a request ID and pagination. `resource_read` inherits an explicit candidate for project URIs and reports a conflict if the URI names a different candidate. `benchmark_prepare` provides a read-only `candidateResource` and the SHA-256 of the captured baseline.
+
+1. Read `candidate_diff` for the candidate's base revision, current revision and changed file digests. Page through all changes and read candidate file contents as needed.
+2. Send `candidate_apply` with `candidate`, `expectedRevision` equal to the base, and `expectedCandidateRevision` equal to the reviewed revision. The destination is the candidate's original parent. A conflicting edit returns `EDIT_CONFLICT`. Accepted changes have a recovery receipt in the destination until its revision matches the selected candidate.
+3. To deliver manufacturing evidence to a second project, read the package job's `evidence.zip` with `artifact_read` and pass each chunk's `offset` and base64 `data` to the receiving project's `evidence_import`. Use the same `requestId`, whole-file `sha256` and total `bytes` throughout. Omit data to query the next offset after a reconnect. Use `finish:true` on the final chunk. The receiver validates the ZIP and its complete evidence closure before publishing its root. Verify the returned ID with `evidence`.

@@ -362,4 +362,6 @@ Contributors: `npm ci`, `npm test`, `npm run verify`. Public checks explicitly s
 
 An original [Tiny Tapeout power-controller chip](example/power-controller/README.md) demonstrates the complete MCP workflow with PWM, power-good startup supervision, latched faults, 14 public-pin acceptance cases and validated delivery archives.
 
+A passing target is not proof of every project requirement: inspect `checks.requirementCoverage`. For one-file benchmarks, only rank results with `measured: true`; a failed proof can still provide a diagnostic report.
+
 The [guided MCP workflow](docs/WORKBENCH_MCP.md#guided-workflow-and-resumable-client) adds workflow discovery, resumable SDK operations and evidence-linked failure diagnostics. See the [reliability coverage](docs/MCP_RELIABILITY.md) and `npm run test:manufacturing:matrix` for native validation across four digital designs.

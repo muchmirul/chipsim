@@ -215,6 +215,13 @@ If a manual does not specify enough behavior, report the gap and offer an explic
 
 ## Finishing changes
 
+For changes that affect MCP, update the agent-facing behavior under
+`chipsim://guide/workbench` in `docs/WORKBENCH_MCP.md`. If the tool contracts
+change, take the expected tool count from `chipsim workbench tools` and the
+package version and inventory fingerprint from `chipsim_project` on a fresh
+MCP server. Verify the guide is readable using `chipsim_resource_read` and
+that the new server agrees with it.
+
 For every added feature or behavior change, update its topic guide and add a `docs/CHANGELOG.md` entry. Document the original problem or use case, the action/command that triggers it, the observable behavior, applicable limits and preserved state, implementation pointers, and meaningful regression coverage. Document each distinct behavior individually; a list of changed files is insufficient. Keep instructions discoverable from the README and agent workflow. When an agent-project workflow changes, update the prepared-project instructions and copied documentation as needed. See `docs/DEVELOPMENT.md` for the entry format.
 
 Run the checks appropriate to what changed. Keep `README.md` and model documentation aligned with actual behavior. Report what works, what was tested, and material remaining limits. Describe automatic simulation only for the actually compiled scope: a reviewed profile, a validated supported function table, or an authored model linked to that PDF. Never describe arbitrary unfamiliar PDF import as automatic chip simulation unless the implementation actually models that chip behavior and has been verified.

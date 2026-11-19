@@ -165,6 +165,12 @@ export async function tinyTapeoutChecks(task, workspace, execution) {
         image: o.image,
         pdkRevision: o.pdkRevision,
         corners: report?.corners,
+        ...(name === "timing"
+          ? {
+              clockCoverage: report?.clockCoverage ?? null,
+              timingExceptions: report?.timingExceptions ?? null,
+            }
+          : {}),
         units: { time: "ns", area: "um^2", count: "count" },
         dependencies: task.dependencies,
         constraints:
