@@ -10,6 +10,8 @@ and `capabilityContracts` paths. These labels do not establish verification.
 
 ## Install and connect
 
+Open `chipsim_project({})` first. Confirm the returned `root` before editing or starting a job. Use `serverVersion`, `toolInventorySha256` and the live MCP `tools/list` schemas to identify the actual server. Check `diagnostic` when targets are missing or the manifest is an invalid draft. For one-file scoring read `chipsim://guide/evolution`. For persistent search and goal tracking, use the separately registered Pi Durable connection when requested.
+
 Start with [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md) for CLI/native/MCP
 selection and a client process descriptor. MCP exposes the workbench family
 listed by tools/list, not all CLI families. Native tools use the packaged Node
@@ -47,9 +49,7 @@ automatically so valid 1 MiB file writes are not limited by argv size.
 
 Native Pi/prime-agent extensions expose `chipsim_workbench_TOOL` with the same
 schemas plus an explicit `project`; `chipsim_command` also accepts this family.
-`chipsim://guide/connections`, `chipsim://guide/workbench` and
-`chipsim://schema/tools` expose connection guidance, the workflow and
-schemas. All current agent guides are also listed under `chipsim://docs/NAME.md`,
+`chipsim://guide/connections` covers setup, `chipsim://guide/workbench` is this guide and `chipsim://schema/tools` describes the shared schemas with unprefixed workbench names. MCP `tools/list` gives the actual `chipsim_` tool names and schemas. Additional agent guides are listed under `chipsim://docs/NAME.md`,
 from the same inventory as installed help and prepared-project copies.
 Resource discovery also lists the detailed design/HDL/debug/physical
 guides and all ten programmable starter files (including README) under
@@ -61,8 +61,24 @@ Hosts that expose tools without resource APIs can call
 `chipsim_resource_read({uri: "chipsim://guide/connections"})`, then read
 `chipsim://guide/workbench`. It returns `{uri, mimeType, text}` in the normal
 workbench result envelope and uses the same resource allowlist and bounds.
-For project files/artifacts, carry the candidate and paging parameters in the
-URI. This tool does not read arbitrary host paths.
+Put candidate and paging parameters in project resource URIs. Native stage artifact URIs may also carry `benchmarkJob`. Read `candidateResource` when benchmark preparation returns it. Resource reads are scoped to this server.
+
+## Find the right tool
+
+Use the `chipsim_` prefixes for the operations in this table. The live inventory determines what's available, including `environment_check`, `candidate_list`, `candidate_diff`, `candidate_apply` and `evidence_import`. Check `tools/list` when reconnecting to a different installation.
+
+| Need | Operations |
+| --- | --- |
+| Inspect project and tool prerequisites | `project`, `environment_check`, `workflow_status`, `resource_read` |
+| Find, read and edit project text | `file_list`, `file_read`, `file_search`, `file_write`, `revision` |
+| Work in a candidate and apply a reviewed change | `candidate_create`, `candidate_list`, `candidate_diff`, `candidate_apply` |
+| Plan and run a design target | `validate`, `plan`, `job_start`, `job_status`, `job_logs`, `job_cancel`, `job_retry`, `checks` |
+| Run one frozen benchmark measurement | `benchmark_prepare`, `benchmark_start`, `benchmark_result` |
+| Inspect or transfer evidence | `artifacts`, `artifact_read`, `evidence`, `compare`, `export`, `evidence_import` |
+| Inspect captured hardware, waveforms or source | `hardware`, `trace`, `source`, `differences`, `snapshot` |
+| Prepare or deliver a pinned manufacturing project | `manufacturing_profiles`, `environment_setup`, `project_bootstrap`, `release_status`, `release_package` |
+
+Read successful results from `structuredContent` where the client exposes it. Some tools-only clients return the decoded object directly. Other clients expose the equivalent JSON text content. Read `ok` and then `result` or `error.code` and `error.message`. MCP reports `isError` when `ok` is false. For `EDIT_CONFLICT`, reread and reconcile the edit. For `REQUEST_CONFLICT`, distinguish recovery of the existing action from a genuinely new request.
 
 ## Agent loop
 
@@ -73,13 +89,13 @@ URI. This tool does not read arbitrary host paths.
    means create only. Conflicts return `EDIT_CONFLICT`; read again before retrying.
    Writes atomically replace one file. Invalid drafts remain available. Candidate
    copies have their own jobs/evidence; pass their ID on every relevant call.
-3. Validate a target, capture a plan, then start it with a unique `requestId`.
+3. Validate a target and use `plan` to inspect captured inputs and tool identities when needed. The plan probes configured tools. Start the target with a unique `requestId`.
    A repeated request ID with the same target/options returns the same job even
    after reconnect and source edits, including missing or invalid design/lock
    drafts. Only new request IDs validate the current manifests. Different
    parameters still return `REQUEST_CONFLICT` while drafts are invalid.
    Use a new ID for a new run; `job_retry` reuses the original snapshot explicitly.
-4. Poll status and byte-cursor logs. Accepted, executing, process completion,
+4. Poll status and byte-cursor logs. Call `job_status` with exactly one of `job` or `requestId`. Pass the same `candidate` if the job was created in a candidate. A request lookup that returns `state: "unknown"` has no recorded binding in this scope. Recover a lost submission by replaying the same arguments and ID. Pass the returned log cursor as the next `offset`. Accepted, executing, process completion,
    simulation, capture and target readiness are separate facts. Bounded waiting or
    disconnecting never cancels a job. `job_cancel` explicitly stops owned processes.
 5. Inspect actual checks and verified artifacts, including failures, partial
@@ -90,15 +106,24 @@ URI. This tool does not read arbitrary host paths.
    weaken acceptance criteria. Export includes captured sources/configuration,
    tool/dependency identities and native outputs; install those tools to reproduce.
 
+For example, use these arguments for an explicitly authorized run when `project` lists a target named `simulation`. Replace the example request ID with a unique value for this run. If working in an isolated candidate, include the same `candidate` ID from inspection through evidence retrieval.
+
+| MCP tool | Arguments and value to retain |
+| --- | --- |
+| `chipsim_environment_check` (when listed) | `{"target":"simulation"}` to inspect prerequisites. |
+| `chipsim_validate` | `{"target":"simulation"}` to check the manifest and inputs. |
+| `chipsim_job_start` | `{"target":"simulation","requestId":"run-counter-01"}`. Save the returned job `id`. |
+| `chipsim_job_status` | `{"requestId":"run-counter-01","waitMs":1000}` or `{"job":"JOB_UUID"}`. Save the returned `run` when published. |
+| `chipsim_checks` | `{"target":"simulation","run":"RUN_SHA256"}`. Check `ready`, the source comparison and each required verdict. |
+| `chipsim_artifacts` | `{"run":"RUN_SHA256"}`. Follow a selected artifact ID through `chipsim_evidence` or `chipsim_artifact_read`. |
+
 Files are UTF-8, at most 1 MiB, with 32,768-code-point response pages; text offsets count
 Unicode code points. Search is literal, returning lines, hashes and skipped-file
 counts. Lists/graphs/events use offset pagination (maximum 200 items). Responses
 are bounded to 512 KiB. Symlinks, traversal and internal store/dependency edits are
 rejected. Content hashes and cooperating-client locks prevent lost updates; an
 external editor must coordinate with an in-progress write. If a process dies
-while holding a mutation lock, `PROJECT_BUSY` reports its owner and path. Stop
-clients and remove that stale lock before retrying; ChipSim never silently steals
-it. Candidate edits are isolated files, not an atomic multi-file edit of the
+while holding a mutation lock, `PROJECT_BUSY` reports its owner and path. Confirm the recorded owner is dead and all cooperating clients have stopped before explicitly removing a stale lock. Candidate edits are isolated files, not an atomic multi-file edit of the
 original root. Select a candidate directory for continued development.
 
 Benchmark evaluation uses the same managed jobs and supports recovery by request ID. See [standalone benchmarking and durable search](EVOLUTION.md#standalone-benchmarking-and-durable-search) for capture, measurement and report inspection.

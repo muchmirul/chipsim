@@ -58,6 +58,9 @@ const guides = {
   debug: "HDL_DEBUG.md",
   physical: "TINYTAPEOUT.md",
   manufacturing: "MANUFACTURING.md",
+  reliability: "MCP_RELIABILITY.md",
+  evolution: "EVOLUTION.md",
+  "evolution-objectives": "EVOLUTION_OBJECTIVES.md",
   circuit: "CONNECTED_CIRCUITS.md",
 };
 const starterFiles = [

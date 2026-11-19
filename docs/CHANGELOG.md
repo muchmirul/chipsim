@@ -1,5 +1,9 @@
 # ChipSim behavior changes
 
+## Standalone benchmarking and MCP guide discovery
+
+Current ChipSim provides `chipsim benchmark` and the `chipsim_benchmark_*` MCP tools for scoring one candidate with frozen inputs and verifiable reports. Agents can read `chipsim://guide/evolution` and `chipsim://guide/evolution-objectives` directly from the installed service. Pi Durable handles explicitly requested persistent search through its own MCP connection. The two legacy search launchers and manual Activity writers remain available with deprecation warnings this release.
+
 ## 2026-11-18 — Verified Rust prime-agent MCP compatibility
 
 **Context:** Native-extension acceptance covered TypeScript prime-agent, while

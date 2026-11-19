@@ -136,7 +136,10 @@ test(
         );
         for (const d of await readdir(attempts).catch(() => [])) {
           const store = new Store(join(attempts, d));
-          const jobs = await listJobs(store);
+          const jobs = await listJobs(store).catch((error) => {
+            if (error.code === "ENOENT") return []; // The job directory can precede state publication.
+            throw error;
+          });
           if (jobs.some((j) => j.state === "running")) stage = store;
         }
       }

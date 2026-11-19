@@ -104,7 +104,7 @@ Workbench/MCP `job_start` replays a previously accepted `requestId` from durable
 storage before reading the current manifests. Reconnects still recover the same
 job if the design or lock file is missing or an invalid draft. Different
 target/reuse parameters remain conflicts; a new request ID must validate the
-current inputs before execution. See [workbench tools](WORKBENCH_MCP.md).
+current inputs before execution. Poll `chipsim_job_status` with either the job ID or its request ID in the same project and candidate scope. Check `chipsim_checks({target, run})` for captured evidence, current target readiness and any stale inputs. See [workbench tools](WORKBENCH_MCP.md).
 
 ## Project contract
 

@@ -31,26 +31,27 @@ Read [AGENT_CONTROL.md](AGENT_CONTROL.md) for the full operating procedure and
 | Create/edit/run a project using MCP or native workbench tools | Workbench `project`, file tools and `job_start` with `requestId` | [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md), [WORKBENCH_MCP.md](WORKBENCH_MCP.md) |
 | Run finite control images on fixed hardware                   | `chipsim design guide programmable`                              | [WORKBENCH_MCP.md](WORKBENCH_MCP.md); installed `examples.programmable`            |
 | Run the pinned Tiny Tapeout physical flow                     | `chipsim design guide tinytapeout`                               | [TINYTAPEOUT.md](TINYTAPEOUT.md)                                                   |
-| Repair or optimize one RTL file against fixed tests           | `chipsim evolution list`, then `describe --benchmark NAME`       | [EVOLUTION.md](EVOLUTION.md)                                                       |
+| Score or repair one RTL file against fixed tests              | `chipsim_benchmark_prepare` or `chipsim benchmark describe`      | [EVOLUTION.md](EVOLUTION.md)                                                       |
+| Run a persistent scored search when explicitly requested      | Pi Durable's `helper_info({includeGuide: true})`                 | [Pi Durable search with ChipSim](EVOLUTION.md#run-a-persistent-pi-durable-search)   |
 | Build hardware from an idea or partial files                  | `chipsim design guide`, then `chipsim design commands`           | [DESIGN_INPUTS.md](DESIGN_INPUTS.md), [DESIGN.md](DESIGN.md)                       |
 | Understand or program a document-backed model                 | `chipsim agent context PROJECT --model MODEL_ID`                 | [PROGRAMMING.md](PROGRAMMING.md), [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md)           |
 | Create an experiment from authored register/stimulus CSV      | `chipsim table help`                                             | [CSV_INPUTS.md](CSV_INPUTS.md)                                                     |
 | Run an HDL testbench or inspect VCD                           | `chipsim hdl help`                                               | [HDL.md](HDL.md), [HDL_DEBUG.md](HDL_DEBUG.md)                                     |
-| Show reported progress and candidate history                  | `chipsim --agent PROJECT` in another terminal                    | [AGENT_WORK.md](AGENT_WORK.md)                                                     |
+| Track managed execution or a persistent goal                  | `chipsim_job_status` or Pi Durable's `job_status`                 | [WORKBENCH_MCP.md](WORKBENCH_MCP.md), [EVOLUTION.md](EVOLUTION.md)                   |
 
 For complete connected wiring/state rules, use `chipsim circuit help` and
 [AGENT_CIRCUITS.md](AGENT_CIRCUITS.md). `circuit` checks old-state simultaneous
-updates and explicit connections; `evolution` evaluates and improves a candidate.
+updates and explicit connections. `benchmark` measures one candidate.
 The [connected circuit contract](CONNECTED_CIRCUITS.md) states its supported
 binary synchronous subset and native correspondence limits.
 
-Two evolution definition formats are available. This guide uses the native
-`chipsim evolution --benchmark` family and `chipsim-evolution-benchmark` JSON.
-The separate installed `examples.evolution.runner` accepts `--workflow` and
-`chipsim-evolution-workflow` JSON for Verilog/VHDL with multiple weighted measured
-objectives; see [EVOLUTION_OBJECTIVES.md](EVOLUTION_OBJECTIVES.md). Their flags,
-report schemas and scoring penalties differ; use the guide for the chosen entry
-point. Both keep search external through OpenEvolve and reuse managed evidence.
+For fixed native benchmarks, use `chipsim benchmark evaluate --benchmark NAME`
+or a `chipsim-evolution-benchmark` JSON definition. For weighted managed
+Verilog/VHDL workflows, use `chipsim benchmark evaluate --workflow FILE` with
+`chipsim-evolution-workflow` JSON. MCP accepts either definition path in
+`chipsim_benchmark_prepare`. In both cases, ChipSim captures and measures the
+hardware inputs. Pi Durable runs OpenEvolve when a persistent search is requested.
+[Weighted workflows](EVOLUTION_OBJECTIVES.md)
 
 For a complete memory-bearing RTL flow, `agent help` → `examples.rtlVerification`
 and `design guide rtl` → `recipe.verificationExample` locate the ready/valid FIFO
@@ -69,7 +70,7 @@ support automation.
 
 ## A manual RTL improvement loop
 
-Evolution requires Node.js 22.13+ and Python 3.10+ (`PYTHON` selects the Python
+The benchmark CLI requires Node.js 22.13+ and Python 3.10+ (`PYTHON` selects the Python
 environment). Counter evaluation needs Icarus (`iverilog`, `vvp`); ALU also needs
 Yosys; enabled equivalence needs EQY and its configured proof tools. Install tools
 separately. Discovery and custom validation do not execute EDA tools.
@@ -79,14 +80,14 @@ project or a design manifest for bundled benchmarks.
 
 ```sh
 mkdir -p ./work
-chipsim evolution describe --benchmark counter --format text
-chipsim evolution evaluate --benchmark counter --project ./work > before.json
-chipsim evolution report before.json --format text
+chipsim benchmark describe --benchmark counter --format text
+chipsim benchmark evaluate --benchmark counter --project ./work > before.json
+chipsim benchmark report before.json --format text
 # Create ./candidate.sv with the interface declared by describe.
-chipsim evolution evaluate --benchmark counter --candidate ./candidate.sv \
+chipsim benchmark evaluate --benchmark counter --candidate ./candidate.sv \
   --project ./work > after.json
-chipsim evolution compare before.json after.json --format text
-chipsim evolution reproduce after.json --project ./work
+chipsim benchmark compare before.json after.json --format text
+chipsim benchmark reproduce after.json --project ./work
 ```
 
 The default counter deliberately fails. Exit 1 can still provide a complete
@@ -107,7 +108,7 @@ required stage to pass. Report generic cell counts as a size proxy with units.
 
 Custom definitions declare one editable `.v`/`.sv` file (64 KiB maximum), all
 fixed inputs, ordered design stages, exact report producers, an objective and
-optional formal/replay recipes. Validate with `chipsim evolution validate
+optional formal/replay recipes. Validate with `chipsim benchmark validate
 --benchmark ./benchmark.json`. The installed `EVOLUTION.md` path is returned by
 `agent help`; the package's adjacent `examples/evolution/custom-counter` is a
 runnable starter to copy into your project. See [EVOLUTION.md](EVOLUTION.md)
@@ -127,7 +128,7 @@ fixture, and `runner` the compatibility entry point. These differ from
   and `winner`. Ranking needs matching verified inputs, settings, tools and
   evaluator/runtime. Keep trusted setup fixed or start a new baseline/session.
 - Full `reproduce REPORT --project WORK` restores captured inputs in a fresh
-  session. `--case N` replays a saved failure, preserving counter initialization
+  evaluation. `--case N` replays a saved failure, preserving counter initialization
   history or the failing ALU RTL/netlist stage. A reproduced failure does not
   establish full acceptance. Custom focused replay needs a declared recipe.
 - Retain the managed artifact store and evidence links. Saved JSON alone is
@@ -135,54 +136,41 @@ fixture, and `runner` the compatibility entry point. These differ from
   executable identities and evaluator/runtime; the original source project
   may be removed. Never alter snapshots or sealed evidence to make a run pass.
 
-## Sessions, search and agent tools
+## Search, progress and recovery
 
-`evaluate`, `evolve` and `reproduce` create and finish their own work sessions by
-default. For a manual multi-candidate session, start `agent work-start PROJECT
---goal "OBJECTIVE" --mode evolution`, retain its ID, and pass `--session ID` to
-evaluations. Repeated submissions reuse that session's frozen definition.
-Each command has its own invocation directory and cancellation marker; a failed
-or interrupted submission leaves the caller-owned session available for retries
-and cancels only its own invocation's jobs. Finish
-the caller-owned session with a terminal `summary` event; see
-[AGENT_WORK.md](AGENT_WORK.md). Avoid duplicate sessions around self-managed
-commands. The dashboard shows reported actions and linked evidence; preserve
-the user's inspected recording and cursor.
+For an MCP measurement, read `chipsim://guide/evolution`. Use
+`chipsim_benchmark_prepare` to capture the context and baseline, start with
+`chipsim_benchmark_start` and a stable request ID, then get status and
+`chipsim_benchmark_result`. Keep the same context when comparing candidates.
+Recover a lost reply using the original request ID. A status wait ending leaves
+the job running. Use `chipsim_job_cancel` to stop an owned job.
 
-`evolve` uses separately installed/configured OpenEvolve. Run search within the
-user's requested scope and selected configuration; its provider may receive
-candidate RTL/feedback. Offline evaluation does not configure a provider.
-Handwritten passing fixtures and manual improvements do not establish that
-search ran. The selected search candidate is independently evaluated again.
+For a persistent scored search, explicitly select Pi Durable on its own MCP
+connection. Read `helper_info({includeGuide: true})` and pick the ChipSim example.
+The Pi model proposes one file at a time, ChipSim scores it, and OpenEvolve
+chooses a measured parent for the next proposal. Pi Durable stores the
+baseline, candidate lineage and the fresh finalist result in the durable job.
+Use its `job_status` for progress and the linked ChipSim IDs for native evidence.
+For a regular persistent task, use Pi Durable with the mode fields omitted.
 
-Evolution commands wait for evaluation. Allow the default 60-second counter or
-300-second ALU budget plus cleanup; `--timeout 1..300` changes an evaluation
-budget. Ctrl-C requests managed-job cancellation and retains partial evidence.
-Ordinary `design run` jobs have a different lifecycle: retain the job ID, poll
-status/logs with their cursors, and use explicit `job cancel`. A status-poll
-timeout leaves a durable design job running.
+Standalone `chipsim benchmark` waits for its evaluation and retains evidence
+without an Activity journal. Allow the default 60-second counter or 300-second
+ALU budget plus cleanup. `--timeout 1..300` changes the evaluation budget.
+Ctrl-C requests cancellation and retains partial evidence. The two old search
+launchers and manual journal writers emit deprecation warnings this release.
+For compatibility and existing Activity history see [AGENT_WORK.md](AGENT_WORK.md).
 
-In Pi/prime-agent, prefer available named ChipSim tools. Use `chipsim_command`
-for evolution, with literal arguments and enough time for the selected budget:
+In the native Pi/prime-agent extension, use `chipsim_command` with literal arguments
+for the standalone CLI:
 
 ```json
 {
-  "args": [
-    "evolution",
-    "evaluate",
-    "--benchmark",
-    "alu8",
-    "--project",
-    "./work"
-  ],
+  "args": ["benchmark", "evaluate", "--benchmark", "alu8", "--project", "./work"],
   "timeoutMs": 360000
 }
 ```
 
-No shell operators belong in an argument array. `timeoutMs` defaults to 180000
-and can reach 86400000 for search. Other coding agents use the same CLI through
-argument-array subprocess calls. See [AGENT_EXTENSIONS.md](AGENT_EXTENSIONS.md)
-for cancellation and terminal handoff.
+See [AGENT_EXTENSIONS.md](AGENT_EXTENSIONS.md) for the native route.
 
 ## What to return to the user
 

@@ -67,12 +67,22 @@ test(
         .contents[0].text,
       /Agent loop/,
     );
-    const resources = (await client.listResources()).resources.filter((r) =>
+    const inventory = (await client.listResources()).resources;
+    for (const [uri, section] of [
+      ["chipsim://guide/evolution", /Score a candidate over MCP/],
+      ["chipsim://guide/evolution-objectives", /Persistent search and legacy runner/],
+    ]) {
+      assert.ok(inventory.some((r) => r.uri === uri));
+      const { text } = await call("resource_read", { uri });
+      assert.match(text, section);
+      assert.equal((await client.readResource({ uri })).contents[0].text, text);
+    }
+    const resources = inventory.filter((r) =>
       r.uri.startsWith("chipsim://examples/programmable/"),
     );
     assert.equal(resources.length, 10);
     assert.ok(resources.some((r) => r.name.endsWith("README.md")));
-    for (const resource of (await client.listResources()).resources.filter(
+    for (const resource of inventory.filter(
       (r) => r.uri.startsWith("chipsim://docs/"),
     ))
       assert.ok(

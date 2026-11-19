@@ -80,12 +80,11 @@ assumptions and its own original source. Do not relabel it as this chip's behavi
 
 ## Evaluate and improve RTL
 
-Use `chipsim evolution list` and `describe --benchmark NAME` to discover the
+Use `chipsim benchmark list` and `describe --benchmark NAME` to discover the
 native text/JSON workflow. Save a baseline, edit only the declared candidate,
 evaluate, compare verified contexts and reproduce captured inputs/failures.
 Read [EVOLUTION.md](docs/EVOLUTION.md) for benchmark definitions and mandatory
-formal acceptance once enabled. Commands manage their own sessions by default;
-when supplying `--session`, the caller owns its terminal summary.
+formal acceptance once enabled. For MCP use `chipsim://guide/evolution`. For a persistent search, use the separate Pi Durable MCP when explicitly requested.
 
 ## Make work visible and control execution
 
@@ -95,7 +94,7 @@ Read `docs/AGENT_CONTROL.md` for the complete operating procedure and
 `examples.evolution.guide` / `examples.evolution.runner`. Evolution example files
 are installed with ChipSim, not copied into this prepared project.
 
-For requested live progress:
+For a managed MCP job, keep the job ID and poll `chipsim_job_status` and `chipsim_job_logs`. For a Pi Durable job, use its `job_status`. For requested compatibility with an existing Activity journal, use the following workflow. Its manual writers are deprecated.
 
 1. Inspect the task, current files, acceptance checks and allowed resources. Use
    this project's programming context for model experiments; use `design

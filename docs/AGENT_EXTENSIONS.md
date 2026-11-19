@@ -7,7 +7,7 @@ and is documented in [WORKBENCH_MCP.md](WORKBENCH_MCP.md).
 The shared text-first services are also registered as `chipsim_workbench_TOOL` (for example `chipsim_workbench_file_read` and `chipsim_workbench_job_start`). Each takes an explicit `project` plus the same bounded arguments as the corresponding MCP tool. File edits do not depend on host filesystem tools. See [WORKBENCH_MCP.md](WORKBENCH_MCP.md). Existing `chipsim_command` accepts the `workbench` family, and snapshots include `schematic`.
 
 Start with [AGENT_QUICKSTART.md](AGENT_QUICKSTART.md). `chipsim_command` accepts
-`evolution` and `circuit` literal argument arrays. Discover guide paths with
+`benchmark`, the legacy `evolution` family and `circuit` literal argument arrays. Discover guide paths with
 `{args:["agent","help"]}`. For native ALU evaluation, allow its 300-second
 budget plus cleanup, for example `timeoutMs: 360000` (default 180000; maximum
 86400000). Native text/help forms are supported; default evaluation is JSON.
@@ -113,7 +113,10 @@ never installs them.
 
 ## Show an agent task live
 
-Open `/chipsim --agent PROJECT` (or use the returned separate-terminal command).
+Open `/chipsim --agent PROJECT` (or use the returned separate-terminal command)
+for existing Activity journals. The manual journal writers below are deprecated.
+Use managed job status for ongoing hardware execution and Pi Durable job status
+for an explicitly requested goal.
 Use `chipsim_work_start({project: "PROJECT", goal: "USER OBJECTIVE", mode: "task"})`
 to create a session, then publish JSON event files with
 `chipsim_work_event({project: "PROJECT", session: "SESSION_UUID", event: "event.json"})`.
@@ -225,7 +228,7 @@ literal strings; each path containing spaces is one argument, without added shel
 quotes. The bridge directly invokes the packaged CLI. It uses the CLI's validation,
 source gates, evidence records, structured failures and process limits. It accepts
 `workbench`, `agent`, `hdl`, `circuit`, `table`, `design`, `job`, `artifact`,
-`checks` and `evolution`, plus help, profile listing
+`checks`, `benchmark` and `evolution`, plus help, profile listing
 and `--snapshot`. Interactive inspection uses `/chipsim`.
 
 Input is bounded to 128 arguments, 8192 characters per argument and 64 KiB total.

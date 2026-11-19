@@ -1,5 +1,7 @@
 # MCP reliability coverage
 
+For recovery instructions on the running server, start with `chipsim_project`, `tools/list` and [workbench MCP](WORKBENCH_MCP.md). Test records below describe their captured runtime and tool inventory.
+
 | Guarantee | Executable coverage |
 | --- | --- |
 | CAS conflicts and invalid drafts | workbench.test.js |
@@ -16,6 +18,8 @@
 | Runtime/host acceptance freshness and requirement references | mcp-reliability.test.js |
 | Actual native assertion diagnostics, policy/proof blockers, packaging | manufacturing-mcp.test.js |
 | Independent control, storage and serial designs | test:manufacturing:matrix |
+| Frozen benchmark inputs, native artifact retrieval, deduplicated request IDs and cancel cleanup | `CHIPSIM_TEST_BENCHMARK=1 node --test test/benchmark-mcp.test.js` |
+| Generic SDK and ordinary Pi reconnect, measured rejection, lost evaluator reply recovery and fresh counter/ALU finalists | Pi Durable checkout's `test:chipsim-benchmark`, with a packaged or source ChipSim installation and real EDA tools |
 
 Tests use disposable roots. Native acceptance requires real prerequisites;
 missing tools cannot be counted as passing native validation. The existing

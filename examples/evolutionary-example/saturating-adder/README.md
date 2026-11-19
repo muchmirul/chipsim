@@ -1,5 +1,7 @@
 # Unsigned 4-bit saturating adder
 
+This teaching page documents the legacy Python launcher and its recorded runs. For new persistent searches, use Pi Durable. For current standalone scoring and MCP, read [the benchmark guide](../../../docs/EVOLUTION.md).
+
 ## Goal and files
 
 Combinational `saturating_adder(a[3:0], b[3:0], sum[3:0])` computes unsigned

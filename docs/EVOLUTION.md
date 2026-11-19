@@ -1,10 +1,6 @@
 # Text-based evolution workflows
 
-Agents should first read [AGENT_QUICKSTART.md](AGENT_QUICKSTART.md) for workflow
-selection, a manual improvement loop, exit handling and session ownership.
-For connection routes, read [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md).
-This command family uses CLI subprocesses or native `chipsim_command`; the MCP
-server's workbench tool list does not automatically expose evolution commands.
+ChipSim scores RTL against fixed hardware tests and retains verifiable evidence. Use `chipsim benchmark` from a shell or the `chipsim_benchmark_*` tools over MCP for one measurement at a time. Use the separate Pi Durable goal service for explicitly requested persistent search. For setup and workflow selection see [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md) and [AGENT_QUICKSTART.md](AGENT_QUICKSTART.md).
 
 ChipSim evaluates one editable Verilog/SystemVerilog file against fixed tests,
 reports useful failures, and retains evidence. OpenEvolve supplies the optional
@@ -20,24 +16,34 @@ this command family's `chipsim-evolution-benchmark` and `--benchmark`.
 
 Use `chipsim benchmark list|describe|validate|evaluate|report|compare|reproduce` for native benchmarks. For weighted Verilog and VHDL goals, use `chipsim benchmark evaluate --workflow workflow.json --project WORK`. Standalone evaluations store the hardware evidence independently of an activity journal. The two older search launchers and manual journal writers are deprecated for one release. They still execute in this release. Their planned retirement depends on the released Pi/ChipSim integration passing the hardware and recovery tests. Historical reports and activity sessions remain readable.
 
-Over MCP, call `chipsim_benchmark_prepare` with a built-in ID or a project-relative definition and optional `formal`. Save the returned context and candidate path. Call `chipsim_benchmark_start` with the context, candidate text in `content`, its UTF-8 SHA-256 in `candidateHash`, and a stable `requestId`. Poll the ordinary `chipsim_job_status` by job UUID, or by request ID after a lost reply. Reusing a request with changed inputs raises a conflict. Every new benchmark job performs fresh stage executions.
+### Score a candidate over MCP
 
-Read `chipsim_benchmark_result` for a completed measurement. Its `accepted` field describes hardware acceptance. Failed behavioral observations return a measured rejection. An interrupted evaluation, missing tool, or invalid evidence cannot yield acceptance. Use ordinary job logs and cancellation, and inspect the full report through its returned artifact ID. To inspect native stage artifacts through the same connection, pass the returned `benchmarkJob` with `artifacts`, `evidence`, `artifact_read`, `hardware`, `source`, `trace`, or `snapshot`. The stage run IDs select the measured results.
+1. Use `chipsim_project({})` to confirm the bound root. Call `chipsim_benchmark_prepare({benchmark: "counter", formal: true})` for the bundled counter with equivalence. Use `"alu8"` or a project-relative definition for other benchmarks. For a weighted workflow, declare required proofs in its design target and omit `formal`.
+2. Save `context`, `candidatePath` and `fixedHashes`. When the response includes `candidateResource` and `candidateHash`, read that URI with `resources/read` or `chipsim_resource_read` for the exact baseline. Otherwise read the original RTL from your project or use the packaged built-in baseline beside `examples.nativeEvolution.runner` in `chipsim agent help` (`counter.sv` or `alu8/alu.sv)). Keep the context for every comparable proposal.
+3. Call `chipsim_benchmark_start` with `context`, candidate text in `content` (UTF-8 up to 64 KiB), its exact SHA-256 in `candidateHash` and a stable `requestId`. Resubmit identical arguments to reconcile a lost reply. A changed candidate or context needs a new request ID. Every new benchmark job runs fresh stages.
+4. Poll `chipsim_job_status` with the returned `job` ID or the original `requestId`. Use `chipsim_job_logs` for progress and `chipsim_job_cancel` to stop owned execution. Keep the outer project candidate ID in these calls if you prepared and started the job in that candidate.
+5. Call `chipsim_benchmark_result({job})` after completion. Read `accepted`, `score`, `metrics`, `units`, `feedback`, `formal` when present and the evidence links. A usable measurement may reject the candidate. An interrupted evaluation, missing tool or invalid evidence leaves no accepted measurement.
 
-## Commands
+Read the full outer report using its top-level `artifact` ID and `chipsim_artifact_read`. To inspect a native stage, use the stage run ID from `stages` or `evidence.run` with `chipsim_artifacts({run, benchmarkJob})`. Pass the returned `evidence.benchmarkJob` with the selected native artifact in `chipsim_artifact_read`, `chipsim_hardware`, `chipsim_source`, `chipsim_trace` or `chipsim_snapshot`. Keep the same outer candidate scope. This gives a second client access to the reports and waveforms through the same project-bound MCP connection.
+
+### Run a persistent Pi Durable search
+
+On the Pi Durable connection, call `helper_info({includeGuide: true})` and select the ChipSim example under `evolution.examples`. The job uses `brief.mode: "evolution"` and `brief.evolution.evaluator.type: "chipsim"`, a registered connection bound to `brief.cwd`, one project-relative candidate file and the `hardware` criterion. Pi Durable freezes the inputs, measures a baseline with ChipSim, asks a Pi model for proposals, and lets OpenEvolve rank and sample measured candidates. The job's final verification comes from a fresh ChipSim run. Read `job_status` on Pi Durable for lineage and the selected change, then inspect linked ChipSim results on this connection.
+
+## Standalone CLI commands
 
 ```sh
-chipsim evolution list
-chipsim evolution describe --benchmark alu8 --format text
-chipsim evolution validate --benchmark ./benchmark.json
+chipsim benchmark list
+chipsim benchmark describe --benchmark alu8 --format text
+chipsim benchmark validate --benchmark ./benchmark.json
 mkdir -p ./work
-chipsim evolution evaluate --benchmark counter --project ./work > before.json
-chipsim evolution evaluate --benchmark counter --candidate ./fixed-counter.sv \
+chipsim benchmark evaluate --benchmark counter --project ./work > before.json
+chipsim benchmark evaluate --benchmark counter --candidate ./fixed-counter.sv \
   --project ./work > after.json
-chipsim evolution report before.json --format text
-chipsim evolution compare before.json after.json --format text
-chipsim evolution reproduce before.json --project ./work
-chipsim evolution reproduce before.json --case 0 --project ./work
+chipsim benchmark report before.json --format text
+chipsim benchmark compare before.json after.json --format text
+chipsim benchmark reproduce before.json --project ./work
+chipsim benchmark reproduce before.json --case 0 --project ./work
 ```
 
 The default counter is deliberately incorrect, so its evaluation exits 1 while
@@ -229,7 +235,9 @@ as a native design check. The custom-counter example shows how to retain history
 Without a replay recipe, full reproduction remains available and `--case` fails
 explicitly. Compile errors and incomplete runs may have no behavioral case.
 
-## Search, limits and verification
+## Legacy search and journal compatibility
+
+This section documents the deprecated ChipSim search launcher and its local Activity journal. For new persistent searches use the Pi Durable procedure above.
 
 ```sh
 chipsim evolution evolve --benchmark alu8 --project ./work \
@@ -257,7 +265,7 @@ limits still apply. Ctrl-C requests cancellation of managed jobs and stops the
 external optimizer process group. Partial evidence is retained, and work sessions
 continue to use the existing Activity view without replacing its cursor/recording.
 
-The agent `chipsim_command` accepts evolution arguments and optional `timeoutMs`
+The native agent tool `chipsim_command` accepts benchmark and legacy evolution arguments and optional `timeoutMs`
 (1,000–86,400,000; default 180,000). Increase it for ALU/formal/search commands.
 Evolution cancellation allows time for supervisor cleanup. No automatic provider
 or agent configuration is installed.

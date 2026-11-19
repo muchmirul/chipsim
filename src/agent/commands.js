@@ -231,6 +231,7 @@ export async function agentCommand(args) {
         designGuidance: designGuidance(),
         connections: agentConnections(),
         work: {
+          deprecatedWriters: ["work-start", "work-event"],
           modes: ["task", "evolution"],
           eventKinds: [
             "plan",
@@ -348,7 +349,8 @@ export async function agentCommand(args) {
         notes: [
           "For chip development, use chipsim design guide for optional input recipes. Inspect existing work, then create/find/prepare missing RTL, testbenches, manifests or toolchain inputs before execution; never fabricate generated evidence.",
           "No embedded model provider; author models with your existing coding agent.",
-          "work-start/work-event/work-status use any existing local project directory; no PDF or design manifest is required. Open chipsim --agent PROJECT to inspect reported work.",
+          "Use chipsim benchmark or the MCP benchmark tools for measurement. Track managed jobs by job ID, or use Pi Durable job_status for an explicitly requested persistent goal.",
+          "The work-start and work-event writers are deprecated. work-status or chipsim --agent PROJECT reads existing Activity history.",
           "Work events are explicit public progress, not private reasoning or complete editor/tool capture. Metrics and statuses are agent-reported, never verified proof; only terminal summary events end a session.",
           "Before programming: chipsim agent context CHIP_ID or PROJECT. Select a model, review capabilities and guides, then choose supported experiment or a separate native backend.",
           "PDF pages are one-based, including front matter. Each project contains one manual.",

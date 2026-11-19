@@ -13,7 +13,7 @@ The work-journal commands below are CLI/native tools. The MCP server exposes
 the workbench family for project files, durable jobs and evidence; it does not
 implicitly expose `work-start`, `work-event` or `work-status` as MCP tools.
 
-The journal writers are deprecated for one release. New persistent goals can use the Pi Durable MCP connection, and independent measurements can use `chipsim benchmark`. Existing journals are readable through the Activity view and `work-status`.
+The manual `work-start` and `work-event` writers emit deprecation warnings this release. Track new managed hardware jobs with `chipsim_job_status` and `chipsim_job_logs`. Track explicitly requested persistent goals with Pi Durable's `job_status`. Use `chipsim benchmark` or the [MCP benchmark tools](EVOLUTION.md#score-a-candidate-over-mcp) for standalone measurements. Existing journals are readable through the Activity view and `work-status`.
 
 ## What this controls
 
@@ -262,7 +262,7 @@ job; its timeout/output limits are described in [AGENT_EXTENSIONS.md](AGENT_EXTE
 
 ## Evolution and trust boundaries
 
-For the native `chipsim evolution` benchmark family, start with
+For standalone `chipsim benchmark`, MCP scoring and legacy search compatibility, start with
 [AGENT_QUICKSTART.md](AGENT_QUICKSTART.md) and [EVOLUTION.md](EVOLUTION.md).
 It supports text/JSON reports, verified comparison, captured reproduction and
 formal acceptance gates. Evaluation/search/reproduction commands own their

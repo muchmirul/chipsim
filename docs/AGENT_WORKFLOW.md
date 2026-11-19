@@ -229,16 +229,11 @@ guide. Existing ordered JSON models retain their semantics.
 
 ## Live agent tasks and evolution
 
-For the native `chipsim evolution` benchmark family, start with
+For standalone `chipsim benchmark` and the `chipsim_benchmark_*` MCP tools, start with
 [AGENT_QUICKSTART.md](AGENT_QUICKSTART.md) and [EVOLUTION.md](EVOLUTION.md).
-It supports text/JSON reports, verified comparison, captured reproduction and
-formal acceptance gates. Evaluation/search/reproduction commands own their
-default sessions; supplying `--session` leaves the terminal summary to the caller.
+The CLI supports text/JSON reports, comparison and captured reproduction. MCP scores a single candidate against frozen inputs and exposes the native evidence. Use Pi Durable's evolution mode when the user wants a persistent scored search. Use managed job status or Pi Durable job status to observe those runs.
 
-Use `chipsim --agent PROJECT` for agent goals, explicit actions and candidate
-history in any existing directory, including RTL projects without PDFs. Agents
-publish structured `work-start`, `work-event` and `work-status` commands; the
-native tools have the corresponding `chipsim_work_*` names. See
+Use `chipsim --agent PROJECT` to read existing Activity history or when working with the legacy journal. This release deprecates the manual `work-start` and `work-event` writers. `work-status` and the Activity viewer still read the journal. The native tools use the corresponding `chipsim_work_*` names. See
 [AGENT_WORK.md](AGENT_WORK.md) for the contract and [Agent control](AGENT_CONTROL.md)
 for the execution/evidence loop and recovery. The [OpenEvolve example](../examples/evolutionary-example/README.md)
 is installed with ChipSim; prepared projects do not copy it. Resolve its current
@@ -246,8 +241,7 @@ location using `agent help` → `examples.evolution`. Reported metrics are not
 proof, and polling never replaces the inspected recording automatically.
 
 Use [EVOLUTION_OBJECTIVES.md](EVOLUTION_OBJECTIVES.md) for `--workflow` project-defined managed
-objectives, fixed input snapshots, report units/normalization, checkpoint
-ancestry and `--search-timeout`. `agent help` exposes this guide and the
+objectives, fixed input snapshots, metric units and normalization. Its legacy runner section also documents historical checkpoint ancestry. `agent help` exposes this guide and the
 installed `examples.evolution.workflows` definitions. New prepared projects
 copy the guide; existing documentation snapshots are preserved.
 

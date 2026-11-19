@@ -1,5 +1,7 @@
 # RTL evolution examples
 
+These teaching examples preserve the original external OpenEvolve launcher and Activity journal. The launcher is deprecated this release. Use the separate Pi Durable MCP for new persistent searches, and `chipsim benchmark` or the `chipsim_benchmark_*` tools for standalone scoring. [Current benchmark and search guide](../../docs/EVOLUTION.md)
+
 Three teaching examples share one evaluator and search runner. Only candidate
 RTL changes; each goal has a fixed interface, testbench and Python scorer.
 Use `--example NAME`; the default is `counter`.

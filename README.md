@@ -10,7 +10,7 @@ Text-first chip engineering is available through the [shared workbench and optio
 
 Start with Verilog/VHDL, a supplied architecture experiment, a supported datasheet or an explicitly authored model. Inspect source, hardware, signals and verification results together, then save the experiment and its provenance for review.
 
-For hardware evaluation from any local MCP harness, register `chipsim mcp --project /absolute/project`. Use the optional `pi-durable-mcp` connection for goals that continue after the harness closes. [Connection guide](docs/AGENT_CONNECTIONS.md#two-direct-connections-from-any-local-mcp-client)
+For hardware evaluation from any local MCP harness, register `chipsim mcp --project /absolute/project`. Agents start with `chipsim_project` and read the installed `chipsim://guide/workbench` via resources or `chipsim_resource_read`. For single-file scoring read `chipsim://guide/evolution`. The optional `pi-durable-mcp` connection runs explicitly requested persistent goals, including evolution. [Connection guide](docs/AGENT_CONNECTIONS.md#two-direct-connections-from-any-local-mcp-client)
 
 ## Import CSV register maps and stimulus
 
@@ -220,15 +220,16 @@ It maps a user task to command discovery, execution, evidence review, progress,
 recovery and handoff. `chipsim agent help` supplies the installed guide and
 external example paths. Prepared projects receive the guide through `prepare`.
 
-Open the work dashboard for any existing project directory; no PDF is required:
+Use `chipsim_job_status` and `chipsim_job_logs` for live managed hardware jobs. Use `job_status` on the Pi Durable connection for explicitly requested persistent jobs.
+
+To read an existing Activity journal, open the dashboard in any existing project directory.
 
 ```sh
-chipsim agent work-start /path/to/project --goal "Implement and verify the counter" --mode task
 chipsim --agent /path/to/project
 ```
 
-The external agent publishes explicit actions/results with `agent work-event`;
-`agent work-status` reads them. Use `--mode evolution` for candidate search.
+The manual `agent work-start` and `agent work-event` writers are deprecated.
+`agent work-status` reads existing sessions.
 Activity (`8`) shows sessions, events, candidate lineage and metrics; `o` opens
 linked evidence and `L` shows managed-job logs. `--design PROJECT` also attaches
 this view. Reports are **agent-reported**, not captured private reasoning or
@@ -237,21 +238,28 @@ See [live work commands and controls](docs/AGENT_WORK.md).
 
 ### Text-based RTL evaluation and evolution
 
-Use `chipsim evolution list`, `describe --benchmark alu8`, and `evaluate` for
+Use `chipsim benchmark list`, `describe --benchmark alu8`, and `evaluate` for
 bundled counter/ALU or custom JSON benchmarks. Read failures, compare verified
 candidates, reproduce captured runs/cases and require formal equivalence when
 needed. See [the native evolution guide](docs/EVOLUTION.md).
 
-### OpenEvolve integration: agent-assisted RTL evolution
+### Persistent RTL evolution with Pi Durable
+
+When the user requests a durable search, start from Pi Durable's
+`helper_info({includeGuide: true})` and select its ChipSim evaluator example.
+Pi Durable runs one-file proposals, keeps OpenEvolve's measured lineage and
+requests a fresh finalist measurement. Use the Pi job ID for goal progress and
+the linked ChipSim job IDs for hardware evidence.
 
 For an existing chip-development flow, [project-defined evolution](docs/EVOLUTION_OBJECTIVES.md)
 accepts fixed managed Verilog/VHDL inputs and tool-produced objective reports,
-with correctness gates, declared units and weighted fitness. The runner isolates
-each invocation, imports recorded ancestry and enforces an overall search budget.
+with correctness gates, declared units and weighted fitness.
 The [runnable custom example](examples/evolutionary-example/project-workflow/README.md)
 measures simulation activity; physical PPA requires your actual tool reports.
 
-The [evolution examples](examples/evolutionary-example/README.md) use fixed tests
+#### Earlier standalone OpenEvolve examples
+
+The [legacy evolution examples](examples/evolutionary-example/README.md) use fixed tests
 for three hardware goals. OpenEvolve manages candidate edits and selection;
 ChipSim runs isolated simulation and scoring jobs. The output is
 **SystemVerilog RTL (`selected.sv`)**, not a physical layout.
@@ -278,8 +286,8 @@ discovery or unattended search. No separate provider API was used.
 fixed functional tests, not formal proof or area, power or timing.
 
 See the [runnable workflow and evidence](examples/evolutionary-example/README.md#agent-assisted-mode-verified-example).
-Candidate evaluation needs no OpenEvolve package. Search needs separately
-installed OpenEvolve and queue replies or an explicitly configured provider.
+Candidate evaluation needs no OpenEvolve package. The deprecated example launcher
+uses a separate OpenEvolve environment and queue replies or a configured provider.
 Nothing installs an optimizer or provider automatically; provider calls require
 approved data sharing and any applicable cost budget.
 

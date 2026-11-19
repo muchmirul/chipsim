@@ -98,11 +98,16 @@ export function agentConnections() {
       resources: {
         connections: "chipsim://guide/connections",
         workflow: "chipsim://guide/workbench",
+        quickstart: "chipsim://guide/quickstart",
+        evolution: "chipsim://guide/evolution",
+        objectives: "chipsim://guide/evolution-objectives",
+        manufacturing: "chipsim://guide/manufacturing",
+        reliability: "chipsim://guide/reliability",
         schemas: "chipsim://schema/tools",
         project: "chipsim://project/status",
       },
       scope:
-        "The workbench tool family; other CLI families are not implicitly exposed as MCP tools. Accepted jobs survive disconnect; cancel explicitly.",
+        "One bound project and the live workbench schema. This includes design, manufacturing, evidence and single-candidate benchmark tools. A separate Pi Durable connection runs persistent goals when explicitly requested. Accepted jobs survive disconnect; cancel explicitly.",
     },
   };
 }

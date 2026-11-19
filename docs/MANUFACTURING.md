@@ -11,6 +11,8 @@ remains external.
 
 ## Agent workflow
 
+Read `chipsim_project` to verify the bound root and use `chipsim_workflow_status` to see outstanding evidence and its suggested action. Operation names below take a `chipsim_` prefix over MCP. Use the live schemas for arguments. When listed, `chipsim_environment_check` inspects the available tools and cache. Setup is a separate explicit action.
+
 1. Read `manufacturing_profiles` and the selected profile's prerequisites.
    `environment_setup({profile, requestId})` explicitly downloads its pinned
    external tools, container and public PDK to a user cache. Read job status and

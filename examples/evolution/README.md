@@ -1,6 +1,6 @@
 # External OpenEvolve → ChipSim benchmarks
 
-The same evaluator is available through `chipsim evolution`. It supports readable
+The same evaluator is available through `chipsim benchmark` and the `chipsim_benchmark_*` MCP tools. For persistent evolution use the separate Pi Durable MCP. The search launcher described here is retained for the deprecation release. The standalone evaluator supports readable
 text/JSON feedback, custom benchmark definitions, candidate comparison, saved
 failure reproduction, and opt-in required EQY checks. See the complete
 [text evolution guide](../../docs/EVOLUTION.md). The Python commands below remain

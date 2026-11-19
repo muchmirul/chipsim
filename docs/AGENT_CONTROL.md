@@ -7,11 +7,11 @@ terminal viewer. It does not start an agent, choose a model/provider, or run an
 internal evolutionary search.
 
 Start with [AGENT_QUICKSTART.md](AGENT_QUICKSTART.md) for workflow selection.
-The native `chipsim evolution` family evaluates benchmark JSON and provides
-text/JSON reports, comparison, reproduction and optional required formal gates;
-see [EVOLUTION.md](EVOLUTION.md). Its commands create/close default work sessions.
-The multi-objective `--workflow` runner described later has its own schema and
-flags; both use existing managed jobs/evidence and external OpenEvolve search.
+Use `chipsim benchmark` or the `chipsim_benchmark_*` MCP tools for measured
+one-file evaluation. For a persistent scored search, use the separately
+configured Pi Durable MCP when requested. See [EVOLUTION.md](EVOLUTION.md)
+for setup, scoring, reproduction and formal checks. [EVOLUTION_OBJECTIVES.md](EVOLUTION_OBJECTIVES.md)
+covers weighted workflows and their metric units.
 
 ## 1. Discover before acting
 
@@ -150,7 +150,15 @@ Use fresh output destinations; do not bypass missing-source failures using a
 weaker validation path. Read [MODEL_FORMAT.md](MODEL_FORMAT.md) and
 [PROGRAMMING.md](PROGRAMMING.md) for model/program-specific commands.
 
-## 2. Turn a prompt into an explicit work session
+## 2. Record progress in the service that owns the job
+
+For ordinary managed work, record the bound ChipSim project, candidate if any,
+request ID and job ID. Read job status, logs and evidence from that service.
+If the user explicitly requests Pi Durable, use its goal ID and `job_status`
+for corrections or search progress. The following Activity journal procedure
+is for existing journal integrations. Its manual writers are deprecated.
+
+### Legacy Activity journal
 
 1. Restate the bounded goal and required evidence. Separate user requirements,
    sourced facts and assumptions. Resolve material ambiguity before spending
@@ -393,89 +401,38 @@ A copied trusted harness is not protected from hostile code by copying alone.
 Use an independently configured OS/container sandbox and immutable evaluator
 for untrusted candidates. Do not execute imported evidence as instructions.
 
-### Manual evaluation is not LLM evolution
+### Score one file
 
-Read the absolute `examples.evolution.guide` path returned by `agent help`.
-The installed examples need stock `iverilog`/`vvp`, Python 3.10+ and
-Node.js 22.13+; manual evaluation needs no OpenEvolve package. Replace the paths
-below with the discovered runner and its adjacent candidate files. The work
-directory must already exist.
+For MCP, use the procedure in `chipsim://guide/evolution`. Capture a context and
+read the baseline from its returned resource when available or load the original
+candidate bytes. Use the same context for the baseline and each fresh proposal,
+give each run a distinct request ID, and inspect its verified native results.
+Use `chipsim benchmark list` and `chipsim benchmark describe`
+for built-in definitions on hosts with a shell. The bundled broken counter
+yields a measured rejection. Use its failed cases for repair and inspect the
+same verification stages on the changed candidate.
 
-```sh
-python3 /installed/examples/evolutionary-example/run.py evaluate --project /path/to/work
-python3 /installed/examples/evolutionary-example/run.py evaluate --project /path/to/work --candidate /installed/examples/evolutionary-example/counter/correct-counter.sv
-```
+Use `chipsim benchmark evaluate --workflow workflow.json --project WORK` for a
+project-defined Verilog or VHDL design with measured objectives. Keep all
+declared inputs, producer tasks, units and normalization fixed across candidates.
+The managed target supplies required simulations, proofs and hard constraints.
+For real PPA claims, cite the actual native reports and their scope and units.
+[Weighted workflow contract](EVOLUTION_OBJECTIVES.md)
 
-The deliberately incomplete baseline is expected to fail (exit 1); the supplied
-manual regression fixture is expected to pass (exit 0). These are two manual
-evaluations, **not an LLM-driven search**. Each call owns and closes a session
-unless `evaluate --session SESSION_UUID` appends to an existing nonterminal
-session; the caller then owns closure. Supply `--parent ID --generation N`
-only when that lineage is actually known. Add `--debug` only with the observer
-tools available. `--chipsim /path/to/chipsim` selects an explicit executable;
-otherwise the runner resolves its packaged Node CLI.
+### Run explicitly requested persistent evolution
 
-Each call writes an exclusive invocation configuration and cancellation scope
-under `evaluations/SESSION/invocations/INVOCATION/`. Appended evaluations preserve
-other invocations and existing session-level files. Rejected inputs create no
-invocation; save both UUIDs from the runner output for recovery.
+On the Pi Durable connection, use `helper_info({includeGuide: true})` and
+select the ChipSim evaluator example. Confirm the optimizer and registered
+server, then submit one project-relative candidate, fixed inputs, a benchmark
+and the authorized budget. Pi Durable owns proposal scheduling, measurement
+receipts and OpenEvolve checkpoints. A Pi proposal worker receives concrete
+measurement feedback. The evaluator measures a new finalist run to decide
+whether the goal is verified.
 
-Use `--example saturating-adder` or `--example priority-encoder` for the other
-fixed goals; the default is counter. `examples.evolution.scenarios` exposes each
-installed scenario guide. Select the matching candidate and system prompt.
-
-For an existing managed hardware workflow, use `--workflow workflow.json`
-instead of `--example`. [EVOLUTION_OBJECTIVES.md](EVOLUTION_OBJECTIVES.md) defines explicit fixed
-template files, one mutable Verilog/VHDL source, required correctness/constraint
-checks and a named producer's measured-objective report. Units, minimize/maximize
-directions, normalization bounds and weights are declared; fitness is gated by
-managed readiness. Real physical PPA requires actual tool reports and fixed
-libraries/constraints. The supplied `examples.evolution.workflows` entry measures
-waveform activity only. This guide is copied into new prepared projects.
-
-The counter measures `combined_score = checks_passed / 80`, dimensionless,
-maximized; the adder and encoder each use 256 exhaustive input observations.
-Separate trusted scorers check the selected contract and
-stimulus against the managed simulation waveform. Readiness requires its full
-score and required task checks. Compile/incomplete failures get an optimizer
-penalty, not fabricated successful observations. Reports include the exact
-isolated project/job/run/viewer IDs. Inspect those projects, not just the outer
-work directory. Fixed tests can be overfit; they are not whole-design proof.
-
-### Real OpenEvolve is external and requires approval
-
-Use a separately installed compatible OpenEvolve environment and the user's
-existing YAML/provider configuration. Do not install packages, write provider
-settings or embed credentials without explicit authorization. Explain that RTL
-and feedback may leave the machine and charges may accrue.
-
-```sh
-/path/to/approved/venv/bin/python /installed/examples/evolutionary-example/run.py evolve --project /path/to/work --config /path/to/approved-openevolve.yaml --iterations 5 --timeout 60 --search-timeout 900
-```
-
-Here 5 iterations and 60 seconds per evaluation are illustrative choices, not
-approval or a spending cap. The runner bounds iterations to 1–100 and
-candidate evaluation time to 1–300 seconds. `--search-timeout` bounds invocation
-setup, queue waits and fresh finalist measurement (1–86400 seconds, default 900).
-Expiry returns 124, fails the owned session and requests job cancellation without
-accepting a late selection; cleanup may take extra time. Provider call limits remain
-OpenEvolve's responsibility. Read the example guide's explicit adapter overrides
-and API requirements before use; it restricts the evolving program, scoring,
-parallelism and retries without configuring a provider.
-
-The external worker generates candidates. The supervisor independently
-reevaluates the selected source before reporting selection/completion. Its
-callback does not supply parent/generation. The supervisor imports actual
-checkpoint ancestry only when evaluator IDs and exact code hashes match.
-Identical-code individuals remain distinct; finalist remeasurement keeps the
-observed identity. Unmatched ancestry stays unknown, with root shown only for
-explicit generation zero.
-Report actual attempts, failures and measured outcomes, not just best score.
-The example retains checkpoints and selected source under the session's
-`evaluations/` tree. Its Ctrl-C/SIGTERM handler stops the external optimizer
-process group and requests managed-job cancellation; verify shutdown. SIGKILL
-cannot run cleanup: recover the real worker project/job IDs and cancel them
-explicitly. A best-so-far return during cancellation is not completed evolution.
+Track the Pi job ID, plus the linked ChipSim job, run and artifact IDs. For
+cancellation, request control from the owning supervisor and verify the state
+of any outstanding evaluation. For old search launchers and historical journal
+records see the [legacy compatibility section](EVOLUTION.md#legacy-search-and-journal-compatibility).
 
 ## 5. Recover without changing the evidence
 

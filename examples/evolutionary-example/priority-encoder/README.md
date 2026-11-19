@@ -1,5 +1,7 @@
 # Highest-bit priority encoder
 
+This teaching page documents the legacy Python launcher and its recorded runs. For new persistent searches, use Pi Durable. For current standalone scoring and MCP, read [the benchmark guide](../../../docs/EVOLUTION.md).
+
 ## Goal and files
 
 Combinational `priority_encoder(request[7:0], valid, index[2:0])` reports the

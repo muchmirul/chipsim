@@ -1,19 +1,6 @@
 # Project-defined RTL evolution
 
-Choose a connection with [AGENT_CONNECTIONS.md](AGENT_CONNECTIONS.md). This
-installed Python runner is a subprocess workflow, distinct from the MCP
-workbench tool inventory and from native benchmark command flags.
-
-ChipSim evaluates a fixed managed design; an external OpenEvolve installation
-owns candidate generation and selection. Use `chipsim agent help` to discover
-`examples.evolution.runner`, `examples.evolution.workflows` and this guide's
-installed path. No PDF is needed. The [teaching examples](../examples/evolutionary-example/README.md)
-remain available with `--example counter|saturating-adder|priority-encoder`.
-
-For the native `chipsim evolution` benchmark commands, readable reports,
-comparison and reproduction, see [EVOLUTION.md](EVOLUTION.md). That family uses
-a separate benchmark schema; the flags and result contracts below belong to
-the installed Python runner.
+Use a weighted workflow to score a project-defined Verilog or VHDL candidate against fixed managed design inputs. Run a single measurement with `chipsim benchmark evaluate --workflow` or the ChipSim MCP benchmark tools. Use Pi Durable for explicitly requested persistent search. The legacy Python runner and its teaching examples remain installed. Discover their paths with `chipsim agent help`. [Connection guide](AGENT_CONNECTIONS.md) · [Built-in and custom benchmark definitions](EVOLUTION.md)
 
 ## Evaluate an existing hardware workflow
 
@@ -25,10 +12,9 @@ show the complete contract. Manual evaluation requires Python 3.10+, Node.js
 
 ```sh
 mkdir -p /tmp/hardware-work
-python3 /installed/examples/evolutionary-example/run.py evaluate \
+chipsim benchmark evaluate \
   --project /tmp/hardware-work --workflow /path/to/workflow.json \
   --candidate /path/to/candidate.sv --timeout 60
-chipsim --agent /tmp/hardware-work
 ```
 
 The definition has these required fields; additional fields reject:
@@ -52,6 +38,8 @@ copies those exact bytes before replacing its RTL. Changes to the authoring
 template do not change an active invocation. Changes to frozen bytes reject the
 next evaluation. Include every required input explicitly; files are not fetched
 or toolchains installed automatically. Managed design validation still applies.
+
+For MCP, bind the connection to a project which contains the workflow JSON and its template. Send the project-relative JSON path as `benchmark` to `chipsim_benchmark_prepare`. Read the baseline from the returned `candidateResource` when present or from the reported `candidatePath` in the template. Reuse the same context for comparable runs. Declare proofs in the workflow's design target. Use `chipsim_benchmark_result` to read `accepted`, `score`, raw metrics, metric units and native evidence. [MCP evaluation sequence](EVOLUTION.md#score-a-candidate-over-mcp)
 
 Use independent fixed reference tests and declare correctness and hard constraints
 in `requiredChecks`. Nonempty checks alone do not establish their adequacy.
@@ -110,7 +98,13 @@ the same observed activity. It is not an area, power or timing optimization
 benchmark. Replace the managed measurement task with your actual tool flow to
 optimize a meaningful hardware objective.
 
-## Search, deadlines and ancestry
+## Persistent search and legacy runner
+
+For a new Pi Durable search, follow the installed `helper_info({includeGuide: true})` guide and use the ChipSim evaluator example. Set its `benchmark` to the project-relative workflow path and its `candidate` to the path returned by preparation, such as `template/counter.sv`. Use the same bound project on Pi Durable's ChipSim connection. Pi Durable stores proposal lineage and the fresh finalist result. Read `job_status` there and follow its linked ChipSim evidence.
+
+### Legacy launcher
+
+The following commands and checkpoint details apply to the deprecated standalone search launcher during its compatibility release.
 
 Use an already approved OpenEvolve environment/configuration. Its system prompt
 must describe your interface, mutable evolve block, objectives and fixed tests;

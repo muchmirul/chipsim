@@ -24,7 +24,7 @@ ChipSim is a local TUI hardware behavior workbench. The terminal is the only int
 
 - `README.md`: user workflow, setup, and current limits.
 - `docs/AGENT_QUICKSTART.md`: workflow selection and the native evolution baseline/edit/evaluate loop.
-- `docs/EVOLUTION.md`: `chipsim evolution` benchmark JSON, feedback, comparison, reproduction and formal gates.
+- `docs/EVOLUTION.md`: `chipsim benchmark`, MCP scoring, Pi Durable integration, feedback, comparison, reproduction and formal gates.
 - `docs/EVOLUTION_OBJECTIVES.md`: the separate project-defined multi-objective runner (`--workflow`), including Verilog/VHDL, units, weights and search budgets.
 - `docs/DESIGN_INPUTS.md`: optional chip-development input recipes and missing-file preparation. Use `chipsim design guide [TOPIC]` to discover formats, minimum files and installed examples. Inspect existing work, then create/find/prepare missing prerequisites within the user's scope; generated outputs need producers, not mandatory user uploads. `.asm` needs an explicit compatible assembler task; VCD is a recorded result. These recipes are advisory and do not impose stage ordering.
 - `docs/AGENT_CONTROL.md`: agent operating procedure, task/mode selection, execution/evidence controls, live reporting, evolution budgets and recovery.
@@ -125,8 +125,8 @@ checks or invent initialization to turn an unsupported case into a pass.
 
 ## Evaluating and improving RTL
 
-Discover with `chipsim evolution list` and `describe --benchmark NAME`; custom
-definitions need `validate --benchmark FILE`. Read `docs/AGENT_QUICKSTART.md`
+Discover with `chipsim benchmark list` and `describe --benchmark NAME`. For MCP read `chipsim://guide/evolution`.
+Custom definitions need `validate --benchmark FILE`. Read `docs/AGENT_QUICKSTART.md`
 and `docs/EVOLUTION.md`. Save baseline JSON, inspect failures, change only the
 declared candidate, then evaluate and compare. Counter starts deliberately
 broken. Exit 1 may retain a complete failure report; inspect status, diagnostics,

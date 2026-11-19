@@ -30,14 +30,14 @@ export const resultSchema = {
 const definitions = [
   [
     "benchmark_prepare",
-    "Capture fixed benchmark inputs for a built-in or project-relative definition.",
+    "Capture a built-in or project-relative benchmark and return its immutable context, candidate path and fixed input hashes. Weighted workflows declare proofs in their target.",
     { benchmark: string(1024), formal: { type: "boolean" } },
     ["benchmark"],
     false,
   ],
   [
     "benchmark_start",
-    "Evaluate one candidate using the captured context. Replay a request to recover its job.",
+    "Evaluate one UTF-8 candidate up to 64 KiB using the captured context and its exact SHA-256. Save a stable requestId before submitting. Poll chipsim_job_status.",
     {
       context: id,
       candidateHash: id,
@@ -49,7 +49,7 @@ const definitions = [
   ],
   [
     "benchmark_result",
-    "Verify and read the measurement and evidence of a completed benchmark job.",
+    "Verify and read a completed benchmark measurement. Check accepted, score, metrics, units and evidence. Pass evidence.benchmarkJob when inspecting native stage artifacts.",
     { job: uuid },
     ["job"],
     true,
@@ -159,7 +159,7 @@ const definitions = [
   ],
   [
     "resource_read",
-    "Read ChipSim guides, schemas, starter files or bounded project resources by URI. Start with chipsim://guide/connections and chipsim://guide/workbench when the host only exposes tools. Uses the same resource allowlist as MCP resources/read.",
+    "Read installed ChipSim guides, schemas, starter files or bounded project resources by URI. Start with chipsim://guide/workbench. Read chipsim://guide/evolution for benchmark scoring. Uses the same allowlist as MCP resources/read.",
     { uri: { ...string(), minLength: 1 } },
     ["uri"],
     true,
@@ -244,7 +244,7 @@ const definitions = [
   ],
   [
     "job_status",
-    "Read durable job status; optional bounded wait stops without cancelling the job.",
+    "Read durable job status by exactly one of job or requestId. An optional bounded wait leaves the job running when the wait ends.",
     { job: uuid, requestId: string(128), waitMs: integer(10000) },
     [],
     true,

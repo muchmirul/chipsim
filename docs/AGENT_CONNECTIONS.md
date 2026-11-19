@@ -13,7 +13,9 @@ viewer. ChipSim does not supply an LLM, configure a provider or start agent turn
 
 ## Two direct connections from any local MCP client
 
-Use the ChipSim stdio command `chipsim mcp --project /absolute/project` for hardware tools. A separately installed Pi Durable helper exposes `pi-durable-mcp` over stdio for persistent goals. Configure both commands in the harness and list their tools. Use `command -v chipsim` and `pi-durable-mcp --print-command` to get absolute paths. Each program works independently. Choose the same bound project in the helper's ChipSim connection when a persistent job will evaluate hardware. A client may close and another may retrieve the job by ID.
+Register `chipsim mcp --project /absolute/project` for hardware and evidence tools. Register `pi-durable-mcp` separately if the user has configured the Pi Durable goal service. Both are standard local stdio descriptors. Use `command -v chipsim` and `pi-durable-mcp --print-command` for absolute paths. Each client discovers tools from the two registered servers.
+
+For a single measurement, use ChipSim directly. For an explicitly requested persistent job, read Pi Durable's `helper_info({includeGuide: true})` and select regular or evolution for that job. When Pi Durable submits ChipSim work, its ChipSim registry entry must be bound to the same project as the job. A second client can use the Pi job ID for goal status and the linked ChipSim job ID for hardware evidence.
 
 ## Discover the actual installation
 
@@ -89,7 +91,7 @@ exception contract. Native tools do not need the optional MCP SDK.
 
 Use `chipsim_command` for the other CLI families and text help, with literal
 `args`. It accepts `workbench`, `agent`, `hdl`, `circuit`, `table`, `design`, `job`,
-`artifact`, `checks` and `evolution`. Launch the persistent MCP server through an
+`artifact`, `checks`, `benchmark` and the legacy `evolution` family. Launch the persistent MCP server through an
 MCP client, not through this one-response command tool. `/chipsim` hands off a
 supported terminal; prime-agent daemon hosts return a separate-terminal command.
 
@@ -119,13 +121,15 @@ Each server is bound to one existing directory, which may be empty. Its stdout
 is reserved for MCP stdio messages; setup errors go to stderr. No HTTP listener
 or shared selected-project state is created. Separate servers isolate roots.
 
-For Codex CLI and Rust prime-agent 0.10, register the stdio server with absolute
+For ordinary Pi, Codex CLI and Rust prime-agent, register the stdio server with absolute
 paths (replace the three paths for your installation):
 
 ```sh
+pi mcp add chipsim -- /absolute/node /absolute/chipsim/scripts/chipsim.mjs mcp --project /absolute/project
 codex mcp add chipsim -- /absolute/node /absolute/chipsim/scripts/chipsim.mjs mcp --project /absolute/project
 prime-agent mcp add chipsim -- /absolute/node /absolute/chipsim/scripts/chipsim.mjs mcp --project /absolute/project
 codex mcp list
+pi mcp list
 prime-agent mcp get chipsim
 ```
 
@@ -150,12 +154,7 @@ This returns the same allowlisted resource content as `resources/read`, inside
 
 ### Verified prime-agent 0.10 Python client
 
-The installed Rust prime-agent **0.10.0** Python MCP client has passed ChipSim's
-[host compatibility acceptance](prime-agent-mcp-acceptance.json): all 32 shared
-tools, tools-only guide access, structured results, CAS errors, isolated projects,
-managed execution, client reload/durable request replay and verified binary
-retrieval. A read-only probe of the registered `chipsim` descriptor confirmed
-that its tool schemas match the checkout.
+The recorded Rust prime-agent **0.10.0** Python client acceptance covered the 32-tool inventory at its validation date. It exercised tools-only guide access, structured results, CAS errors, isolated projects, managed execution, reload and request replay, and verified binary retrieval. The attached result identifies that exact inventory. For the running version, read `chipsim_project` and refresh `tools/list`. [Host compatibility acceptance](prime-agent-mcp-acceptance.json)
 This verifies the installed `rlm.mcp` client with isolated host-config replies;
 it does not start a model turn or claim an end-to-end Rust daemon/UI test.
 
@@ -201,17 +200,13 @@ runner writes `acceptance.json` beside the temporary projects with the validatio
 time, runner checksum and job/run IDs. It leaves the registered project and
 settings untouched.
 
-Read `chipsim://guide/connections`, then `chipsim://guide/workbench`. List tools
-and resources: tools are named `chipsim_TOOL`, installed agent guides are listed
+Start with `chipsim_project` and `chipsim://guide/workbench`. Read `chipsim://guide/evolution` for benchmark scoring, `chipsim://guide/evolution-objectives` for weighted workflows, or `chipsim://guide/manufacturing` for physical preparation and release. List tools and resources. Tools are named `chipsim_TOOL`, installed agent guides are listed
 under `chipsim://docs/NAME.md`, schemas under `chipsim://schema/tools`, project
 status under `chipsim://project/status`, and programmable starter files under
 `chipsim://examples/programmable/FILE`. Recipe discovery uses
 `chipsim://guide/recipes?topic=programmable` or `topic=tinytapeout`.
 
-MCP currently exposes the workbench operations listed by `tools/list`, not every
-CLI/PDF/evolution/work-journal command. Do not invent names such as
-`chipsim_command` on this transport. Read the shared schemas for exact fields;
-MCP calls omit the native `project` argument because the server already binds it.
+Use the live `tools/list` workbench schema for exact arguments, including the `chipsim_benchmark_*` operations. The general `chipsim_command`, PDF commands and Activity journal writers belong to the CLI or native extension. MCP workbench calls use the bound project and take `candidate` when operating in an editable copy.
 This is a trusted local development service: declared task commands execute with
 the user's permissions; file-path checks do not sandbox arbitrary tool execution.
 
